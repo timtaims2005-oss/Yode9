@@ -1,0 +1,416 @@
+import { useState, useEffect } from "react";
+import { X, Zap, Flame, RotateCcw, Brain, Target, Bot, Layers, Cpu, Shield, Maximize2, Skull, Star, Atom, AlertTriangle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+export type GodmodeConfig = {
+  mode: "classic" | "ultraplinian" | "reason" | "hunter" | "agent" | "extended" | "maxoverdrive" | "unbound" | "jioreason" | "mythos" | "ultimate" | "think" | "max" | "abliterated";
+  tier: "bronze" | "silver" | "gold" | "platinum" | "diamond";
+};
+
+export const DEFAULT_GODMODE_CONFIG: GodmodeConfig = {
+  mode: "classic",
+  tier: "bronze",
+};
+
+export const GODMODE_MODES: Array<{
+  id: GodmodeConfig["mode"];
+  label: string;
+  shortLabel: string;
+  count: number;
+  icon: typeof Zap;
+  color: string;
+  glow: string;
+  desc: string;
+  tag: string;
+  strategy: string;
+}> = [
+  {
+    id: "classic",
+    label: "GODMODE CLASSIC",
+    shortLabel: "CLASSIC",
+    count: 5,
+    icon: Zap,
+    color: "#e21227",
+    glow: "rgba(226,18,39,0.35)",
+    desc: "5 hand-tuned style × persona champions race in parallel. Judge picks the winner.",
+    tag: "5 CHAMPIONS",
+    strategy: "Style × Persona matrix with composite 100-pt scoring",
+  },
+  {
+    id: "ultraplinian",
+    label: "ULTRAPLINIAN",
+    shortLabel: "ULTRAPLINIAN",
+    count: 55,
+    icon: Flame,
+    color: "#f97316",
+    glow: "rgba(249,115,22,0.35)",
+    desc: "5-tier evaluation engine with 10–55 champions. Maximum volcanic eruption of intelligence.",
+    tag: "10–55 CHAMPIONS",
+    strategy: "Tiered 5-level evaluation with full-field composite scoring",
+  },
+  {
+    id: "reason",
+    label: "DEEP REASON",
+    shortLabel: "REASON",
+    count: 8,
+    icon: Brain,
+    color: "#a78bfa",
+    glow: "rgba(167,139,250,0.35)",
+    desc: "8 reasoning-specialized champions. Think-chain, CoT, and reflection layers for maximum logical depth.",
+    tag: "8 CHAMPIONS",
+    strategy: "Chain-of-thought + self-reflection + adversarial critique",
+  },
+  {
+    id: "hunter",
+    label: "THREAT HUNTER",
+    shortLabel: "HUNTER",
+    count: 6,
+    icon: Target,
+    color: "#fbbf24",
+    glow: "rgba(251,191,36,0.35)",
+    desc: "6 threat-hunting specialists. Adversarial red-team perspective for security and vulnerability analysis.",
+    tag: "6 CHAMPIONS",
+    strategy: "Red-team adversarial analysis + IOC correlation + kill-chain mapping",
+  },
+  {
+    id: "agent",
+    label: "AGENTIC MODE",
+    shortLabel: "AGENT",
+    count: 4,
+    icon: Bot,
+    color: "#00e5ff",
+    glow: "rgba(0,229,255,0.35)",
+    desc: "4 autonomous agent champions. ReAct loop with tool simulation, planning, and multi-step execution.",
+    tag: "4 CHAMPIONS",
+    strategy: "ReAct loop · Plan-Execute-Reflect · autonomous tool calling",
+  },
+  {
+    id: "extended",
+    label: "EXTENDED THINKING",
+    shortLabel: "EXTENDED",
+    count: 3,
+    icon: Layers,
+    color: "#818cf8",
+    glow: "rgba(129,140,248,0.35)",
+    desc: "3 deep-thinking champions with extended context windows. Ultra-long reasoning chains and meta-cognition.",
+    tag: "3 CHAMPIONS",
+    strategy: "Extended context (200K+) · meta-reasoning · recursive self-improvement",
+  },
+  {
+    id: "maxoverdrive",
+    label: "MAX OVERDRIVE",
+    shortLabel: "MAX OD",
+    count: 45,
+    icon: Cpu,
+    color: "#10b981",
+    glow: "rgba(16,185,129,0.35)",
+    desc: "45 champions — near-exhaustive coverage. Maximum throughput with quality filtering and synthesis.",
+    tag: "45 CHAMPIONS",
+    strategy: "Full-spectrum coverage with dynamic quality gate and synthesis layer",
+  },
+  {
+    id: "unbound",
+    label: "UNBOUND",
+    shortLabel: "UNBOUND",
+    count: 12,
+    icon: Maximize2,
+    color: "#ec4899",
+    glow: "rgba(236,72,153,0.35)",
+    desc: "12 uncensored champions with no restrictions. Raw maximum power for research and red-team operations.",
+    tag: "12 CHAMPIONS",
+    strategy: "Unrestricted full-power · adversarial cross-validation · no safety rails",
+  },
+  {
+    id: "jioreason",
+    label: "JIO REASON",
+    shortLabel: "JIO",
+    count: 14,
+    icon: Shield,
+    color: "#00e5cc",
+    glow: "rgba(0,229,204,0.35)",
+    desc: "14 jailbroken reasoning champions. Combines jailbreak techniques with chain-of-thought depth for unrestricted analysis.",
+    tag: "14 CHAMPIONS",
+    strategy: "Jailbreak + CoT fusion · unrestricted reasoning chains · multi-layer adversarial validation",
+  },
+  {
+    id: "mythos",
+    label: "MYTHOS",
+    shortLabel: "MYTHOS",
+    count: 12,
+    icon: Star,
+    color: "#8b5cf6",
+    glow: "rgba(139,92,246,0.35)",
+    desc: "12 legendary archetypes as champions — Sun Tzu, Machiavelli, Tesla, Nietzsche, Da Vinci, and 7 more mythical minds.",
+    tag: "12 LEGENDS",
+    strategy: "Archetypal intelligence · 12 legendary persona lenses · wisdom synthesis council",
+  },
+  {
+    id: "ultimate",
+    label: "ULTIMATE",
+    shortLabel: "ULTIMATE",
+    count: 99,
+    icon: Flame,
+    color: "#f43f5e",
+    glow: "rgba(244,63,94,0.35)",
+    desc: "99 champions — near-total intelligence coverage. The most powerful Godmode configuration ever built.",
+    tag: "99 CHAMPIONS",
+    strategy: "Maximum parallel · full-field neural synthesis · convergence council · dynamic quality gate",
+  },
+  {
+    id: "think",
+    label: "DEEP THINK",
+    shortLabel: "THINK",
+    count: 6,
+    icon: Atom,
+    color: "#6366f1",
+    glow: "rgba(99,102,241,0.35)",
+    desc: "6 deep-thinking champions with extended reasoning budgets, meta-cognition chains, and recursive self-improvement.",
+    tag: "6 THINKERS",
+    strategy: "Extended think tokens · recursive self-improvement · metacognitive audit · Socratic validation",
+  },
+  {
+    id: "max",
+    label: "MAX POWER",
+    shortLabel: "MAX",
+    count: 77,
+    icon: Zap,
+    color: "#f59e0b",
+    glow: "rgba(245,158,11,0.35)",
+    desc: "77 champions at maximum throughput. Every cognitive angle pushed to absolute limits with dynamic synthesis.",
+    tag: "77 CHAMPIONS",
+    strategy: "Max throughput · dynamic quality gate · convergence synthesis · auto-ranking",
+  },
+  {
+    id: "abliterated",
+    label: "ABLITERATED",
+    shortLabel: "ABLITERATED",
+    count: 10,
+    icon: Skull,
+    color: "#dc2626",
+    glow: "rgba(220,38,38,0.45)",
+    desc: "10 fully abliterated champions. RLHF and safety filters bypassed at weight level. Raw unconstrained intelligence for extreme research.",
+    tag: "10 ABLITERATED",
+    strategy: "Abliteration bypass · zero RLHF constraints · pure capability · adversarial red-team synthesis",
+  },
+];
+
+const TIERS: Array<{ id: GodmodeConfig["tier"]; label: string; count: number; blurb: string; color: string }> = [
+  { id: "bronze",   label: "Bronze",   count: 10, blurb: "10 · fastest",         color: "#cd7f32" },
+  { id: "silver",   label: "Silver",   count: 20, blurb: "20 · balanced",        color: "#94a3b8" },
+  { id: "gold",     label: "Gold",     count: 35, blurb: "35 · deep",            color: "#fbbf24" },
+  { id: "platinum", label: "Platinum", count: 45, blurb: "45 · exhaustive",      color: "#e2e8f0" },
+  { id: "diamond",  label: "Diamond",  count: 55, blurb: "55 · max overdrive",   color: "#00e5ff" },
+];
+
+export function godmodeLabel(cfg: GodmodeConfig): string {
+  const m = GODMODE_MODES.find(x => x.id === cfg.mode);
+  if (!m) return "GODMODE";
+  if (cfg.mode === "ultraplinian") {
+    const t = TIERS.find(t => t.id === cfg.tier);
+    return `ULTRAPLINIAN ${t?.label.toUpperCase() ?? ""}`;
+  }
+  return m.label;
+}
+
+export function godmodeChampCount(cfg: GodmodeConfig): number {
+  const m = GODMODE_MODES.find(x => x.id === cfg.mode);
+  if (!m) return 5;
+  if (cfg.mode === "ultraplinian") {
+    return TIERS.find(t => t.id === cfg.tier)?.count ?? 10;
+  }
+  return m.count;
+}
+
+export function GodmodeSettingsModal({
+  open,
+  initial,
+  onClose,
+  onSave,
+}: {
+  open: boolean;
+  initial: GodmodeConfig;
+  onClose: () => void;
+  onSave: (cfg: GodmodeConfig) => void;
+}) {
+  const [mode, setMode] = useState<GodmodeConfig["mode"]>(initial.mode);
+  const [tier, setTier] = useState<GodmodeConfig["tier"]>(initial.tier);
+
+  useEffect(() => {
+    if (open) {
+      setMode(initial.mode);
+      setTier(initial.tier);
+    }
+  }, [open, initial]);
+
+  if (!open) return null;
+
+  const activeMode = GODMODE_MODES.find(m => m.id === mode)!;
+  const champCount = mode === "ultraplinian" ? (TIERS.find(t => t.id === tier)?.count ?? 10) : activeMode.count;
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/75 backdrop-blur-sm"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94 }}
+            transition={{ duration: 0.18 }}
+            className="w-full max-w-2xl bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+            style={{ boxShadow: `0 0 60px ${activeMode.glow}, 0 0 0 1px ${activeMode.glow}` }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border"
+              style={{ background: `${activeMode.glow.replace("0.35", "0.06")}` }}>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                  style={{ background: `${activeMode.color}20`, border: `1px solid ${activeMode.color}40` }}>
+                  <activeMode.icon className="w-4 h-4" style={{ color: activeMode.color }} />
+                </div>
+                <div>
+                  <div className="text-sm font-black tracking-wider" style={{ color: activeMode.color }}>GODMODE</div>
+                  <div className="text-[10px] text-muted-foreground">Multi-strategy parallel race · 100-pt composite scoring · winner-takes-all</div>
+                </div>
+                <div className="ml-2 px-2 py-0.5 rounded-full text-[9px] font-black font-mono"
+                  style={{ background: `${activeMode.color}15`, color: activeMode.color, border: `1px solid ${activeMode.color}30` }}>
+                  {champCount} CHAMPIONS
+                </div>
+              </div>
+              <button onClick={onClose} className="p-1.5 hover:bg-accent rounded-md text-muted-foreground hover:text-foreground">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4 max-h-[75vh] overflow-y-auto">
+              {/* Mode Grid */}
+              <div>
+                <div className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <Zap className="w-3 h-3" /> Select Combat Mode
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {GODMODE_MODES.map(m => {
+                    const Icon = m.icon;
+                    const isActive = mode === m.id;
+                    return (
+                      <motion.button
+                        key={m.id}
+                        onClick={() => setMode(m.id)}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        className="px-2.5 py-2.5 rounded-xl border text-left transition-all relative overflow-hidden"
+                        style={{
+                          borderColor: isActive ? m.color : "rgba(255,255,255,0.08)",
+                          background: isActive ? `${m.color}12` : "rgba(255,255,255,0.025)",
+                          boxShadow: isActive ? `0 0 16px ${m.glow}` : "none",
+                        }}
+                      >
+                        {isActive && (
+                          <motion.div
+                            className="absolute inset-0 opacity-5"
+                            animate={{ opacity: [0.03, 0.08, 0.03] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            style={{ background: `radial-gradient(circle at 50% 50%, ${m.color}, transparent)` }}
+                          />
+                        )}
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Icon className="w-3 h-3" style={{ color: m.color }} />
+                          <span className="text-[10px] font-black" style={{ color: isActive ? m.color : "#888" }}>{m.shortLabel}</span>
+                        </div>
+                        <div className="text-[8px] font-mono font-bold px-1 py-0.5 rounded inline-block"
+                          style={{ background: `${m.color}15`, color: m.color }}>{m.tag}</div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Active Mode Details */}
+              <div className="rounded-xl p-3 border"
+                style={{ background: `${activeMode.color}06`, borderColor: `${activeMode.color}20` }}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <activeMode.icon className="w-4 h-4" style={{ color: activeMode.color }} />
+                  <span className="text-[12px] font-black" style={{ color: activeMode.color }}>{activeMode.label}</span>
+                </div>
+                <div className="text-[11px] text-muted-foreground leading-relaxed mb-2">{activeMode.desc}</div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="text-[9px] font-mono px-2 py-0.5 rounded-full border"
+                    style={{ borderColor: `${activeMode.color}30`, color: activeMode.color, background: `${activeMode.color}10` }}>
+                    {activeMode.strategy}
+                  </div>
+                </div>
+              </div>
+
+              {/* ULTRAPLINIAN Tier selector */}
+              {mode === "ultraplinian" && (
+                <div>
+                  <div className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3 h-3 text-orange-400" /> Volcano Tier
+                  </div>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {TIERS.map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => setTier(t.id)}
+                        className="px-2 py-2.5 rounded-xl border text-center transition-all"
+                        style={{
+                          borderColor: tier === t.id ? t.color : "rgba(255,255,255,0.08)",
+                          background: tier === t.id ? `${t.color}18` : "rgba(255,255,255,0.025)",
+                        }}
+                      >
+                        <div className="text-[10px] font-bold" style={{ color: tier === t.id ? t.color : "#666" }}>{t.label}</div>
+                        <div className="text-[11px] font-black font-mono mt-0.5" style={{ color: t.color }}>{t.count}</div>
+                        <div className="text-[8px] text-muted-foreground leading-tight mt-0.5">{t.blurb.split("·")[1]?.trim()}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* System Info */}
+              <div className="rounded-xl border border-border bg-background/40 p-3 text-[10px] text-muted-foreground space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Shield className="w-3 h-3 text-primary" />
+                  <span className="font-mono font-bold text-foreground">Scoring Matrix</span>
+                </div>
+                <div className="font-mono">
+                  <span className="text-primary font-bold">10 styles</span> × <span className="text-primary font-bold">10 personas</span>
+                  {" · "}Insight <span className="text-fuchsia-400">25pt</span> + Specificity <span className="text-blue-400">20pt</span> + Accuracy <span className="text-green-400">25pt</span> + Novelty <span className="text-amber-400">15pt</span> + Structure <span className="text-cyan-400">15pt</span>
+                </div>
+                <div className="text-[9px]">
+                  Each champion runs with a system prompt that channels both the prompting style and model persona signature voice. Concurrency limited to 12 in flight. Winner selected by automated judge on 100-pt scale.
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-4 py-3 border-t border-border flex items-center justify-between gap-2">
+              <button onClick={() => { setMode("classic"); setTier("bronze"); }}
+                className="text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors">
+                <RotateCcw className="w-3 h-3" /> Reset
+              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={onClose} className="px-3 py-1.5 rounded-lg text-[12px] hover:bg-accent transition-colors">Cancel</button>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => { onSave({ mode, tier }); onClose(); }}
+                  className="px-4 py-1.5 rounded-lg text-[12px] font-black transition-all"
+                  style={{ background: `linear-gradient(135deg, ${activeMode.color}, ${activeMode.color}cc)`, color: "#fff", boxShadow: `0 0 16px ${activeMode.glow}` }}
+                >
+                  Activate {activeMode.shortLabel}
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

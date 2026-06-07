@@ -1,0 +1,7 @@
+- [mr7-ai streaming fix](mr7-ai-streaming.md) — server always sends SSE regardless of `stream` flag; all API consumers must use SSE reader, never `resp.json()`
+- [mr7-ai multi-provider AI](mr7-ai-multi-provider.md) — unified provider system supports OpenAI/Anthropic/Groq/Gemini/OpenRouter/Custom/Personal; "personal" is always available, URL editable from ProviderSettingsModal UI
+- [mr7-ai cloud sync](mr7-ai-cloud-sync.md) — chats synced to PostgreSQL `cloud_chats` table via deviceId; GET/POST `/api/cloud-chats`; debounced 3s push from StoreProvider
+- [mr7-ai personal-api migration](mr7-ai-personal-api.md) — all Replit OpenAI SDK calls replaced with getPersonalOpenAI()/callOnce() from ai-providers.ts; model "gpt-5.4" replaced with PERSONAL_DEFAULT_MODEL; max_completion_tokens → max_tokens
+- [mr7-ai qr-sync](mr7-ai-qr-sync.md) — QR sync: push chats via POST /api/cloud-chats?deviceId, share URL ?sync=deviceId, auto-import on load; QrCode button in Sidebar bottom bar; IMPORT_CHATS action merges without duplicates
+- [mr7-ai api-zod-preexisting](mr7-ai-api-zod.md) — health.ts TypeCheck error (api-zod not built) is pre-existing; does not affect runtime; frontend TypeCheck passes cleanly
+- [mr7-ai godmode-modes](mr7-ai-godmode.md) — GodmodeConfig.mode type must stay in sync across GodmodeSettingsModal.tsx, chat-client.ts, store.tsx; 14 modes total (classic/ultraplinian/reason/hunter/agent/extended/maxoverdrive/unbound/jioreason/mythos/ultimate/think/max/abliterated)

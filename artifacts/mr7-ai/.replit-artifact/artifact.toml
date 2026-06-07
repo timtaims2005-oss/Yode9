@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "mr7.ai"
+version = "1.0.0"
+id = "artifacts/mr7-ai"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22938
+
+[services.development]
+run = "pnpm --filter @workspace/mr7-ai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/mr7-ai", "run", "build" ]
+publicDir = "artifacts/mr7-ai/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22938"
+BASE_PATH = "/"

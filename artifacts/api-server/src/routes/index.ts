@@ -1,0 +1,36 @@
+import { Router, type IRouter } from "express";
+import healthRouter from "./health";
+import chatRouter from "./chat";
+import councilRouter from "./council";
+import godmodeRouter from "./godmode";
+import autotuneRouter from "./autotune";
+import imageRouter from "./image";
+import visionRouter from "./vision";
+import agentRouter from "./agent";
+import contextRouter from "./context";
+import osintRouter from "./osint";
+import claudeCodeRouter from "./claude-code";
+import filesRouter from "./files";
+import shellRouter from "./shell";
+import gitRouter from "./git";
+import providersRouter from "./providers";
+
+const router: IRouter = Router();
+
+router.use(healthRouter);
+router.use(chatRouter);
+router.use(councilRouter);
+router.use(godmodeRouter);
+router.use(autotuneRouter);
+router.use(imageRouter);
+router.use(visionRouter);
+router.use(agentRouter);
+router.use(contextRouter);
+router.use(osintRouter);
+router.use(claudeCodeRouter);
+router.use(filesRouter);
+router.use(shellRouter);
+router.use(gitRouter);
+router.use(providersRouter);
+
+export default router;
