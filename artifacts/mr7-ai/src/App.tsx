@@ -132,6 +132,8 @@ import { WarRoomModal } from "./components/modals/WarRoomModal";
 import { CyberHeatmapHUD } from "./components/CyberHeatmapHUD";
 import { LiveThreatTicker } from "./components/LiveThreatTicker";
 import { SystemStatusWidget } from "./components/SystemStatusWidget";
+import { NetworkTopologyWidget } from "./components/NetworkTopologyWidget";
+import { AmbientParticleField } from "./components/AmbientParticleField";
 
 const queryClient = new QueryClient();
 
@@ -634,6 +636,12 @@ function AppContent() {
 
       {/* System Status Widget */}
       <SystemStatusWidget />
+
+      {/* Network Topology Widget */}
+      <NetworkTopologyWidget />
+
+      {/* Ambient particle field */}
+      <AmbientParticleField density={0.5} />
 
       {/* Global HUD scan line — year 3090 effect */}
       <div className="hud-scan-line pointer-events-none" />

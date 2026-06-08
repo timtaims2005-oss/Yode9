@@ -2216,6 +2216,277 @@ html {
   100% { transform: translateX(-50%); }
 }
 
+/* ════════════════════════════════════════════════════
+   PHASE 4 — ADVANCED 3D FUTURISTIC UI ENHANCEMENTS
+   Year 2090 cyber aesthetic — full holographic layer
+════════════════════════════════════════════════════ */
+
+/* ── Animated holographic gradient border ── */
+@keyframes holo-border-rotate {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes data-stream {
+  0%   { transform: translateY(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(-100%); opacity: 0; }
+}
+
+@keyframes hud-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(226,18,39,0.15), inset 0 1px 0 rgba(255,255,255,0.04); }
+  50%       { box-shadow: 0 0 20px rgba(226,18,39,0.3), inset 0 1px 0 rgba(255,255,255,0.08); }
+}
+
+@keyframes glitch-border {
+  0%, 95%, 100% { clip-path: none; }
+  96%  { clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%); transform: translate(-2px, 0); }
+  97%  { clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%); transform: translate(2px, 0); }
+  98%  { clip-path: none; transform: translate(0, 0); }
+}
+
+@keyframes particle-drift {
+  0%    { transform: translate(0, 0) scale(1); opacity: 0; }
+  20%   { opacity: 0.6; }
+  80%   { opacity: 0.3; }
+  100%  { transform: translate(var(--dx, 30px), var(--dy, -60px)) scale(0); opacity: 0; }
+}
+
+@keyframes hex-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes circuit-trace {
+  0%   { stroke-dashoffset: 200; opacity: 0; }
+  30%  { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0.4; }
+}
+
+@keyframes scanline-sweep {
+  0%   { top: -5%; }
+  100% { top: 105%; }
+}
+
+@keyframes matrix-cascade {
+  0%   { opacity: 0; transform: translateY(-8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes neon-breathe {
+  0%, 100% { text-shadow: 0 0 8px currentColor, 0 0 20px currentColor; }
+  50%       { text-shadow: 0 0 4px currentColor, 0 0 10px currentColor; }
+}
+
+@keyframes energy-flow {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ── Enhanced message bubbles ── */
+.msg-bubble-ai {
+  position: relative;
+  background: linear-gradient(135deg, rgba(14,14,22,0.95) 0%, rgba(10,10,18,0.98) 100%) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  border-radius: 16px 16px 16px 4px !important;
+  box-shadow:
+    0 0 0 1px rgba(226,18,39,0.04),
+    0 4px 20px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.04) !important;
+  transition: box-shadow 0.3s ease !important;
+}
+.msg-bubble-ai:hover {
+  box-shadow:
+    0 0 0 1px rgba(226,18,39,0.1),
+    0 8px 28px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+.msg-bubble-ai::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,229,255,0.2) 40%, rgba(226,18,39,0.15) 70%, transparent);
+  border-radius: 16px 16px 0 0;
+  pointer-events: none;
+}
+
+.msg-bubble-user {
+  background: linear-gradient(135deg, rgba(226,18,39,0.14) 0%, rgba(160,10,26,0.1) 100%) !important;
+  border: 1px solid rgba(226,18,39,0.2) !important;
+  border-radius: 16px 16px 4px 16px !important;
+  box-shadow:
+    0 0 0 1px rgba(226,18,39,0.08),
+    0 4px 16px rgba(226,18,39,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+
+/* ── Enhanced avatar ── */
+.avatar-3d {
+  animation: hud-pulse 4s ease-in-out infinite !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+.avatar-3d:hover {
+  transform: scale(1.08) translateZ(4px) !important;
+}
+
+/* ── Chat input area glow ── */
+textarea:focus,
+input[type="text"]:focus {
+  box-shadow:
+    0 0 0 1px rgba(226,18,39,0.3),
+    0 0 24px rgba(226,18,39,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.04) !important;
+  border-color: rgba(226,18,39,0.3) !important;
+  transition: box-shadow 0.25s ease !important;
+}
+
+/* ── Glowing neon text ── */
+.neon-red   { animation: neon-breathe 3s ease-in-out infinite; color: #e21227; }
+.neon-cyan  { animation: neon-breathe 3s ease-in-out infinite; color: #00e5ff; }
+.neon-green { animation: neon-breathe 3s ease-in-out infinite; color: #22c55e; }
+
+/* ── Energy flow button ── */
+.energy-btn {
+  background: linear-gradient(90deg, #e21227, #ff4d6d, #e21227) !important;
+  background-size: 200% auto !important;
+  animation: energy-flow 3s linear infinite !important;
+  border: none !important;
+}
+.energy-btn:hover {
+  animation-duration: 1.5s !important;
+  box-shadow: 0 0 30px rgba(226,18,39,0.5) !important;
+}
+
+/* ── Futuristic scrollbar ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(226,18,39,0.4), rgba(226,18,39,0.15));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(226,18,39,0.7), rgba(226,18,39,0.3));
+  box-shadow: 0 0 8px rgba(226,18,39,0.4);
+}
+
+/* ── Holographic status indicator ── */
+.status-orb {
+  position: relative;
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.status-orb::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  opacity: 0.3;
+  animation: energy-ring 2s ease-out infinite;
+}
+
+/* ── 3D Depth card hover ── */
+.card-hover-3d {
+  transition: transform 0.3s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s ease;
+  transform-style: preserve-3d;
+}
+.card-hover-3d:hover {
+  transform: translateY(-3px) translateZ(8px) rotateX(1deg);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+}
+
+/* ── Animated sidebar beam ── */
+.sidebar-beam {
+  position: absolute; top: 0; right: 0;
+  width: 1px; height: 100%;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(226,18,39,0.4) 30%,
+    rgba(226,18,39,0.8) 50%,
+    rgba(226,18,39,0.4) 70%,
+    transparent 100%
+  );
+  animation: scanline-sweep 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ── Full-width sweep scanner line ── */
+.sweep-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(0,229,255,0.6) 40%,
+    rgba(226,18,39,0.8) 60%,
+    transparent 100%
+  );
+  animation: scanline-sweep 8s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Holographic surface shimmer ── */
+.holo-surface {
+  position: relative;
+  overflow: hidden;
+}
+.holo-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255,255,255,0.02) 50%,
+    transparent 60%
+  );
+  background-size: 200% 200%;
+  animation: holo-border-rotate 4s ease infinite;
+  pointer-events: none;
+}
+
+/* ── TopBar futuristic breathe ── */
+[class*="top-bar"],
+header {
+  animation: hud-pulse 8s ease-in-out infinite;
+}
+
+/* ── Code block 3D depth ── */
+pre, code {
+  position: relative;
+}
+pre {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 4px 20px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.03) !important;
+}
+pre::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #e21227, #00e5ff, #a78bfa, #22c55e);
+  opacity: 0.5;
+  border-radius: 8px 8px 0 0;
+}
+
+/* ── Matrix cascade text entrance ── */
+.text-cascade > * {
+  animation: matrix-cascade 0.4s ease forwards;
+  opacity: 0;
+}
+.text-cascade > *:nth-child(1) { animation-delay: 0.05s; }
+.text-cascade > *:nth-child(2) { animation-delay: 0.10s; }
+.text-cascade > *:nth-child(3) { animation-delay: 0.15s; }
+.text-cascade > *:nth-child(4) { animation-delay: 0.20s; }
+.text-cascade > *:nth-child(5) { animation-delay: 0.25s; }
+
 /* ── Holographic panel — used on landing features ── */
 .glass-panel {
   position: relative;
