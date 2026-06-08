@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Bot, Hexagon, Cpu, Zap, Brain, Terminal, Database,
   Layers, Code2, Users, Sparkles, BookOpen,
-  CheckSquare, Square, Shield, Swords, ExternalLink,
+  CheckSquare, Square, Shield, ShieldCheck, Swords, ExternalLink,
   GitMerge, ArrowRight, RotateCcw, Trash2, Copy, CheckCheck,
   Network, Briefcase, Palette, Activity, Link2, Plus,
   ToggleLeft, ToggleRight, ChevronDown, ChevronUp,
@@ -45,7 +45,8 @@ export type ArsenalModuleId =
   | "exploitabs" | "vulndiscovery" | "infraintel" | "selfhealing" | "attacksurface"
   | "deeppacket" | "identitygraph" | "autonomoussoc" | "dataintel" | "sysevolution"
   | "digitaltwin" | "sovereignai" | "threatpredict" | "forensicrecon"
-  | "exploitresist" | "cyberphysical" | "providerstatus";
+  | "exploitresist" | "cyberphysical" | "providerstatus"
+  | "defensiveai";
 
 export type ArsenalModule = {
   id: ArsenalModuleId;
@@ -574,6 +575,12 @@ export const ARSENAL_MODULES: ArsenalModule[] = [
     desc: "Real-time network traffic monitoring with protocol filtering, packet detail inspection, protocol breakdown charts, top talker analysis, live traffic graph, and CSV export.",
     icon: Wifi, color: "#00e5ff", border: "rgba(0,229,255,0.35)", bg: "rgba(0,229,255,0.07)", glow: "rgba(0,229,255,0.25)",
     source: "KaliGPT Native", tag: "NETWORK",
+  },
+  {
+    id: "defensiveai", name: "Defensive AI", subtitle: "نظام الأمن الدفاعي الذكي",
+    desc: "6 وحدات دفاعية متكاملة: كشف التهديدات OWASP · كشف التزييف العميق · حماية الإعلام من البوتات · مكافح البرمجيات الخبيثة · حماية الخصوصية · طبقة محاذاة القيم AI Alignment.",
+    icon: ShieldCheck, color: "#10b981", border: "rgba(16,185,129,0.35)", bg: "rgba(16,185,129,0.08)", glow: "rgba(16,185,129,0.3)",
+    source: "KaliGPT Native", tag: "DEFENSIVE",
   },
   // ── Batch 8: Cyber Intelligence Suite ─────────────────────────────────
   {
