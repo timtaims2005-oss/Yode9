@@ -913,31 +913,44 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
   return (
     <div className="flex-1 flex flex-col h-full relative overflow-hidden">
       {chat && (
-        <div className="h-10 flex items-center justify-between px-4 border-b border-border bg-background/60">
-          <div className="text-[12px] text-muted-foreground truncate flex items-center gap-2">
-            <span>{chat.title}</span>
-            <span className="text-muted-foreground/60">·</span>
-            <span className="font-mono text-[10px]">{chat.messages.length} msgs</span>
+        <div className="h-10 flex items-center justify-between px-4 relative"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: "rgba(8,8,12,0.8)" }}>
+          {/* Bottom edge line */}
+          <div className="absolute inset-x-0 bottom-0 h-px pointer-events-none"
+            style={{ background: "linear-gradient(90deg, transparent, rgba(226,18,39,0.25) 50%, transparent)" }} />
+          <div className="text-[11px] truncate flex items-center gap-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <span className="font-mono font-bold text-white/60 truncate max-w-[180px]">{chat.title}</span>
+            <span style={{ color: "rgba(226,18,39,0.4)" }}>·</span>
+            <span className="font-mono text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>{chat.messages.length} msgs</span>
             {state.settings.showTokenMeter && (
               <>
-                <span className="text-muted-foreground/60">·</span>
-                <span className="font-mono text-[10px] text-emerald-400/80" title="Estimated tokens">~{totalTokens.toLocaleString()} tok</span>
+                <span style={{ color: "rgba(226,18,39,0.4)" }}>·</span>
+                <span className="font-mono text-[10px]" style={{ color: "#10b981", textShadow: "0 0 6px rgba(16,185,129,0.5)" }}>~{totalTokens.toLocaleString()} tok</span>
               </>
             )}
             {state.activePersona && (
               <>
-                <span className="text-muted-foreground/60">·</span>
-                <span className="font-mono text-[10px] text-primary">{state.activePersona}</span>
+                <span style={{ color: "rgba(226,18,39,0.4)" }}>·</span>
+                <span className="font-mono text-[10px]" style={{ color: "#e21227" }}>{state.activePersona}</span>
               </>
             )}
           </div>
-          <div className="flex items-center gap-1">
-            <button onClick={clearChat} className="p-1.5 text-muted-foreground hover:text-primary rounded-md hover:bg-accent" aria-label="Clear chat" title="Clear conversation">
+          <div className="flex items-center gap-0.5">
+            <button onClick={clearChat}
+              className="p-1.5 rounded-lg transition-all"
+              style={{ color: "rgba(255,255,255,0.3)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "#e21227"; e.currentTarget.style.background = "rgba(226,18,39,0.08)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.3)"; e.currentTarget.style.background = "transparent"; }}
+              aria-label="Clear chat">
               <Trash2 className="w-3.5 h-3.5" />
             </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent" aria-label="Export" title="Export">
+                <button className="p-1.5 rounded-lg transition-all"
+                  style={{ color: "rgba(255,255,255,0.3)" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.3)"; e.currentTarget.style.background = "transparent"; }}
+                  aria-label="Export">
                   <Download className="w-3.5 h-3.5" />
                 </button>
               </DropdownMenuTrigger>
@@ -947,7 +960,12 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
                 <DropdownMenuItem onSelect={exportPdf}><FileCode className="w-4 h-4" /> Print / PDF</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <button onClick={() => setShareOpen(true)} className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent" aria-label="Share" title="Share conversation">
+            <button onClick={() => setShareOpen(true)}
+              className="p-1.5 rounded-lg transition-all"
+              style={{ color: "rgba(255,255,255,0.3)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.3)"; e.currentTarget.style.background = "transparent"; }}
+              aria-label="Share">
               <Share2 className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -976,17 +994,62 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
         }}
       >
         {isEmpty && (
-          <div className="max-w-3xl mx-auto w-full text-center pt-10">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-[0_0_30px_rgba(226,18,39,0.25)]">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
+          <div className="max-w-3xl mx-auto w-full text-center pt-10 pb-6">
+            {/* 3D Holographic Logo */}
+            <div className="relative inline-block mb-6">
+              {/* Orbit rings */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-28 h-28 rounded-full border border-primary/10" style={{ animation: "spin3d 12s linear infinite" }} />
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-20 h-20 rounded-full border border-primary/20" style={{ animation: "spin3d 8s linear infinite reverse" }} />
+              </div>
+              {/* Orbiting dot */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div style={{ animation: "orbit 4s linear infinite" }} className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(226,18,39,0.9)]" />
+              </div>
+              {/* Main icon */}
+              <div
+                className="relative w-20 h-20 mx-auto rounded-2xl flex items-center justify-center empty-state-3d"
+                style={{
+                  background: "radial-gradient(circle at 35% 35%, rgba(226,18,39,0.2), rgba(8,8,12,0.95))",
+                  border: "1px solid rgba(226,18,39,0.35)",
+                  boxShadow: "0 0 40px rgba(226,18,39,0.3), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(226,18,39,0.1)"
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10" style={{ color: "#e21227", filter: "drop-shadow(0 0 8px rgba(226,18,39,0.8))" }}>
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
             </div>
-            <h2 className="text-xl font-bold mt-4">{state.activeModel}</h2>
-            <p className="text-sm text-muted-foreground mt-1">{t("chat.empty")}</p>
+
+            {/* Glowing title */}
+            <h2 className="text-2xl font-black tracking-tight mb-1" style={{ animation: "matrix-glow 3s ease-in-out infinite", color: "#fff" }}>
+              {state.activeModel}
+            </h2>
+            <p className="text-[13px] font-mono mb-4" style={{ color: "rgba(255,255,255,0.35)" }}>
+              {t("chat.empty")}
+            </p>
+
+            {/* Status indicators */}
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black font-mono tracking-wider"
+                style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", color: "#10b981" }}>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" style={{ boxShadow: "0 0 6px #10b981" }} />
+                NEURAL LINK ACTIVE
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black font-mono tracking-wider"
+                style={{ background: "rgba(226,18,39,0.08)", border: "1px solid rgba(226,18,39,0.2)", color: "#e21227" }}>
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                SECURE CHANNEL
+              </div>
+            </div>
+
             {state.memory.length > 0 && (
-              <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-emerald-400/90 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-3 py-1">
-                <Brain className="w-3 h-3" /> {t("chat.memoryActive", { count: state.memory.length })}
+              <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full"
+                style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)", color: "#10b981" }}>
+                <Brain className="w-3 h-3" style={{ filter: "drop-shadow(0 0 4px #10b981)" }} />
+                {t("chat.memoryActive", { count: state.memory.length })}
               </div>
             )}
           </div>
@@ -994,19 +1057,29 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
 
         {chat?.messages.map((msg) => (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 12, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
             key={msg.id}
             className={`flex gap-3 max-w-3xl mx-auto w-full ${msg.role === "user" ? "flex-row-reverse" : "flex-row"} ${editingId === msg.id ? "opacity-50" : ""}`}
           >
             {msg.role === "assistant" ? (
-              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 shadow-[0_0_10px_rgba(226,18,39,0.2)]">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-primary">
+              <div className="avatar-3d w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 relative"
+                style={{
+                  background: "radial-gradient(circle at 35% 35%, rgba(226,18,39,0.25), rgba(8,8,12,0.95))",
+                  border: "1px solid rgba(226,18,39,0.3)",
+                  boxShadow: "0 0 16px rgba(226,18,39,0.2), inset 0 1px 0 rgba(255,255,255,0.06)"
+                }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5" style={{ color: "#e21227", filter: "drop-shadow(0 0 5px rgba(226,18,39,0.7))" }}>
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
               </div>
             ) : (
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0 shadow-[0_0_10px_rgba(226,18,39,0.4)] text-white font-bold text-xs">
+              <div className="avatar-3d w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-black text-xs"
+                style={{
+                  background: "linear-gradient(135deg, #e21227, #7a0010)",
+                  boxShadow: "0 0 16px rgba(226,18,39,0.4), inset 0 1px 0 rgba(255,255,255,0.2)"
+                }}>
                 A
               </div>
             )}
@@ -1014,8 +1087,8 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
             <div className={`flex-1 min-w-0 ${msg.role === "user" ? "flex flex-col items-end" : ""}`}>
               <div className={`relative px-4 py-3 rounded-2xl text-[var(--chat-font-size,15px)] leading-relaxed ${
                 msg.role === "user"
-                  ? "bg-card border border-border text-foreground rounded-tr-sm max-w-[80%]"
-                  : "bg-transparent text-foreground/95 w-full"
+                  ? "msg-bubble-user text-foreground rounded-tr-sm max-w-[80%]"
+                  : "msg-bubble-ai text-foreground/95 w-full"
               }`}>
                 {msg.bookmarked && (
                   <BookmarkCheck className="absolute -top-1 -left-1 w-4 h-4 text-amber-400 fill-amber-400/30" />
@@ -2284,22 +2357,19 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
               )}
             </AnimatePresence>
 
-            {/* Futuristic input container */}
-            <div className={`relative rounded-[20px] p-px transition-all duration-300 ${
-              streaming
-                ? "bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20"
-                : editingId
-                ? "bg-gradient-to-r from-amber-500/40 via-amber-500/20 to-amber-500/40"
-                : "bg-gradient-to-r from-transparent via-border to-transparent focus-within:from-primary/40 focus-within:via-primary/20 focus-within:to-primary/40"
+            {/* Futuristic 3D input container */}
+            <div className={`relative rounded-2xl transition-all duration-300 holo-input ${
+              streaming ? "border-primary/40 shadow-[0_0_30px_rgba(226,18,39,0.15)]" :
+              editingId ? "border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.1)]" : ""
             }`}>
-              {/* Inner animated glow on focus */}
-              <div className={`absolute inset-0 rounded-[20px] transition-all duration-500 pointer-events-none ${
-                streaming ? "shadow-[0_0_30px_rgba(226,18,39,0.2),inset_0_0_20px_rgba(226,18,39,0.04)]"
-                : "shadow-none focus-within:shadow-[0_0_40px_rgba(226,18,39,0.15),inset_0_0_15px_rgba(226,18,39,0.03)]"
-              }`} />
+              {/* Corner brackets */}
+              <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-primary/40 rounded-tl-lg pointer-events-none" />
+              <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-primary/20 rounded-tr-lg pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-primary/20 rounded-bl-lg pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-primary/40 rounded-br-lg pointer-events-none" />
 
-              <div className={`relative flex items-end gap-2 rounded-[19px] p-2 pl-4 ${
-                streaming ? "bg-[#0c0505]" : editingId ? "bg-[#0a0800]" : "bg-card"
+              <div className={`relative flex items-end gap-2 rounded-2xl p-2 pl-4 ${
+                streaming ? "bg-[#0c0505]/90" : editingId ? "bg-[#0a0800]/90" : "bg-[#0a0a0f]/80"
               }`}>
                 {/* Terminal prompt indicator */}
                 <div className="shrink-0 mb-[11px] flex items-center gap-1">

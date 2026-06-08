@@ -213,6 +213,455 @@
 }
 
 /* ============================================================
+   YEAR 3090+ HOLOGRAPHIC 3D DESIGN SYSTEM
+   Every surface is alive — floating, glowing, pulsing, breathing.
+   ============================================================ */
+
+/* ── 3D Perspective Root ── */
+:root {
+  --perspective: 1200px;
+  --neon-red: #e21227;
+  --neon-red-glow: rgba(226,18,39,0.6);
+  --neon-cyan: #00e5ff;
+  --neon-cyan-glow: rgba(0,229,255,0.35);
+  --neon-green: #10b981;
+  --neon-purple: #a78bfa;
+  --holo-shimmer: linear-gradient(135deg, transparent 25%, rgba(255,255,255,0.08) 50%, transparent 75%);
+  --glass-surface: rgba(8,8,8,0.75);
+  --glass-border: rgba(255,255,255,0.08);
+}
+
+/* ── Global 3D Keyframes ── */
+@keyframes holo-float {
+  0%, 100% { transform: translateY(0px) translateZ(0); }
+  50% { transform: translateY(-4px) translateZ(8px); }
+}
+@keyframes neon-pulse {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.8; filter: brightness(1.4); }
+}
+@keyframes border-rotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes scanline-move {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+@keyframes data-stream {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 0% 100%; }
+}
+@keyframes holo-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes orbit {
+  0% { transform: rotate(0deg) translateX(14px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(14px) rotate(-360deg); }
+}
+@keyframes matrix-glow {
+  0%, 100% { text-shadow: 0 0 8px var(--neon-red), 0 0 20px var(--neon-red-glow); }
+  50% { text-shadow: 0 0 16px var(--neon-red), 0 0 40px rgba(226,18,39,0.8), 0 0 60px rgba(226,18,39,0.3); }
+}
+@keyframes hex-pulse {
+  0%, 100% { opacity: 0.03; }
+  50% { opacity: 0.06; }
+}
+@keyframes corner-glow {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; filter: brightness(1.5); }
+}
+@keyframes glitch-x {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-1px); }
+  40% { transform: translateX(1px); }
+  60% { transform: translateX(-0.5px); }
+  80% { transform: translateX(0.5px); }
+}
+@keyframes hologram-flicker {
+  0%, 92%, 100% { opacity: 1; }
+  93% { opacity: 0.85; }
+  94% { opacity: 1; }
+  95% { opacity: 0.7; }
+  96% { opacity: 1; }
+}
+@keyframes energy-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes spin3d {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+@keyframes particle-up {
+  0% { transform: translateY(0) scale(1); opacity: 0.8; }
+  100% { transform: translateY(-60px) scale(0); opacity: 0; }
+}
+
+/* ── Global 3D Surface Enhancement ── */
+.dark {
+  perspective: var(--perspective);
+}
+
+/* All cards get 3D depth */
+.dark [class*="bg-card"],
+.dark [class*="bg-sidebar"],
+.dark [class*="bg-popover"] {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* ── Holographic Card Effect ── */
+.holo-card {
+  position: relative;
+  background: rgba(12,12,16,0.88) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  backdrop-filter: blur(20px);
+  transform-style: preserve-3d;
+  transition: transform 0.3s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s ease;
+}
+.holo-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg,
+    rgba(226,18,39,0.06) 0%,
+    transparent 40%,
+    rgba(0,229,255,0.03) 70%,
+    transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.holo-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg,
+    rgba(226,18,39,0.5) 0%,
+    rgba(255,255,255,0.2) 25%,
+    transparent 50%,
+    rgba(226,18,39,0.3) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 1px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.7;
+}
+.holo-card:hover {
+  box-shadow:
+    0 0 0 1px rgba(226,18,39,0.3),
+    0 0 30px rgba(226,18,39,0.2),
+    0 20px 60px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.08) !important;
+}
+
+/* ── 3D Message Bubble ── */
+.msg-bubble-user {
+  background: linear-gradient(135deg, rgba(226,18,39,0.12), rgba(40,0,8,0.95)) !important;
+  border: 1px solid rgba(226,18,39,0.25) !important;
+  box-shadow:
+    0 0 0 1px rgba(226,18,39,0.1),
+    0 4px 20px rgba(226,18,39,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    inset 0 -1px 0 rgba(226,18,39,0.1) !important;
+  position: relative;
+  transition: box-shadow 0.2s ease;
+}
+.msg-bubble-user:hover {
+  box-shadow:
+    0 0 0 1px rgba(226,18,39,0.3),
+    0 4px 30px rgba(226,18,39,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.08) !important;
+}
+.msg-bubble-ai {
+  background: linear-gradient(160deg, rgba(16,16,22,0.6), rgba(8,8,12,0.4)) !important;
+  border-left: 2px solid rgba(226,18,39,0.3) !important;
+  border-top: 1px solid rgba(255,255,255,0.04) !important;
+  padding-left: 16px !important;
+  position: relative;
+}
+
+/* ── Neon Button 3D ── */
+.neon-btn {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.23,1,0.32,1);
+  transform-style: preserve-3d;
+}
+.neon-btn:hover {
+  transform: translateY(-2px) translateZ(4px);
+  box-shadow: 0 8px 25px rgba(226,18,39,0.3), 0 0 0 1px rgba(226,18,39,0.4) !important;
+}
+.neon-btn:active {
+  transform: translateY(0px) translateZ(0);
+}
+
+/* ── Holographic Input ── */
+.holo-input {
+  background: linear-gradient(160deg, rgba(14,14,20,0.9), rgba(8,8,12,0.95)) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    inset 0 -1px 0 rgba(226,18,39,0.05),
+    0 0 0 1px rgba(0,0,0,0.5) !important;
+  transition: all 0.3s ease;
+}
+.holo-input:focus-within {
+  border-color: rgba(226,18,39,0.45) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 0 0 1px rgba(226,18,39,0.2),
+    0 0 30px rgba(226,18,39,0.1),
+    inset 0 0 20px rgba(226,18,39,0.03) !important;
+}
+
+/* ── Avatar 3D ── */
+.avatar-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+  position: relative;
+}
+.avatar-3d::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    rgba(226,18,39,0.6),
+    rgba(255,255,255,0.3),
+    rgba(226,18,39,0.6),
+    rgba(0,229,255,0.3),
+    rgba(226,18,39,0.6)
+  );
+  animation: border-rotate 3s linear infinite;
+  background-size: 200% 200%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 1.5px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.avatar-3d:hover::before { opacity: 1; }
+
+/* ── Sidebar 3D Enhancement ── */
+.dark .mr7-sidebar {
+  background: linear-gradient(180deg,
+    rgba(14,14,20,0.98) 0%,
+    rgba(8,8,12,0.99) 100%) !important;
+  box-shadow:
+    inset -1px 0 0 0 rgba(226,18,39,0.2),
+    8px 0 40px -10px rgba(0,0,0,0.8),
+    0 0 80px -40px rgba(226,18,39,0.3) !important;
+}
+
+/* ── TopBar 3D Enhancement ── */
+.dark .mr7-topbar {
+  background: linear-gradient(180deg,
+    rgba(10,10,16,0.98),
+    rgba(6,6,10,0.95)) !important;
+  border-bottom: 1px solid rgba(226,18,39,0.15) !important;
+  box-shadow:
+    0 1px 0 rgba(226,18,39,0.15),
+    0 4px 30px rgba(0,0,0,0.5),
+    inset 0 -1px 0 rgba(255,255,255,0.02) !important;
+}
+
+/* ── HUD Scan Line (global) ── */
+.hud-scan-line {
+  position: fixed;
+  inset-x: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(226,18,39,0.5), rgba(255,255,255,0.3), rgba(226,18,39,0.5), transparent);
+  animation: scanline-move 12s linear infinite;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 0 10px rgba(226,18,39,0.4);
+  top: 0;
+}
+
+/* ── Glass Morphism Panels ── */
+.glass-panel {
+  background: rgba(8,8,12,0.82) !important;
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 0 0 1px rgba(226,18,39,0.08) !important;
+}
+
+/* ── Futuristic Scrollbar ── */
+.dark ::-webkit-scrollbar { width: 4px; height: 4px; }
+.dark ::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(226,18,39,0.7), rgba(226,18,39,0.3));
+  border-radius: 4px;
+  box-shadow: 0 0 6px rgba(226,18,39,0.4);
+}
+
+/* ── 3D Chat Empty State ── */
+.empty-state-3d {
+  animation: holo-float 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(226,18,39,0.4));
+}
+
+/* ── Data Stream Text Effect ── */
+.data-stream-text {
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.9) 0%,
+    rgba(226,18,39,0.8) 50%,
+    rgba(255,255,255,0.5) 100%);
+  background-size: 100% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: data-stream 3s linear infinite;
+}
+
+/* ── Holographic Shimmer Overlay ── */
+.holo-shimmer-overlay {
+  position: relative;
+  overflow: hidden;
+}
+.holo-shimmer-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg,
+    transparent 35%,
+    rgba(255,255,255,0.04) 45%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 55%,
+    transparent 65%);
+  background-size: 200% 100%;
+  animation: holo-shimmer 4s linear infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ── 3D Button Press Effect ── */
+.dark button:not([disabled]):active {
+  transform: scale(0.97) translateZ(0);
+}
+
+/* ── Neon Text Variants ── */
+.neon-red {
+  color: #e21227;
+  text-shadow: 0 0 10px rgba(226,18,39,0.7), 0 0 20px rgba(226,18,39,0.4);
+}
+.neon-cyan {
+  color: #00e5ff;
+  text-shadow: 0 0 10px rgba(0,229,255,0.7), 0 0 20px rgba(0,229,255,0.4);
+}
+.neon-green {
+  color: #10b981;
+  text-shadow: 0 0 10px rgba(16,185,129,0.7), 0 0 20px rgba(16,185,129,0.4);
+}
+
+/* ── 3D Grid Background ── */
+.grid-3d {
+  background-image:
+    linear-gradient(rgba(226,18,39,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226,18,39,0.04) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+  background-size: 60px 60px, 60px 60px, 20px 20px, 20px 20px;
+  background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+}
+
+/* ── Particle Emitter ── */
+.particle-emit > span {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(226,18,39,0.8);
+  animation: particle-up 1.5s ease-out infinite;
+  box-shadow: 0 0 4px rgba(226,18,39,0.6);
+}
+
+/* ── 3D Tooltip ── */
+.dark [data-state="delayed-open"][role="tooltip"],
+.dark [role="tooltip"] {
+  background: rgba(8,8,12,0.95) !important;
+  border: 1px solid rgba(226,18,39,0.3) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 0 1px rgba(226,18,39,0.1) !important;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+
+/* ── Modal 3D Enhancement ── */
+.dark [data-state="open"][class*="z-"][class*="fixed"] {
+  box-shadow:
+    0 0 0 1px rgba(226,18,39,0.35),
+    0 0 0 2px rgba(0,0,0,0.9),
+    0 0 80px rgba(226,18,39,0.2),
+    0 40px 100px rgba(0,0,0,0.95),
+    inset 0 1px 0 rgba(255,255,255,0.05) !important;
+  backdrop-filter: blur(30px);
+  transform-style: preserve-3d;
+}
+
+/* ── Animated Corner Brackets (global HUD) ── */
+.hud-corners > .hud-c {
+  animation: corner-glow 2s ease-in-out infinite;
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Interactive Link 3D ── */
+.dark a:hover {
+  text-shadow: 0 0 8px rgba(226,18,39,0.5);
+}
+
+/* ── Keyboard shortcut badge ── */
+.kbd-badge {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 2px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+}
+
+/* ── CHAT-GPT Topbar extra 3D ── */
+.CHAT-GPT-topbar {
+  background: linear-gradient(180deg,
+    rgba(10,10,16,0.97) 0%,
+    rgba(6,6,10,0.98) 100%) !important;
+  border-bottom: 1px solid rgba(226,18,39,0.12) !important;
+  box-shadow:
+    0 1px 0 rgba(226,18,39,0.12),
+    0 4px 30px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.03) !important;
+}
+
+/* ── CHAT-GPT Sidebar extra 3D ── */
+.CHAT-GPT-sidebar {
+  background: linear-gradient(180deg,
+    rgba(12,12,18,0.99) 0%,
+    rgba(8,8,12,1) 100%) !important;
+  box-shadow:
+    inset -1px 0 0 rgba(226,18,39,0.15),
+    2px 0 20px rgba(0,0,0,0.5) !important;
+}
+
+/* ── ============================================================
    FUTURISTIC RED/BLACK/WHITE THEME — global visual layer
    Applied automatically inside the .dark scope (the whole app).
    ============================================================ */

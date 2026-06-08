@@ -24,17 +24,56 @@ const PATTERNS = [
   { name: "AI Evasion Techniques", match: 69, trend: "+24%", icon: Brain, color: "#10b981" },
 ];
 
+// ── Real-time CVE Feed Data (simulated live feed) ──────────────────────────
+const CVE_FEED_INITIAL = [
+  { id: "CVE-2026-31337", cvss: 9.8, severity: "CRITICAL", product: "OpenSSL 3.x", desc: "Heap buffer overflow in TLS 1.3 handshake — remote code execution without auth", published: "2m ago", vector: "Network", patched: false, color: "#ff0040" },
+  { id: "CVE-2026-29900", cvss: 9.1, severity: "CRITICAL", product: "Linux Kernel 6.8", desc: "Use-after-free in io_uring subsystem allows local privilege escalation to root", published: "7m ago", vector: "Local", patched: false, color: "#ff0040" },
+  { id: "CVE-2026-28218", cvss: 8.8, severity: "HIGH", product: "Apache Struts 2.x", desc: "Remote code execution via crafted OGNL expression in HTTP headers", published: "23m ago", vector: "Network", patched: true, color: "#f97316" },
+  { id: "CVE-2026-27401", cvss: 8.6, severity: "HIGH", product: "Chrome v124", desc: "Type confusion in V8 engine enables sandbox escape via malicious JS", published: "41m ago", vector: "Network", patched: true, color: "#f97316" },
+  { id: "CVE-2026-26774", cvss: 7.5, severity: "HIGH", product: "OpenSSH 9.6", desc: "Race condition in privilege separation allows auth bypass in specific configs", published: "1h ago", vector: "Network", patched: false, color: "#f97316" },
+  { id: "CVE-2026-24891", cvss: 7.2, severity: "HIGH", product: "NVIDIA GPU Driver", desc: "Integer overflow in display driver IOCTL allows kernel memory corruption", published: "2h ago", vector: "Local", patched: true, color: "#f97316" },
+  { id: "CVE-2026-23110", cvss: 6.8, severity: "MEDIUM", product: "Spring Boot 3.2", desc: "XXE injection in XML binding allows SSRF and internal network scanning", published: "3h ago", vector: "Network", patched: false, color: "#fbbf24" },
+  { id: "CVE-2026-21905", cvss: 6.5, severity: "MEDIUM", product: "PostgreSQL 16", desc: "Improper privilege checking in ROW LEVEL SECURITY policies", published: "4h ago", vector: "Network", patched: true, color: "#fbbf24" },
+  { id: "CVE-2026-20044", cvss: 5.9, severity: "MEDIUM", product: "Nginx 1.26", desc: "Memory disclosure via crafted HTTP/2 SETTINGS frame injection", published: "6h ago", vector: "Network", patched: true, color: "#fbbf24" },
+  { id: "CVE-2026-18771", cvss: 5.3, severity: "MEDIUM", product: "Redis 7.2", desc: "ACL bypass in RESP3 protocol allows unauthorized key access", published: "8h ago", vector: "Network", patched: false, color: "#fbbf24" },
+];
+
 export function ThreatDetectionModal({ open, onOpenChange }: Props) {
   const { state } = useStore();
-  const [tab, setTab] = useState<"live" | "patterns" | "heatmap" | "predict">("live");
+  const [tab, setTab] = useState<"live" | "patterns" | "heatmap" | "predict" | "cve">("live");
   const [scanning, setScanning] = useState(true);
   const [threatCount, setThreatCount] = useState(8);
   const [pulseRing, setPulseRing] = useState(0);
   const [particles, setParticles] = useState<{ x: number; y: number; r: number; speed: number; angle: number }[]>([]);
+  const [cveFeed, setCveFeed] = useState(CVE_FEED_INITIAL);
+  const [cveFilter, setCveFilter] = useState<"ALL" | "CRITICAL" | "HIGH" | "MEDIUM">("ALL");
+  const [cveSearch, setCveSearch] = useState("");
+  const [cveRefreshing, setCveRefreshing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
 
   const accent = (state as unknown as { accent?: { value: string } }).accent?.value ?? "#e21227";
+
+  // Simulate live CVE feed updates
+  useEffect(() => {
+    if (!open) return;
+    const interval = setInterval(() => {
+      const newCve = {
+        id: `CVE-2026-${Math.floor(10000 + Math.random() * 89999)}`,
+        cvss: parseFloat((5 + Math.random() * 5).toFixed(1)),
+        severity: Math.random() > 0.7 ? "CRITICAL" : Math.random() > 0.4 ? "HIGH" : "MEDIUM",
+        product: ["Chrome", "Firefox", "Node.js", "Python", "Docker", "Kubernetes", "AWS SDK", "React"][Math.floor(Math.random() * 8)] + " " + Math.floor(Math.random() * 30),
+        desc: ["Stack overflow in memory allocator", "Auth bypass via JWT manipulation", "RCE in XML parser", "SSRF in HTTP client", "SQL injection in ORM layer", "Command injection via env vars", "Path traversal in file upload"][Math.floor(Math.random() * 7)],
+        published: "just now",
+        vector: Math.random() > 0.5 ? "Network" : "Local",
+        patched: false,
+        color: Math.random() > 0.7 ? "#ff0040" : Math.random() > 0.4 ? "#f97316" : "#fbbf24",
+      };
+      setCveFeed(prev => [newCve, ...prev.slice(0, 14)]);
+      setThreatCount(c => c + 1);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [open]);
 
   useEffect(() => {
     const pts = Array.from({ length: 60 }, () => ({
@@ -201,12 +240,13 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
           </div>
 
           {/* Tabs */}
-          <div className="flex items-center gap-1 px-6 pt-4 shrink-0">
+          <div className="flex items-center gap-1 px-6 pt-4 shrink-0 flex-wrap">
             {[
               { id: "live", label: "LIVE THREATS", icon: Flame },
               { id: "patterns", label: "BEHAVIOR PATTERNS", icon: Brain },
               { id: "heatmap", label: "RADAR SCAN", icon: Target },
               { id: "predict", label: "PREDICTION ENGINE", icon: TrendingUp },
+              { id: "cve", label: "CVE FEED", icon: Bug },
             ].map(t => (
               <button
                 key={t.id}
@@ -351,6 +391,152 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── CVE REAL-TIME FEED ─────────────────────────────────────── */}
+            {tab === "cve" && (
+              <div className="h-full flex flex-col gap-3">
+                {/* Controls */}
+                <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg"
+                    style={{ background: "rgba(255,0,64,0.06)", border: "1px solid rgba(255,0,64,0.2)" }}>
+                    <motion.div className="w-1.5 h-1.5 rounded-full" style={{ background: "#ff0040" }}
+                      animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1, repeat: Infinity }} />
+                    <span className="text-[9px] font-mono font-bold" style={{ color: "#ff0040" }}>LIVE CVE FEED</span>
+                    <span className="text-[8px] font-mono" style={{ color: "#ff004066" }}>· auto-refresh 8s</span>
+                  </div>
+                  <div className="relative flex-1 min-w-[160px]">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3" style={{ color: "#444" }} />
+                    <input
+                      value={cveSearch}
+                      onChange={e => setCveSearch(e.target.value)}
+                      placeholder="Search CVE-ID, product..."
+                      className="w-full rounded-lg pl-7 pr-3 py-1.5 outline-none text-[10px] font-mono"
+                      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#fff" }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {(["ALL", "CRITICAL", "HIGH", "MEDIUM"] as const).map(f => (
+                      <button key={f} onClick={() => setCveFilter(f)}
+                        className="px-2 py-1 rounded text-[8px] font-mono font-bold transition-all"
+                        style={{
+                          background: cveFilter === f ? (f === "CRITICAL" ? "rgba(255,0,64,0.2)" : f === "HIGH" ? "rgba(249,115,22,0.2)" : f === "MEDIUM" ? "rgba(251,191,36,0.15)" : "rgba(255,255,255,0.08)") : "transparent",
+                          border: `1px solid ${cveFilter === f ? (f === "CRITICAL" ? "rgba(255,0,64,0.5)" : f === "HIGH" ? "rgba(249,115,22,0.5)" : f === "MEDIUM" ? "rgba(251,191,36,0.4)" : "rgba(255,255,255,0.2)") : "rgba(255,255,255,0.06)"}`,
+                          color: cveFilter === f ? (f === "CRITICAL" ? "#ff0040" : f === "HIGH" ? "#f97316" : f === "MEDIUM" ? "#fbbf24" : "#fff") : "#555",
+                        }}>
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setCveRefreshing(true);
+                      setTimeout(() => setCveRefreshing(false), 1200);
+                    }}
+                    className="p-1.5 rounded-lg transition-all"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#666" }}
+                  >
+                    <RefreshCw className={`w-3 h-3 ${cveRefreshing ? "animate-spin" : ""}`} />
+                  </button>
+                </div>
+
+                {/* Summary stats */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {[
+                    { label: "CRITICAL", count: cveFeed.filter(c => c.severity === "CRITICAL").length, color: "#ff0040" },
+                    { label: "HIGH", count: cveFeed.filter(c => c.severity === "HIGH").length, color: "#f97316" },
+                    { label: "MEDIUM", count: cveFeed.filter(c => c.severity === "MEDIUM").length, color: "#fbbf24" },
+                    { label: "UNPATCHED", count: cveFeed.filter(c => !c.patched).length, color: "#a78bfa" },
+                  ].map(s => (
+                    <div key={s.label} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+                      style={{ background: `${s.color}08`, border: `1px solid ${s.color}20` }}>
+                      <span className="text-[14px] font-black" style={{ color: s.color }}>{s.count}</span>
+                      <span className="text-[8px] font-mono" style={{ color: `${s.color}88` }}>{s.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CVE list */}
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                  <AnimatePresence>
+                    {cveFeed
+                      .filter(c => cveFilter === "ALL" || c.severity === cveFilter)
+                      .filter(c => !cveSearch || c.id.toLowerCase().includes(cveSearch.toLowerCase()) || c.product.toLowerCase().includes(cveSearch.toLowerCase()) || c.desc.toLowerCase().includes(cveSearch.toLowerCase()))
+                      .map((cve, i) => (
+                        <motion.div
+                          key={cve.id}
+                          initial={{ opacity: 0, x: -16, scale: 0.98 }}
+                          animate={{ opacity: 1, x: 0, scale: 1 }}
+                          exit={{ opacity: 0, x: 16 }}
+                          transition={{ duration: 0.25, delay: i < 5 ? i * 0.04 : 0 }}
+                          className="p-3 rounded-xl cursor-pointer transition-all hover:scale-[1.005]"
+                          style={{
+                            background: `linear-gradient(135deg, ${cve.color}06, rgba(0,0,0,0))`,
+                            border: `1px solid ${cve.color}18`,
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            {/* CVSS score */}
+                            <div className="shrink-0 w-12 h-12 rounded-xl flex flex-col items-center justify-center"
+                              style={{ background: `${cve.color}12`, border: `1px solid ${cve.color}30` }}>
+                              <span className="text-[13px] font-black leading-none" style={{ color: cve.color }}>{cve.cvss}</span>
+                              <span className="text-[7px] font-mono" style={{ color: `${cve.color}88` }}>CVSS</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                                <span className="text-[11px] font-black font-mono" style={{ color: "#fff" }}>{cve.id}</span>
+                                <span className="text-[8px] font-bold px-1.5 py-0.5 rounded shrink-0"
+                                  style={{ background: `${cve.color}18`, color: cve.color, border: `1px solid ${cve.color}35` }}>
+                                  {cve.severity}
+                                </span>
+                                <span className="text-[8px] font-mono shrink-0" style={{ color: "#00e5ff88" }}>{cve.product}</span>
+                                {!cve.patched && (
+                                  <span className="text-[7px] font-bold px-1 py-0.5 rounded shrink-0"
+                                    style={{ background: "rgba(255,0,64,0.12)", color: "#ff0040", border: "1px solid rgba(255,0,64,0.25)" }}>
+                                    UNPATCHED
+                                  </span>
+                                )}
+                                {cve.patched && (
+                                  <span className="text-[7px] font-bold px-1 py-0.5 rounded shrink-0"
+                                    style={{ background: "rgba(16,185,129,0.1)", color: "#10b981", border: "1px solid rgba(16,185,129,0.25)" }}>
+                                    PATCHED
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[9px] font-mono leading-relaxed mb-1" style={{ color: "#666" }}>{cve.desc}</div>
+                              <div className="flex items-center gap-3 text-[8px] font-mono" style={{ color: "#444" }}>
+                                <span style={{ color: "#00e5ff55" }}>VEC: {cve.vector}</span>
+                                <span>·</span>
+                                <span>{cve.published}</span>
+                              </div>
+                            </div>
+                            {/* CVSS bar */}
+                            <div className="shrink-0 flex flex-col items-end gap-1">
+                              <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+                                <motion.div className="h-full rounded-full"
+                                  style={{ background: `linear-gradient(90deg, ${cve.color}, ${cve.color}88)`, boxShadow: `0 0 6px ${cve.color}` }}
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${(cve.cvss / 10) * 100}%` }}
+                                  transition={{ duration: 0.8, delay: i * 0.04 }}
+                                />
+                              </div>
+                              <button
+                                onClick={() => { navigator.clipboard.writeText(cve.id); }}
+                                className="text-[7px] font-mono px-1.5 py-0.5 rounded transition-all hover:bg-white/5"
+                                style={{ color: "#333", border: "1px solid rgba(255,255,255,0.05)" }}
+                              >
+                                COPY ID
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                  </AnimatePresence>
+                  {cveFeed.filter(c => cveFilter === "ALL" || c.severity === cveFilter).filter(c => !cveSearch || c.id.toLowerCase().includes(cveSearch.toLowerCase()) || c.product.toLowerCase().includes(cveSearch.toLowerCase())).length === 0 && (
+                    <div className="text-center py-12 text-[11px] font-mono" style={{ color: "#333" }}>No CVEs match the current filter</div>
+                  )}
                 </div>
               </div>
             )}

@@ -618,6 +618,12 @@ function AppContent() {
           </div>
         </div>
       )}
+
+      {/* Global HUD scan line — year 3090 effect */}
+      <div className="hud-scan-line pointer-events-none" />
+
+      {/* Global hex grid background overlay */}
+      <div className="pointer-events-none fixed inset-0 z-[-1] grid-3d opacity-100" />
     </div>
   );
 }

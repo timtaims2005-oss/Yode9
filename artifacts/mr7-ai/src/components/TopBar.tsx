@@ -108,12 +108,25 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
   );
 
   return (
-    <header className="CHAT-GPT-topbar h-14 flex items-center justify-between px-2 sm:px-3 border-b border-border bg-background/85 backdrop-blur-md sticky top-0 z-30">
+    <header className="CHAT-GPT-topbar h-14 flex items-center justify-between px-2 sm:px-3 sticky top-0 z-30 relative"
+      style={{
+        background: "linear-gradient(180deg, rgba(10,10,16,0.98) 0%, rgba(6,6,10,0.97) 100%)",
+        borderBottom: "1px solid rgba(226,18,39,0.15)",
+        boxShadow: "0 1px 0 rgba(226,18,39,0.12), 0 4px 30px rgba(0,0,0,0.5)",
+        backdropFilter: "blur(20px)",
+      }}>
+      {/* Topbar bottom neon line */}
+      <div className="absolute inset-x-0 bottom-0 h-px pointer-events-none"
+        style={{ background: "linear-gradient(90deg, transparent 0%, rgba(226,18,39,0.5) 25%, rgba(255,255,255,0.3) 50%, rgba(226,18,39,0.5) 75%, transparent 100%)" }} />
+
       {/* LEFT: menu + model selector */}
       <div className="flex items-center gap-1 flex-shrink-0">
         <button
           onClick={onMenuClick}
-          className="p-2 md:hidden text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+          className="p-2 md:hidden rounded-lg transition-all"
+          style={{ color: "rgba(255,255,255,0.5)" }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "#e21227"; e.currentTarget.style.background = "rgba(226,18,39,0.08)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.5)"; e.currentTarget.style.background = "transparent"; }}
           aria-label={t("top.openMenu")}
         >
           <Menu className="w-5 h-5" />
@@ -122,14 +135,20 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
         <div className="relative" ref={ref}>
           <button
             onClick={() => setOpen((o) => !o)}
-            className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-card border border-border hover:bg-accent transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all neon-btn"
+            style={{
+              background: open ? "rgba(226,18,39,0.1)" : "rgba(255,255,255,0.04)",
+              border: open ? "1px solid rgba(226,18,39,0.4)" : "1px solid rgba(255,255,255,0.07)",
+              boxShadow: open ? "0 0 15px rgba(226,18,39,0.15), inset 0 1px 0 rgba(255,255,255,0.06)" : "inset 0 1px 0 rgba(255,255,255,0.04)"
+            }}
             aria-label={`${t("top.switchModel")} — ${active.id}`}
           >
-            <span className={`w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center border border-primary/20 ${active.color}`}>
+            <span className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 ${active.color}`}
+              style={{ background: "rgba(226,18,39,0.12)", border: "1px solid rgba(226,18,39,0.25)", boxShadow: "0 0 8px rgba(226,18,39,0.2)" }}>
               <ActiveIcon className="w-3.5 h-3.5" />
             </span>
-            <span className="hidden sm:block text-[12px] font-semibold max-w-[140px] truncate">{active.id}</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-muted-foreground"><path d="m6 9 6 6 6-6" /></svg>
+            <span className="hidden sm:block text-[12px] font-bold max-w-[140px] truncate text-white">{active.id}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.3)" }}><path d="m6 9 6 6 6-6" /></svg>
           </button>
 
           <AnimatePresence>
@@ -234,18 +253,19 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
           {/* Tools Hub */}
           <button
             onClick={onOpenToolsHub}
-            className="flex-shrink-0 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-foreground/90 text-xs font-bold hover:bg-accent transition-colors"
+            className="flex-shrink-0 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all hover:scale-105"
+            style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.3)", color: "#10b981", boxShadow: "0 0 10px rgba(16,185,129,0.1)" }}
             aria-label={t("top.toolsHub")}
             title={t("top.toolsHub")}
           >
-            <LayoutGrid className="w-3.5 h-3.5 text-emerald-400" />
+            <LayoutGrid className="w-3.5 h-3.5" />
             <span>{t("top.tools")}</span>
           </button>
           <button
             onClick={onOpenToolsHub}
-            className="flex-shrink-0 sm:hidden p-2 text-emerald-400 hover:text-emerald-300 hover:bg-accent rounded-lg transition-colors"
+            className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
+            style={{ color: "#10b981" }}
             aria-label={t("top.toolsHub")}
-            title={t("top.toolsHub")}
           >
             <LayoutGrid className="w-4 h-4" />
           </button>
@@ -253,8 +273,8 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
           {/* KaliAgent */}
           <button
             onClick={onOpenAgent}
-            className="flex-shrink-0 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all hover:opacity-95"
-            style={{ background: "rgba(255,77,77,0.1)", borderColor: "rgba(255,77,77,0.35)", color: "#ff4d4d", boxShadow: "0 0 10px rgba(255,77,77,0.15)" }}
+            className="flex-shrink-0 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all hover:scale-105"
+            style={{ background: "rgba(255,77,77,0.08)", border: "1px solid rgba(255,77,77,0.3)", color: "#ff4d4d", boxShadow: "0 0 10px rgba(255,77,77,0.12)" }}
             aria-label="KaliAgent"
             title="KaliAgent — Autonomous AI Agent"
           >
@@ -273,8 +293,8 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
           {/* NEXUS */}
           <button
             onClick={onOpenNexus}
-            className="flex-shrink-0 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-black whitespace-nowrap tracking-wider transition-all hover:opacity-95"
-            style={{ background: "linear-gradient(135deg, rgba(251,191,36,0.12) 0%, rgba(251,146,60,0.08) 100%)", borderColor: "rgba(251,191,36,0.45)", color: "#fbbf24", boxShadow: "0 0 14px rgba(251,191,36,0.2)" }}
+            className="flex-shrink-0 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black whitespace-nowrap tracking-wider transition-all hover:scale-105"
+            style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.35)", color: "#fbbf24", boxShadow: "0 0 12px rgba(251,191,36,0.15)" }}
             aria-label="NEXUS Agent"
             title="NEXUS Agent — 5-Tier Autonomous Super Agent"
           >
@@ -293,8 +313,8 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
           {/* Arsenal Hub */}
           <button
             onClick={onOpenArsenal}
-            className="flex-shrink-0 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-black whitespace-nowrap tracking-wider transition-all hover:opacity-95"
-            style={{ background: "linear-gradient(135deg, rgba(226,18,39,0.12) 0%, rgba(180,0,20,0.06) 100%)", borderColor: "rgba(226,18,39,0.4)", color: "#e21227", boxShadow: "0 0 14px rgba(226,18,39,0.15)" }}
+            className="flex-shrink-0 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black whitespace-nowrap tracking-wider transition-all hover:scale-105"
+            style={{ background: "rgba(226,18,39,0.1)", border: "1px solid rgba(226,18,39,0.4)", color: "#e21227", boxShadow: "0 0 14px rgba(226,18,39,0.15)" }}
             aria-label="Arsenal Hub"
             title="Arsenal Hub — Launch AI Modules"
           >

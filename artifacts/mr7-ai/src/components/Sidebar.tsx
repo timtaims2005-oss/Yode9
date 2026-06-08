@@ -220,22 +220,45 @@ export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool,
   };
 
   const content = (
-    <div className="CHAT-GPT-sidebar flex flex-col h-full w-[280px] bg-sidebar border-r border-sidebar-border text-sm overflow-hidden flex-shrink-0">
-      {/* Header */}
-      <div className="p-4 flex items-center justify-between">
+    <div className="CHAT-GPT-sidebar flex flex-col h-full w-[280px] text-sm overflow-hidden flex-shrink-0 relative"
+      style={{ background: "linear-gradient(180deg, rgba(10,10,16,0.99) 0%, rgba(6,6,10,1) 100%)", borderRight: "1px solid rgba(226,18,39,0.15)" }}>
+      {/* Sidebar right edge glow */}
+      <div className="absolute top-0 bottom-0 right-0 w-px pointer-events-none"
+        style={{ background: "linear-gradient(180deg, transparent 0%, rgba(226,18,39,0.5) 30%, rgba(255,255,255,0.3) 50%, rgba(226,18,39,0.5) 70%, transparent 100%)" }} />
+
+      {/* 3D Header */}
+      <div className="p-4 flex items-center justify-between relative" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+        {/* Header top glow */}
+        <div className="absolute inset-x-0 top-0 h-px pointer-events-none"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(226,18,39,0.4), rgba(255,255,255,0.2), rgba(226,18,39,0.4), transparent)" }} />
         <button
           onClick={() => { dispatch({ type: "SELECT_CHAT", id: state.chats[0]?.id ?? "" }); onClose(); }}
-          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          className="flex items-center gap-2 hover:opacity-90 transition-all group"
         >
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-primary">
+          {/* 3D Logo Icon */}
+          <div className="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform"
+            style={{
+              background: "radial-gradient(circle at 35% 35%, rgba(226,18,39,0.3), rgba(8,8,12,0.95))",
+              border: "1px solid rgba(226,18,39,0.4)",
+              boxShadow: "0 0 20px rgba(226,18,39,0.25), inset 0 1px 0 rgba(255,255,255,0.08)"
+            }}>
+            {/* Orbiting particle */}
+            <div className="absolute" style={{ animation: "orbit 3s linear infinite" }}>
+              <div className="w-1 h-1 rounded-full" style={{ background: "#e21227", boxShadow: "0 0 4px rgba(226,18,39,0.9)" }} />
+            </div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5" style={{ color: "#e21227", filter: "drop-shadow(0 0 5px rgba(226,18,39,0.7))" }}>
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
           </div>
-          <span className="font-bold text-lg tracking-tight">CHAT-GPT.ai</span>
+          <div>
+            <span className="font-black text-base tracking-tight block" style={{ animation: "matrix-glow 4s ease-in-out infinite", color: "#fff" }}>
+              CHAT-GPT.ai
+            </span>
+            <span className="text-[8px] font-mono tracking-widest block" style={{ color: "rgba(226,18,39,0.7)" }}>NEURAL INTERFACE v3.0</span>
+          </div>
         </button>
-        <button onClick={onClose} className="md:hidden p-2 text-muted-foreground hover:text-foreground" aria-label="Close menu">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <button onClick={onClose} className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-white/5" aria-label="Close menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
             <path d="M18 6 6 18M6 6l12 12" />
           </svg>
         </button>
@@ -243,55 +266,57 @@ export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool,
 
       <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-5">
         {/* Actions */}
-        <div className="space-y-2">
-          <button onClick={handleNewChat} className="w-full flex items-center gap-2 bg-card hover:bg-accent border border-card-border rounded-xl px-4 py-2.5 transition-colors">
-            <Plus className="w-4 h-4 text-primary" />
-            <span className="font-medium text-foreground">{t("side.newChat")}</span>
+        <div className="space-y-2 pt-2">
+          <button onClick={handleNewChat}
+            className="w-full flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all neon-btn relative overflow-hidden group"
+            style={{
+              background: "linear-gradient(135deg, rgba(226,18,39,0.15), rgba(40,0,8,0.8))",
+              border: "1px solid rgba(226,18,39,0.3)",
+              boxShadow: "0 0 15px rgba(226,18,39,0.1), inset 0 1px 0 rgba(255,255,255,0.06)"
+            }}>
+            {/* shimmer */}
+            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+            <Plus className="w-4 h-4 flex-shrink-0" style={{ color: "#e21227", filter: "drop-shadow(0 0 4px rgba(226,18,39,0.7))" }} />
+            <span className="font-bold text-white text-[13px]">{t("side.newChat")}</span>
           </button>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: "rgba(226,18,39,0.5)" }} />
             <input
               type="text"
               placeholder={t("side.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-card border border-card-border rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-primary/50 transition-colors text-foreground placeholder:text-muted-foreground"
+              className="w-full rounded-xl pl-9 pr-4 py-2.5 outline-none text-[13px] text-white placeholder:text-white/25 transition-all"
+              style={{
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.07)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.02)"
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(226,18,39,0.35)"; e.currentTarget.style.boxShadow = "0 0 15px rgba(226,18,39,0.08), inset 0 1px 0 rgba(255,255,255,0.04)"; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.02)"; }}
             />
           </div>
         </div>
 
-        {/* Quick panels */}
+        {/* Quick panels — 3D grid */}
         <div className="grid grid-cols-2 gap-1.5">
-          <button
-            onClick={() => { onOpenSearch(); onClose(); }}
-            className="flex items-center gap-1.5 bg-card hover:bg-accent border border-card-border rounded-xl px-2.5 py-2 transition-colors text-[12px] font-semibold"
-            aria-label={t("side.search")}
-          >
-            <Search className="w-3.5 h-3.5 text-primary" /> {t("side.search")}
-          </button>
-          <button
-            onClick={() => { onOpenMemory(); onClose(); }}
-            className="flex items-center gap-1.5 bg-card hover:bg-accent border border-card-border rounded-xl px-2.5 py-2 transition-colors text-[12px] font-semibold"
-            aria-label={t("side.memory")}
-          >
-            <Brain className="w-3.5 h-3.5 text-emerald-400" /> {t("side.memory")}
-            {state.memory.length > 0 && <span className="ml-auto text-[9px] text-emerald-400 font-mono">{state.memory.length}</span>}
-          </button>
-          <button
-            onClick={() => { onOpenBookmarks(); onClose(); }}
-            className="flex items-center gap-1.5 bg-card hover:bg-accent border border-card-border rounded-xl px-2.5 py-2 transition-colors text-[12px] font-semibold"
-            aria-label={t("side.bookmarks")}
-          >
-            <Bookmark className="w-3.5 h-3.5 text-amber-400" /> {t("side.bookmarks")}
-          </button>
-          <button
-            onClick={() => { onOpenCompare(); onClose(); }}
-            className="flex items-center gap-1.5 bg-card hover:bg-accent border border-card-border rounded-xl px-2.5 py-2 transition-colors text-[12px] font-semibold"
-            aria-label={t("side.compare")}
-          >
-            <ArrowLeftRight className="w-3.5 h-3.5 text-violet-400" /> {t("side.compare")}
-          </button>
+          {[
+            { icon: Search, label: t("side.search"), color: "#e21227", action: () => { onOpenSearch(); onClose(); } },
+            { icon: Brain, label: t("side.memory"), color: "#10b981", action: () => { onOpenMemory(); onClose(); }, badge: state.memory.length > 0 ? state.memory.length : null },
+            { icon: Bookmark, label: t("side.bookmarks"), color: "#f59e0b", action: () => { onOpenBookmarks(); onClose(); } },
+            { icon: ArrowLeftRight, label: t("side.compare"), color: "#a78bfa", action: () => { onOpenCompare(); onClose(); } },
+          ].map(({ icon: Icon, label, color, action, badge }) => (
+            <button key={label} onClick={action}
+              className="flex items-center gap-1.5 rounded-xl px-2.5 py-2 transition-all text-[12px] font-bold text-white/70 hover:text-white relative overflow-hidden group"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${color}30`; e.currentTarget.style.background = `${color}08`; e.currentTarget.style.color = color; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.color = ""; }}>
+              <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color }} />
+              <span className="truncate">{label}</span>
+              {badge != null && badge > 0 && <span className="ml-auto text-[9px] font-mono" style={{ color }}>{badge}</span>}
+            </button>
+          ))}
         </div>
 
         {/* Tools Hub */}
@@ -604,30 +629,46 @@ export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool,
           const maxVal = Math.max(...vals, 1);
 
           return (
-            <div className="bg-card border border-border rounded-xl p-3 space-y-2.5">
+            <div className="rounded-xl p-3 space-y-2.5 relative overflow-hidden"
+              style={{
+                background: "linear-gradient(135deg, rgba(14,14,20,0.9), rgba(8,8,12,0.95))",
+                border: "1px solid rgba(226,18,39,0.2)",
+                boxShadow: "0 0 20px rgba(226,18,39,0.06), inset 0 1px 0 rgba(255,255,255,0.04)"
+              }}>
+              {/* Corner bracket TL */}
+              <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 rounded-tl-xl pointer-events-none" style={{ borderColor: "rgba(226,18,39,0.6)" }} />
+              <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 rounded-br-xl pointer-events-none" style={{ borderColor: "rgba(226,18,39,0.3)" }} />
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <Coins className="w-4 h-4 text-yellow-500" />
-                  <span className="text-[13px] font-medium">Tokens</span>
+                  <Coins className="w-3.5 h-3.5" style={{ color: "#f59e0b", filter: "drop-shadow(0 0 4px rgba(245,158,11,0.6))" }} />
+                  <span className="text-[11px] font-black tracking-widest font-mono" style={{ color: "rgba(255,255,255,0.7)" }}>TOKENS</span>
                 </div>
-                <span className="text-[11px] text-muted-foreground font-mono">
+                <span className="text-[10px] font-mono font-bold" style={{ color: "rgba(226,18,39,0.8)" }}>
                   {(remaining / 1000).toFixed(1)}K / {(tokenLimit / 1000).toFixed(0)}K
                 </span>
               </div>
 
-              {/* 7-day sparkline chart */}
-              <div className="flex items-end gap-[3px] h-8" title="استخدام التوكن — 7 أيام">
+              {/* 7-day sparkline chart — 3D */}
+              <div className="flex items-end gap-[3px] h-7" title="استخدام التوكن — 7 أيام">
                 {vals.map((v, i) => {
                   const heightPct = maxVal > 0 ? (v / maxVal) * 100 : 0;
                   const isToday = i === 6;
                   return (
                     <div key={days7[i]} className="flex-1 flex flex-col items-center justify-end h-full group relative">
                       <div
-                        className={`w-full rounded-sm transition-all ${isToday ? "bg-primary" : "bg-primary/30 group-hover:bg-primary/60"}`}
-                        style={{ height: `${Math.max(heightPct, 4)}%` }}
+                        className="w-full rounded-sm transition-all"
+                        style={{
+                          height: `${Math.max(heightPct, 4)}%`,
+                          background: isToday
+                            ? "linear-gradient(180deg, #e21227, #7a0010)"
+                            : "linear-gradient(180deg, rgba(226,18,39,0.35), rgba(226,18,39,0.1))",
+                          boxShadow: isToday ? "0 0 6px rgba(226,18,39,0.5)" : "none"
+                        }}
                       />
                       {v > 0 && (
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#1a1a1a] border border-[#2a2a2a] text-[9px] text-foreground px-1 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-10">
+                        <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[8px] text-foreground px-1 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-10"
+                          style={{ background: "rgba(8,8,12,0.9)", border: "1px solid rgba(226,18,39,0.3)" }}>
                           {v >= 1000 ? `${(v/1000).toFixed(1)}K` : v}
                         </div>
                       )}
@@ -636,41 +677,45 @@ export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool,
                 })}
               </div>
 
-              {/* Session Stats */}
-              <div className="flex items-center gap-2 px-1">
-                <div className="flex-1 flex flex-col items-center bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg px-2 py-1.5">
-                  <span className="text-[9px] text-muted-foreground/60 font-mono uppercase">جلسة</span>
-                  <span className="text-[11px] font-black text-violet-400 font-mono">
-                    {sessionTokens >= 1000 ? `${(sessionTokens / 1000).toFixed(1)}K` : sessionTokens}
-                  </span>
-                </div>
-                <div className="flex-1 flex flex-col items-center bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg px-2 py-1.5">
-                  <span className="text-[9px] text-muted-foreground/60 font-mono uppercase">رسائل</span>
-                  <span className="text-[11px] font-black text-cyan-400 font-mono">{sessionMessages}</span>
-                </div>
-                <div className="flex-1 flex flex-col items-center bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg px-2 py-1.5">
-                  <span className="text-[9px] text-muted-foreground/60 font-mono uppercase">تكلفة</span>
-                  <span className="text-[11px] font-black text-amber-400 font-mono">
-                    ${(sessionTokens * 0.000002).toFixed(4)}
-                  </span>
-                </div>
+              {/* Session Stats — 3D cards */}
+              <div className="flex items-center gap-1.5">
+                {[
+                  { label: "جلسة", value: sessionTokens >= 1000 ? `${(sessionTokens/1000).toFixed(1)}K` : sessionTokens, color: "#a78bfa" },
+                  { label: "رسائل", value: sessionMessages, color: "#00e5ff" },
+                  { label: "تكلفة", value: `$${(sessionTokens * 0.000002).toFixed(4)}`, color: "#f59e0b" },
+                ].map(({ label, value, color }) => (
+                  <div key={label} className="flex-1 flex flex-col items-center rounded-lg px-1 py-1.5"
+                    style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${color}20` }}>
+                    <span className="text-[8px] font-mono tracking-wider" style={{ color: "rgba(255,255,255,0.3)" }}>{label}</span>
+                    <span className="text-[11px] font-black font-mono" style={{ color, textShadow: `0 0 8px ${color}70` }}>{String(value)}</span>
+                  </div>
+                ))}
               </div>
 
-              {/* Main progress bar */}
-              <div className="h-1.5 bg-background rounded-full overflow-hidden">
+              {/* Main progress bar — neon */}
+              <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
                 <div
-                  className={`h-full rounded-full transition-all ${usedPct > 80 ? "bg-red-500" : usedPct > 50 ? "bg-amber-500" : "bg-primary"}`}
-                  style={{ width: `${Math.max(2, 100 - usedPct)}%` }}
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${Math.max(2, 100 - usedPct)}%`,
+                    background: usedPct > 80
+                      ? "linear-gradient(90deg, #ef4444, #e21227)"
+                      : usedPct > 50
+                      ? "linear-gradient(90deg, #f59e0b, #d97706)"
+                      : "linear-gradient(90deg, #e21227, #ff4455)",
+                    boxShadow: "0 0 6px rgba(226,18,39,0.5)"
+                  }}
                 />
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                <span className={isExpired ? "text-red-400" : ""}>
-                  Plan: <span className="font-semibold text-foreground">{TIER_LABELS[sub.tier]}</span>
-                  {isExpired && " (expired)"}
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono" style={{ color: isExpired ? "#ef4444" : "rgba(255,255,255,0.4)" }}>
+                  <span style={{ color: "rgba(255,255,255,0.6)" }}>{TIER_LABELS[sub.tier]}</span>
+                  {isExpired && <span className="text-red-400"> ·expired</span>}
                 </span>
-                <button onClick={onOpenPricing} className="text-primary hover:underline font-semibold">
-                  {sub.tier === "free" ? "Upgrade" : "Manage"}
+                <button onClick={onOpenPricing} className="text-[10px] font-black font-mono tracking-wider transition-all"
+                  style={{ color: "#e21227", textShadow: "0 0 8px rgba(226,18,39,0.5)" }}>
+                  {sub.tier === "free" ? "UPGRADE" : "MANAGE"}
                 </button>
               </div>
             </div>
@@ -757,10 +802,18 @@ function ChatRow({
   const isRenaming = renameId === id;
   return (
     <div
-      className={`group flex items-center gap-2 p-2 rounded-xl transition-colors ${
-        active ? "bg-accent" : "hover:bg-accent/60"
+      className={`group flex items-center gap-2 p-2 rounded-xl transition-all relative ${
+        active ? "" : ""
       }`}
+      style={{
+        background: active ? "rgba(226,18,39,0.08)" : "transparent",
+        border: active ? "1px solid rgba(226,18,39,0.2)" : "1px solid transparent",
+        boxShadow: active ? "0 0 12px rgba(226,18,39,0.08), inset 0 1px 0 rgba(255,255,255,0.04)" : "none",
+      }}
+      onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.border = "1px solid rgba(255,255,255,0.05)"; } }}
+      onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.border = "1px solid transparent"; } }}
     >
+      {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-full" style={{ background: "#e21227", boxShadow: "0 0 6px rgba(226,18,39,0.8)" }} />}
       {isRenaming ? (
         <input
           autoFocus
