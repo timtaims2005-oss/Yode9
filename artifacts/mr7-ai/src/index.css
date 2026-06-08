@@ -1031,6 +1031,81 @@ html::before {
     radial-gradient(260px 200px at 100% 100%, rgba(255, 255, 255, 0.08), transparent 70%);
 }
 
+/* ============================================================
+   ADVANCED 3D DEPTH SYSTEM — Additional Enhancements
+   ============================================================ */
+
+/* 3D depth on modal overlay backdrops */
+.dark [data-state="open"] ~ [data-state="open"] {
+  transform: translateZ(2px);
+}
+
+/* Topbar: holographic depth ring on the bottom neon line */
+.CHAT-GPT-topbar {
+  position: relative !important;
+}
+.CHAT-GPT-topbar::after {
+  content: "";
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(226,18,39,0.7) 20%,
+    rgba(255,255,255,0.5) 50%,
+    rgba(226,18,39,0.7) 80%,
+    transparent 100%);
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 0 8px rgba(226,18,39,0.4);
+}
+
+/* Sidebar: stronger 3D depth panel */
+.CHAT-GPT-sidebar {
+  background: linear-gradient(180deg,
+    rgba(10,10,16,1) 0%,
+    rgba(6,6,10,1) 100%) !important;
+  box-shadow:
+    inset -1px 0 0 rgba(226,18,39,0.25),
+    4px 0 40px rgba(0,0,0,0.7),
+    0 0 60px -30px rgba(226,18,39,0.3) !important;
+}
+.CHAT-GPT-sidebar::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; right: -1px;
+  width: 1px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(226,18,39,0.8) 35%,
+    rgba(255,255,255,0.5) 50%,
+    rgba(226,18,39,0.8) 65%,
+    transparent 100%);
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 0 6px rgba(226,18,39,0.4);
+}
+
+/* Floating 3D effect for message bubbles */
+.msg-bubble-user {
+  animation: holo-float 6s ease-in-out infinite;
+}
+
+/* Chat input area — glass morphism depth */
+.dark [class*="border-t"][class*="p-"] {
+  position: relative;
+}
+
+/* Holographic hover depth on sidebar chat rows */
+.dark .CHAT-GPT-sidebar [class*="rounded-xl"]:hover {
+  box-shadow: 0 2px 12px rgba(226,18,39,0.08), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+
+/* Depth glow on active model button */
+.dark .CHAT-GPT-topbar button:hover {
+  box-shadow: 0 0 20px rgba(226,18,39,0.15), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+
 /* Universal card glow — thin white→red rim on hover only (cheap) */
 .dark [class*="bg-card"] {
   box-shadow:
