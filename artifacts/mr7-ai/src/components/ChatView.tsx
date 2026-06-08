@@ -93,6 +93,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
   const [personaSwapOpen, setPersonaSwapOpen] = useState(false);
   const [comboOpen, setComboOpen] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
+  const [streamTps, setStreamTps] = useState<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -186,6 +187,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       curiosity: state.settings.stmCuriosity,
     };
     let acc = "";
+    const streamStart = Date.now();
     const rawSysPrompt = state.settings.customSystemPrompt?.trim() || undefined;
     // ── Parseltongue Combo — inject decoder protocol into system prompt ────
     const comboDecoder = state.settings.parseltongueCombo
@@ -258,7 +260,11 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
         toast({ description: message });
       }
     } finally {
-      if (acc) dispatch({ type: "USE_TOKENS", amount: estimateTokens(acc) });
+      if (acc) {
+        dispatch({ type: "USE_TOKENS", amount: estimateTokens(acc) });
+        const elapsedSec = (Date.now() - streamStart) / 1000;
+        if (elapsedSec > 0.5) setStreamTps(Math.round((acc.length / 4) / elapsedSec));
+      }
       setStreaming(false);
     }
   }
@@ -1258,6 +1264,11 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
           {/* Live diagnostics strip */}
           <div className="flex items-center justify-center mb-1.5">
             <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap no-scrollbar text-[10px] font-mono text-muted-foreground bg-card/60 border border-border rounded-full px-2.5 py-1 max-w-full">
+              {streamTps !== null && !streaming && (
+                <span className="inline-flex items-center gap-1 text-cyan-400 border-r border-border pr-1.5 mr-0.5">
+                  <span className="text-[9px] font-mono">{streamTps} tok/s</span>
+                </span>
+              )}
               <span className="inline-flex items-center gap-1 text-emerald-400">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 {t("diag.live")}

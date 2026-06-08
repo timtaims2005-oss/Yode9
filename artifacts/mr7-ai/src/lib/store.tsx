@@ -163,6 +163,8 @@ export type Settings = {
   aiFreqPenalty: number;
   aiPresPenalty: number;
   aiSystemTemplate: string;
+  // Provider fallback chain: ordered list of provider+model to try on failure
+  providerFallbackChain: Array<{ provider: string; model: string }>;
 };
 
 export type ThemeAccent = "crimson" | "midnight" | "emerald" | "amber" | "violet" | "cyan" | "rose" | "lime" | "orange" | "slate";
@@ -321,6 +323,7 @@ const initial: AppState = {
     aiFreqPenalty: 0.0,
     aiPresPenalty: 0.0,
     aiSystemTemplate: "",
+    providerFallbackChain: [],
   },
   themeAccent: "crimson",
   notifications: [

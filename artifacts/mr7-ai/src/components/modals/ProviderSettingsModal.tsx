@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   X, RefreshCw, Check, Cpu, Globe, Zap, FlaskConical, Route, Server, User,
   ExternalLink, Search, Star, Info, Copy, CheckCheck, Key, Eye, EyeOff,
@@ -738,17 +738,23 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
   const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
   const [savedMap, setSavedMap] = useState<Record<string, boolean>>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [testResults, setTestResults] = useState<Record<string, { ok: boolean; latencyMs: number; error?: string } | "loading">>({});
 
   // Personal API
   const [apiKeyInput, setApiKeyInput] = useState(() => state.settings.personalApiKey ?? "");
   const [apiBaseURLInput, setApiBaseURLInput] = useState(() => state.settings.personalApiBaseURL ?? "https://api.openai.com/v1");
   const [showGlobalKey, setShowGlobalKey] = useState(false);
 
-  // Catalog
+  // Catalog — with 140ms debounce on search input
+  const [catalogSearchInput, setCatalogSearchInput] = useState("");
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogProvider, setCatalogProvider] = useState("الكل");
   const [catalogCategory, setCatalogCategory] = useState("الكل");
   const [catalogSort, setCatalogSort] = useState<"power" | "hot" | "cost" | "ctx" | "speed">("power");
+  useEffect(() => {
+    const id = setTimeout(() => setCatalogSearch(catalogSearchInput), 140);
+    return () => clearTimeout(id);
+  }, [catalogSearchInput]);
 
   // Advanced settings (stored in dispatch)
   const [temperature, setTemperature] = useState(() => (state.settings as Record<string,unknown>).aiTemperature as number ?? 0.7);
@@ -899,6 +905,28 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
     return (CAT_W[m.category] ?? 10) + (COST_W[m.cost] ?? 5) + (PROV_W[m.provider] ?? 5) + hot + isNew + ctxW;
   }
 
+  async function testProvider(id: string) {
+    const key = id === "personal" ? apiKeyInput.trim() : (providerKeys[id]?.trim() ?? "");
+    const url = id === "personal" ? apiBaseURLInput.trim() : (providerURLs[id]?.trim() ?? "");
+    const prov = PROVIDERS.find(p => p.id === id);
+    if (!key && !url) {
+      toast({ description: "أضف مفتاح API أو رابط المزود أولاً ثم اختبر" });
+      return;
+    }
+    setTestResults(r => ({ ...r, [id]: "loading" }));
+    try {
+      const res = await fetch("/api/providers/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ baseURL: url || prov?.baseURL || undefined, apiKey: key || undefined, model: "gpt-3.5-turbo" }),
+      });
+      const data = await res.json() as { ok: boolean; latencyMs: number; error?: string };
+      setTestResults(r => ({ ...r, [id]: data }));
+    } catch {
+      setTestResults(r => ({ ...r, [id]: { ok: false, latencyMs: 0, error: "فشل الاتصال بالخادم" } }));
+    }
+  }
+
   function autoSelectBestModel() {
     const ready = WORLD_MODELS.filter(m => modelKeyStatus(m) !== "missing");
     if (ready.length === 0) {
@@ -910,7 +938,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
     toast({ description: `تم اختيار أقوى نموذج متاح: ${best.label} (${best.provider})` });
   }
 
-  const filteredCatalog = WORLD_MODELS.filter((m) => {
+  const filteredCatalog = useMemo(() => WORLD_MODELS.filter((m) => {
     const q = catalogSearch.toLowerCase();
     const matchQ = !q || m.label.toLowerCase().includes(q) || m.id.toLowerCase().includes(q) || m.provider.toLowerCase().includes(q) || (m.note ?? "").toLowerCase().includes(q);
     const matchP = catalogProvider === "الكل" || m.provider === catalogProvider;
@@ -920,16 +948,16 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
     if (catalogSort === "hot") return (b.hot ? 1 : 0) - (a.hot ? 1 : 0);
     if (catalogSort === "power") return modelPowerScore(b) - modelPowerScore(a);
     if (catalogSort === "cost") {
-      const order = { free: 0, "$": 1, "$$": 2, "$$$": 3 };
-      return order[a.cost] - order[b.cost];
+      const order: Record<string, number> = { free: 0, "$": 1, "$$": 2, "$$$": 3 };
+      return (order[a.cost] ?? 0) - (order[b.cost] ?? 0);
     }
     if (catalogSort === "speed") {
-      const s = { fast: 0, medium: 1, slow: 2 };
-      return s[a.speed] - s[b.speed];
+      const s: Record<string, number> = { fast: 0, medium: 1, slow: 2 };
+      return (s[a.speed] ?? 1) - (s[b.speed] ?? 1);
     }
     const parseCtx = (c: string) => { const n = parseFloat(c); return c.includes("M") ? n * 1000 : n; };
     return parseCtx(b.ctx) - parseCtx(a.ctx);
-  });
+  }), [catalogSearch, catalogProvider, catalogCategory, catalogSort]);
 
   const isProviderActive = (id: string) => activeProvider === id;
   const activeModelCount = PROVIDERS.filter(p => providerKeys[p.id]?.trim()).length + (state.settings.personalApiKey ? 1 : 0);
@@ -1181,6 +1209,23 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                                       {savedMap[prov.id] ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
                                       {savedMap[prov.id] ? "تم الحفظ!" : "حفظ"}
                                     </button>
+                                    <button
+                                      onClick={() => testProvider(prov.id)}
+                                      disabled={testResults[prov.id] === "loading"}
+                                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold border border-[#262626] hover:border-[#404040] text-muted-foreground hover:text-foreground transition-all disabled:opacity-50"
+                                    >
+                                      {testResults[prov.id] === "loading" ? (
+                                        <><RefreshCw className="w-3 h-3 animate-spin" /> اختبار...</>
+                                      ) : testResults[prov.id] && typeof testResults[prov.id] === "object" ? (
+                                        (testResults[prov.id] as { ok: boolean; latencyMs: number }).ok ? (
+                                          <><Check className="w-3 h-3 text-emerald-400" /> <span className="text-emerald-400">{(testResults[prov.id] as { latencyMs: number }).latencyMs}ms</span></>
+                                        ) : (
+                                          <><WifiOff className="w-3 h-3 text-red-400" /> <span className="text-red-400">فشل</span></>
+                                        )
+                                      ) : (
+                                        <><Wifi className="w-3 h-3" /> اختبار</>
+                                      )}
+                                    </button>
                                     {prov.docsURL && (
                                       <a href={prov.docsURL} target="_blank" rel="noopener noreferrer"
                                         className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground">
@@ -1336,11 +1381,11 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                   {/* Search */}
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                    <input value={catalogSearch} onChange={(e) => setCatalogSearch(e.target.value)}
+                    <input value={catalogSearchInput} onChange={(e) => setCatalogSearchInput(e.target.value)}
                       placeholder={`بحث في ${WORLD_MODELS.length}+ نموذج...`}
                       className="w-full bg-[#0d0d0d] border border-[#1a1a1a] rounded-xl pl-9 pr-9 py-2.5 text-[12px] outline-none focus:border-primary/40 placeholder:text-muted-foreground/40" />
-                    {catalogSearch && (
-                      <button onClick={() => setCatalogSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    {catalogSearchInput && (
+                      <button onClick={() => { setCatalogSearchInput(""); setCatalogSearch(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                         <X className="w-3.5 h-3.5" />
                       </button>
                     )}
