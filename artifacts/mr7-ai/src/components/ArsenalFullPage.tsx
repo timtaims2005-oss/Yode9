@@ -115,76 +115,196 @@ import { ForensicReconModal } from "./modals/ForensicReconModal";
 import { ExploitResistModal } from "./modals/ExploitResistModal";
 import { CyberPhysicalModal } from "./modals/CyberPhysicalModal";
 import { ProviderStatusModal } from "./modals/ProviderStatusModal";
+// Batch 9 — Security Tooling + AI Safety + Advanced Intelligence
+import { SecurityKanbanModal } from "./modals/SecurityKanbanModal";
+import { NetworkMonitorModal } from "./modals/NetworkMonitorModal";
+import { OpenSkynetModal } from "./modals/OpenSkynetModal";
+import { DefensiveAIModal } from "./modals/DefensiveAIModal";
+import { ThreatDetectionModal } from "./modals/ThreatDetectionModal";
+import { DeepfakeDetectorModal } from "./modals/DeepfakeDetectorModal";
+import { MisinfoDetectorModal } from "./modals/MisinfoDetectorModal";
+import { CyberConsciousnessModal } from "./modals/CyberConsciousnessModal";
+import { BehavioralDNAModal } from "./modals/BehavioralDNAModal";
+import { IncidentResponseModal } from "./modals/IncidentResponseModal";
+import { IntelligenceFabricModal } from "./modals/IntelligenceFabricModal";
+import { TemporalThreatModal } from "./modals/TemporalThreatModal";
+import { CyberEvolutionModal } from "./modals/CyberEvolutionModal";
+import { MalwareAnalysisModal } from "./modals/MalwareAnalysisModal";
+import { AISafetyModal } from "./modals/AISafetyModal";
+import { MultiRealityModal } from "./modals/MultiRealityModal";
+import { ZeroBoundaryModal } from "./modals/ZeroBoundaryModal";
+import { GlobalIntelSyncModal } from "./modals/GlobalIntelSyncModal";
+import { PrivacyRiskModal } from "./modals/PrivacyRiskModal";
+import { CrossDomainRiskModal } from "./modals/CrossDomainRiskModal";
+import { SelfImprovingModal } from "./modals/SelfImprovingModal";
+import { HyperAdaptiveModal } from "./modals/HyperAdaptiveModal";
+import { CausalReasoningModal } from "./modals/CausalReasoningModal";
+import { FullSpectrumAIModal } from "./modals/FullSpectrumAIModal";
+import { AutonomousOversightModal } from "./modals/AutonomousOversightModal";
+import { LargeScaleAnomalyModal } from "./modals/LargeScaleAnomalyModal";
 
 interface Props {
   moduleId: ArsenalModuleId;
   onBack: () => void;
 }
 
+const FULLPAGE_CSS = `
+  @keyframes fp-scan {
+    0% { top: -2px; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+  @keyframes fp-title-glow {
+    0%, 100% { text-shadow: 0 0 12px var(--mod-color, #e21227), 0 0 24px rgba(226,18,39,0.3); }
+    50% { text-shadow: 0 0 24px var(--mod-color, #e21227), 0 0 48px rgba(226,18,39,0.5); }
+  }
+  @keyframes fp-icon-pulse {
+    0%, 100% { box-shadow: 0 0 12px var(--mod-glow, rgba(226,18,39,0.3)), inset 0 0 8px rgba(255,255,255,0.02); }
+    50% { box-shadow: 0 0 28px var(--mod-glow, rgba(226,18,39,0.3)), inset 0 0 16px rgba(255,255,255,0.04); }
+  }
+  .fp-scan-line {
+    position: absolute; inset-x: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--mod-color, rgba(226,18,39,0.5)), transparent);
+    animation: fp-scan 8s linear infinite;
+    pointer-events: none;
+    box-shadow: 0 0 8px var(--mod-color, rgba(226,18,39,0.4));
+  }
+`;
+
 // Wrapper that converts any modal (overlay style) to a full-page view
-// by passing open=true and replacing onOpenChange(false) with onBack
 function FullPageWrapper({ children, moduleId, onBack }: { children: React.ReactNode; moduleId: ArsenalModuleId; onBack: () => void }) {
   const mod = ARSENAL_MODULES.find(m => m.id === moduleId);
+  const color = mod?.color ?? "#e21227";
+  const glow = mod?.glow ?? "rgba(226,18,39,0.3)";
+
   return (
     <motion.div
       key={moduleId}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      transition={{ duration: 0.18 }}
+      initial={{ opacity: 0, scale: 0.97, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.97, y: 20 }}
+      transition={{ duration: 0.22, type: "spring", stiffness: 200, damping: 26 }}
       className="fixed inset-0 z-40 flex flex-col"
-      style={{ background: "#060606" }}
+      style={{
+        background: `linear-gradient(160deg, #040406 0%, #020203 50%, #030306 100%)`,
+        "--mod-color": color,
+        "--mod-glow": glow
+      } as React.CSSProperties}
     >
-      {/* Full-page top bar */}
+      <style dangerouslySetInnerHTML={{ __html: FULLPAGE_CSS }} />
+
+      {/* Animated background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.025 }} preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <pattern id={`fp-hx-${moduleId}`} x="0" y="0" width="44" height="50.8" patternUnits="userSpaceOnUse">
+              <polygon points="22,2 42,13 42,37 22,48 2,37 2,13" fill="none" stroke={color} strokeWidth="0.5" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill={`url(#fp-hx-${moduleId})`} />
+        </svg>
+        <div className="fp-scan-line" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-40 pointer-events-none" style={{
+          background: `radial-gradient(ellipse at 50% 0%, ${color}08 0%, transparent 70%)`
+        }} />
+      </div>
+
+      {/* 3D Futuristic Top Bar */}
       <div
-        className="flex items-center gap-3 px-4 py-3 border-b shrink-0"
-        style={{ borderColor: `${mod?.color ?? "#e21227"}20`, background: `${mod?.color ?? "#e21227"}06` }}
+        className="relative z-10 flex items-center gap-3 px-5 py-3 shrink-0"
+        style={{
+          borderBottom: `1px solid ${color}20`,
+          background: `linear-gradient(90deg, ${color}06 0%, transparent 50%, ${color}03 100%)`,
+          boxShadow: `0 4px 30px rgba(0,0,0,0.5), 0 0 0 1px ${color}08`
+        }}
       >
-        <button
+        {/* Back button */}
+        <motion.button
+          whileHover={{ scale: 1.04, x: -2 }}
+          whileTap={{ scale: 0.96 }}
           onClick={onBack}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all hover:bg-white/5"
-          style={{ color: mod?.color ?? "#e21227", border: `1px solid ${mod?.color ?? "#e21227"}35` }}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black tracking-wider transition-all"
+          style={{
+            color,
+            border: `1px solid ${color}30`,
+            background: `${color}08`,
+            boxShadow: `0 0 12px ${glow}`
+          }}
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          ARSENAL HUB
-        </button>
+          ARSENAL
+        </motion.button>
 
+        {/* Separator */}
+        <div className="w-px h-6" style={{ background: `${color}20` }} />
+
+        {/* Module info */}
         {mod && (
-          <div className="flex items-center gap-2 ml-2">
-            <div
-              className="w-6 h-6 rounded-lg flex items-center justify-center"
-              style={{ background: `${mod.color}15`, border: `1px solid ${mod.color}30` }}
-            >
-              <mod.icon className="w-3.5 h-3.5" style={{ color: mod.color }} />
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <motion.div
+                animate={{ boxShadow: [`0 0 12px ${glow}`, `0 0 24px ${glow}`, `0 0 12px ${glow}`] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-9 h-9 rounded-xl flex items-center justify-center"
+                style={{
+                  background: `radial-gradient(circle at 35% 35%, ${color}25, rgba(0,0,0,0.9))`,
+                  border: `1px solid ${color}40`,
+                }}
+              >
+                <mod.icon style={{ color, width: 18, height: 18, filter: `drop-shadow(0 0 6px ${color})` }} />
+              </motion.div>
+              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full" style={{
+                background: "#10b981",
+                boxShadow: "0 0 6px #10b981",
+                border: "1.5px solid #020203"
+              }} />
             </div>
             <div>
-              <div className="text-[12px] font-bold" style={{ color: mod.color }}>{mod.name}</div>
-              <div className="text-[9px] font-mono" style={{ color: "#444" }}>{mod.subtitle}</div>
+              <div className="text-[13px] font-black tracking-wide" style={{
+                color,
+                textShadow: `0 0 16px ${color}60`,
+                animation: "fp-title-glow 3s ease-in-out infinite"
+              }}>
+                {mod.name}
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[8.5px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>{mod.subtitle}</span>
+                <span className="text-[6.5px] font-black px-1.5 py-0.5 rounded-full font-mono tracking-widest" style={{
+                  background: `${color}15`,
+                  border: `1px solid ${color}35`,
+                  color
+                }}>{mod.tag}</span>
+              </div>
             </div>
-            <span
-              className="ml-2 text-[8px] font-mono font-bold px-1.5 py-0.5 rounded"
-              style={{ background: `${mod.color}12`, color: mod.color }}
-            >
-              {mod.tag}
-            </span>
           </div>
         )}
 
-        <div className="flex items-center gap-1.5 ml-auto">
-          <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: mod?.color ?? "#e21227" }} />
-          <span className="text-[9px] font-mono" style={{ color: mod?.color ?? "#e21227" }}>LIVE</span>
+        {/* Live indicator */}
+        <div className="ml-auto flex items-center gap-2">
+          <motion.div
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+            style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}
+          >
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#10b981", boxShadow: "0 0 6px #10b981" }} />
+            <span className="text-[8px] font-black font-mono tracking-widest" style={{ color: "#10b981" }}>LIVE</span>
+          </motion.div>
+          <motion.button
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onBack}
+            className="p-2 rounded-xl transition-all"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", color: "#444" }}
+          >
+            <X className="w-4 h-4" />
+          </motion.button>
         </div>
-
-        <button
-          onClick={onBack}
-          className="p-1.5 rounded-lg transition-colors hover:bg-white/5 ml-2"
-        >
-          <X className="w-4 h-4" style={{ color: "#444" }} />
-        </button>
       </div>
 
       {/* Modal content rendered full-screen */}
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 overflow-hidden relative z-10">
         {children}
       </div>
     </motion.div>
@@ -309,6 +429,33 @@ export function ArsenalFullPage({ moduleId, onBack }: Props) {
       case "exploitresist":   return <ExploitResistModal open={open} onOpenChange={v => !v && onBack()} />;
       case "cyberphysical":   return <CyberPhysicalModal open={open} onOpenChange={v => !v && onBack()} />;
       case "providerstatus":  return <ProviderStatusModal open={open} onOpenChange={v => !v && onBack()} />;
+      // Batch 9 — Security Tooling + AI Safety + Advanced Intelligence
+      case "securitykanban":      return <SecurityKanbanModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "networkmonitor":      return <NetworkMonitorModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "openskynet":          return <OpenSkynetModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "defensiveai":         return <DefensiveAIModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "threatdetect":        return <ThreatDetectionModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "deepfake":            return <DeepfakeDetectorModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "misinfo":             return <MisinfoDetectorModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "cyberconsciousness":  return <CyberConsciousnessModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "behavioraldna":       return <BehavioralDNAModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "incidentresponse":    return <IncidentResponseModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "intelfabric":         return <IntelligenceFabricModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "temporalthreat":      return <TemporalThreatModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "cyberevolution":      return <CyberEvolutionModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "malwareanalysis":     return <MalwareAnalysisModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "aisafety":            return <AISafetyModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "multireality":        return <MultiRealityModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "zeroboundary":        return <ZeroBoundaryModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "globalintelsync":     return <GlobalIntelSyncModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "privacyrisk":         return <PrivacyRiskModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "crossdomain":         return <CrossDomainRiskModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "selfimprove":         return <SelfImprovingModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "hyperadaptive":       return <HyperAdaptiveModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "causalreason":        return <CausalReasoningModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "fullspectrum":        return <FullSpectrumAIModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "autonomousoversight": return <AutonomousOversightModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "largescaleanomaly":   return <LargeScaleAnomalyModal open={open} onOpenChange={v => !v && onBack()} />;
       default:                return null;
     }
   })();

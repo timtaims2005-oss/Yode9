@@ -34,7 +34,7 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
 
-  const accent = state.accent?.value ?? "#e21227";
+  const accent = (state as unknown as { accent?: { value: string } }).accent?.value ?? "#e21227";
 
   useEffect(() => {
     const pts = Array.from({ length: 60 }, () => ({
@@ -59,6 +59,7 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
     const pts = particles.slice();
 
     function draw() {
+      if (!canvas) return;
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -77,10 +78,10 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
       pts.forEach(p => {
         p.x += Math.cos(p.angle) * p.speed;
         p.y += Math.sin(p.angle) * p.speed;
-        if (p.x < 0) p.x = canvas.width;
-        if (p.x > canvas.width) p.x = 0;
-        if (p.y < 0) p.y = canvas.height;
-        if (p.y > canvas.height) p.y = 0;
+        if (p.x < 0) p.x = canvas!.width;
+        if (p.x > canvas!.width) p.x = 0;
+        if (p.y < 0) p.y = canvas!.height;
+        if (p.y > canvas!.height) p.y = 0;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(226,18,39,${0.3 + Math.sin(frame * 0.05) * 0.2})`;
@@ -91,7 +92,6 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
       const cx = canvas.width / 2, cy = canvas.height / 2;
       const maxR = Math.min(cx, cy) * 0.8;
       const sweep = (frame * 0.02) % (Math.PI * 2);
-      const grad = ctx.createConicalGradient ? null : null;
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.arc(cx, cy, maxR, sweep - 0.6, sweep);

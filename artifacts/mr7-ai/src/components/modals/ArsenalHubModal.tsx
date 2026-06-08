@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import {
   X, Bot, Hexagon, Cpu, Zap, Brain, Terminal, Database,
   Layers, Code2, Users, Sparkles, BookOpen,
@@ -979,20 +979,341 @@ function ChainBuilderTab() {
   );
 }
 
+// ─── CSS Animations ───────────────────────────────────────────────────────────
+const ARSENAL_CSS = `
+  @keyframes arsenal-shimmer {
+    0% { transform: translateX(-100%) skewX(-15deg); }
+    100% { transform: translateX(200%) skewX(-15deg); }
+  }
+  @keyframes arsenal-scan {
+    0% { top: -2px; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+  @keyframes arsenal-glow-pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+  @keyframes arsenal-float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-4px) rotate(1deg); }
+    75% { transform: translateY(-2px) rotate(-1deg); }
+  }
+  @keyframes arsenal-hex-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes arsenal-beam {
+    0% { left: -100%; }
+    100% { left: 200%; }
+  }
+  @keyframes arsenal-particle {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-60px) translateX(20px); opacity: 0; }
+  }
+  @keyframes arsenal-circuit {
+    0% { stroke-dashoffset: 200; opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 0; }
+  }
+  @keyframes arsenal-data-stream {
+    from { transform: translateY(0); }
+    to { transform: translateY(-50%); }
+  }
+  @keyframes arsenal-border-glow {
+    0%, 100% { box-shadow: 0 0 8px var(--glow), inset 0 0 8px rgba(255,255,255,0.01); }
+    50% { box-shadow: 0 0 25px var(--glow), 0 0 60px var(--glow2), inset 0 0 15px rgba(255,255,255,0.03); }
+  }
+  @keyframes arsenal-title-glow {
+    0%, 100% { text-shadow: 0 0 10px #e21227, 0 0 20px rgba(226,18,39,0.4); }
+    50% { text-shadow: 0 0 20px #e21227, 0 0 40px rgba(226,18,39,0.7), 0 0 60px rgba(226,18,39,0.3); }
+  }
+  @keyframes arsenal-spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .arsenal-card-shimmer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.04) 40%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.04) 60%, transparent 80%);
+    animation: arsenal-shimmer 4s ease-in-out infinite;
+    pointer-events: none;
+    border-radius: inherit;
+    overflow: hidden;
+  }
+  .arsenal-scan-line {
+    position: absolute; inset-x: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(226,18,39,0.5), transparent);
+    animation: arsenal-scan 6s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+    box-shadow: 0 0 12px rgba(226,18,39,0.4);
+  }
+`;
+
+// ─── 3D Card Component ────────────────────────────────────────────────────────
+function Arsenal3DCard({
+  mod, isEnabled, onToggle, onLaunch, onClose, index
+}: {
+  mod: ArsenalModule;
+  isEnabled: boolean;
+  onToggle: (id: ArsenalModuleId) => void;
+  onLaunch: (id: ArsenalModuleId) => void;
+  onClose: () => void;
+  index: number;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), { stiffness: 300, damping: 30 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), { stiffness: 300, damping: 30 });
+  const glowX = useTransform(mouseX, [-0.5, 0.5], ["0%", "100%"]);
+  const glowY = useTransform(mouseY, [-0.5, 0.5], ["0%", "100%"]);
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  }
+
+  function handleMouseLeave() {
+    mouseX.set(0);
+    mouseY.set(0);
+  }
+
+  const Icon = mod.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30, scale: 0.88 }}
+      animate={{ opacity: isEnabled ? 1 : 0.45, y: 0, scale: 1 }}
+      transition={{ duration: 0.4, delay: Math.min(index * 0.018, 0.5), type: "spring", stiffness: 200, damping: 22 }}
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ perspective: "900px", transformStyle: "preserve-3d" }}
+      className="relative group"
+    >
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className="relative rounded-2xl overflow-hidden cursor-pointer arsenal-card-shimmer"
+        whileHover={{ scale: 1.02 }}
+        transition={{ type: "spring", stiffness: 300, damping: 22 }}
+        onClick={() => { if (isEnabled) { onLaunch(mod.id); onClose(); } }}
+        data-glow={mod.glow}
+        data-glow2={`${mod.color}15`}
+      >
+        {/* Background layers */}
+        <div className="absolute inset-0" style={{
+          background: isEnabled
+            ? `radial-gradient(ellipse at 30% 20%, ${mod.color}18 0%, transparent 60%), linear-gradient(135deg, ${mod.bg} 0%, rgba(3,3,6,0.97) 55%)`
+            : "linear-gradient(135deg, #060608 0%, #030305 100%)",
+          zIndex: 0
+        }} />
+
+        {/* Neon top border */}
+        <div className="absolute top-0 inset-x-0 h-px" style={{
+          background: isEnabled
+            ? `linear-gradient(90deg, transparent, ${mod.color}90, transparent)`
+            : "transparent",
+          boxShadow: isEnabled ? `0 0 10px ${mod.color}60` : "none",
+          zIndex: 2
+        }} />
+
+        {/* Corner accent top-left */}
+        <div className="absolute top-0 left-0 w-8 h-8 pointer-events-none" style={{
+          borderTop: `1px solid ${isEnabled ? mod.color : "rgba(255,255,255,0.04)"}60`,
+          borderLeft: `1px solid ${isEnabled ? mod.color : "rgba(255,255,255,0.04)"}60`,
+          borderRadius: "0 0 8px 0",
+          zIndex: 2
+        }} />
+        <div className="absolute bottom-0 right-0 w-8 h-8 pointer-events-none" style={{
+          borderBottom: `1px solid ${isEnabled ? mod.color : "rgba(255,255,255,0.04)"}40`,
+          borderRight: `1px solid ${isEnabled ? mod.color : "rgba(255,255,255,0.04)"}40`,
+          borderRadius: "8px 0 0 0",
+          zIndex: 2
+        }} />
+
+        {/* Outer border glow */}
+        <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{
+          border: `1px solid ${isEnabled ? mod.border : "rgba(255,255,255,0.05)"}`,
+          boxShadow: isEnabled ? `0 0 30px ${mod.glow}, 0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04)` : "none",
+          zIndex: 3
+        }} />
+
+        {/* Mouse-follow glow */}
+        {isEnabled && (
+          <motion.div className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{
+            background: `radial-gradient(circle at ${glowX} ${glowY}, ${mod.color}12 0%, transparent 60%)`,
+            zIndex: 1
+          }} />
+        )}
+
+        {/* Content */}
+        <div className="relative z-10 p-4 flex flex-col gap-2.5">
+          {/* Row 1: Icon + Name + Toggle */}
+          <div className="flex items-start gap-3">
+            {/* 3D Glowing Icon */}
+            <motion.div
+              whileHover={{ rotateY: 180, scale: 1.15 }}
+              transition={{ duration: 0.5, type: "spring" }}
+              className="w-11 h-11 rounded-xl flex-shrink-0 flex items-center justify-center relative"
+              style={{ transformStyle: "preserve-3d" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="absolute inset-0 rounded-xl" style={{
+                background: isEnabled
+                  ? `radial-gradient(circle at 35% 35%, ${mod.color}30 0%, rgba(0,0,0,0.9) 70%)`
+                  : "rgba(255,255,255,0.02)",
+                border: `1px solid ${isEnabled ? mod.border : "rgba(255,255,255,0.05)"}`,
+                boxShadow: isEnabled ? `0 0 22px ${mod.glow}, inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 12px rgba(0,0,0,0.5)` : "none"
+              }} />
+              <Icon style={{
+                color: isEnabled ? mod.color : "#222",
+                width: 20, height: 20,
+                position: "relative", zIndex: 1,
+                filter: isEnabled ? `drop-shadow(0 0 8px ${mod.color})` : "none"
+              }} />
+              {/* Orbiting dot */}
+              {isEnabled && (
+                <div className="absolute inset-0 rounded-xl pointer-events-none" style={{ animation: "arsenal-spin-slow 4s linear infinite" }}>
+                  <div className="absolute top-0.5 left-1/2 w-1 h-1 rounded-full -translate-x-1/2" style={{
+                    background: mod.color,
+                    boxShadow: `0 0 6px ${mod.color}`
+                  }} />
+                </div>
+              )}
+            </motion.div>
+
+            {/* Name + Subtitle */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[12px] font-black tracking-wide" style={{
+                  color: isEnabled ? mod.color : "#2a2a2a",
+                  textShadow: isEnabled ? `0 0 14px ${mod.color}60` : "none",
+                }}>
+                  {mod.name}
+                </span>
+                <span className="text-[6.5px] font-black px-1.5 py-0.5 rounded-full font-mono tracking-widest" style={{
+                  background: isEnabled ? `${mod.color}18` : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${isEnabled ? `${mod.color}45` : "rgba(255,255,255,0.04)"}`,
+                  color: isEnabled ? mod.color : "#1e1e1e",
+                }}>
+                  {mod.tag}
+                </span>
+              </div>
+              <div className="text-[9.5px] mt-0.5 font-mono" style={{
+                color: isEnabled ? "rgba(255,255,255,0.32)" : "#1a1a1a"
+              }}>
+                {mod.subtitle}
+              </div>
+            </div>
+
+            {/* Toggle */}
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggle(mod.id); }}
+              className="relative flex-shrink-0 w-10 h-5 rounded-full transition-all"
+              style={{
+                background: isEnabled ? `linear-gradient(90deg, ${mod.color}cc, ${mod.color})` : "#0e0e0e",
+                border: `1px solid ${isEnabled ? mod.border : "rgba(255,255,255,0.07)"}`,
+                boxShadow: isEnabled ? `0 0 14px ${mod.glow}` : "none"
+              }}
+            >
+              <div className="absolute top-0.5 w-4 h-4 rounded-full shadow-lg transition-all"
+                style={{
+                  left: isEnabled ? "calc(100% - 18px)" : 2,
+                  background: isEnabled ? "#fff" : "rgba(255,255,255,0.3)",
+                  boxShadow: isEnabled ? `0 0 8px ${mod.color}80` : "none"
+                }} />
+            </button>
+          </div>
+
+          {/* Description */}
+          <p className="text-[9.5px] leading-relaxed" style={{
+            color: isEnabled ? "rgba(255,255,255,0.38)" : "#141414"
+          }}>
+            {mod.desc}
+          </p>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-2 border-t" style={{
+            borderColor: isEnabled ? `${mod.color}18` : "rgba(255,255,255,0.03)"
+          }}>
+            <div className="flex items-center gap-1">
+              <div className="w-1 h-1 rounded-full" style={{
+                background: isEnabled ? mod.color : "#1a1a1a",
+                boxShadow: isEnabled ? `0 0 4px ${mod.color}` : "none"
+              }} />
+              <span className="text-[8px] font-mono" style={{
+                color: isEnabled ? "rgba(255,255,255,0.13)" : "#0e0e0e"
+              }}>
+                {mod.source.length > 22 ? mod.source.slice(0, 22) + "…" : mod.source}
+              </span>
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.08, y: -1 }}
+              whileTap={{ scale: 0.94 }}
+              onClick={(e) => { e.stopPropagation(); if (isEnabled) { onLaunch(mod.id); onClose(); } }}
+              disabled={!isEnabled}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black disabled:opacity-20 tracking-wider transition-all"
+              style={{
+                background: isEnabled
+                  ? `linear-gradient(135deg, ${mod.bg}, ${mod.color}22)`
+                  : "rgba(255,255,255,0.02)",
+                border: `1px solid ${isEnabled ? mod.border : "rgba(255,255,255,0.04)"}`,
+                color: isEnabled ? mod.color : "#111",
+                boxShadow: isEnabled ? `0 0 18px ${mod.glow}, 0 2px 8px rgba(0,0,0,0.5)` : "none",
+                textShadow: isEnabled ? `0 0 8px ${mod.color}70` : "none"
+              }}
+            >
+              <ExternalLink style={{ width: 11, height: 11 }} />
+              LAUNCH
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ─── Tab button ───────────────────────────────────────────────────────────────
-function TabBtn({ active, onClick, label, count, countColor = "#555" }: { active: boolean; onClick: () => void; label: string; count?: number; countColor?: string; }) {
+function TabBtn({ active, onClick, label, count, countColor = "#555" }: {
+  active: boolean; onClick: () => void; label: string; count?: number; countColor?: string;
+}) {
   return (
     <button
       onClick={onClick}
-      className="relative px-4 py-3 text-[10px] font-bold tracking-widest transition-colors"
-      style={{ color: active ? "#e21227" : "#444", borderBottom: active ? "2px solid #e21227" : "2px solid transparent" }}
+      className="relative px-3.5 py-3 text-[9.5px] font-black tracking-widest transition-all group"
+      style={{ color: active ? "#e21227" : "#2d2d2d" }}
     >
-      {label}
+      {active && (
+        <motion.div
+          layoutId="arsenal-tab-indicator"
+          className="absolute bottom-0 inset-x-0 h-0.5 rounded-t-full"
+          style={{ background: "linear-gradient(90deg, transparent, #e21227, transparent)", boxShadow: "0 0 12px rgba(226,18,39,0.8)" }}
+        />
+      )}
+      <span className="relative z-10">{label}</span>
       {count !== undefined && count > 0 && (
-        <span className="ml-1.5 text-[8px] font-mono px-1 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.06)", color: countColor }}>
+        <span className="ml-1.5 text-[8px] font-mono px-1.5 py-0.5 rounded-full" style={{
+          background: active ? "rgba(226,18,39,0.15)" : "rgba(255,255,255,0.04)",
+          border: `1px solid ${active ? "rgba(226,18,39,0.3)" : "rgba(255,255,255,0.06)"}`,
+          color: countColor
+        }}>
           {count}
         </span>
       )}
+      {!active && <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "rgba(255,255,255,0.02)" }} />}
     </button>
   );
 }
@@ -1220,279 +1541,378 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
       {open && (
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
-          style={{ backdropFilter: "blur(10px)", background: "rgba(0,0,0,0.82)" }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-3"
+          style={{ backdropFilter: "blur(24px)", background: "rgba(0,0,0,0.92)" }}
         >
+          <style dangerouslySetInnerHTML={{ __html: ARSENAL_CSS }} />
+
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.2 }}
-            className="w-full max-w-4xl max-h-[92vh] flex flex-col rounded-2xl overflow-hidden"
-            style={{ background: "#080808", border: "1px solid rgba(226,18,39,0.25)", boxShadow: "0 0 80px rgba(226,18,39,0.12), 0 30px 60px rgba(0,0,0,0.9)" }}
+            initial={{ opacity: 0, scale: 0.91, y: 40, rotateX: 6 }}
+            animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
+            exit={{ opacity: 0, scale: 0.91, y: 40 }}
+            transition={{ duration: 0.3, type: "spring", stiffness: 180, damping: 26 }}
+            className="w-full max-w-5xl max-h-[94vh] flex flex-col rounded-2xl overflow-hidden relative"
+            style={{
+              background: "linear-gradient(160deg, #050508 0%, #020204 50%, #04040a 100%)",
+              border: "1px solid rgba(226,18,39,0.22)",
+              boxShadow: "0 0 0 1px rgba(226,18,39,0.06), 0 0 120px rgba(226,18,39,0.08), 0 40px 120px rgba(0,0,0,0.98), inset 0 0 100px rgba(226,18,39,0.015)"
+            }}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "rgba(226,18,39,0.2)", background: "rgba(226,18,39,0.04)" }}>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center border" style={{ background: "rgba(226,18,39,0.1)", borderColor: "rgba(226,18,39,0.4)" }}>
-                  <Shield className="w-5 h-5" style={{ color: "#e21227" }} />
+            {/* Animated background layers */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl" style={{ zIndex: 0 }}>
+              {/* Hex grid */}
+              <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.035 }} preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <pattern id="hx" x="0" y="0" width="44" height="50.8" patternUnits="userSpaceOnUse">
+                    <polygon points="22,2 42,13 42,37 22,48 2,37 2,13" fill="none" stroke="#e21227" strokeWidth="0.6" />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#hx)" />
+              </svg>
+              {/* Scan line */}
+              <div className="arsenal-scan-line" />
+              {/* Corner brackets */}
+              <div className="absolute top-4 left-4 w-12 h-12 pointer-events-none" style={{ borderTop: "1.5px solid rgba(226,18,39,0.35)", borderLeft: "1.5px solid rgba(226,18,39,0.35)", borderRadius: "3px 0 0 0" }} />
+              <div className="absolute top-4 right-4 w-12 h-12 pointer-events-none" style={{ borderTop: "1.5px solid rgba(226,18,39,0.35)", borderRight: "1.5px solid rgba(226,18,39,0.35)", borderRadius: "0 3px 0 0" }} />
+              <div className="absolute bottom-4 left-4 w-12 h-12 pointer-events-none" style={{ borderBottom: "1.5px solid rgba(226,18,39,0.2)", borderLeft: "1.5px solid rgba(226,18,39,0.2)", borderRadius: "0 0 0 3px" }} />
+              <div className="absolute bottom-4 right-4 w-12 h-12 pointer-events-none" style={{ borderBottom: "1.5px solid rgba(226,18,39,0.2)", borderRight: "1.5px solid rgba(226,18,39,0.2)", borderRadius: "0 0 3px 0" }} />
+              {/* Radial glow center-top */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-32 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(226,18,39,0.08) 0%, transparent 70%)" }} />
+            </div>
+
+            {/* ── HEADER ── */}
+            <div className="relative z-10 flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: "rgba(226,18,39,0.15)", background: "rgba(226,18,39,0.025)" }}>
+              <div className="flex items-center gap-4">
+                {/* Animated Logo */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{
+                    background: "radial-gradient(circle at 35% 35%, rgba(226,18,39,0.25) 0%, rgba(0,0,0,0.9) 70%)",
+                    border: "1px solid rgba(226,18,39,0.5)",
+                    boxShadow: "0 0 30px rgba(226,18,39,0.3), inset 0 1px 0 rgba(255,255,255,0.06)"
+                  }}>
+                    <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: 3, borderRadius: "50%", border: "1px dashed rgba(226,18,39,0.25)" }} />
+                    <Shield className="w-5 h-5 relative z-10" style={{ color: "#e21227", filter: "drop-shadow(0 0 8px #e21227)" }} />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full flex items-center justify-center" style={{ background: "#e21227", boxShadow: "0 0 8px #e21227" }}>
+                    <motion.div animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full bg-white" />
+                  </div>
                 </div>
+
+                {/* Title */}
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-black tracking-widest" style={{ color: "#e21227" }}>ARSENAL</span>
-                    <span className="text-sm font-black tracking-widest text-white">HUB</span>
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border font-mono" style={{ color: "#00e5cc", borderColor: "rgba(0,229,204,0.4)", background: "rgba(0,229,204,0.06)" }}>
-                      {enabled.size}/{ARSENAL_MODULES.length} ACTIVE
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="text-base font-black tracking-[0.2em]" style={{ color: "#e21227", textShadow: "0 0 20px rgba(226,18,39,0.5), 0 0 40px rgba(226,18,39,0.2)", animation: "arsenal-title-glow 3s ease-in-out infinite" }}>
+                      ARSENAL
+                    </span>
+                    <span className="text-base font-black tracking-[0.2em]" style={{ color: "rgba(255,255,255,0.9)" }}>HUB</span>
+                    <span className="text-[7px] font-black px-1.5 py-0.5 rounded font-mono tracking-widest" style={{ color: "#00e5cc", border: "1px solid rgba(0,229,204,0.3)", background: "rgba(0,229,204,0.06)", boxShadow: "0 0 8px rgba(0,229,204,0.2)" }}>
+                      v.3090
                     </span>
                   </div>
-                  <div className="text-[10px] mt-0.5" style={{ color: "#444" }}>Launch, configure, and chain AI modules</div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#10b981", boxShadow: "0 0 6px #10b981", animation: "arsenal-glow-pulse 2s ease-in-out infinite" }} />
+                    <span className="text-[9.5px] font-mono" style={{ color: "rgba(255,255,255,0.2)" }}>
+                      {enabled.size}<span style={{ color: "rgba(255,255,255,0.1)" }}>/{ARSENAL_MODULES.length}</span>
+                      <span style={{ color: "rgba(255,255,255,0.1)" }}> MODULES ONLINE</span>
+                    </span>
+                    <span className="text-[8px] font-mono px-2 py-0.5 rounded-full" style={{ background: "rgba(226,18,39,0.1)", border: "1px solid rgba(226,18,39,0.2)", color: "#e21227" }}>
+                      CLASSIFIED
+                    </span>
+                  </div>
                 </div>
               </div>
+
+              {/* Header Actions */}
               <div className="flex items-center gap-2">
                 {tab === "modules" && (
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                     onClick={toggleAll}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border"
-                    style={{ background: allOn ? "rgba(226,18,39,0.1)" : "rgba(0,229,204,0.08)", borderColor: allOn ? "rgba(226,18,39,0.3)" : "rgba(0,229,204,0.3)", color: allOn ? "#e21227" : "#00e5cc" }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black transition-all border tracking-wider"
+                    style={{
+                      background: allOn ? "rgba(226,18,39,0.08)" : "rgba(0,229,204,0.06)",
+                      borderColor: allOn ? "rgba(226,18,39,0.3)" : "rgba(0,229,204,0.3)",
+                      color: allOn ? "#e21227" : "#00e5cc",
+                      boxShadow: allOn ? "0 0 12px rgba(226,18,39,0.2)" : "0 0 12px rgba(0,229,204,0.15)"
+                    }}
                   >
                     {allOn ? <Square className="w-3 h-3" /> : <CheckSquare className="w-3 h-3" />}
-                    {allOn ? "Deselect All" : "Select All"}
-                  </button>
+                    {allOn ? "DESELECT ALL" : "SELECT ALL"}
+                  </motion.button>
                 )}
                 {tab === "history" && history.length > 0 && (
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                     onClick={() => pipeline.clearHistory()}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border"
-                    style={{ background: "rgba(248,113,113,0.08)", borderColor: "rgba(248,113,113,0.3)", color: "#f87171" }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black border"
+                    style={{ background: "rgba(248,113,113,0.06)", borderColor: "rgba(248,113,113,0.25)", color: "#f87171" }}
                   >
-                    <Trash2 className="w-3 h-3" />
-                    Clear History
-                  </button>
+                    <Trash2 className="w-3 h-3" /> CLEAR
+                  </motion.button>
                 )}
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/10 transition-colors">
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
+                  onClick={() => onOpenChange(false)}
+                  className="p-2 rounded-xl transition-all"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", color: "#555" }}
+                >
                   <X className="w-4 h-4" />
-                </button>
+                </motion.button>
               </div>
             </div>
 
-            {/* Tab Bar */}
-            <div className="flex items-center gap-0 px-5 border-b" style={{ borderColor: "rgba(255,255,255,0.06)", background: "#0a0a0a" }}>
+            {/* ── TAB BAR ── */}
+            <div className="relative z-10 flex items-center px-4 border-b overflow-x-auto" style={{ borderColor: "rgba(255,255,255,0.05)", background: "rgba(0,0,0,0.4)" }}>
               <TabBtn active={tab === "modules"} onClick={() => setTab("modules")} label="MODULES" count={ARSENAL_MODULES.length} />
               <TabBtn active={tab === "chain"} onClick={() => setTab("chain")} label="CHAIN BUILDER" count={rulesCount} countColor="#00e5cc" />
-              <TabBtn active={tab === "history"} onClick={() => setTab("history")} label="PIPELINE HISTORY" count={history.length} countColor="#00e5cc" />
-              <TabBtn active={tab === "mission"} onClick={() => setTab("mission")} label="MISSION CONTROL" />
+              <TabBtn active={tab === "history"} onClick={() => setTab("history")} label="PIPELINE" count={history.length} countColor="#00e5cc" />
+              <TabBtn active={tab === "mission"} onClick={() => setTab("mission")} label="MISSION CTRL" />
               <TabBtn active={tab === "intel"} onClick={() => setTab("intel")} label="INTEL FEED" countColor="#e21227" />
             </div>
 
-            {/* Search (modules tab only) */}
+            {/* ── SEARCH BAR (modules only) ── */}
             {tab === "modules" && (
-              <div className="px-5 py-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-                <input
-                  type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search modules by name, tag, or source…"
-                  className="w-full bg-transparent border rounded-lg px-3 py-2 text-[12px] outline-none font-mono"
-                  style={{ borderColor: "rgba(255,255,255,0.1)", color: "#ccc" }}
-                />
+              <div className="relative z-10 px-4 py-3 border-b" style={{ borderColor: "rgba(255,255,255,0.04)", background: "rgba(0,0,0,0.3)" }}>
+                <div className="relative">
+                  <input
+                    type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+                    placeholder="SCAN MODULES BY NAME · TAG · SOURCE…"
+                    className="w-full border rounded-xl px-4 py-2.5 text-[11px] outline-none font-mono tracking-wider pr-10"
+                    style={{
+                      background: "rgba(255,255,255,0.025)",
+                      borderColor: search ? "rgba(226,18,39,0.4)" : "rgba(255,255,255,0.07)",
+                      color: "#ccc",
+                      boxShadow: search ? "0 0 20px rgba(226,18,39,0.1), inset 0 0 20px rgba(226,18,39,0.03)" : "none"
+                    }}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                    {search && (
+                      <span className="text-[9px] font-mono font-bold" style={{ color: "#e21227" }}>
+                        {filtered.length} FOUND
+                      </span>
+                    )}
+                    <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }}>
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ background: search ? "#e21227" : "#333" }} />
+                    </motion.div>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto">
+            {/* ── CONTENT ── */}
+            <div className="flex-1 overflow-y-auto relative z-10">
               <AnimatePresence mode="wait">
+
+                {/* MODULES GRID */}
                 {tab === "modules" && (
-                  <motion.div key="modules" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.15 }} className="p-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {filtered.map((mod) => {
-                        const Icon = mod.icon;
-                        const isEnabled = enabled.has(mod.id);
-                        return (
-                          <motion.div key={mod.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                            className="rounded-xl p-3.5 flex flex-col gap-3 transition-all"
-                            style={{ background: isEnabled ? mod.bg : "#0d0d0d", border: `1px solid ${isEnabled ? mod.border : "rgba(255,255,255,0.06)"}`, boxShadow: isEnabled ? `0 0 20px ${mod.glow}` : "none", opacity: isEnabled ? 1 : 0.55 }}>
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center border flex-shrink-0" style={{ background: isEnabled ? mod.bg : "#111", borderColor: isEnabled ? mod.border : "rgba(255,255,255,0.08)" }}>
-                                  <Icon style={{ color: isEnabled ? mod.color : "#444", width: 18, height: 18 }} />
-                                </div>
-                                <div>
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-[12px] font-black" style={{ color: isEnabled ? mod.color : "#555" }}>{mod.name}</span>
-                                    <span className="text-[8px] font-bold px-1.5 py-0.5 rounded font-mono" style={{ background: "rgba(255,255,255,0.05)", color: "#555" }}>{mod.tag}</span>
-                                  </div>
-                                  <div className="text-[10px] mt-0.5" style={{ color: isEnabled ? "#888" : "#444" }}>{mod.subtitle}</div>
-                                </div>
-                              </div>
-                              <button onClick={() => toggle(mod.id)} className="relative w-10 h-5 rounded-full transition-all flex-shrink-0 mt-1" style={{ background: isEnabled ? mod.color : "#222", boxShadow: isEnabled ? `0 0 10px ${mod.glow}` : "none" }}>
-                                <div className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all" style={{ left: isEnabled ? "calc(100% - 18px)" : 2 }} />
-                              </button>
-                            </div>
-                            <p className="text-[10px] leading-relaxed" style={{ color: isEnabled ? "#666" : "#3a3a3a" }}>{mod.desc}</p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-[9px] font-mono" style={{ color: "#333" }}>src: {mod.source}</span>
-                              <button
-                                onClick={() => { if (isEnabled) { onLaunch(mod.id); onOpenChange(false); } }}
-                                disabled={!isEnabled}
-                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all disabled:opacity-30"
-                                style={{ background: mod.bg, border: `1px solid ${mod.border}`, color: mod.color }}
-                              >
-                                <ExternalLink className="w-3 h-3" /> Launch
-                              </button>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
+                  <motion.div key="modules" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="p-4">
+                    {filtered.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-20 gap-3">
+                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: "rgba(226,18,39,0.05)", border: "1px solid rgba(226,18,39,0.15)" }}>
+                          <Shield className="w-7 h-7" style={{ color: "#1a1a1a" }} />
+                        </div>
+                        <div className="text-[11px] font-mono tracking-widest" style={{ color: "#2a2a2a" }}>NO MODULES FOUND</div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                        {filtered.map((mod, idx) => (
+                          <Arsenal3DCard
+                            key={mod.id}
+                            mod={mod}
+                            isEnabled={enabled.has(mod.id)}
+                            onToggle={toggle}
+                            onLaunch={onLaunch}
+                            onClose={() => onOpenChange(false)}
+                            index={idx}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </motion.div>
                 )}
 
+                {/* CHAIN BUILDER */}
                 {tab === "chain" && (
-                  <motion.div key="chain" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.15 }}>
+                  <motion.div key="chain" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
                     <ChainBuilderTab />
                   </motion.div>
                 )}
 
+                {/* MISSION CONTROL */}
                 {tab === "mission" && (
-                  <motion.div key="mission" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.15 }} className="p-4 space-y-4">
-                    {/* Status grid */}
+                  <motion.div key="mission" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="p-4 space-y-4">
+                    {/* Holographic stat cards */}
                     <div className="grid grid-cols-4 gap-3">
                       {[
-                        { label: "TOTAL MODULES", value: ARSENAL_MODULES.length, color: "#fff", icon: <Layers style={{ width: 14, height: 14 }} /> },
-                        { label: "ACTIVE",         value: enabled.size,           color: "#10b981", icon: <Activity style={{ width: 14, height: 14 }} /> },
-                        { label: "CHAIN RULES",    value: rulesCount,             color: "#00e5cc", icon: <GitMerge style={{ width: 14, height: 14 }} /> },
-                        { label: "PIPELINE EVENTS",value: history.length,         color: "#fbbf24", icon: <BarChart2 style={{ width: 14, height: 14 }} /> },
+                        { label: "TOTAL MODULES", value: ARSENAL_MODULES.length, color: "#e21227", icon: <Layers style={{ width: 16, height: 16 }} />, glow: "rgba(226,18,39,0.3)" },
+                        { label: "ONLINE",         value: enabled.size,           color: "#10b981", icon: <Activity style={{ width: 16, height: 16 }} />, glow: "rgba(16,185,129,0.3)" },
+                        { label: "CHAIN RULES",    value: rulesCount,             color: "#00e5cc", icon: <GitMerge style={{ width: 16, height: 16 }} />, glow: "rgba(0,229,204,0.3)" },
+                        { label: "PIPELINE EVT",   value: history.length,         color: "#fbbf24", icon: <BarChart2 style={{ width: 16, height: 16 }} />, glow: "rgba(251,191,36,0.3)" },
                       ].map(s => (
-                        <div key={s.label} className="rounded-lg p-3 border" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.07)" }}>
-                          <div className="flex items-center gap-1.5 mb-1" style={{ color: s.color }}>{s.icon}<span className="text-[9px] font-bold tracking-widest">{s.label}</span></div>
-                          <div className="text-2xl font-mono font-bold" style={{ color: s.color }}>{s.value}</div>
-                        </div>
+                        <motion.div
+                          key={s.label}
+                          whileHover={{ scale: 1.04, y: -2 }}
+                          className="rounded-2xl p-4 relative overflow-hidden"
+                          style={{
+                            background: `radial-gradient(circle at 30% 30%, ${s.color}12 0%, rgba(3,3,6,0.9) 70%)`,
+                            border: `1px solid ${s.color}30`,
+                            boxShadow: `0 0 25px ${s.glow}, inset 0 1px 0 rgba(255,255,255,0.04)`
+                          }}
+                        >
+                          <div className="absolute top-0 inset-x-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${s.color}80, transparent)` }} />
+                          <div className="flex items-center gap-2 mb-2" style={{ color: s.color }}>
+                            {s.icon}
+                            <span className="text-[8px] font-black tracking-widest">{s.label}</span>
+                          </div>
+                          <div className="text-3xl font-mono font-black" style={{ color: s.color, textShadow: `0 0 20px ${s.color}60` }}>{s.value}</div>
+                        </motion.div>
                       ))}
                     </div>
 
                     {/* Module status grid */}
-                    <div>
-                      <div className="text-[10px] font-bold tracking-widest mb-2" style={{ color: "#444" }}>MODULE STATUS</div>
-                      <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                    <div className="rounded-2xl border overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
+                      <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#e21227", boxShadow: "0 0 6px #e21227" }} />
+                        <span className="text-[9px] font-black tracking-widest" style={{ color: "#e21227" }}>MODULE STATUS MATRIX</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 p-3 max-h-56 overflow-y-auto">
                         {ARSENAL_MODULES.map(mod => {
                           const Icon = mod.icon;
                           const isOn = enabled.has(mod.id);
                           const lastEvent = history.find(h => h.source === mod.name || h.source.toUpperCase() === mod.name.toUpperCase());
                           return (
-                            <div key={mod.id} className="flex items-center gap-2.5 p-2.5 rounded-lg border transition-all"
-                              style={{ borderColor: isOn ? mod.border : "rgba(255,255,255,0.05)", background: isOn ? mod.bg : "rgba(255,255,255,0.01)" }}>
-                              <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0" style={{ background: isOn ? mod.bg : "#111" }}>
-                                <Icon style={{ width: 12, height: 12, color: isOn ? mod.color : "#333" }} />
+                            <div key={mod.id} className="flex items-center gap-2.5 p-2 rounded-xl border transition-all"
+                              style={{ borderColor: isOn ? `${mod.color}25` : "rgba(255,255,255,0.04)", background: isOn ? `${mod.color}08` : "rgba(255,255,255,0.01)" }}>
+                              <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{
+                                background: isOn ? `${mod.color}18` : "#0a0a0a",
+                                border: `1px solid ${isOn ? mod.border : "rgba(255,255,255,0.04)"}`,
+                              }}>
+                                <Icon style={{ width: 12, height: 12, color: isOn ? mod.color : "#222", filter: isOn ? `drop-shadow(0 0 4px ${mod.color})` : "none" }} />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="text-[10px] font-bold truncate" style={{ color: isOn ? mod.color : "#444" }}>{mod.name}</div>
-                                <div className="text-[8px] font-mono" style={{ color: "#333" }}>{lastEvent ? `last: ${lastEvent.label.slice(0,20)}` : "no activity"}</div>
+                                <div className="text-[9.5px] font-black truncate" style={{ color: isOn ? mod.color : "#333" }}>{mod.name}</div>
+                                <div className="text-[7.5px] font-mono" style={{ color: "#252525" }}>{lastEvent ? `fired: ${lastEvent.label.slice(0,18)}` : "idle"}</div>
                               </div>
-                              <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: isOn ? "#10b981" : "#222" }} />
+                              <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: isOn ? "#10b981" : "#1a1a1a", boxShadow: isOn ? "0 0 4px #10b981" : "none" }} />
                             </div>
                           );
                         })}
                       </div>
                     </div>
 
-                    {/* Recent pipeline events */}
-                    <div>
-                      <div className="text-[10px] font-bold tracking-widest mb-2" style={{ color: "#444" }}>RECENT PIPELINE EVENTS</div>
-                      {history.length === 0 ? (
-                        <div className="text-center py-6 text-[10px]" style={{ color: "#333" }}>No pipeline events yet — use modules to generate output</div>
-                      ) : (
-                        <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                          {history.slice(0, 10).map(entry => (
-                            <div key={entry.id} className="flex items-center gap-2 p-2 rounded border" style={{ borderColor: "rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)" }}>
-                              <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: entry.sourceColor }} />
-                              <span className="text-[9px] font-bold font-mono" style={{ color: entry.sourceColor }}>{entry.source}</span>
-                              <ArrowRight style={{ width: 10, height: 10, color: "#333", flexShrink: 0 }} />
-                              <span className="text-[9px] truncate flex-1" style={{ color: "#666" }}>{entry.label}</span>
-                              <span className="text-[8px] font-mono flex-shrink-0" style={{ color: "#333" }}>{new Date(entry.timestamp).toLocaleTimeString("en-US", { hour12: false })}</span>
-                            </div>
-                          ))}
+                    {/* Recent events + categories */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-2xl border overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
+                        <div className="px-4 py-2.5 border-b" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+                          <span className="text-[9px] font-black tracking-widest" style={{ color: "#00e5cc" }}>RECENT EVENTS</span>
                         </div>
-                      )}
-                    </div>
+                        {history.length === 0 ? (
+                          <div className="text-center py-6 text-[9px] font-mono" style={{ color: "#1e1e1e" }}>no events</div>
+                        ) : (
+                          <div className="space-y-1 p-2 max-h-32 overflow-y-auto">
+                            {history.slice(0, 8).map(entry => (
+                              <div key={entry.id} className="flex items-center gap-2 p-1.5 rounded-lg">
+                                <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: entry.sourceColor }} />
+                                <span className="text-[8px] font-bold font-mono truncate flex-1" style={{ color: entry.sourceColor }}>{entry.source}</span>
+                                <span className="text-[7px] font-mono" style={{ color: "#222" }}>{new Date(entry.timestamp).toLocaleTimeString("en-US", { hour12: false })}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Module categories */}
-                    <div>
-                      <div className="text-[10px] font-bold tracking-widest mb-2" style={{ color: "#444" }}>MODULE CATEGORIES</div>
-                      <div className="flex flex-wrap gap-2">
-                        {Array.from(new Set(ARSENAL_MODULES.map(m => m.tag))).map(tag => {
-                          const count = ARSENAL_MODULES.filter(m => m.tag === tag && enabled.has(m.id)).length;
-                          const total = ARSENAL_MODULES.filter(m => m.tag === tag).length;
-                          return (
-                            <div key={tag} className="px-2.5 py-1.5 rounded border text-[9px] font-bold tracking-widest"
-                              style={{ borderColor: count > 0 ? "rgba(0,229,204,0.3)" : "rgba(255,255,255,0.07)", background: count > 0 ? "rgba(0,229,204,0.06)" : "rgba(255,255,255,0.02)", color: count > 0 ? "#00e5cc" : "#444" }}>
-                              {tag} <span style={{ opacity: 0.6 }}>{count}/{total}</span>
-                            </div>
-                          );
-                        })}
+                      <div className="rounded-2xl border overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
+                        <div className="px-4 py-2.5 border-b" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+                          <span className="text-[9px] font-black tracking-widest" style={{ color: "#a78bfa" }}>CATEGORIES</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 p-2 max-h-32 overflow-y-auto">
+                          {Array.from(new Set(ARSENAL_MODULES.map(m => m.tag))).map(tag => {
+                            const cnt = ARSENAL_MODULES.filter(m => m.tag === tag && enabled.has(m.id)).length;
+                            const tot = ARSENAL_MODULES.filter(m => m.tag === tag).length;
+                            return (
+                              <div key={tag} className="px-2 py-0.5 rounded-full text-[7.5px] font-black tracking-wider"
+                                style={{ background: cnt > 0 ? "rgba(0,229,204,0.08)" : "rgba(255,255,255,0.02)", border: `1px solid ${cnt > 0 ? "rgba(0,229,204,0.2)" : "rgba(255,255,255,0.05)"}`, color: cnt > 0 ? "#00e5cc" : "#2a2a2a" }}>
+                                {tag} <span style={{ opacity: 0.6 }}>{cnt}/{tot}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   </motion.div>
                 )}
 
+                {/* INTEL FEED */}
                 {tab === "intel" && (
-                  <motion.div key="intel" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.15 }} className="p-4">
+                  <motion.div key="intel" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="p-4">
                     <IntelFeedTab />
                   </motion.div>
                 )}
 
+                {/* PIPELINE HISTORY */}
                 {tab === "history" && (
-                  <motion.div key="history" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.15 }} className="p-4">
+                  <motion.div key="history" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="p-4">
                     {history.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-20 gap-3">
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center border" style={{ background: "rgba(0,229,204,0.04)", borderColor: "rgba(0,229,204,0.12)" }}>
-                          <GitMerge className="w-6 h-6" style={{ color: "#1a3a38" }} />
+                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: "rgba(0,229,204,0.04)", border: "1px solid rgba(0,229,204,0.12)" }}>
+                          <GitMerge className="w-7 h-7" style={{ color: "#0d2622" }} />
                         </div>
-                        <div className="text-[11px] font-mono" style={{ color: "#333" }}>No pipeline events yet</div>
-                        <div className="text-[10px]" style={{ color: "#222" }}>Use Pipe buttons in any module to route output between modules</div>
+                        <div className="text-[11px] font-mono tracking-widest" style={{ color: "#1e1e1e" }}>PIPELINE EMPTY</div>
+                        <div className="text-[10px] font-mono" style={{ color: "#171717" }}>Use Pipe buttons in any module to route output</div>
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2">
                         {history.map((entry, idx) => (
                           <motion.div key={entry.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.02 }}
-                            className="rounded-xl p-3.5" style={{ background: "#0d0d0d", border: "1px solid rgba(255,255,255,0.06)" }}>
+                            className="rounded-2xl p-3.5 relative overflow-hidden"
+                            style={{
+                              background: "linear-gradient(135deg, rgba(6,6,10,0.98) 0%, rgba(4,4,8,0.98) 100%)",
+                              border: `1px solid ${entry.sourceColor}18`
+                            }}>
+                            <div className="absolute top-0 inset-x-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${entry.sourceColor}60, transparent)` }} />
                             <div className="flex items-center gap-2 mb-2.5">
-                              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border" style={{ background: `${entry.sourceColor}10`, borderColor: `${entry.sourceColor}30` }}>
-                                <div className="w-1.5 h-1.5 rounded-full" style={{ background: entry.sourceColor }} />
-                                <span className="text-[9px] font-bold font-mono" style={{ color: entry.sourceColor }}>{entry.source}</span>
+                              <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl" style={{ background: `${entry.sourceColor}12`, border: `1px solid ${entry.sourceColor}25` }}>
+                                <div className="w-1.5 h-1.5 rounded-full" style={{ background: entry.sourceColor, boxShadow: `0 0 4px ${entry.sourceColor}` }} />
+                                <span className="text-[9px] font-black font-mono" style={{ color: entry.sourceColor }}>{entry.source}</span>
                               </div>
-                              <ArrowRight className="w-3 h-3 flex-shrink-0" style={{ color: entry.destination ? "#00e5cc" : "#2a2a2a" }} />
+                              <ArrowRight className="w-3 h-3 flex-shrink-0" style={{ color: entry.destination ? "#00e5cc" : "#181818" }} />
                               {entry.destination ? (
-                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border" style={{ background: `${entry.destinationColor}10`, borderColor: `${entry.destinationColor}30` }}>
+                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl" style={{ background: `${entry.destinationColor}12`, border: `1px solid ${entry.destinationColor}25` }}>
                                   <div className="w-1.5 h-1.5 rounded-full" style={{ background: entry.destinationColor ?? "#555" }} />
-                                  <span className="text-[9px] font-bold font-mono" style={{ color: entry.destinationColor ?? "#555" }}>{entry.destination}</span>
+                                  <span className="text-[9px] font-black font-mono" style={{ color: entry.destinationColor ?? "#555" }}>{entry.destination}</span>
                                 </div>
                               ) : (
-                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border" style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.08)" }}>
-                                  <span className="text-[9px] font-mono" style={{ color: "#333" }}>pending</span>
+                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                                  <span className="text-[9px] font-mono" style={{ color: "#2a2a2a" }}>pending</span>
                                 </div>
                               )}
                               <div className="ml-auto flex flex-col items-end gap-0.5">
-                                <span className="text-[8px] font-mono" style={{ color: "#333" }}>pushed {entry.timestamp}</span>
-                                {entry.routedAt && <span className="text-[8px] font-mono" style={{ color: "#1a3a38" }}>routed {entry.routedAt}</span>}
+                                <span className="text-[7.5px] font-mono" style={{ color: "#252525" }}>{entry.timestamp}</span>
                               </div>
                             </div>
                             <div className="mb-2">
-                              <span className="text-[8px] font-bold font-mono px-1.5 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.04)", color: "#555" }}>{entry.label}</span>
+                              <span className="text-[8px] font-black font-mono px-2 py-0.5 rounded-lg" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", color: "#444" }}>{entry.label}</span>
                             </div>
-                            <div className="text-[10px] font-mono leading-relaxed mb-3 line-clamp-3" style={{ color: "#555", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                            <div className="text-[9.5px] font-mono leading-relaxed mb-3 line-clamp-3" style={{ color: "#444", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                               {entry.content.slice(0, 200)}{entry.content.length > 200 ? "…" : ""}
                             </div>
                             <div className="flex items-center gap-2">
-                              <button onClick={() => replay(entry)}
-                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-bold border transition-all"
-                                style={{ background: replayedId === entry.id ? "rgba(0,229,204,0.15)" : "rgba(0,229,204,0.06)", borderColor: replayedId === entry.id ? "rgba(0,229,204,0.5)" : "rgba(0,229,204,0.2)", color: replayedId === entry.id ? "#00e5cc" : "#1a7a70" }}>
+                              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                onClick={() => replay(entry)}
+                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[9px] font-black border transition-all"
+                                style={{ background: replayedId === entry.id ? "rgba(0,229,204,0.12)" : "rgba(0,229,204,0.05)", borderColor: replayedId === entry.id ? "rgba(0,229,204,0.4)" : "rgba(0,229,204,0.15)", color: replayedId === entry.id ? "#00e5cc" : "#1a5a54" }}>
                                 <RotateCcw style={{ width: 10, height: 10 }} />
-                                {replayedId === entry.id ? "Pushed" : "Replay"}
-                              </button>
-                              <button onClick={() => copyEntry(entry)}
-                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-bold border transition-all"
-                                style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.08)", color: "#444" }}>
+                                {replayedId === entry.id ? "PUSHED" : "REPLAY"}
+                              </motion.button>
+                              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                onClick={() => copyEntry(entry)}
+                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[9px] font-black border transition-all"
+                                style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)", color: "#3a3a3a" }}>
                                 {copiedId === entry.id
-                                  ? <><CheckCheck style={{ width: 10, height: 10, color: "#4ade80" }} /> Copied</>
-                                  : <><Copy style={{ width: 10, height: 10 }} /> Copy</>}
-                              </button>
-                              <div className="ml-auto text-[8px] font-mono" style={{ color: "#222" }}>{entry.content.length} chars</div>
+                                  ? <><CheckCheck style={{ width: 10, height: 10, color: "#4ade80" }} /> COPIED</>
+                                  : <><Copy style={{ width: 10, height: 10 }} /> COPY</>}
+                              </motion.button>
+                              <div className="ml-auto text-[7.5px] font-mono" style={{ color: "#1a1a1a" }}>{entry.content.length} CHARS</div>
                             </div>
                           </motion.div>
                         ))}
@@ -1503,16 +1923,21 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
               </AnimatePresence>
             </div>
 
-            {/* Footer */}
-            <div className="px-5 py-3 border-t flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.06)", background: "#060606" }}>
-              <div className="flex items-center gap-3 text-[9px] font-mono" style={{ color: "#2a2a2a" }}>
-                <span>{ARSENAL_MODULES.length} modules</span>
-                <span>·</span>
-                <span>{pipeline.getRules().length} chain rules</span>
-                <span>·</span>
-                <span>{history.length} pipeline events</span>
+            {/* ── FOOTER ── */}
+            <div className="relative z-10 px-5 py-2.5 border-t flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.04)", background: "rgba(0,0,0,0.5)" }}>
+              <div className="flex items-center gap-3 text-[8px] font-mono tracking-widest" style={{ color: "#1e1e1e" }}>
+                <span style={{ color: "#2a2a2a" }}>{ARSENAL_MODULES.length}</span><span> MODULES</span>
+                <span style={{ color: "#151515" }}>·</span>
+                <span style={{ color: "#2a2a2a" }}>{pipeline.getRules().length}</span><span> CHAIN RULES</span>
+                <span style={{ color: "#151515" }}>·</span>
+                <span style={{ color: "#2a2a2a" }}>{history.length}</span><span> PIPELINE EVENTS</span>
               </div>
-              <Brain className="w-3.5 h-3.5" style={{ color: "#1a1a1a" }} />
+              <div className="flex items-center gap-2">
+                <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 2.5, repeat: Infinity }}>
+                  <Brain className="w-3.5 h-3.5" style={{ color: "#1a1a1a" }} />
+                </motion.div>
+                <span className="text-[7px] font-mono tracking-widest" style={{ color: "#181818" }}>KaliGPT · v3090</span>
+              </div>
             </div>
           </motion.div>
         </motion.div>
