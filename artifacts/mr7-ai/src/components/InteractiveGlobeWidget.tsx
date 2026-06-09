@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { Globe, GripHorizontal, ChevronDown, ChevronUp, Crosshair, AlertTriangle, Wifi, Radio, Zap } from "lucide-react";
 
@@ -89,14 +90,9 @@ function lerp3D(
   ];
 }
 
-function loadPos(): { x: number; y: number } {
-  try { const r = localStorage.getItem("globe-widget-pos"); if (r) return JSON.parse(r); } catch {}
-  return { x: window.innerWidth - 340, y: window.innerHeight - 400 };
-}
-
 export function InteractiveGlobeWidget() {
   const [collapsed, setCollapsed]   = useState(false);
-  const [pos, setPos]               = useState<{ x: number; y: number }>(loadPos);
+  const { pos, rootRef, onDragMouseDown, onDragTouchStart } = useDraggable("globe-widget-pos", { x: Math.max(0, window.innerWidth - 340), y: Math.max(0, window.innerHeight - 400) });
   const [threatCount, setThreatCount] = useState(0);
   const [attacksBlocked, setAttacksBlocked] = useState(4821);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -108,7 +104,6 @@ export function InteractiveGlobeWidget() {
     ...r, progress: Math.random(), speed: 0.0016 + Math.random() * 0.0012, active: true,
   })));
   const tickRef   = useRef(0);
-  const posWidgetDrag = useRef({ dragging: false, ox: 0, oy: 0, px: 0, py: 0 });
 
   useEffect(() => { setThreatCount(CITIES.filter(c => c.threat).length); }, []);
 
@@ -360,22 +355,6 @@ export function InteractiveGlobeWidget() {
     window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
   }, []);
 
-  const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    posWidgetDrag.current = { dragging: true, ox: e.clientX, oy: e.clientY, px: pos.x, py: pos.y };
-    function onMove(ev: MouseEvent) {
-      if (!posWidgetDrag.current.dragging) return;
-      const nx = Math.max(0, Math.min(window.innerWidth - W - 4, posWidgetDrag.current.px + (ev.clientX - posWidgetDrag.current.ox)));
-      const ny = Math.max(0, Math.min(window.innerHeight - 40, posWidgetDrag.current.py + (ev.clientY - posWidgetDrag.current.oy)));
-      setPos({ x: nx, y: ny });
-    }
-    function onUp() {
-      posWidgetDrag.current.dragging = false;
-      setPos(p => { try { localStorage.setItem("globe-widget-pos", JSON.stringify(p)); } catch {} return p; });
-      window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp);
-    }
-    window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
-  }, [pos]);
 
   const threatCities = CITIES.filter(c => c.threat).length;
 
@@ -384,21 +363,22 @@ export function InteractiveGlobeWidget() {
       initial={{ opacity: 0, scale: 0.9, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
+      ref={rootRef as any}
       style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 96, userSelect: "none" }}
     >
       {/* Drag strip */}
       <div
-        onMouseDown={onHeaderMouseDown}
+        onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}
         style={{
-          height: 8, borderRadius: collapsed ? "10px 10px 10px 10px" : "10px 10px 0 0", cursor: "grab",
-          background: "repeating-linear-gradient(90deg, rgba(0,229,255,0.2) 0px, rgba(0,229,255,0.2) 3px, transparent 3px, transparent 7px)",
-          border: "1px solid rgba(0,229,255,0.3)", borderBottom: "none",
-          boxShadow: "0 0 10px rgba(0,229,255,0.15)",
+          height: 10, borderRadius: collapsed ? "10px" : "10px 10px 0 0", cursor: "grab",
+          background: "repeating-linear-gradient(90deg, rgba(0,229,255,0.25) 0px, rgba(0,229,255,0.25) 3px, transparent 3px, transparent 8px)",
+          border: "1px solid rgba(0,229,255,0.35)", borderBottom: "none",
+          boxShadow: "0 0 12px rgba(0,229,255,0.18)",
         }}
       />
       {/* Header */}
       <div
-        onMouseDown={onHeaderMouseDown}
+        onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}
         style={{
           display: "flex", alignItems: "center", gap: "5px",
           padding: "8px 9px",

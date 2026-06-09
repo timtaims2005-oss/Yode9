@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity, ChevronDown, ChevronUp, GripHorizontal, Square, Circle,
@@ -11,13 +12,7 @@ import { trafficBus, type TrafficEvent } from "@/lib/trafficBus";
    Real-time packet capture · Hex dump · ASCII decode · Timing
 ═══════════════════════════════════════════════════════════════════════ */
 
-const STOR_KEY = "mr7-packet-inspector-pos";
 const PANEL_W = 700;
-
-function loadPos(): { x: number; y: number } {
-  try { const v = localStorage.getItem(STOR_KEY); if (v) return JSON.parse(v); } catch {}
-  return { x: Math.max(0, (window.innerWidth - PANEL_W) / 2), y: 120 };
-}
 
 function toHexDump(str: string, maxBytes = 256): { offset: string; hex: string[]; ascii: string }[] {
   const bytes: number[] = [];
@@ -52,7 +47,7 @@ interface HexByte { row: number; col: number }
 
 export function NetworkPacketInspector() {
   const [collapsed, setCollapsed] = useState(false);
-  const [pos, setPos]     = useState<{ x: number; y: number }>(loadPos);
+  const { pos, rootRef, onDragMouseDown, onDragTouchStart } = useDraggable("mr7-packet-inspector-pos", { x: Math.max(0, (window.innerWidth - PANEL_W) / 2), y: 120 });
   const [packets, setPackets] = useState<TrafficEvent[]>([]);
   const [selected, setSelected] = useState<TrafficEvent | null>(null);
   const [filter, setFilter]   = useState("");
@@ -62,7 +57,6 @@ export function NetworkPacketInspector() {
   const [capturedCount, setCapturedCount] = useState(0);
   const captureRef = useRef(true);
   const listRef    = useRef<HTMLDivElement>(null);
-  const dragRef    = useRef({ dragging: false, sx: 0, sy: 0, ox: 0, oy: 0 });
   const autoScroll = useRef(true);
 
   useEffect(() => {
@@ -82,19 +76,6 @@ export function NetworkPacketInspector() {
     return unsub;
   }, []);
 
-  // Widget drag
-  const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    const sx = e.clientX, sy = e.clientY, ox = pos.x, oy = pos.y;
-    const move = (ev: MouseEvent) => {
-      const nx = Math.max(0, Math.min(window.innerWidth - PANEL_W - 4, ox + ev.clientX - sx));
-      const ny = Math.max(0, Math.min(window.innerHeight - 50, oy + ev.clientY - sy));
-      setPos({ x: nx, y: ny });
-      try { localStorage.setItem(STOR_KEY, JSON.stringify({ x: nx, y: ny })); } catch {}
-    };
-    const up = () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
-    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
-  }, [pos]);
 
   const filtered = packets.filter(p => {
     if (!filter) return true;
@@ -117,11 +98,22 @@ export function NetworkPacketInspector() {
       initial={{ opacity: 0, y: 20, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-      style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 85, userSelect: "none", width: PANEL_W }}
+      ref={rootRef as any}
+      style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 96, userSelect: "none", width: PANEL_W }}
     >
+      {/* ── Drag strip ── */}
+      <div
+        onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}
+        style={{
+          height: 10, borderRadius: "10px 10px 0 0", cursor: "grab",
+          background: "repeating-linear-gradient(90deg, rgba(0,229,255,0.25) 0px, rgba(0,229,255,0.25) 3px, transparent 3px, transparent 8px)",
+          border: "1px solid rgba(0,229,255,0.35)", borderBottom: "none",
+          boxShadow: "0 0 12px rgba(0,229,255,0.18)",
+        }}
+      />
       {/* ══════════════ TOOLBAR / HEADER ══════════════ */}
       <div
-        onMouseDown={onHeaderMouseDown}
+        onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}
         style={{
           display: "flex", alignItems: "center", gap: "6px",
           padding: "5px 8px",

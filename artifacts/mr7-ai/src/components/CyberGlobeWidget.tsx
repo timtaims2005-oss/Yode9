@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
+import { useDraggable } from "@/hooks/useDraggable";
 import { motion } from "framer-motion";
 import { Globe, Shield, Crosshair, Minimize2, Maximize2 } from "lucide-react";
 
@@ -102,20 +103,7 @@ export function CyberGlobeWidget() {
   const [minimized, setMinimized]     = useState(false);
   const [threatLevel, setThreatLevel] = useState(87);
 
-  const savedPos = (() => { try { return JSON.parse(localStorage.getItem(STOR_KEY) ?? "null"); } catch { return null; } })();
-  const [pos, setPos] = useState<{ x: number; y: number }>(savedPos ?? { x: 12, y: 110 });
-  const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    const sx = e.clientX, sy = e.clientY, ox = pos.x, oy = pos.y;
-    const move = (ev: MouseEvent) => {
-      const nx = Math.max(0, Math.min(window.innerWidth - W - 4, ox + ev.clientX - sx));
-      const ny = Math.max(0, Math.min(window.innerHeight - 50, oy + ev.clientY - sy));
-      setPos({ x: nx, y: ny });
-      try { localStorage.setItem(STOR_KEY, JSON.stringify({ x: nx, y: ny })); } catch {}
-    };
-    const up = () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
-    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
-  }, [pos]);
+  const { pos, rootRef, onDragMouseDown, onDragTouchStart } = useDraggable(STOR_KEY, { x: 12, y: 110 });
 
   const onCanvasMouseDown = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -378,8 +366,8 @@ export function CyberGlobeWidget() {
       }
       drawFrame();
       if (tickRef.current % 28 === 0) {
-        setAttackCount(c => c + Math.floor(Math.random() * 4 + 1));
-        setThreatLevel(l => Math.max(60, Math.min(99, l + Math.floor(Math.random() * 6 - 2))));
+        setAttackCount((c: number) => c + Math.floor(Math.random() * 4 + 1));
+        setThreatLevel((l: number) => Math.max(60, Math.min(99, l + Math.floor(Math.random() * 6 - 2))));
       }
     }
 
@@ -394,21 +382,22 @@ export function CyberGlobeWidget() {
       initial={{ opacity: 0, scale: 0.88, y: -10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+      ref={rootRef as any}
       style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 96, width: W + 4, userSelect: "none" }}
     >
       {/* ── Drag strip ── */}
       <div
-        onMouseDown={onHeaderMouseDown}
+        onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}
         style={{
-          height: 8, borderRadius: "12px 12px 0 0", cursor: "grab",
-          background: "repeating-linear-gradient(90deg, rgba(226,18,39,0.25) 0px, rgba(226,18,39,0.25) 3px, transparent 3px, transparent 7px)",
-          borderTop: "1px solid rgba(226,18,39,0.5)", borderLeft: "1px solid rgba(226,18,39,0.2)", borderRight: "1px solid rgba(226,18,39,0.2)",
-          boxShadow: "0 0 12px rgba(226,18,39,0.2)",
+          height: 10, borderRadius: "12px 12px 0 0", cursor: "grab",
+          background: "repeating-linear-gradient(90deg, rgba(226,18,39,0.3) 0px, rgba(226,18,39,0.3) 3px, transparent 3px, transparent 8px)",
+          borderTop: "1px solid rgba(226,18,39,0.55)", borderLeft: "1px solid rgba(226,18,39,0.2)", borderRight: "1px solid rgba(226,18,39,0.2)",
+          boxShadow: "0 0 14px rgba(226,18,39,0.25)",
         }}
       />
       {/* ── Header ── */}
       <div
-        onMouseDown={onHeaderMouseDown}
+        onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}
         style={{
           display: "flex", alignItems: "center", gap: "6px", padding: "8px 10px",
           background: "linear-gradient(135deg, rgba(6,2,12,0.99), rgba(10,4,18,0.98))",
@@ -430,7 +419,7 @@ export function CyberGlobeWidget() {
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <span style={{ fontSize: "7px", fontFamily: "monospace", color: "#22c55e", letterSpacing: "1px" }}>● LIVE</span>
           <button
-            onClick={() => setMinimized(v => !v)} onMouseDown={e => e.stopPropagation()}
+            onClick={() => setMinimized((v: boolean) => !v)} onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
             style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", padding: 0 }}
           >
             {minimized ? <Maximize2 style={{ width: 10, height: 10 }} /> : <Minimize2 style={{ width: 10, height: 10 }} />}

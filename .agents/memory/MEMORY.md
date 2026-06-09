@@ -10,3 +10,4 @@
 - [mr7-ai provider-key-routing](mr7-ai-provider-key-routing.md) — non-personal provider keys stored under localStorage key `mr7-ai-p-key-{id}`, URLs under `mr7-ai-p-url-{id}`; ChatView must read these per active provider and send as apiKey/apiBaseURL in every chat request
 - [mr7-ai canvas-ctx-closure](mr7-ai-canvas-ctx.md) — TypeScript loses null-narrowing on canvas ctx inside RAF closures; fix: use `canvas.getContext("2d")!` (non-null assertion) like FuturisticBackground3D does; `if (!ctx) return; const c = ctx;` pattern still errors in closures
 - [mr7-ai active-model-key](mr7-ai-active-model.md) — active model name lives at `state.activeModel` (top-level), NOT inside `state.settings`; dispatched via SET_MODEL action
+- [mr7-ai drag fix](mr7-ai-drag-fix.md) — React 18 batches setState in native mousemove listeners; fix: `useDraggable` hook at `src/hooks/useDraggable.ts` mutates DOM directly during drag, setPos only on mouseup

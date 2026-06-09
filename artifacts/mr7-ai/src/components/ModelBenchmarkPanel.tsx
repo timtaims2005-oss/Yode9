@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { Activity, ChevronDown, ChevronUp, GripHorizontal, Trophy, Zap, Clock, Cpu } from "lucide-react";
 import { trafficBus, type TrafficEvent } from "@/lib/trafficBus";
@@ -8,7 +9,6 @@ import { trafficBus, type TrafficEvent } from "@/lib/trafficBus";
    Real-time: speed · latency · token rate · call volume
 ═══════════════════════════════════════════════════════════════════ */
 
-const STOR_KEY = "mr7-benchmark-pos";
 const PANEL_W  = 340;
 
 interface ModelStats {
@@ -34,13 +34,8 @@ function medal(rank: number): string {
   return rank === 0 ? "#fbbf24" : rank === 1 ? "#94a3b8" : rank === 2 ? "#b45309" : "rgba(255,255,255,0.2)";
 }
 
-function loadPos(): { x: number; y: number } {
-  try { const v = localStorage.getItem(STOR_KEY); if (v) return JSON.parse(v); } catch {}
-  return { x: Math.max(0, window.innerWidth - PANEL_W - 20), y: 200 };
-}
-
 export function ModelBenchmarkPanel() {
-  const [pos, setPos]     = useState<{ x: number; y: number }>(loadPos);
+  const { pos, rootRef, onDragMouseDown, onDragTouchStart } = useDraggable("mr7-benchmark-pos", { x: Math.max(0, window.innerWidth - PANEL_W - 20), y: 200 });
   const [collapsed, setCollapsed] = useState(false);
   const [stats, setStats] = useState<ModelStats[]>([]);
   const [sort, setSort]   = useState<"latency" | "calls" | "tokens">("calls");
@@ -89,41 +84,29 @@ export function ModelBenchmarkPanel() {
   const maxLatency = Math.max(...sorted.map(s => s.successes > 0 ? s.totalLatency / s.successes : 0), 1);
   const maxCalls   = Math.max(...sorted.map(s => s.calls), 1);
 
-  // Drag
-  const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    const sx = e.clientX, sy = e.clientY, ox = pos.x, oy = pos.y;
-    const move = (ev: MouseEvent) => {
-      const nx = Math.max(0, Math.min(window.innerWidth - PANEL_W - 4, ox + ev.clientX - sx));
-      const ny = Math.max(0, Math.min(window.innerHeight - 50, oy + ev.clientY - sy));
-      setPos({ x: nx, y: ny });
-      try { localStorage.setItem(STOR_KEY, JSON.stringify({ x: nx, y: ny })); } catch {}
-    };
-    const up = () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
-    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
-  }, [pos]);
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95, y: 15 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+      ref={rootRef as any}
       style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 96, userSelect: "none", width: PANEL_W }}
     >
       {/* ── Drag strip ── */}
       <div
-        onMouseDown={onHeaderMouseDown}
+        onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}
         style={{
-          height: 8, borderRadius: "10px 10px 0 0", cursor: "grab",
-          background: "repeating-linear-gradient(90deg, rgba(251,191,36,0.22) 0px, rgba(251,191,36,0.22) 3px, transparent 3px, transparent 7px)",
-          border: "1px solid rgba(251,191,36,0.3)", borderBottom: "none",
-          boxShadow: "0 0 10px rgba(251,191,36,0.1)",
+          height: 10, borderRadius: "10px 10px 0 0", cursor: "grab",
+          background: "repeating-linear-gradient(90deg, rgba(251,191,36,0.28) 0px, rgba(251,191,36,0.28) 3px, transparent 3px, transparent 8px)",
+          border: "1px solid rgba(251,191,36,0.35)", borderBottom: "none",
+          boxShadow: "0 0 12px rgba(251,191,36,0.15)",
         }}
       />
 
       {/* ── Header ── */}
       <div
-        onMouseDown={onHeaderMouseDown}
+        onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}
         style={{
           display: "flex", alignItems: "center", gap: "5px",
           padding: "8px 10px",

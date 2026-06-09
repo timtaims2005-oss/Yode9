@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useDraggable } from "@/hooks/useDraggable";
 import { GripHorizontal, ChevronUp, ChevronDown, Radio, AlertTriangle, Activity, Wifi, Cpu } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -82,17 +83,11 @@ function drawDiamond(ctx: CanvasRenderingContext2D, x: number, y: number, r: num
   ctx.closePath();
 }
 
-function loadPos(): { x: number; y: number } {
-  try { const r = localStorage.getItem("net-topo-pos"); if (r) return JSON.parse(r); } catch {}
-  return { x: 8, y: window.innerHeight - 320 };
-}
-
 export function NetworkTopologyWidget() {
   const [collapsed, setCollapsed] = useState(false);
-  const [pos, setPos]             = useState<{ x: number; y: number }>(loadPos);
+  const { pos, rootRef, onDragMouseDown, onDragTouchStart } = useDraggable("net-topo-pos", { x: 8, y: Math.max(0, window.innerHeight - 320) });
   const [threatCount, setThreatCount] = useState(0);
   const [pps, setPps]             = useState(0);
-  const dragRef   = useRef({ dragging: false, ox: 0, oy: 0, px: 0, py: 0 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef  = useRef<number>(0);
   const packetsRef  = useRef<Packet[]>([]);
@@ -368,23 +363,6 @@ export function NetworkTopologyWidget() {
     return () => cancelAnimationFrame(frameRef.current);
   }, [collapsed]);
 
-  // Header drag
-  const onMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    dragRef.current = { dragging: true, ox: e.clientX, oy: e.clientY, px: pos.x, py: pos.y };
-    function onMove(ev: MouseEvent) {
-      if (!dragRef.current.dragging) return;
-      const nx = Math.max(0, Math.min(window.innerWidth - W - 4, dragRef.current.px + (ev.clientX - dragRef.current.ox)));
-      const ny = Math.max(0, Math.min(window.innerHeight - 40, dragRef.current.py + (ev.clientY - dragRef.current.oy)));
-      setPos({ x: nx, y: ny });
-    }
-    function onUp() {
-      dragRef.current.dragging = false;
-      setPos(p => { try { localStorage.setItem("net-topo-pos", JSON.stringify(p)); } catch {} return p; });
-      window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp);
-    }
-    window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
-  }, [pos]);
 
   // Canvas rotation drag
   const onCanvasMouseDown = useCallback((e: React.MouseEvent) => {
@@ -409,13 +387,14 @@ export function NetworkTopologyWidget() {
       initial={{ opacity: 0, scale: 0.9, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
+      ref={rootRef as any}
       style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 96, userSelect: "none" }}
     >
       {/* Drag strip */}
       <div
-        onMouseDown={onMouseDown}
+        onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}
         style={{
-          height: 8, borderRadius: "10px 10px 0 0", cursor: "grab",
+          height: 10, borderRadius: "10px 10px 0 0", cursor: "grab",
           background: criticalNodes > 0
             ? "repeating-linear-gradient(90deg, rgba(226,18,39,0.25) 0px, rgba(226,18,39,0.25) 3px, transparent 3px, transparent 7px)"
             : "repeating-linear-gradient(90deg, rgba(0,229,255,0.2) 0px, rgba(0,229,255,0.2) 3px, transparent 3px, transparent 7px)",
@@ -425,7 +404,7 @@ export function NetworkTopologyWidget() {
       />
       {/* Header */}
       <div
-        onMouseDown={onMouseDown}
+        onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}
         style={{
           display: "flex", alignItems: "center", gap: "5px", padding: "8px 9px",
           border: `1px solid ${criticalNodes > 0 ? "rgba(226,18,39,0.35)" : "rgba(0,229,255,0.16)"}`,

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { Activity, Zap, Server, Clock, ChevronDown, ChevronUp, GripHorizontal, Wifi, Database, TrendingUp, X } from "lucide-react";
 import { trafficBus, type TrafficEvent } from "@/lib/trafficBus";
@@ -8,13 +9,7 @@ import { trafficBus, type TrafficEvent } from "@/lib/trafficBus";
    Holographic futuristic panel with real-time charts.
 ═══════════════════════════════════════════════════════════════════════ */
 
-const STOR_KEY = "mr7-traffic-panel-pos";
 const W = 340; const H = 200;
-
-function loadPos(): { x: number; y: number } {
-  try { const v = localStorage.getItem(STOR_KEY); if (v) return JSON.parse(v); } catch {}
-  return { x: window.innerWidth - 360, y: 80 };
-}
 
 function providerColor(provider: string): string {
   const map: Record<string, string> = {
@@ -32,7 +27,7 @@ function shortModel(m: string): string {
 
 export function NetworkTrafficPanel() {
   const [collapsed, setCollapsed] = useState(false);
-  const [pos, setPos]     = useState<{ x: number; y: number }>(loadPos);
+  const { pos, rootRef, onDragMouseDown, onDragTouchStart } = useDraggable("mr7-traffic-panel-pos", { x: Math.max(0, window.innerWidth - 360), y: 80 });
   const [calls, setCalls] = useState<TrafficEvent[]>([]);
   const [totalTokens, setTotalTokens] = useState(0);
   const [avgLatency, setAvgLatency]   = useState(0);
@@ -42,7 +37,6 @@ export function NetworkTrafficPanel() {
   const histRef    = useRef<TrafficEvent[]>([]);
   const tickRef    = useRef(0);
   const cpmBuckets = useRef<number[]>([]);
-  const dragRef    = useRef({ dragging: false, ox: 0, oy: 0, px: 0, py: 0 });
 
   // Subscribe to traffic bus
   useEffect(() => {
@@ -195,25 +189,6 @@ export function NetworkTrafficPanel() {
     return () => cancelAnimationFrame(frameRef.current);
   }, [collapsed]);
 
-  // Widget drag
-  const onMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    dragRef.current = { dragging: true, ox: e.clientX, oy: e.clientY, px: pos.x, py: pos.y };
-    function onMove(ev: MouseEvent) {
-      if (!dragRef.current.dragging) return;
-      const nx = Math.max(0, Math.min(window.innerWidth - W - 4, dragRef.current.px + (ev.clientX - dragRef.current.ox)));
-      const ny = Math.max(0, Math.min(window.innerHeight - 40, dragRef.current.py + (ev.clientY - dragRef.current.oy)));
-      setPos({ x: nx, y: ny });
-    }
-    function onUp() {
-      dragRef.current.dragging = false;
-      setPos(p => { try { localStorage.setItem(STOR_KEY, JSON.stringify(p)); } catch {} return p; });
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    }
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  }, [pos]);
 
   const latestCall = calls[0];
   const pendingCount = calls.filter(e => e.status === "pending" || e.status === "streaming").length;
@@ -225,11 +200,22 @@ export function NetworkTrafficPanel() {
       initial={{ opacity: 0, y: -20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 84, userSelect: "none", width: W }}
+      ref={rootRef as any}
+      style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 96, userSelect: "none", width: W }}
     >
+      {/* ── Drag strip ── */}
+      <div
+        onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}
+        style={{
+          height: 10, borderRadius: "10px 10px 0 0", cursor: "grab",
+          background: "repeating-linear-gradient(90deg, rgba(0,229,255,0.25) 0px, rgba(0,229,255,0.25) 3px, transparent 3px, transparent 8px)",
+          border: "1px solid rgba(0,229,255,0.35)", borderBottom: "none",
+          boxShadow: "0 0 12px rgba(0,229,255,0.18)",
+        }}
+      />
       {/* ── Header ── */}
       <div
-        onMouseDown={onMouseDown}
+        onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}
         style={{
           display: "flex", alignItems: "center", gap: "6px",
           padding: "6px 10px",
