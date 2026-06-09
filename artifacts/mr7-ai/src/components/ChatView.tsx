@@ -121,6 +121,17 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
 
   useEffect(() => () => { window.speechSynthesis?.cancel(); abortRef.current?.abort(); }, []);
 
+  // Listen for inject-prompt events from ExploitChainModal / other modules
+  useEffect(() => {
+    function onInject(e: Event) {
+      const { prompt } = (e as CustomEvent<{ prompt: string }>).detail;
+      setInput(prompt);
+      requestAnimationFrame(() => taRef.current?.focus());
+    }
+    window.addEventListener("kali:inject-prompt", onInject);
+    return () => window.removeEventListener("kali:inject-prompt", onInject);
+  }, []);
+
   function scrollToBottom() {
     const el = scrollRef.current;
     if (!el) return;

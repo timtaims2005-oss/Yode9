@@ -129,6 +129,7 @@ import { MonacoEditorModal } from "./components/modals/MonacoEditorModal";
 import { DefensiveAIModal } from "./components/modals/DefensiveAIModal";
 import { OpenSkynetModal } from "./components/modals/OpenSkynetModal";
 import { WarRoomModal } from "./components/modals/WarRoomModal";
+import { ExploitChainModal } from "./components/modals/ExploitChainModal";
 import { CyberHeatmapHUD } from "./components/CyberHeatmapHUD";
 import { LiveThreatTicker } from "./components/LiveThreatTicker";
 import { SystemStatusWidget } from "./components/SystemStatusWidget";
@@ -311,6 +312,7 @@ function AppContent() {
   const [monacoInitLang, setMonacoInitLang] = useState<string | undefined>();
   const [shellGeneratorInject, setShellGeneratorInject] = useState<string | undefined>();
   const [warRoomOpen, setWarRoomOpen] = useState(false);
+  const [exploitChainOpen, setExploitChainOpen] = useState(false);
 
   const [pipelineKeyRef] = useState(() => ({ n: 0 }));
   const [ragPipelineDoc, setRagPipelineDoc] = useState<{ text: string; name: string; key: number } | undefined>();
@@ -400,6 +402,10 @@ function AppContent() {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "e") {
         e.preventDefault();
         setMonacoOpen(true);
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "x") {
+        e.preventDefault();
+        setExploitChainOpen(v => !v);
       }
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "a" && !e.altKey) {
         e.preventDefault();
@@ -602,6 +608,7 @@ function AppContent() {
       <DefensiveAIModal open={defensiveAIOpen} onOpenChange={setDefensiveAIOpen} />
       <OpenSkynetModal open={openSkynetOpen} onOpenChange={setOpenSkynetOpen} />
       <WarRoomModal open={warRoomOpen} onOpenChange={setWarRoomOpen} />
+      <ExploitChainModal open={exploitChainOpen} onOpenChange={setExploitChainOpen} />
       <MonacoEditorModal
         open={monacoOpen}
         onClose={() => setMonacoOpen(false)}
