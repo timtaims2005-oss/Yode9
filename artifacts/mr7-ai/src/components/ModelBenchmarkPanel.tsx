@@ -39,7 +39,7 @@ const STAR_PARTICLES: {x:number;y:number;r:number;a:number}[] = Array.from({leng
   x:Math.random()*CW, y:Math.random()*CH, r:Math.random()*0.8+0.1, a:Math.random()*0.3
 }));
 
-export function ModelBenchmarkPanel() {
+export function ModelBenchmarkPanel({ embedded = false }: { embedded?: boolean } = {}) {
   const { pos, rootRef, onDragMouseDown, onDragTouchStart } = useDraggable(
     "mr7-benchmark-pos",
     { x: Math.max(0, window.innerWidth - PANEL_W - 20), y: 200 }
@@ -294,6 +294,30 @@ export function ModelBenchmarkPanel() {
     if(!done.length) return 0;
     return Math.round(done.reduce((s,m)=>s+m.totalLatency/m.successes,0)/done.length);
   })();
+
+  if (embedded) {
+    return (
+      <div style={{ width: "100%", height: "100%", overflow: "hidden", display: "flex", flexDirection: "column", background: "rgba(2,4,16,0.97)" }}>
+        <canvas ref={canvasRef} width={CW} height={CH} style={{ width: "100%", flexShrink: 0, display: "block", borderBottom: "1px solid #1a1a1a" }} />
+        <div style={{ flex: 1, overflowY: "auto" }}>
+          {sorted.slice(0, 6).map((s, i) => {
+            const avgL = s.successes > 0 ? Math.round(s.totalLatency / s.successes) : null;
+            return (
+              <div key={s.model} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "3px 8px", borderBottom: "1px solid #0d0d0d", fontSize: "8px", fontFamily: "monospace" }}>
+                <span style={{ color: medal(i), width: "16px", flexShrink: 0 }}>{i + 1}</span>
+                <span style={{ color: MODEL_COLORS[i % MODEL_COLORS.length], flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{shortName(s.model)}</span>
+                <span style={{ color: "#555", flexShrink: 0 }}>{s.calls}×</span>
+                <span style={{ color: avgL && avgL < 1000 ? "#22c55e" : avgL && avgL < 3000 ? "#f59e0b" : "#e21227", flexShrink: 0 }}>{avgL ? fmtMs(avgL) : "—"}</span>
+              </div>
+            );
+          })}
+          {sorted.length === 0 && (
+            <div style={{ textAlign: "center", padding: "12px", fontSize: "8px", fontFamily: "monospace", color: "#333" }}>NO DATA — START A CHAT</div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={rootRef} style={{left:pos.x,top:pos.y}} className="fixed z-[96] w-[340px] select-none">

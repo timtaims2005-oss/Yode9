@@ -24,7 +24,7 @@ function shortModel(m: string): string {
 
 interface FlowParticle { x:number; y:number; vx:number; vy:number; life:number; color:string; size:number }
 
-export function NetworkTrafficPanel() {
+export function NetworkTrafficPanel({ embedded = false }: { embedded?: boolean } = {}) {
   const [collapsed, setCollapsed] = useState(false);
   const { pos, rootRef, onDragMouseDown, onDragTouchStart } = useDraggable(
     "mr7-traffic-panel-pos", { x: Math.max(0,window.innerWidth-380), y: 80 }
@@ -192,6 +192,28 @@ export function NetworkTrafficPanel() {
     frame();
     return ()=>cancelAnimationFrame(frameRef.current);
   },[callsPerMin,avgLatency]);
+
+  if (embedded) {
+    return (
+      <div style={{ width: "100%", height: "100%", overflow: "hidden", display: "flex", flexDirection: "column", background: "rgba(2,6,18,0.97)" }}>
+        <canvas ref={canvasRef} width={W} height={H} style={{ width: "100%", flexShrink: 0, display: "block" }} />
+        <div style={{ flex: 1, overflow: "hidden" }}>
+          {calls.slice(0, 5).map(ev => (
+            <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "3px 8px", borderBottom: "1px solid #111", fontSize: "8px", fontFamily: "monospace" }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: providerColor(ev.provider), flexShrink: 0 }} />
+              <span style={{ color: "#888", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{shortModel(ev.model)}</span>
+              <span style={{ color: ev.status === "success" ? "#22c55e" : ev.status === "error" ? "#e21227" : "#f59e0b", flexShrink: 0 }}>
+                {ev.latency ? `${ev.latency}ms` : ev.status.toUpperCase()}
+              </span>
+            </div>
+          ))}
+          {calls.length === 0 && (
+            <div style={{ textAlign: "center", padding: "8px", fontSize: "8px", fontFamily: "monospace", color: "#333" }}>AWAITING API CALLS...</div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={rootRef} style={{left:pos.x,top:pos.y}} className="fixed z-[96] w-[360px] select-none">

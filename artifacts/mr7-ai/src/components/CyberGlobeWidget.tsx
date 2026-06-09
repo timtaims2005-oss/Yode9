@@ -142,7 +142,7 @@ function getArcPoint(
   return { x: CX + GLOBE_R * px * ns, y: CY - GLOBE_R * py * ns, z: pz * ns };
 }
 
-export function CyberGlobeWidget() {
+export function CyberGlobeWidget({ embedded = false }: { embedded?: boolean } = {}) {
   const canvasRef    = useRef<HTMLCanvasElement>(null);
   const frameRef     = useRef<number>(0);
   const rotRef       = useRef(0);
@@ -487,6 +487,18 @@ export function CyberGlobeWidget() {
     drawFrame();
     return () => cancelAnimationFrame(frameRef.current);
   }, []);
+
+  if (embedded) {
+    return (
+      <div style={{ width: "100%", height: "100%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(4,2,12,0.97)" }}>
+        <canvas
+          ref={canvasRef} width={W} height={H}
+          style={{ width: "100%", height: "100%", objectFit: "contain", cursor: "crosshair", display: "block" }}
+          onMouseDown={onCanvasMouseDown}
+        />
+      </div>
+    );
+  }
 
   return (
     <div ref={rootRef} style={{ left: pos.x, top: pos.y }} className="fixed z-[96] select-none">

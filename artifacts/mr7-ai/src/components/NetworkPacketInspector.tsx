@@ -59,7 +59,7 @@ const FLOW_NODES: FlowNode[] = [
 
 interface FlowPkt { nodeFrom: number; nodeTo: number; t: number; color: string; size: number }
 
-export function NetworkPacketInspector() {
+export function NetworkPacketInspector({ embedded = false }: { embedded?: boolean } = {}) {
   const [collapsed,  setCollapsed]  = useState(false);
   const { pos, rootRef, onDragMouseDown, onDragTouchStart } = useDraggable(
     "mr7-packet-inspector-pos",
@@ -209,6 +209,29 @@ export function NetworkPacketInspector() {
   const hexDump = selected?.model
     ? toHexDump(selected.model + (selected.provider ?? ""), 64)
     : [];
+
+  if (embedded) {
+    return (
+      <div style={{ width: "100%", height: "100%", overflow: "hidden", display: "flex", flexDirection: "column", background: "rgba(1,4,16,0.97)" }}>
+        <canvas ref={canvasRef} width={CW} height={CH} style={{ width: "100%", flexShrink: 0, display: "block", borderBottom: "1px solid #1a1a1a" }} />
+        <div style={{ flex: 1, overflowY: "auto" }}>
+          {displayed.slice(0, 8).map(ev => (
+            <div key={ev.id}
+              onClick={() => setSelected(ev)}
+              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "3px 8px", borderBottom: "1px solid #111", fontSize: "8px", fontFamily: "monospace", cursor: "pointer", background: selected?.id === ev.id ? "#111" : "transparent" }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: statusColor(ev.status), flexShrink: 0 }} />
+              <span style={{ color: "#555", flexShrink: 0, width: "44px" }}>{formatTime(ev.startTime).slice(-8)}</span>
+              <span style={{ color: "#888", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{shortModel(ev.model ?? ev.provider ?? "?")}</span>
+              <span style={{ color: statusColor(ev.status), flexShrink: 0 }}>{ev.latency ? `${ev.latency}ms` : ev.status.toUpperCase()}</span>
+            </div>
+          ))}
+          {displayed.length === 0 && (
+            <div style={{ textAlign: "center", padding: "10px", fontSize: "8px", fontFamily: "monospace", color: "#333" }}>AWAITING PACKETS...</div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={rootRef} style={{ left: pos.x, top: pos.y, width: PANEL_W }} className="fixed z-[96] select-none">

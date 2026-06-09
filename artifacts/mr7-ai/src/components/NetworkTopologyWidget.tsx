@@ -80,7 +80,7 @@ function drawShape(ctx:CanvasRenderingContext2D, shape:string, x:number, y:numbe
   }
 }
 
-export function NetworkTopologyWidget() {
+export function NetworkTopologyWidget({ embedded = false }: { embedded?: boolean } = {}) {
   const canvasRef   = useRef<HTMLCanvasElement>(null);
   const frameRef    = useRef<number>(0);
   const tickRef     = useRef(0);
@@ -288,6 +288,17 @@ export function NetworkTopologyWidget() {
     frame();
     return ()=>{ cancelAnimationFrame(frameRef.current); clearInterval(atkInterval); };
   },[]);
+
+  if (embedded) {
+    return (
+      <div style={{ width: "100%", height: "100%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(2,6,18,0.97)" }}>
+        <canvas ref={canvasRef} width={W} height={H}
+          style={{ width: "100%", height: "100%", objectFit: "contain", cursor: "grab", display: "block" }}
+          onMouseDown={onCanvasDown}
+        />
+      </div>
+    );
+  }
 
   return (
     <div ref={rootRef} style={{left:pos.x,top:pos.y}} className="fixed z-[96] select-none">

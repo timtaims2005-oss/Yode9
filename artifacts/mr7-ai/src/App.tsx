@@ -136,16 +136,10 @@ import { WarRoomModal } from "./components/modals/WarRoomModal";
 import { RedTeamDashboard } from "./components/modals/RedTeamDashboard";
 import { ExploitChainModal } from "./components/modals/ExploitChainModal";
 import { CyberHeatmapHUD } from "./components/CyberHeatmapHUD";
-import { LiveThreatTicker } from "./components/LiveThreatTicker";
+import { CyberWidgetsDock } from "./components/CyberWidgetsDock";
 import { SystemStatusWidget } from "./components/SystemStatusWidget";
-import { NetworkTopologyWidget } from "./components/NetworkTopologyWidget";
 import { AmbientParticleField } from "./components/AmbientParticleField";
 import { HoloDataStream } from "./components/HoloDataStream";
-import { CyberGlobeWidget } from "./components/CyberGlobeWidget";
-import { InteractiveGlobeWidget } from "./components/InteractiveGlobeWidget";
-import { NetworkTrafficPanel } from "./components/NetworkTrafficPanel";
-import { NetworkPacketInspector } from "./components/NetworkPacketInspector";
-import { ModelBenchmarkPanel } from "./components/ModelBenchmarkPanel";
 import { SessionRecorderWidget } from "./components/SessionRecorderWidget";
 import { IntelligenceCoreModal } from "./components/modals/IntelligenceCoreModal";
 
@@ -684,17 +678,8 @@ function AppContent() {
       {/* Cyber Attack Heatmap HUD */}
       <CyberHeatmapHUD />
 
-      {/* Live Threat Ticker */}
-      <LiveThreatTicker />
-
       {/* System Status Widget */}
       <SystemStatusWidget />
-
-      {/* Network Topology Widget */}
-      <NetworkTopologyWidget />
-
-      {/* Interactive Globe — drag-to-rotate GLOBAL MAP */}
-      <InteractiveGlobeWidget />
 
       {/* Ambient particle field */}
       <AmbientParticleField density={0.5} />
@@ -702,17 +687,8 @@ function AppContent() {
       {/* Holographic data stream on edges */}
       <HoloDataStream side="both" />
 
-      {/* 3D Cyber Globe — global attack map */}
-      <CyberGlobeWidget />
-
-      {/* Network Traffic Analyzer — real-time API call visualizer */}
-      <NetworkTrafficPanel />
-
-      {/* Wireshark-style packet inspector */}
-      <NetworkPacketInspector />
-
-      {/* AI model benchmark leaderboard */}
-      <ModelBenchmarkPanel />
+      {/* Cyber Widgets Dock — single 3D button opening holographic 6-panel HUD */}
+      <CyberWidgetsDock />
 
       {/* Live session recorder widget */}
       <SessionRecorderWidget />

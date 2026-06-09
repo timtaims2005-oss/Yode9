@@ -96,7 +96,7 @@ function arcPt(
   return [mt*mt*ax+2*mt*t*cx+t*t*bx, mt*mt*ay+2*mt*t*cy+t*t*by, mt*mt*az+2*mt*t*cz+t*t*bz];
 }
 
-export function InteractiveGlobeWidget() {
+export function InteractiveGlobeWidget({ embedded = false }: { embedded?: boolean } = {}) {
   const canvasRef  = useRef<HTMLCanvasElement>(null);
   const frameRef   = useRef<number>(0);
   const tickRef    = useRef(0);
@@ -335,6 +335,17 @@ export function InteractiveGlobeWidget() {
     frame();
     return ()=>cancelAnimationFrame(frameRef.current);
   },[]);
+
+  if (embedded) {
+    return (
+      <div style={{ width: "100%", height: "100%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(3,5,18,0.97)" }}>
+        <canvas ref={canvasRef} width={W} height={H}
+          style={{ width: "100%", height: "100%", objectFit: "contain", cursor: "grab", display: "block" }}
+          onMouseDown={onGlobeDown}
+        />
+      </div>
+    );
+  }
 
   return (
     <div ref={rootRef} style={{left:pos.x,top:pos.y}} className="fixed z-[96] select-none">
