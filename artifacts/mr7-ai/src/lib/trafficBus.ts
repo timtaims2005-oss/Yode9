@@ -1,12 +1,13 @@
 /* ═══════════════════════════════════════════════════════════════
    TRAFFIC BUS — Global pub/sub for real-time API call tracking
-   Emits events that NetworkTrafficPanel subscribes to.
+   Emits events that NetworkTrafficPanel + PacketInspector subscribe to.
 ═══════════════════════════════════════════════════════════════ */
 
 export type TrafficStatus = "pending" | "success" | "error" | "streaming";
 
 export interface TrafficEvent {
   id: string;
+  seq: number;
   model: string;
   provider: string;
   startTime: number;
@@ -19,6 +20,8 @@ export interface TrafficEvent {
   bytesReceived?: number;
   status: TrafficStatus;
   endpoint: string;
+  payloadPreview?: string;
+  responsePreview?: string;
 }
 
 type Listener = (event: TrafficEvent) => void;
@@ -26,7 +29,8 @@ type Listener = (event: TrafficEvent) => void;
 class TrafficBus {
   private listeners: Listener[] = [];
   private _history: TrafficEvent[] = [];
-  private maxHistory = 50;
+  private maxHistory = 100;
+  private _seq = 0;
 
   subscribe(fn: Listener): () => void {
     this.listeners.push(fn);
@@ -46,16 +50,21 @@ class TrafficBus {
 
   get history(): TrafficEvent[] { return this._history; }
 
-  startCall(params: { model: string; provider: string; endpoint: string; bytesSent?: number }): string {
+  startCall(params: {
+    model: string; provider: string; endpoint: string;
+    bytesSent?: number; payloadPreview?: string;
+  }): string {
     const id = `call-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    this._seq++;
     this.emit({
-      id,
+      id, seq: this._seq,
       model: params.model,
       provider: params.provider,
       endpoint: params.endpoint,
       startTime: Date.now(),
       status: "pending",
       bytesSent: params.bytesSent ?? 0,
+      payloadPreview: params.payloadPreview,
     });
     return id;
   }
@@ -64,18 +73,15 @@ class TrafficBus {
     const existing = this._history.find(e => e.id === id);
     if (!existing) return;
     const merged: TrafficEvent = { ...existing, ...updates };
-    if (merged.endTime && merged.startTime) {
-      merged.latency = merged.endTime - merged.startTime;
-    }
+    if (merged.endTime && merged.startTime) merged.latency = merged.endTime - merged.startTime;
     this.emit(merged);
   }
 
-  completeCall(id: string, params: { tokens?: number; inputTokens?: number; outputTokens?: number; bytesReceived?: number }): void {
-    this.updateCall(id, {
-      status: "success",
-      endTime: Date.now(),
-      ...params,
-    });
+  completeCall(id: string, params: {
+    tokens?: number; inputTokens?: number; outputTokens?: number;
+    bytesReceived?: number; responsePreview?: string;
+  }): void {
+    this.updateCall(id, { status: "success", endTime: Date.now(), ...params });
   }
 
   failCall(id: string): void {

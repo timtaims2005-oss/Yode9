@@ -40,6 +40,7 @@ export async function streamChat(req: ChatRequest, onChunk: (text: string) => vo
     provider: req.provider ?? "personal",
     endpoint: "/api/chat",
     bytesSent: body.length,
+    payloadPreview: body.slice(0, 512),
   });
 
   let bytesReceived = 0;

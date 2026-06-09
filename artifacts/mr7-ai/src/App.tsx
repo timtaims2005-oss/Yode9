@@ -144,6 +144,7 @@ import { HoloDataStream } from "./components/HoloDataStream";
 import { CyberGlobeWidget } from "./components/CyberGlobeWidget";
 import { InteractiveGlobeWidget } from "./components/InteractiveGlobeWidget";
 import { NetworkTrafficPanel } from "./components/NetworkTrafficPanel";
+import { NetworkPacketInspector } from "./components/NetworkPacketInspector";
 
 const queryClient = new QueryClient();
 
@@ -698,6 +699,9 @@ function AppContent() {
 
       {/* Network Traffic Analyzer — real-time API call visualizer */}
       <NetworkTrafficPanel />
+
+      {/* Wireshark-style packet inspector */}
+      <NetworkPacketInspector />
 
       {/* Global HUD scan line — year 3090 effect */}
       <div className="hud-scan-line pointer-events-none" />

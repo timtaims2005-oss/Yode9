@@ -104,42 +104,38 @@ export function CyberGlobeWidget() {
 
   const savedPos = (() => { try { return JSON.parse(localStorage.getItem(STOR_KEY) ?? "null"); } catch { return null; } })();
   const [pos, setPos] = useState<{ x: number; y: number }>(savedPos ?? { x: 12, y: 110 });
-  const widgetDragRef = useRef<{ startX: number; startY: number; ox: number; oy: number } | null>(null);
-
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    widgetDragRef.current = { startX: e.clientX, startY: e.clientY, ox: pos.x, oy: pos.y };
+  const onHeaderMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const sx = e.clientX, sy = e.clientY, ox = pos.x, oy = pos.y;
+    const move = (ev: MouseEvent) => {
+      const nx = Math.max(0, Math.min(window.innerWidth - W - 4, ox + ev.clientX - sx));
+      const ny = Math.max(0, Math.min(window.innerHeight - 50, oy + ev.clientY - sy));
+      setPos({ x: nx, y: ny });
+      try { localStorage.setItem(STOR_KEY, JSON.stringify({ x: nx, y: ny })); } catch {}
+    };
+    const up = () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
   }, [pos]);
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!widgetDragRef.current) return;
-    const { startX, startY, ox, oy } = widgetDragRef.current;
-    const nx = Math.max(0, Math.min(window.innerWidth - 300, ox + e.clientX - startX));
-    const ny = Math.max(0, Math.min(window.innerHeight - 340, oy + e.clientY - startY));
-    setPos({ x: nx, y: ny });
-    localStorage.setItem(STOR_KEY, JSON.stringify({ x: nx, y: ny }));
-  }, []);
-  const onPointerUp = useCallback(() => { widgetDragRef.current = null; }, []);
 
-  const onCanvasPointerDown = useCallback((e: React.PointerEvent) => {
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    globeDragRef.current = { dragging: true, lastX: e.clientX, lastY: e.clientY };
-    velYRef.current = 0; velXRef.current = 0;
+  const onCanvasMouseDown = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-  }, []);
-  const onCanvasPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!globeDragRef.current.dragging) return;
-    const dx = e.clientX - globeDragRef.current.lastX;
-    const dy = e.clientY - globeDragRef.current.lastY;
-    velYRef.current = dx * 0.45;
-    velXRef.current = dy * 0.35;
-    rotRef.current  += dx * 0.45;
-    rotXRef.current  = Math.max(-55, Math.min(55, rotXRef.current + dy * 0.35));
-    globeDragRef.current.lastX = e.clientX;
-    globeDragRef.current.lastY = e.clientY;
-  }, []);
-  const onCanvasPointerUp = useCallback(() => {
-    globeDragRef.current.dragging = false;
-    setTimeout(() => { velYRef.current = -0.10; velXRef.current = 0; }, 2200);
+    let lastX = e.clientX, lastY = e.clientY;
+    globeDragRef.current = { dragging: true, lastX, lastY };
+    velYRef.current = 0; velXRef.current = 0;
+    const move = (ev: MouseEvent) => {
+      const dx = ev.clientX - lastX, dy = ev.clientY - lastY;
+      lastX = ev.clientX; lastY = ev.clientY;
+      velYRef.current = dx * 0.45; velXRef.current = dy * 0.35;
+      rotRef.current += dx * 0.45;
+      rotXRef.current = Math.max(-55, Math.min(55, rotXRef.current + dy * 0.35));
+      globeDragRef.current.lastX = ev.clientX; globeDragRef.current.lastY = ev.clientY;
+    };
+    const up = () => {
+      globeDragRef.current.dragging = false;
+      setTimeout(() => { velYRef.current = -0.10; velXRef.current = 0; }, 2200);
+      window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up);
+    };
+    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
   }, []);
 
   useEffect(() => {
@@ -402,7 +398,7 @@ export function CyberGlobeWidget() {
     >
       {/* ── Header ── */}
       <div
-        onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
+        onMouseDown={onHeaderMouseDown}
         style={{
           display: "flex", alignItems: "center", gap: "6px", padding: "7px 10px",
           background: "linear-gradient(135deg, rgba(6,2,12,0.99), rgba(10,4,18,0.98))",
@@ -426,7 +422,7 @@ export function CyberGlobeWidget() {
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <span style={{ fontSize: "7px", fontFamily: "monospace", color: "#22c55e", letterSpacing: "1px" }}>● LIVE</span>
           <button
-            onClick={() => setMinimized(v => !v)} onPointerDown={e => e.stopPropagation()}
+            onClick={() => setMinimized(v => !v)} onMouseDown={e => e.stopPropagation()}
             style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", padding: 0 }}
           >
             {minimized ? <Maximize2 style={{ width: 10, height: 10 }} /> : <Minimize2 style={{ width: 10, height: 10 }} />}
@@ -446,8 +442,7 @@ export function CyberGlobeWidget() {
 
           <canvas
             ref={canvasRef} width={W} height={H} style={{ display: "block", cursor: "grab" }}
-            onPointerDown={onCanvasPointerDown} onPointerMove={onCanvasPointerMove}
-            onPointerUp={onCanvasPointerUp} onPointerLeave={onCanvasPointerUp}
+            onMouseDown={onCanvasMouseDown}
           />
 
           {/* HUD corners */}
