@@ -145,6 +145,7 @@ import { CyberGlobeWidget } from "./components/CyberGlobeWidget";
 import { InteractiveGlobeWidget } from "./components/InteractiveGlobeWidget";
 import { NetworkTrafficPanel } from "./components/NetworkTrafficPanel";
 import { NetworkPacketInspector } from "./components/NetworkPacketInspector";
+import { ModelBenchmarkPanel } from "./components/ModelBenchmarkPanel";
 
 const queryClient = new QueryClient();
 
@@ -702,6 +703,9 @@ function AppContent() {
 
       {/* Wireshark-style packet inspector */}
       <NetworkPacketInspector />
+
+      {/* AI model benchmark leaderboard */}
+      <ModelBenchmarkPanel />
 
       {/* Global HUD scan line — year 3090 effect */}
       <div className="hud-scan-line pointer-events-none" />

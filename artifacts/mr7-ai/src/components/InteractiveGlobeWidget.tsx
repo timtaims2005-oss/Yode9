@@ -384,24 +384,35 @@ export function InteractiveGlobeWidget() {
       initial={{ opacity: 0, scale: 0.9, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
-      style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 84, userSelect: "none" }}
+      style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 96, userSelect: "none" }}
     >
+      {/* Drag strip */}
+      <div
+        onMouseDown={onHeaderMouseDown}
+        style={{
+          height: 8, borderRadius: collapsed ? "10px 10px 10px 10px" : "10px 10px 0 0", cursor: "grab",
+          background: "repeating-linear-gradient(90deg, rgba(0,229,255,0.2) 0px, rgba(0,229,255,0.2) 3px, transparent 3px, transparent 7px)",
+          border: "1px solid rgba(0,229,255,0.3)", borderBottom: "none",
+          boxShadow: "0 0 10px rgba(0,229,255,0.15)",
+        }}
+      />
       {/* Header */}
       <div
         onMouseDown={onHeaderMouseDown}
         style={{
           display: "flex", alignItems: "center", gap: "5px",
-          padding: "6px 9px",
+          padding: "8px 9px",
           border: "1px solid rgba(0,229,255,0.22)",
+          borderTop: "none",
           borderBottom: collapsed ? "1px solid rgba(0,229,255,0.22)" : "1px solid rgba(0,229,255,0.06)",
-          borderRadius: collapsed ? "10px" : "10px 10px 0 0",
+          borderRadius: collapsed ? "0 0 10px 10px" : "0",
           background: "linear-gradient(135deg, rgba(0,8,20,0.98), rgba(0,12,30,0.99))",
           backdropFilter: "blur(20px)",
           cursor: "grab", minWidth: "200px",
           boxShadow: "0 4px 24px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,229,255,0.06), inset 0 1px 0 rgba(255,255,255,0.03)",
         }}
       >
-        <GripHorizontal style={{ width: 10, height: 10, color: "rgba(0,229,255,0.3)", flexShrink: 0 }} />
+        <GripHorizontal style={{ width: 12, height: 12, color: "rgba(0,229,255,0.5)", flexShrink: 0 }} />
         <Globe style={{ width: 9, height: 9, color: "#00e5ff", flexShrink: 0 }} />
         <span style={{ fontSize: "8.5px", fontFamily: "monospace", fontWeight: 700, color: "rgba(0,229,255,0.7)", letterSpacing: "1.6px", flex: 1 }}>
           GLOBAL MAP

@@ -394,19 +394,27 @@ export function CyberGlobeWidget() {
       initial={{ opacity: 0, scale: 0.88, y: -10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-      style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 35, width: W + 4, userSelect: "none" }}
+      style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 96, width: W + 4, userSelect: "none" }}
     >
+      {/* ── Drag strip ── */}
+      <div
+        onMouseDown={onHeaderMouseDown}
+        style={{
+          height: 8, borderRadius: "12px 12px 0 0", cursor: "grab",
+          background: "repeating-linear-gradient(90deg, rgba(226,18,39,0.25) 0px, rgba(226,18,39,0.25) 3px, transparent 3px, transparent 7px)",
+          borderTop: "1px solid rgba(226,18,39,0.5)", borderLeft: "1px solid rgba(226,18,39,0.2)", borderRight: "1px solid rgba(226,18,39,0.2)",
+          boxShadow: "0 0 12px rgba(226,18,39,0.2)",
+        }}
+      />
       {/* ── Header ── */}
       <div
         onMouseDown={onHeaderMouseDown}
         style={{
-          display: "flex", alignItems: "center", gap: "6px", padding: "7px 10px",
+          display: "flex", alignItems: "center", gap: "6px", padding: "8px 10px",
           background: "linear-gradient(135deg, rgba(6,2,12,0.99), rgba(10,4,18,0.98))",
-          borderTop: "1px solid rgba(226,18,39,0.4)",
-          borderLeft: "1px solid rgba(226,18,39,0.15)",
-          borderRight: "1px solid rgba(226,18,39,0.15)",
-          borderRadius: "12px 12px 0 0", cursor: "grab",
-          boxShadow: "0 0 20px rgba(226,18,39,0.1), inset 0 1px 0 rgba(255,255,255,0.04)",
+          borderLeft: "1px solid rgba(226,18,39,0.2)", borderRight: "1px solid rgba(226,18,39,0.2)",
+          cursor: "grab",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
         }}
       >
         {/* Blinking threat dot */}

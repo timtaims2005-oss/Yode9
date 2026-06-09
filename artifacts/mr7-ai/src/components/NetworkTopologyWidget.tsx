@@ -409,23 +409,36 @@ export function NetworkTopologyWidget() {
       initial={{ opacity: 0, scale: 0.9, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
-      style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 84, userSelect: "none" }}
+      style={{ position: "fixed", left: pos.x, top: pos.y, zIndex: 96, userSelect: "none" }}
     >
+      {/* Drag strip */}
+      <div
+        onMouseDown={onMouseDown}
+        style={{
+          height: 8, borderRadius: "10px 10px 0 0", cursor: "grab",
+          background: criticalNodes > 0
+            ? "repeating-linear-gradient(90deg, rgba(226,18,39,0.25) 0px, rgba(226,18,39,0.25) 3px, transparent 3px, transparent 7px)"
+            : "repeating-linear-gradient(90deg, rgba(0,229,255,0.2) 0px, rgba(0,229,255,0.2) 3px, transparent 3px, transparent 7px)",
+          border: `1px solid ${criticalNodes > 0 ? "rgba(226,18,39,0.4)" : "rgba(0,229,255,0.25)"}`,
+          borderBottom: "none",
+        }}
+      />
       {/* Header */}
       <div
         onMouseDown={onMouseDown}
         style={{
-          display: "flex", alignItems: "center", gap: "5px", padding: "6px 9px",
+          display: "flex", alignItems: "center", gap: "5px", padding: "8px 9px",
           border: `1px solid ${criticalNodes > 0 ? "rgba(226,18,39,0.35)" : "rgba(0,229,255,0.16)"}`,
-          borderBottom: collapsed ? undefined : `1px solid ${criticalNodes > 0 ? "rgba(226,18,39,0.12)" : "rgba(0,229,255,0.06)"}`,
-          borderRadius: collapsed ? "10px" : "10px 10px 0 0",
+          borderTop: "none",
+          borderBottom: collapsed ? `1px solid ${criticalNodes > 0 ? "rgba(226,18,39,0.35)" : "rgba(0,229,255,0.16)"}` : `1px solid ${criticalNodes > 0 ? "rgba(226,18,39,0.12)" : "rgba(0,229,255,0.06)"}`,
+          borderRadius: collapsed ? "0 0 10px 10px" : "0",
           background: "linear-gradient(135deg, rgba(4,6,18,0.98), rgba(6,8,22,0.99))",
           backdropFilter: "blur(20px)", cursor: "grab", minWidth: "180px",
           boxShadow: `0 4px 24px rgba(0,0,0,0.8), 0 0 0 1px ${criticalNodes > 0 ? "rgba(226,18,39,0.08)" : "rgba(0,229,255,0.04)"}`,
           transition: "border-color 0.4s",
         }}
       >
-        <GripHorizontal style={{ width: 10, height: 10, color: "rgba(0,229,255,0.25)", flexShrink: 0 }} />
+        <GripHorizontal style={{ width: 12, height: 12, color: criticalNodes > 0 ? "rgba(226,18,39,0.5)" : "rgba(0,229,255,0.4)", flexShrink: 0 }} />
         <Radio style={{ width: 9, height: 9, color: criticalNodes > 0 ? "#e21227" : "#00e5ff", flexShrink: 0 }} />
         <span style={{ fontSize: "8.5px", fontFamily: "monospace", fontWeight: 700, color: criticalNodes > 0 ? "rgba(226,18,39,0.8)" : "rgba(0,229,255,0.6)", letterSpacing: "1.5px", flex: 1 }}>
           NET TOPOLOGY
