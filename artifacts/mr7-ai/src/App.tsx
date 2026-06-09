@@ -98,6 +98,8 @@ import { HackingToolModal } from "./components/modals/HackingToolModal";
 import { GodMod3Modal } from "./components/modals/GodMod3Modal";
 import { GeminiResearchModal } from "./components/modals/GeminiResearchModal";
 import { OpenAntigravityModal } from "./components/modals/OpenAntigravityModal";
+import { DeepSearchModal } from "./components/modals/DeepSearchModal";
+import { ChainInvestigationModal } from "./components/modals/ChainInvestigationModal";
 // New modules from uploaded files
 import { PaseoModal } from "./components/modals/PaseoModal";
 import { GemmaLibModal } from "./components/modals/GemmaLibModal";
@@ -313,6 +315,8 @@ function AppContent() {
   const [shellGeneratorInject, setShellGeneratorInject] = useState<string | undefined>();
   const [warRoomOpen, setWarRoomOpen] = useState(false);
   const [exploitChainOpen, setExploitChainOpen] = useState(false);
+  const [deepSearchOpen, setDeepSearchOpen] = useState(false);
+  const [chainInvestigationOpen, setChainInvestigationOpen] = useState(false);
 
   const [pipelineKeyRef] = useState(() => ({ n: 0 }));
   const [ragPipelineDoc, setRagPipelineDoc] = useState<{ text: string; name: string; key: number } | undefined>();
@@ -469,6 +473,8 @@ function AppContent() {
           onOpenNeuralMatrix={() => setNeuralMatrixOpen(true)}
           onOpenAnalytics={() => setAnalyticsOpen(true)}
           onOpenWarRoom={() => setWarRoomOpen(true)}
+          onOpenDeepSearch={() => setDeepSearchOpen(true)}
+          onOpenChainInvestigation={() => setChainInvestigationOpen(true)}
         />
         <ChatView onOpenOsintDash={() => setOsintDashOpen(true)} />
         {compareOpen && <CompareView onClose={() => setCompareOpen(false)} />}
@@ -609,6 +615,8 @@ function AppContent() {
       <OpenSkynetModal open={openSkynetOpen} onOpenChange={setOpenSkynetOpen} />
       <WarRoomModal open={warRoomOpen} onOpenChange={setWarRoomOpen} />
       <ExploitChainModal open={exploitChainOpen} onOpenChange={setExploitChainOpen} />
+      <DeepSearchModal open={deepSearchOpen} onOpenChange={setDeepSearchOpen} />
+      <ChainInvestigationModal open={chainInvestigationOpen} onOpenChange={setChainInvestigationOpen} />
       <MonacoEditorModal
         open={monacoOpen}
         onClose={() => setMonacoOpen(false)}

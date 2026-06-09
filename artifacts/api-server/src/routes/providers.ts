@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAvailableProviders, invalidateProviderCache } from "../lib/ai-providers";
+import { listProviders as getAvailableProviders, invalidateProviderCache } from "../lib/ai-providers";
 import OpenAI from "openai";
 
 const router = Router();

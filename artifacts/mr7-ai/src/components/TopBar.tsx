@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Brain, Server, Bot, Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight, Wifi, Target } from "lucide-react";
+import { Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Brain, Server, Bot, Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight, Wifi, Target, GitBranch } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore, ProviderName } from "@/lib/store";
 import { useT } from "@/lib/i18n";
@@ -48,9 +48,11 @@ interface TopBarProps {
   onOpenNeuralMatrix?: () => void;
   onOpenAnalytics?: () => void;
   onOpenWarRoom?: () => void;
+  onOpenDeepSearch?: () => void;
+  onOpenChainInvestigation?: () => void;
 }
 
-export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom }: TopBarProps) {
+export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
   const { toast } = useToast();
@@ -351,6 +353,54 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
                 aria-label="War Room"
               >
                 <Target className="w-4 h-4" />
+              </button>
+            </>
+          )}
+
+          {/* Deep Search */}
+          {onOpenDeepSearch && (
+            <>
+              <button
+                onClick={onOpenDeepSearch}
+                className="flex-shrink-0 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap tracking-wider transition-all hover:scale-105"
+                style={{ background: "rgba(226,18,39,0.08)", border: "1px solid rgba(226,18,39,0.3)", color: "#e21227", boxShadow: "0 0 12px rgba(226,18,39,0.12)" }}
+                aria-label="Deep Search AI"
+                title="Deep Search AI — بحث عميق متعدد المراحل"
+              >
+                <Search className="w-3.5 h-3.5" />
+                <span>Deep Search</span>
+              </button>
+              <button
+                onClick={onOpenDeepSearch}
+                className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
+                style={{ color: "#e21227" }}
+                aria-label="Deep Search AI"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </>
+          )}
+
+          {/* Chain Investigation */}
+          {onOpenChainInvestigation && (
+            <>
+              <button
+                onClick={onOpenChainInvestigation}
+                className="flex-shrink-0 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap tracking-wider transition-all hover:scale-105"
+                style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.3)", color: "#8b5cf6", boxShadow: "0 0 12px rgba(139,92,246,0.12)" }}
+                aria-label="Chain Investigation"
+                title="Chain Investigation — تحليل العلاقات والسلاسل"
+              >
+                <GitBranch className="w-3.5 h-3.5" />
+                <span>Chain Intel</span>
+              </button>
+              <button
+                onClick={onOpenChainInvestigation}
+                className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
+                style={{ color: "#8b5cf6" }}
+                aria-label="Chain Investigation"
+              >
+                <GitBranch className="w-4 h-4" />
               </button>
             </>
           )}

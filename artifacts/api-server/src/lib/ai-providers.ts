@@ -48,105 +48,93 @@ const WORLD_MODELS = [
   "llama-3.1-sonar-large-128k-online", "llama-3.1-sonar-small-128k-online",
   // Mixtral
   "mixtral-8x7b-instruct", "mixtral-8x22b-instruct",
-  // Microsoft Phi
-  "phi-4", "phi-3.5-mini-instruct", "phi-3-medium-instruct",
-  // Amazon
-  "nova-pro-v1", "nova-lite-v1",
-  // x.ai Grok
-  "grok-2", "grok-2-mini",
 ];
 
-const PROVIDER_CONFIGS: Record<ProviderName, { name: string; baseURL?: string; envKey: string; models: string[] }> = {
+type ProviderConfig = {
+  name: string;
+  envKey: string;
+  baseURL: string;
+  models: string[];
+  requiresKey?: boolean;
+};
+
+const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
   openai: {
     name: "OpenAI",
     envKey: "OPENAI_API_KEY",
-    models: [
-      "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo",
-      "o1", "o1-mini", "o3", "o3-mini", "o4-mini",
-    ],
+    baseURL: "https://api.openai.com/v1",
+    models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo", "o1", "o1-mini", "o3-mini"],
+    requiresKey: true,
   },
   anthropic: {
-    name: "Anthropic (Claude)",
+    name: "Anthropic",
     envKey: "ANTHROPIC_API_KEY",
-    models: [
-      "claude-opus-4-5", "claude-sonnet-4-5", "claude-3-7-sonnet-20250219",
-      "claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229",
-    ],
+    baseURL: "https://api.anthropic.com",
+    models: ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"],
+    requiresKey: true,
   },
   groq: {
-    name: "Groq (Free)",
-    baseURL: "https://api.groq.com/openai/v1",
+    name: "Groq",
     envKey: "GROQ_API_KEY",
-    models: [
-      "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.1-70b-versatile",
-      "llama3-70b-8192", "llama3-8b-8192",
-      "mixtral-8x7b-32768", "gemma2-9b-it", "gemma-7b-it",
-      "deepseek-r1-distill-llama-70b", "qwen-qwq-32b",
-    ],
+    baseURL: "https://api.groq.com/openai/v1",
+    models: ["llama-3.1-8b-instant", "llama-3.3-70b-instruct", "mixtral-8x7b-32768"],
+    requiresKey: true,
   },
   gemini: {
     name: "Google Gemini",
-    baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
     envKey: "GEMINI_API_KEY",
-    models: [
-      "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash",
-      "gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.0-pro",
-    ],
+    baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
+    models: ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"],
+    requiresKey: true,
   },
   openrouter: {
-    name: "OpenRouter (100+ نموذج)",
-    baseURL: "https://openrouter.ai/api/v1",
+    name: "OpenRouter",
     envKey: "OPENROUTER_API_KEY",
-    models: [
-      // OpenAI
-      "openai/gpt-4o", "openai/gpt-4o-mini", "openai/o3-mini", "openai/o1",
-      // Anthropic
-      "anthropic/claude-opus-4-5", "anthropic/claude-sonnet-4-5",
-      "anthropic/claude-3.5-sonnet", "anthropic/claude-3.5-haiku",
-      // Google
-      "google/gemini-2.5-pro", "google/gemini-2.5-flash",
-      // Meta
-      "meta-llama/llama-3.3-70b-instruct", "meta-llama/llama-3.1-405b-instruct",
-      // DeepSeek
-      "deepseek/deepseek-r1", "deepseek/deepseek-v3", "deepseek/deepseek-chat",
-      // Mistral
-      "mistralai/mistral-large", "mistralai/codestral-latest", "mistralai/mistral-nemo",
-      // Qwen
-      "qwen/qwen-max", "qwen/qwq-32b", "qwen/qwen2.5-72b-instruct",
-      // xAI
-      "x-ai/grok-2", "x-ai/grok-2-vision",
-      // Cohere
-      "cohere/command-r-plus", "cohere/command-r",
-      // Others
-      "microsoft/phi-4", "nvidia/llama-3.1-nemotron-70b-instruct",
-    ],
+    baseURL: "https://openrouter.ai/api/v1",
+    models: WORLD_MODELS,
+    requiresKey: true,
   },
   custom: {
-    name: "Custom API",
+    name: "Custom / Self-hosted",
     envKey: "CUSTOM_API_KEY",
+    baseURL: "",
     models: [],
+    requiresKey: false,
   },
   personal: {
-    name: "Personal API (خادمك)",
-    baseURL: process.env.PERSONAL_API_BASE_URL ?? "https://f48e9a0302b427.lhr.life/v1",
+    name: "Personal / Custom",
     envKey: "PERSONAL_API_KEY",
-    models: WORLD_MODELS,
+    baseURL: "https://api.openai.com/v1",
+    models: [],
+    requiresKey: false,
   },
 };
 
-export function getAvailableProviders(): ProviderInfo[] {
-  return (Object.entries(PROVIDER_CONFIGS) as [ProviderName, typeof PROVIDER_CONFIGS[ProviderName]][]).map(
+function getPersonalBase(): string {
+  return process.env.PERSONAL_API_BASE_URL?.trim() || "https://api.openai.com/v1";
+}
+
+function getPersonalKey(): string {
+  return (
+    process.env.PERSONAL_API_KEY?.trim() ||
+    process.env.OPENAI_API_KEY?.trim() ||
+    "no-key"
+  );
+}
+
+export function listProviders(): ProviderInfo[] {
+  return (Object.entries(PROVIDER_CONFIGS) as [ProviderName, ProviderConfig][]).map(
     ([id, cfg]) => {
       let available: boolean;
-      if (id === "custom") {
-        available = !!(process.env.CUSTOM_API_KEY && process.env.CUSTOM_API_BASE_URL);
-      } else if (id === "personal") {
+      if (id === "personal") {
         available = true;
+      } else if (id === "custom") {
+        available = !!(process.env.CUSTOM_API_KEY || process.env.CUSTOM_API_BASE_URL);
       } else {
         available = !!process.env[cfg.envKey];
       }
       const baseURL = id === "personal"
-        ? (process.env.PERSONAL_API_BASE_URL ?? "https://f48e9a0302b427.lhr.life/v1")
+        ? getPersonalBase()
         : cfg.baseURL;
       return { id, name: cfg.name, available, models: cfg.models, baseURL };
     }
@@ -165,20 +153,17 @@ export function getOpenAICompatibleClient(provider: ProviderName): OpenAI {
   let baseURL: string | undefined = cfg.baseURL;
 
   if (provider === "custom") {
-    apiKey = process.env.CUSTOM_API_KEY;
-    baseURL = process.env.CUSTOM_API_BASE_URL;
+    apiKey = process.env.CUSTOM_API_KEY || "no-key";
+    baseURL = process.env.CUSTOM_API_BASE_URL || "https://api.openai.com/v1";
   } else if (provider === "personal") {
-    apiKey = process.env.PERSONAL_API_KEY ?? "no-key";
-    baseURL = process.env.PERSONAL_API_BASE_URL ?? "https://f48e9a0302b427.lhr.life/v1";
+    apiKey = getPersonalKey();
+    baseURL = getPersonalBase();
   } else {
     apiKey = process.env[cfg.envKey];
   }
 
   if (!apiKey) {
-    // Fallback to personal API instead of OpenAI
-    const personalKey = process.env.PERSONAL_API_KEY ?? "no-key";
-    const personalBase = process.env.PERSONAL_API_BASE_URL ?? "https://f48e9a0302b427.lhr.life/v1";
-    const client = new OpenAI({ apiKey: personalKey, baseURL: personalBase });
+    const client = new OpenAI({ apiKey: getPersonalKey(), baseURL: getPersonalBase() });
     _openaiClients[cacheKey] = client;
     return client;
   }
@@ -199,7 +184,7 @@ export function getOpenAICompatibleClient(provider: ProviderName): OpenAI {
 }
 
 export function getPersonalOpenAI(): OpenAI {
-  return getOpenAICompatibleClient("personal");
+  return new OpenAI({ apiKey: getPersonalKey(), baseURL: getPersonalBase() });
 }
 
 export function getAnthropicClient(): Anthropic {
@@ -221,16 +206,20 @@ export async function callOnce(
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
   maxTokens = 1000,
 ): Promise<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
   try {
     const client = getPersonalOpenAI();
     const res = await client.chat.completions.create({
       model: PERSONAL_DEFAULT_MODEL,
       max_tokens: maxTokens,
       messages,
-    });
+    }, { signal: controller.signal });
     return res.choices?.[0]?.message?.content ?? "";
   } catch {
     return "";
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -248,70 +237,103 @@ export async function* streamCompletion(
   temperature = 0.7,
   opts?: { apiKey?: string; apiBaseURL?: string }
 ): AsyncGenerator<StreamChunk> {
-  // If personal API key provided by user, use it directly (bypasses tunnel)
-  if (opts?.apiKey && opts.apiKey.trim().length > 10) {
-    const client = getClientWithCredentials(opts.apiKey.trim(), opts.apiBaseURL?.trim());
-    const resolvedModel = model || PERSONAL_DEFAULT_MODEL;
+  const controller = new AbortController();
+  const TIMEOUT_MS = 60_000;
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    if (opts?.apiKey && opts.apiKey.trim().length > 10) {
+      const client = getClientWithCredentials(opts.apiKey.trim(), opts.apiBaseURL?.trim());
+      const resolvedModel = model || PERSONAL_DEFAULT_MODEL;
+      try {
+        const streamRes = await client.chat.completions.create({
+          model: resolvedModel,
+          messages,
+          stream: true,
+          temperature,
+        }, { signal: controller.signal });
+        for await (const chunk of streamRes) {
+          const content = chunk.choices?.[0]?.delta?.content;
+          if (content) yield { content };
+        }
+        yield { done: true };
+        return;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "API error";
+        yield { error: msg };
+        return;
+      }
+    }
+
+    if (provider === "anthropic") {
+      try {
+        const client = getAnthropicClient();
+        const systemMsg = messages.find((m) => m.role === "system");
+        const chatMsgs = messages
+          .filter((m) => m.role !== "system")
+          .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+
+        const stream = client.messages.stream({
+          model,
+          max_tokens: 8192,
+          system: systemMsg?.content,
+          messages: chatMsgs,
+          temperature,
+        });
+
+        for await (const event of stream) {
+          if (
+            event.type === "content_block_delta" &&
+            event.delta.type === "text_delta"
+          ) {
+            yield { content: event.delta.text };
+          }
+        }
+        yield { done: true };
+        return;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Anthropic API error";
+        yield { error: msg };
+        return;
+      }
+    }
+
     try {
+      const resolvedProvider: ProviderName =
+        (provider === "personal" || !PROVIDER_CONFIGS[provider])
+          ? "personal"
+          : provider;
+
+      const hasKey = resolvedProvider === "personal"
+        ? true
+        : !!process.env[PROVIDER_CONFIGS[resolvedProvider].envKey];
+
+      const client = hasKey
+        ? getOpenAICompatibleClient(resolvedProvider)
+        : getPersonalOpenAI();
+
+      const resolvedModel = model || PERSONAL_DEFAULT_MODEL;
+
       const streamRes = await client.chat.completions.create({
         model: resolvedModel,
         messages,
         stream: true,
         temperature,
-      });
+      }, { signal: controller.signal });
+
       for await (const chunk of streamRes) {
         const content = chunk.choices?.[0]?.delta?.content;
         if (content) yield { content };
       }
       yield { done: true };
-      return;
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "API error";
+      const isAbort = e instanceof Error && (e.name === "AbortError" || e.message.includes("abort"));
+      const msg = isAbort
+        ? "Request timed out — check your API key or provider settings"
+        : e instanceof Error ? e.message : "AI provider error";
       yield { error: msg };
-      return;
     }
+  } finally {
+    clearTimeout(timeout);
   }
-
-  if (provider === "anthropic") {
-    const client = getAnthropicClient();
-    const systemMsg = messages.find((m) => m.role === "system");
-    const chatMsgs = messages
-      .filter((m) => m.role !== "system")
-      .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
-
-    const stream = client.messages.stream({
-      model,
-      max_tokens: 8192,
-      system: systemMsg?.content,
-      messages: chatMsgs,
-      temperature,
-    });
-
-    for await (const event of stream) {
-      if (
-        event.type === "content_block_delta" &&
-        event.delta.type === "text_delta"
-      ) {
-        yield { content: event.delta.text };
-      }
-    }
-    yield { done: true };
-    return;
-  }
-
-  const client = getOpenAICompatibleClient(provider);
-  const resolvedModel = model || PERSONAL_DEFAULT_MODEL;
-
-  const streamRes = await client.chat.completions.create({
-    model: resolvedModel,
-    messages,
-    stream: true,
-    temperature,
-  });
-
-  for await (const chunk of streamRes) {
-    const content = chunk.choices?.[0]?.delta?.content;
-    if (content) yield { content };
-  }
-  yield { done: true };
 }
