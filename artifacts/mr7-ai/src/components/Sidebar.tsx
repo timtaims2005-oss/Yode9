@@ -30,6 +30,7 @@ interface SidebarProps {
   onOpenQRSync?: () => void;
   onOpenChangelog?: () => void;
   onOpenOsint?: () => void;
+  onOpenUseCaseLib?: () => void;
 }
 
 const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: string }[] = [
@@ -152,7 +153,7 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: DbIcon, label: "Kali SQLi Guide", color: "text-blue-400" },
 ];
 
-export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib }: SidebarProps) {
   const { toast } = useToast();
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -725,6 +726,20 @@ export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool,
         })()}
 
         <DarkWebMonitor />
+
+        {/* Use-Case Library button */}
+        {onOpenUseCaseLib && (
+          <button
+            onClick={onOpenUseCaseLib}
+            className="w-full flex items-center gap-2 py-1.5 px-2.5 rounded-lg text-[10px] font-mono font-bold uppercase transition-all group"
+            style={{ border: "1px solid rgba(226,18,39,0.2)", background: "rgba(226,18,39,0.05)", color: "#e21227" }}
+            title="مكتبة سيناريوهات الأمن — Ctrl+Shift+U"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 shrink-0 group-hover:scale-110 transition-transform"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
+            <span>Use-Case Library</span>
+            <span className="ml-auto text-[9px] opacity-50 font-normal">⌃⇧U</span>
+          </button>
+        )}
 
         {/* Community links */}
         <div className="flex items-center gap-1.5 pt-1">

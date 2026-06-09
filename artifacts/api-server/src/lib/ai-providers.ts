@@ -122,8 +122,7 @@ function getPersonalKey(): string {
   return (
     process.env.PERSONAL_API_KEY?.trim() ||
     process.env.AI_INTEGRATIONS_OPENAI_API_KEY?.trim() ||
-    process.env.OPENAI_API_KEY?.trim() ||
-    ""
+    "no-key"
   );
 }
 
@@ -131,11 +130,11 @@ export function hasAnyApiKey(): boolean {
   return !!(
     process.env.PERSONAL_API_KEY?.trim() ||
     process.env.AI_INTEGRATIONS_OPENAI_API_KEY?.trim() ||
-    process.env.OPENAI_API_KEY?.trim() ||
     process.env.ANTHROPIC_API_KEY?.trim() ||
     process.env.GROQ_API_KEY?.trim() ||
     process.env.GEMINI_API_KEY?.trim() ||
-    process.env.OPENROUTER_API_KEY?.trim()
+    process.env.OPENROUTER_API_KEY?.trim() ||
+    process.env.CUSTOM_API_KEY?.trim()
   );
 }
 
