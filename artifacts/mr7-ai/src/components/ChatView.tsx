@@ -40,6 +40,7 @@ import { NeuralPulseBackground } from "./NeuralPulseBackground";
 import { FuturisticBackground3D } from "./FuturisticBackground3D";
 import { ChatEmptyState } from "./ChatEmptyState";
 import { TokenCounter3D } from "./TokenCounter3D";
+import { NeuralStreamHUD } from "./NeuralStreamHUD";
 
 const SLASH = [
   { cmd: "/code", hint: "Generate code for a task" },
@@ -98,7 +99,10 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
   const [comboOpen, setComboOpen] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
   const [streamTps, setStreamTps] = useState<number | null>(null);
+  const [liveTps, setLiveTps] = useState(0);
+  const [liveTokens, setLiveTokens] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
+  const liveAccRef = useRef("");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -250,10 +254,17 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       apiKey: _resolvedApiKey,
       apiBaseURL: _resolvedApiBaseURL,
     };
+    liveAccRef.current = "";
+    setLiveTps(0); setLiveTokens(0);
     const onChunk = (chunk: string) => {
       acc += chunk;
+      liveAccRef.current = acc;
       const out = activeStmCount(stmCfg) > 0 ? applyStm(acc, stmCfg) : acc;
       dispatch({ type: "PATCH_MSG", chatId, msgId: aId, patch: { content: out } });
+      const elSec = (Date.now() - streamStart) / 1000;
+      const estimatedToks = Math.round(acc.length / 4);
+      setLiveTokens(estimatedToks);
+      if (elSec > 0.3) setLiveTps(Math.round(estimatedToks / elSec));
     };
     try {
       if (useLocal) {
@@ -1160,7 +1171,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
                   })()
                 )}
                 {!msg.council && !msg.godmode && streaming && msg.role === "assistant" && msg.id === chat?.messages[chat.messages.length - 1]?.id && msg.content.length > 0 && (
-                  <span className="inline-block w-1.5 h-4 ml-1 bg-primary animate-pulse align-middle" />
+                  <NeuralStreamHUD tps={liveTps} tokenCount={liveTokens} agentMode={agentOn} />
                 )}
                 {msg.autoTune && msg.role === "assistant" && (
                   <div className="mt-2 flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">

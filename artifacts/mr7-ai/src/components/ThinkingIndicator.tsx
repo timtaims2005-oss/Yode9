@@ -2,347 +2,367 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, Crosshair, Zap, Search, Database, Code2, Shield, Network, Activity } from "lucide-react";
 
-/* ═══════════════════════════════════════════════════════════
-   NEURAL THINKING INDICATOR — EEG-style brainwave visualizer
-   Shows live canvas waveforms during AI streaming.
-   3 channels: CORTEX · MEMORY · SYNTHESIS
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   NEURAL.AI — PARSE HUD  v3
+   Exact match to screenshot: CORTEX · MEMORY · OUTPUT horizontal bars
+   with animated particle scatter at the live frontier edge.
+   Plus 3D perspective card, holographic corners, scan-line sweep.
+═══════════════════════════════════════════════════════════════════════ */
 
 const AGENT_PHASES = [
-  { icon: Search,   text: "Scanning attack surface",    color: "#e21227", label: "RECON"     },
-  { icon: Database, text: "Querying intel database",     color: "#a78bfa", label: "RETRIEVE"  },
-  { icon: Crosshair,text: "Identifying vulnerabilities", color: "#f59e0b", label: "ANALYZE"   },
-  { icon: Code2,    text: "Generating exploit chain",    color: "#10b981", label: "GENERATE"  },
-  { icon: Shield,   text: "Running stealth checks",      color: "#06b6d4", label: "VALIDATE"  },
-  { icon: Network,  text: "Synthesizing intelligence",   color: "#e21227", label: "SYNTHESIZE"},
+  { icon: Search,    text: "Scanning attack surface",     color: "#e21227", label: "RECON"     },
+  { icon: Database,  text: "Querying intel database",      color: "#a78bfa", label: "RETRIEVE"  },
+  { icon: Crosshair, text: "Identifying vulnerabilities",  color: "#f59e0b", label: "ANALYZE"   },
+  { icon: Code2,     text: "Generating exploit chain",     color: "#10b981", label: "GENERATE"  },
+  { icon: Shield,    text: "Running stealth checks",       color: "#06b6d4", label: "VALIDATE"  },
+  { icon: Network,   text: "Synthesizing intelligence",    color: "#e21227", label: "SYNTHESIZE"},
 ];
 
 const CHAT_PHASES = [
-  { icon: Brain,    text: "Parsing neural context",      color: "#e21227", label: "PARSE"     },
-  { icon: Database, text: "Retrieving memory vectors",    color: "#a78bfa", label: "RETRIEVE"  },
-  { icon: Zap,      text: "Processing neural matrix",     color: "#f59e0b", label: "COMPUTE"   },
-  { icon: Code2,    text: "Formulating response",         color: "#10b981", label: "GENERATE"  },
-  { icon: Search,   text: "Cross-referencing knowledge",  color: "#06b6d4", label: "VERIFY"    },
-  { icon: Shield,   text: "Applying security protocols",  color: "#e21227", label: "FINALIZE"  },
+  { icon: Brain,    text: "Parsing neural context",       color: "#e21227", label: "PARSE"     },
+  { icon: Database, text: "Retrieving memory vectors",     color: "#a78bfa", label: "RETRIEVE"  },
+  { icon: Zap,      text: "Processing neural matrix",      color: "#f59e0b", label: "COMPUTE"   },
+  { icon: Code2,    text: "Formulating response",          color: "#10b981", label: "GENERATE"  },
+  { icon: Search,   text: "Cross-referencing knowledge",   color: "#06b6d4", label: "VERIFY"    },
+  { icon: Shield,   text: "Applying security protocols",   color: "#e21227", label: "FINALIZE"  },
 ];
 
-const EEG_W = 190;
-const EEG_H = 48;
-const CHANNELS = 3;
-
-const CHANNEL_CONFIG = [
-  { name: "CORTEX", color: "#e21227", freq: 0.18, amp: 0.38, noiseAmp: 0.12, baseY: 8  },
-  { name: "MEMORY", color: "#00e5ff", freq: 0.10, amp: 0.55, noiseAmp: 0.15, baseY: 24 },
-  { name: "OUTPUT", color: "#22c55e", freq: 0.06, amp: 0.72, noiseAmp: 0.08, baseY: 40 },
+/* ── Channel config ─────────────────────────────── */
+const CH = [
+  { name: "CORTEX", color: "#e21227", cy: 14,  particleCount: 28, spread: 7  },
+  { name: "MEMORY", color: "#00e5ff", cy: 38,  particleCount: 20, spread: 6  },
+  { name: "OUTPUT", color: "#22c55e", cy: 62,  particleCount: 22, spread: 7  },
 ];
+const BAR_W = 280;
+const BAR_H = 76;
 
-function gaussianNoise() {
-  let u = 0, v = 0;
-  while (u === 0) u = Math.random();
-  while (v === 0) v = Math.random();
-  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+/* particle state per channel */
+type Pt = { x: number; y: number; vy: number; size: number; alpha: number; phase: number };
+function makePt(): Pt {
+  return {
+    x: 0.62 + Math.random() * 0.38,
+    y: (Math.random() - 0.5) * 6,
+    vy: (Math.random() - 0.5) * 0.5,
+    size: 1.2 + Math.random() * 2.2,
+    alpha: 0.45 + Math.random() * 0.55,
+    phase: Math.random() * Math.PI * 2,
+  };
 }
 
-function EEGCanvas({ phaseColor, active }: { phaseColor: string; active: boolean }) {
+/* ── Neural bar canvas — matches screenshot exactly ─────────────────── */
+function NeuralBarCanvas({ phaseColor, active }: { phaseColor: string; active: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const frameRef = useRef<number>(0);
-  const tickRef = useRef(0);
-  const dataRef = useRef<Float32Array[]>(
-    Array.from({ length: CHANNELS }, () => new Float32Array(EEG_W).fill(0))
-  );
-  const spikeRef = useRef<{ ch: number; pos: number; amp: number }[]>([]);
+  const rafRef    = useRef<number>(0);
+  const tickRef   = useRef(0);
+  const ptsRef    = useRef<Pt[][]>(CH.map(c => Array.from({ length: c.particleCount }, makePt)));
+  const scanRef   = useRef(0); // scan-line X position
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
 
-    // Occasional spike events (neural firing)
-    const spikeId = setInterval(() => {
-      if (Math.random() > 0.55) {
-        spikeRef.current.push({
-          ch: Math.floor(Math.random() * CHANNELS),
-          pos: 0,
-          amp: 0.8 + Math.random() * 1.2,
-        });
-      }
-    }, 600);
-
     function draw() {
-      frameRef.current = requestAnimationFrame(draw);
-      tickRef.current++;
-      const t = tickRef.current;
+      rafRef.current = requestAnimationFrame(draw);
+      const t = ++tickRef.current;
+      scanRef.current = (scanRef.current + 1.4) % (BAR_W + 60);
 
-      ctx.clearRect(0, 0, EEG_W, EEG_H);
+      ctx.clearRect(0, 0, BAR_W, BAR_H);
 
-      // Dark background
-      ctx.fillStyle = "rgba(4,4,8,0.95)";
-      ctx.fillRect(0, 0, EEG_W, EEG_H);
-
-      // Grid lines
-      ctx.strokeStyle = "rgba(255,255,255,0.03)";
-      ctx.lineWidth = 0.5;
-      for (let gx = 0; gx < EEG_W; gx += 20) {
-        ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, EEG_H); ctx.stroke();
+      // Faint grid
+      ctx.strokeStyle = "rgba(255,255,255,0.028)";
+      ctx.lineWidth = 0.4;
+      for (let gx = 0; gx < BAR_W; gx += 28) {
+        ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, BAR_H); ctx.stroke();
+      }
+      for (let gy = 0; gy < BAR_H; gy += 25) {
+        ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(BAR_W, gy); ctx.stroke();
       }
 
-      // Channel separator lines
-      ctx.strokeStyle = "rgba(255,255,255,0.04)";
-      ctx.lineWidth = 0.5;
-      [16, 32].forEach(y => {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(EEG_W, y); ctx.stroke();
-      });
+      CH.forEach((ch, ci) => {
+        const cy   = ch.cy;
+        const pts  = ptsRef.current[ci];
 
-      // Update spike positions
-      spikeRef.current = spikeRef.current.map(s => ({ ...s, pos: s.pos + 1 })).filter(s => s.pos < EEG_W);
+        /* update particles */
+        pts.forEach(p => {
+          p.y  += p.vy;
+          p.vy += (Math.random() - 0.5) * 0.18;
+          p.vy *= 0.89;
+          if (Math.abs(p.y) > ch.spread) p.vy *= -0.7;
+          if (Math.random() < 0.025) {
+            p.x     = 0.6 + Math.random() * 0.4;
+            p.y     = (Math.random() - 0.5) * ch.spread;
+            p.vy    = (Math.random() - 0.5) * 0.55;
+            p.alpha = 0.5 + Math.random() * 0.5;
+          }
+        });
 
-      // Draw each channel
-      CHANNEL_CONFIG.forEach((cfg, ci) => {
-        const data = dataRef.current[ci];
-
-        // Shift data left
-        data.copyWithin(0, 1);
-
-        // Generate new rightmost value
-        const sineVal = Math.sin(cfg.freq * t) * cfg.amp;
-        const noiseVal = gaussianNoise() * cfg.noiseAmp;
-        // Add spike influence
-        const spike = spikeRef.current.find(s => s.ch === ci);
-        const spikeVal = spike ? Math.sin((spike.pos / 6)) * spike.amp * Math.exp(-spike.pos / 15) : 0;
-        data[EEG_W - 1] = sineVal + noiseVal + spikeVal * 0.4;
-
-        // Draw waveform line
-        const baseY = cfg.baseY;
-        const amplitude = 6;
+        /* dim track line */
         ctx.beginPath();
-        ctx.lineWidth = 1.2;
-        ctx.strokeStyle = cfg.color;
-
-        let started = false;
-        for (let x = 0; x < EEG_W; x++) {
-          const y = baseY + data[x] * amplitude;
-          const alpha = x / EEG_W; // fade in from left
-          ctx.globalAlpha = 0.2 + alpha * 0.8;
-          if (!started) { ctx.moveTo(x, y); started = true; }
-          else ctx.lineTo(x, y);
-        }
-        ctx.globalAlpha = 1;
-        ctx.shadowColor = cfg.color;
-        ctx.shadowBlur = 3;
+        ctx.moveTo(0, cy); ctx.lineTo(BAR_W, cy);
+        ctx.strokeStyle = `${ch.color}12`;
+        ctx.lineWidth   = 1.5;
         ctx.stroke();
-        ctx.shadowBlur = 0;
 
-        // Glow dot at the live tip (rightmost point)
-        const tipY = baseY + data[EEG_W - 1] * amplitude;
+        /* glowing fill bar */
+        const grd = ctx.createLinearGradient(0, 0, BAR_W, 0);
+        grd.addColorStop(0,    `${ch.color}05`);
+        grd.addColorStop(0.45, `${ch.color}25`);
+        grd.addColorStop(0.75, `${ch.color}65`);
+        grd.addColorStop(0.92, `${ch.color}90`);
+        grd.addColorStop(1,    `${ch.color}20`);
         ctx.beginPath();
-        ctx.arc(EEG_W - 2, tipY, 2, 0, Math.PI * 2);
-        ctx.fillStyle = cfg.color;
-        ctx.shadowColor = cfg.color;
-        ctx.shadowBlur = 8;
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        ctx.moveTo(0, cy); ctx.lineTo(BAR_W, cy);
+        ctx.strokeStyle = grd;
+        ctx.lineWidth   = active ? 1.8 : 1.2;
+        ctx.shadowColor = ch.color;
+        ctx.shadowBlur  = active ? 5 : 2;
+        ctx.stroke();
+        ctx.shadowBlur  = 0;
+
+        /* bottom glow ribbon */
+        const rib = ctx.createLinearGradient(0, 0, BAR_W, 0);
+        rib.addColorStop(0,   "transparent");
+        rib.addColorStop(0.7, `${ch.color}08`);
+        rib.addColorStop(1,   "transparent");
+        ctx.fillStyle = rib;
+        ctx.fillRect(0, cy - 3, BAR_W, 6);
+
+        /* particles */
+        pts.forEach(p => {
+          const px = p.x * BAR_W;
+          const py = cy + p.y;
+          const pulse = 0.5 + 0.5 * Math.sin(t * 0.06 + p.phase);
+          ctx.beginPath();
+          ctx.arc(px, py, p.size * (0.85 + 0.15 * pulse), 0, Math.PI * 2);
+          ctx.fillStyle   = ch.color;
+          ctx.globalAlpha = p.alpha * (active ? 1 : 0.35);
+          ctx.shadowColor = ch.color;
+          ctx.shadowBlur  = 8;
+          ctx.fill();
+          ctx.shadowBlur  = 0;
+        });
+        ctx.globalAlpha = 1;
+
+        /* frontier vertical cursor */
+        const curX = BAR_W - 4 + Math.sin(t * 0.08 + ci) * 3;
+        ctx.beginPath();
+        ctx.moveTo(curX, cy - 6); ctx.lineTo(curX, cy + 6);
+        ctx.strokeStyle = `${ch.color}70`;
+        ctx.lineWidth   = 1;
+        ctx.shadowColor = ch.color;
+        ctx.shadowBlur  = 6;
+        ctx.stroke();
+        ctx.shadowBlur  = 0;
       });
 
-      // Right-edge vertical line (live cursor)
-      ctx.beginPath();
-      ctx.strokeStyle = `${phaseColor}50`;
-      ctx.lineWidth = 1;
-      ctx.moveTo(EEG_W - 1, 0);
-      ctx.lineTo(EEG_W - 1, EEG_H);
-      ctx.stroke();
+      /* scan-line sweep */
+      const sx = scanRef.current - 30;
+      const sg = ctx.createLinearGradient(sx, 0, sx + 60, 0);
+      sg.addColorStop(0,   "transparent");
+      sg.addColorStop(0.5, `${phaseColor}18`);
+      sg.addColorStop(1,   "transparent");
+      ctx.fillStyle = sg;
+      ctx.fillRect(sx, 0, 60, BAR_H);
     }
 
     draw();
-    return () => {
-      clearInterval(spikeId);
-      cancelAnimationFrame(frameRef.current);
-    };
-  }, [phaseColor]);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [phaseColor, active]);
 
   return (
     <canvas
       ref={canvasRef}
-      width={EEG_W}
-      height={EEG_H}
-      style={{
-        display: "block",
-        borderRadius: "6px",
-        border: `1px solid ${phaseColor}18`,
-        boxShadow: `0 0 12px ${phaseColor}12, inset 0 0 8px rgba(0,0,0,0.5)`,
-      }}
+      width={BAR_W}
+      height={BAR_H}
+      style={{ display: "block", borderRadius: "4px" }}
     />
   );
 }
 
-/* Neural activity dot matrix */
-function NeuralDotMatrix({ color, active }: { color: string; active: boolean }) {
-  const [frame, setFrame] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setFrame(f => f + 1), 120);
-    return () => clearInterval(id);
-  }, []);
-
-  const ROWS = 4; const COLS = 6;
+/* ── Corner bracket decorations ─────────────────────────────────────── */
+function CornerBrackets({ color }: { color: string }) {
+  const s: React.CSSProperties = { position: "absolute", width: 10, height: 10 };
+  const b = `1.5px solid ${color}`;
   return (
-    <div style={{ display: "grid", gridTemplateColumns: `repeat(${COLS}, 1fr)`, gap: "3px", padding: "3px" }}>
-      {Array.from({ length: ROWS * COLS }).map((_, i) => {
-        const on = Math.sin(frame * 0.3 + i * 0.7 + Math.random() * 0.1) > 0.2;
-        return (
-          <div key={i} style={{
-            width: "4px", height: "4px", borderRadius: "50%",
-            background: on ? color : "rgba(255,255,255,0.04)",
-            boxShadow: on ? `0 0 4px ${color}` : "none",
-            transition: "all 0.15s ease",
-          }} />
-        );
-      })}
-    </div>
+    <>
+      <div style={{ ...s, top: 4, left: 4,   borderTop: b, borderLeft: b  }} />
+      <div style={{ ...s, top: 4, right: 4,  borderTop: b, borderRight: b }} />
+      <div style={{ ...s, bottom: 4, left: 4,  borderBottom: b, borderLeft:  b }} />
+      <div style={{ ...s, bottom: 4, right: 4, borderBottom: b, borderRight: b }} />
+    </>
   );
 }
 
-interface ThinkingIndicatorProps {
-  agentMode?: boolean;
-}
+/* ── Main component ─────────────────────────────────────────────────── */
+interface ThinkingIndicatorProps { agentMode?: boolean }
 
 export function ThinkingIndicator({ agentMode = false }: ThinkingIndicatorProps) {
-  const [elapsed, setElapsed] = useState(0);
-  const [phase, setPhase] = useState(0);
-  const [tps, setTps] = useState(0);
+  const [elapsed, setElapsed]   = useState(0);
+  const [phase,   setPhase]     = useState(0);
+  const [tps,     setTps]       = useState(0);
+  const [confidence, setConf]   = useState(7);
   const startRef = useRef(Date.now());
 
-  const phases = agentMode ? AGENT_PHASES : CHAT_PHASES;
+  const phases       = agentMode ? AGENT_PHASES : CHAT_PHASES;
   const currentPhase = phases[phase % phases.length];
-  const PhaseIcon = currentPhase.icon;
+  const PhaseIcon    = currentPhase.icon;
+  const col          = currentPhase.color;
 
+  /* elapsed / tps ticker */
   useEffect(() => {
     startRef.current = Date.now();
-    const timer = setInterval(() => {
-      setElapsed((Date.now() - startRef.current) / 1000);
-      // Simulate TPS (tokens per second) ramping up then stabilizing
-      setTps(prev => {
-        const target = 18 + Math.random() * 24;
-        return Math.round(prev + (target - prev) * 0.3);
-      });
+    const id = setInterval(() => {
+      const sec = (Date.now() - startRef.current) / 1000;
+      setElapsed(sec);
+      setTps(prev => Math.round(prev + (18 + Math.random() * 24 - prev) * 0.28));
+      setConf(prev => Math.min(97, prev + (Math.random() > 0.6 ? 1 : 0)));
     }, 200);
-    return () => clearInterval(timer);
+    return () => clearInterval(id);
   }, []);
 
+  /* phase cycle */
   useEffect(() => {
-    const phaseTimer = setInterval(() => {
-      setPhase(p => p + 1);
-    }, 2400);
-    return () => clearInterval(phaseTimer);
+    const id = setInterval(() => setPhase(p => p + 1), 2600);
+    return () => clearInterval(id);
   }, []);
-
-  const confidencePct = Math.min(100, Math.round((elapsed / 0.12)));
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -6, scale: 0.97 }}
-      transition={{ duration: 0.28, ease: "easeOut" }}
-      style={{ display: "inline-block", maxWidth: "380px", width: "100%" }}
+      initial={{ opacity: 0, y: 12, scale: 0.96, rotateX: 8 }}
+      animate={{ opacity: 1, y: 0,  scale: 1,    rotateX: 0 }}
+      exit={{    opacity: 0, y: -8, scale: 0.96, rotateX: -6 }}
+      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        display: "inline-block",
+        maxWidth: "440px",
+        width: "100%",
+        perspective: "900px",
+      }}
     >
-      <div style={{
-        borderRadius: "14px",
-        background: "linear-gradient(135deg, rgba(12,12,20,0.98) 0%, rgba(8,8,14,0.99) 100%)",
-        border: `1px solid ${currentPhase.color}22`,
-        boxShadow: `0 0 0 1px ${currentPhase.color}08, 0 8px 32px rgba(0,0,0,0.5), 0 0 40px ${currentPhase.color}06`,
-        overflow: "hidden",
-        position: "relative",
-      }}>
-        {/* Top accent bar */}
-        <div style={{
-          height: "2px",
-          background: `linear-gradient(90deg, transparent, ${currentPhase.color}80 30%, ${currentPhase.color} 50%, ${currentPhase.color}80 70%, transparent)`,
-          animation: "energy-flow 2s linear infinite",
-          backgroundSize: "200% auto",
-        }} />
+      {/* 3-D card shell */}
+      <div
+        style={{
+          borderRadius: "12px",
+          background: "linear-gradient(145deg, rgba(10,10,18,0.99) 0%, rgba(5,5,10,0.98) 100%)",
+          border: `1px solid ${col}28`,
+          boxShadow: `0 0 0 1px ${col}08, 0 12px 40px rgba(0,0,0,0.65), 0 0 60px ${col}08, inset 0 1px 0 ${col}10`,
+          overflow: "hidden",
+          position: "relative",
+          /* subtle 3D tilt */
+          transform: "rotateX(1.5deg) rotateY(-0.5deg)",
+          transformStyle: "preserve-3d",
+        }}
+      >
+        {/* Corner brackets */}
+        <CornerBrackets color={col} />
 
-        {/* Header row */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 12px 6px" }}>
-          {/* Animated brain orb */}
+        {/* Top energy bar */}
+        <motion.div
+          animate={{ backgroundPosition: ["200% center", "-200% center"] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
+          style={{
+            height: "2px",
+            background: `linear-gradient(90deg, transparent 0%, ${col}00 10%, ${col}cc 40%, ${col} 50%, ${col}cc 60%, ${col}00 90%, transparent 100%)`,
+            backgroundSize: "300% auto",
+          }}
+        />
+
+        {/* ── Header ─────────────────────────────────── */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px 6px" }}>
+          {/* Brain orb */}
           <div style={{ position: "relative", flexShrink: 0 }}>
             <motion.div
-              animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0, 0.4] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
-              style={{
-                position: "absolute", inset: "-5px", borderRadius: "50%",
-                background: currentPhase.color, opacity: 0.3,
-              }}
+              animate={{ scale: [1, 1.35, 1], opacity: [0.25, 0, 0.25] }}
+              transition={{ duration: 1.9, repeat: Infinity }}
+              style={{ position: "absolute", inset: "-6px", borderRadius: "50%", background: col }}
             />
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 2.8, repeat: Infinity, ease: "linear" }}
               style={{
-                position: "absolute", inset: "-3px", borderRadius: "50%",
-                border: `1.5px solid transparent`,
-                borderTopColor: currentPhase.color,
-                borderRightColor: `${currentPhase.color}44`,
+                position: "absolute", inset: "-4px", borderRadius: "50%",
+                border: "1.5px solid transparent",
+                borderTopColor: col,
+                borderRightColor: `${col}40`,
               }}
             />
             <motion.div
-              animate={{ scale: [1, 1.06, 1] }}
-              transition={{ duration: 1.2, repeat: Infinity }}
+              animate={{ rotate: -360 }}
+              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
               style={{
-                width: "30px", height: "30px", borderRadius: "50%",
-                background: `radial-gradient(circle, ${currentPhase.color}20 0%, ${currentPhase.color}06 100%)`,
-                border: `1px solid ${currentPhase.color}35`,
-                boxShadow: `0 0 12px ${currentPhase.color}30, inset 0 0 6px ${currentPhase.color}10`,
+                position: "absolute", inset: "-7px", borderRadius: "50%",
+                border: "1px solid transparent",
+                borderBottomColor: `${col}30`,
+                borderLeftColor: `${col}18`,
+              }}
+            />
+            <motion.div
+              animate={{ scale: [1, 1.08, 1] }}
+              transition={{ duration: 1.3, repeat: Infinity }}
+              style={{
+                width: "32px", height: "32px", borderRadius: "50%",
+                background: `radial-gradient(circle, ${col}22 0%, ${col}06 70%)`,
+                border: `1px solid ${col}35`,
+                boxShadow: `0 0 16px ${col}35, inset 0 0 8px ${col}12`,
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
-              <motion.div key={phase} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.2 }}>
-                <Brain style={{ width: "14px", height: "14px", color: currentPhase.color }} />
-              </motion.div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={phase}
+                  initial={{ scale: 0.4, opacity: 0, rotate: -20 }}
+                  animate={{ scale: 1,   opacity: 1, rotate: 0   }}
+                  exit={{    scale: 0.4, opacity: 0, rotate: 20  }}
+                  transition={{ duration: 0.22 }}
+                >
+                  <Brain style={{ width: "15px", height: "15px", color: col }} />
+                </motion.div>
+              </AnimatePresence>
             </motion.div>
           </div>
 
-          {/* Labels */}
+          {/* Title row */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "1px" }}>
-              <span style={{
-                fontSize: "10px", fontFamily: "monospace", fontWeight: 800,
-                color: currentPhase.color, letterSpacing: "1.5px",
-              }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
+              <span style={{ fontSize: "11px", fontFamily: "monospace", fontWeight: 900, color: col, letterSpacing: "1.8px" }}>
                 {agentMode ? "AGENT.EXE" : "NEURAL.AI"}
               </span>
-              <span style={{
-                fontSize: "8px", fontFamily: "monospace",
-                color: "rgba(255,255,255,0.2)", letterSpacing: "0.5px",
-              }}>
-                ·
-              </span>
+              <span style={{ fontSize: "9px", color: `${col}50`, fontFamily: "monospace" }}>·</span>
               <AnimatePresence mode="wait">
                 <motion.span
                   key={phase}
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4 }}
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0  }}
+                  exit={{    opacity: 0, y:  5 }}
                   transition={{ duration: 0.2 }}
-                  style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, color: currentPhase.color, letterSpacing: "0.8px" }}
+                  style={{ fontSize: "10px", fontFamily: "monospace", fontWeight: 800, color: col, letterSpacing: "1px" }}
                 >
                   {currentPhase.label}
                 </motion.span>
               </AnimatePresence>
-              <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "8px", fontFamily: "monospace", color: "#22c55e" }}>{tps}<span style={{ color: "rgba(255,255,255,0.2)" }}>t/s</span></span>
-                <span style={{ fontSize: "8px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)" }}>{elapsed.toFixed(1)}s</span>
+              {/* Live stats */}
+              <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "9px", fontFamily: "monospace", color: "#22c55e", letterSpacing: "0.3px" }}>
+                  {tps}<span style={{ color: "rgba(255,255,255,0.25)" }}>t/s</span>
+                </span>
+                <span style={{ fontSize: "9px", fontFamily: "monospace", color: "rgba(255,255,255,0.28)" }}>
+                  {elapsed.toFixed(1)}s
+                </span>
               </div>
             </div>
-            {/* Phase text */}
+            {/* Phase description */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={phase}
-                initial={{ opacity: 0, x: -6 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 6 }}
-                transition={{ duration: 0.2 }}
-                style={{ display: "flex", alignItems: "center", gap: "4px" }}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0  }}
+                exit={{    opacity: 0, x:  8 }}
+                transition={{ duration: 0.22 }}
+                style={{ display: "flex", alignItems: "center", gap: "5px" }}
               >
-                <PhaseIcon style={{ width: "9px", height: "9px", color: "rgba(255,255,255,0.3)", flexShrink: 0 }} />
-                <span style={{ fontSize: "10px", fontFamily: "monospace", color: "rgba(255,255,255,0.45)" }}>
+                <PhaseIcon style={{ width: "10px", height: "10px", color: `${col}80`, flexShrink: 0 }} />
+                <span style={{ fontSize: "10.5px", fontFamily: "monospace", color: "rgba(255,255,255,0.5)", letterSpacing: "0.2px" }}>
                   {currentPhase.text}
                 </span>
               </motion.div>
@@ -350,58 +370,115 @@ export function ThinkingIndicator({ agentMode = false }: ThinkingIndicatorProps)
           </div>
         </div>
 
-        {/* EEG section */}
-        <div style={{ display: "flex", alignItems: "stretch", gap: "0", padding: "0 10px 8px" }}>
-          {/* Channel labels */}
-          <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-around", paddingRight: "6px", paddingBottom: "2px" }}>
-            {CHANNEL_CONFIG.map(cfg => (
-              <div key={cfg.name} style={{ display: "flex", alignItems: "center", gap: "3px" }}>
-                <div style={{ width: "3px", height: "3px", borderRadius: "50%", background: cfg.color, boxShadow: `0 0 4px ${cfg.color}`, flexShrink: 0 }} />
-                <span style={{ fontSize: "6.5px", fontFamily: "monospace", color: cfg.color, opacity: 0.7, letterSpacing: "0.3px", fontWeight: 700 }}>
-                  {cfg.name}
+        {/* ── Channel bars (canvas) ──────────────────── */}
+        <div style={{ display: "flex", alignItems: "stretch", padding: "2px 12px 6px", gap: "8px" }}>
+          {/* Channel labels column */}
+          <div style={{
+            display: "flex", flexDirection: "column", justifyContent: "space-around",
+            paddingRight: "2px", minWidth: "46px",
+          }}>
+            {CH.map(c => (
+              <div key={c.name} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <motion.div
+                  animate={{ opacity: [1, 0.3, 1] }}
+                  transition={{ duration: 1.2 + Math.random(), repeat: Infinity, ease: "easeInOut" }}
+                  style={{
+                    width: "5px", height: "5px", borderRadius: "50%",
+                    background: c.color,
+                    boxShadow: `0 0 6px ${c.color}`,
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{
+                  fontSize: "7px", fontFamily: "monospace", fontWeight: 800,
+                  color: c.color, opacity: 0.85, letterSpacing: "0.5px",
+                }}>
+                  {c.name}
                 </span>
               </div>
             ))}
           </div>
 
-          {/* Canvas waveform */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <EEGCanvas phaseColor={currentPhase.color} active={true} />
-          </div>
-
-          {/* Neural dot matrix */}
-          <div style={{ paddingLeft: "6px" }}>
-            <NeuralDotMatrix color={currentPhase.color} active={true} />
+          {/* The canvas */}
+          <div style={{ flex: 1, minWidth: 0, borderRadius: "6px", overflow: "hidden",
+            background: "rgba(4,4,8,0.92)",
+            border: `1px solid ${col}12`,
+            boxShadow: `inset 0 0 12px rgba(0,0,0,0.5)`,
+          }}>
+            <NeuralBarCanvas phaseColor={col} active={true} />
           </div>
         </div>
 
-        {/* Bottom confidence bar */}
-        <div style={{ padding: "0 10px 8px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "3px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-              <Activity style={{ width: "8px", height: "8px", color: "rgba(255,255,255,0.2)" }} />
-              <span style={{ fontSize: "7.5px", fontFamily: "monospace", color: "rgba(255,255,255,0.2)", letterSpacing: "0.5px" }}>
+        {/* ── Confidence footer ─────────────────────── */}
+        <div style={{ padding: "2px 14px 10px" }}>
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            marginBottom: "4px",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+              <Activity style={{ width: "9px", height: "9px", color: "rgba(255,255,255,0.22)" }} />
+              <span style={{
+                fontSize: "8px", fontFamily: "monospace",
+                color: "rgba(255,255,255,0.22)", letterSpacing: "0.8px",
+              }}>
                 CONFIDENCE
               </span>
             </div>
-            <span style={{ fontSize: "7.5px", fontFamily: "monospace", color: currentPhase.color, fontWeight: 700 }}>
-              {Math.min(confidencePct, 94)}%
-            </span>
-          </div>
-          <div style={{ height: "2px", borderRadius: "2px", background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
-            <motion.div
-              animate={{ x: ["-100%", "200%"] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+            <motion.span
+              key={confidence}
+              initial={{ opacity: 0.4 }}
+              animate={{ opacity: 1 }}
               style={{
-                height: "100%", width: "40%", borderRadius: "2px",
-                background: `linear-gradient(90deg, transparent, ${currentPhase.color}, transparent)`,
+                fontSize: "9px", fontFamily: "monospace",
+                color: col, fontWeight: 800, letterSpacing: "0.5px",
+              }}
+            >
+              {confidence}%
+            </motion.span>
+          </div>
+
+          {/* Confidence track */}
+          <div style={{
+            height: "3px", borderRadius: "3px",
+            background: "rgba(255,255,255,0.05)",
+            overflow: "hidden", position: "relative",
+          }}>
+            {/* Fill */}
+            <motion.div
+              animate={{ width: `${confidence}%` }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              style={{
+                position: "absolute", left: 0, top: 0, height: "100%",
+                borderRadius: "3px",
+                background: `linear-gradient(90deg, ${col}40, ${col})`,
+                boxShadow: `0 0 8px ${col}80`,
+              }}
+            />
+            {/* Scan pulse */}
+            <motion.div
+              animate={{ x: ["-60%", "160%"] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              style={{
+                position: "absolute", top: 0, height: "100%", width: "35%",
+                background: `linear-gradient(90deg, transparent, ${col}cc, transparent)`,
+                borderRadius: "3px",
               }}
             />
           </div>
         </div>
 
-        {/* Bottom accent */}
-        <div style={{ height: "1px", background: `linear-gradient(90deg, transparent, ${currentPhase.color}20 50%, transparent)` }} />
+        {/* Bottom accent line */}
+        <div style={{
+          height: "1px",
+          background: `linear-gradient(90deg, transparent, ${col}30 50%, transparent)`,
+        }} />
+
+        {/* Subtle inner glow */}
+        <div style={{
+          position: "absolute", inset: 0, borderRadius: "12px",
+          background: `radial-gradient(ellipse at 50% 0%, ${col}04 0%, transparent 60%)`,
+          pointerEvents: "none",
+        }} />
       </div>
     </motion.div>
   );
