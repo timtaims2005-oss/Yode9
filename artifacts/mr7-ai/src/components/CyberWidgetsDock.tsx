@@ -355,6 +355,56 @@ function SatellitePanel() {
     return () => clearInterval(iv);
   }, []);
 
+  /* IDLE / activity tracking */
+  const [idleMs,   setIdleMs]   = useState(0);
+  const [isIdle,   setIsIdle]   = useState(false);
+  const [actLevel, setActLevel] = useState(50);
+  const idleStartRef = useRef(Date.now());
+  const lastActRef2  = useRef(Date.now());
+  const actCurRef    = useRef(0);
+
+  useEffect(() => {
+    const onAct = (d: number) => { actCurRef.current += d; lastActRef2.current = Date.now(); };
+    const mm = () => onAct(1), kd = () => onAct(3), cl = () => onAct(2);
+    document.addEventListener("mousemove", mm);
+    document.addEventListener("keydown",   kd);
+    document.addEventListener("click",     cl);
+    return () => {
+      document.removeEventListener("mousemove", mm);
+      document.removeEventListener("keydown",   kd);
+      document.removeEventListener("click",     cl);
+    };
+  }, []);
+
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setIdleMs(Date.now() - idleStartRef.current);
+      setIsIdle(Date.now() - lastActRef2.current > 5000);
+      setActLevel(p => {
+        const target = Math.min(100, actCurRef.current * 8);
+        actCurRef.current = 0;
+        return Math.max(2, Math.min(100, p + (target - p) * 0.3));
+      });
+    }, 500);
+    return () => clearInterval(iv);
+  }, []);
+
+  const idleStr = (() => {
+    const s = Math.floor(idleMs / 1000);
+    return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  })();
+
+  const EV_LABEL: Record<string, string> = {
+    message_sent: "TX", message_received: "RX", model_switch: "MDL",
+    mode_switch: "MOD", tool_use: "TOOL", error: "ERR",
+    session_start: "START", session_stop: "STOP",
+  };
+  const EV_COLOR: Record<string, string> = {
+    message_sent: "#00e5ff", message_received: "#22c55e", model_switch: "#a78bfa",
+    mode_switch: "#f59e0b", tool_use: "#fb923c", error: "#e21227",
+    session_start: "#10b981", session_stop: "#666666",
+  };
+
   void trafficBus; /* keep import live */
 
   const msgCount = events.filter(e => e.type === "message_received").length;
@@ -501,53 +551,94 @@ function SatellitePanel() {
             ))}
           </div>
 
-          {/* Divider */}
-          <div style={{ height: "1px", background: "linear-gradient(90deg, transparent, rgba(226,18,39,0.2), transparent)", margin: "4px 0 7px" }} />
+          {/* ── IDLE / Activity row ── */}
+          <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "5px" }}>
+            {isIdle ? (
+              <motion.div animate={{ opacity: [0.4, 0.9, 0.4] }} transition={{ duration: 2.2, repeat: Infinity }}
+                style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#f59e0b", flexShrink: 0 }} />
+            ) : (
+              <motion.div animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 0.7, repeat: Infinity }}
+                style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 5px #22c55e", flexShrink: 0 }} />
+            )}
+            <span style={{ fontSize: "6.5px", fontFamily: "monospace", fontWeight: 700, color: isIdle ? "#f59e0b" : "#22c55e", letterSpacing: "1px" }}>
+              {isIdle ? "IDLE" : "ACTIVE"}
+            </span>
+            <span style={{ fontSize: "6.5px", fontFamily: "monospace", color: "rgba(255,255,255,0.22)", letterSpacing: "0.5px", flex: 1, textAlign: "right" }}>
+              {idleStr}
+            </span>
+            <div style={{ width: "40px", height: "3px", background: "rgba(255,255,255,0.05)", borderRadius: "2px", overflow: "hidden", flexShrink: 0 }}>
+              <motion.div animate={{ width: `${actLevel}%` }} transition={{ duration: 0.45 }}
+                style={{ height: "100%", borderRadius: "2px", background: isIdle ? "#f59e0b" : "linear-gradient(90deg, #10b98188, #22c55e)" }} />
+            </div>
+          </div>
 
-          {/* ════ SESSION RECORDER ════ */}
-          <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "6px" }}>
+          {/* ── Divider ── */}
+          <div style={{ height: "1px", background: "linear-gradient(90deg, transparent, rgba(226,18,39,0.2), transparent)", margin: "3px 0 5px" }} />
+
+          {/* ── REC / IDLE header ── */}
+          <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "5px" }}>
             {recording ? (
-              <motion.div
-                animate={{ opacity: [1, 0.2, 1] }}
-                transition={{ duration: 0.9, repeat: Infinity }}
-                style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#e21227", boxShadow: "0 0 7px #e21227", flexShrink: 0 }}
-              />
+              <motion.div animate={{ opacity: [1, 0.15, 1] }} transition={{ duration: 0.85, repeat: Infinity }}
+                style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#e21227", boxShadow: "0 0 8px #e21227", flexShrink: 0 }} />
             ) : (
               <div style={{ width: "4px", height: "4px", borderRadius: "50%", border: "1px solid #555", flexShrink: 0 }} />
             )}
             <span style={{ fontSize: "7px", fontFamily: "monospace", fontWeight: 900, color: "#e21227", letterSpacing: "1.8px", flex: 1, textShadow: "0 0 10px rgba(226,18,39,0.5)" }}>
-              {recording ? "REC" : "IDLE"}
+              {recording ? "● REC" : "○ IDLE"}
             </span>
-            <span style={{ fontSize: "8px", fontFamily: "monospace", color: "#555", letterSpacing: "1px" }}>{fmtElapsed}</span>
-            <span style={{ fontSize: "6.5px", fontFamily: "monospace", color: "#444", marginLeft: "3px" }}>{evCount} EV</span>
+            <span style={{ fontSize: "7.5px", fontFamily: "monospace", color: recording ? "#e21227" : "#444", letterSpacing: "1px" }}>{fmtElapsed}</span>
+            <span style={{ fontSize: "6px", fontFamily: "monospace", color: "#333", marginLeft: "2px" }}>{evCount} EV</span>
           </div>
 
-          {/* RESPONSES / ERRORS / EVENTS / SESSION */}
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "5px" }}>
+          {/* ── RESP / ERR / EV / SESSION ── */}
+          <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "5px" }}>
             {[
-              { label: "RESP",   val: msgCount, color: "#22c55e" },
-              { label: "ERR",    val: errCount, color: "#e21227" },
-              { label: "EV",     val: evCount,  color: "#00e5ff" },
+              { label: "RESP", val: msgCount, color: "#22c55e" },
+              { label: "ERR",  val: errCount, color: "#e21227" },
+              { label: "EV",   val: evCount,  color: "#00e5ff" },
             ].map(({ label, val, color: c }) => (
               <div key={label} style={{ textAlign: "center", flex: 1 }}>
-                <div style={{ fontSize: "5.5px", fontFamily: "monospace", color: "rgba(255,255,255,0.22)", letterSpacing: "0.5px" }}>{label}</div>
-                <motion.div
-                  key={val}
-                  initial={{ scale: 1.2 }}
-                  animate={{ scale: 1 }}
-                  style={{ fontSize: "10px", fontFamily: "monospace", fontWeight: 700, color: c, textShadow: `0 0 8px ${c}` }}
-                >{val}</motion.div>
+                <div style={{ fontSize: "5px", fontFamily: "monospace", color: "rgba(255,255,255,0.2)", letterSpacing: "0.3px" }}>{label}</div>
+                <motion.div key={val} initial={{ scale: 1.2 }} animate={{ scale: 1 }}
+                  style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, color: c, textShadow: `0 0 6px ${c}` }}>
+                  {val}
+                </motion.div>
               </div>
             ))}
             <div style={{ flex: 2, overflow: "hidden" }}>
-              <div style={{ fontSize: "5.5px", fontFamily: "monospace", color: "rgba(255,255,255,0.22)", letterSpacing: "0.5px" }}>SESSION</div>
-              <div style={{ fontSize: "6px", fontFamily: "monospace", color: "#444", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <div style={{ fontSize: "5px", fontFamily: "monospace", color: "rgba(255,255,255,0.2)" }}>SESSION</div>
+              <div style={{ fontSize: "5.5px", fontFamily: "monospace", color: "#444", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {sessionRecorder.sessionId || "--"}
               </div>
             </div>
           </div>
 
-          {/* REC / JSON / LOG / PDF buttons */}
+          {/* ── Live event log mini-list ── */}
+          {events.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px", marginBottom: "5px" }}>
+              <AnimatePresence mode="popLayout">
+                {events.slice(0, 3).map((ev, i) => (
+                  <motion.div key={ev.id}
+                    initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -4, height: 0 }}
+                    transition={{ delay: i * 0.04, duration: 0.18 }}
+                    style={{ display: "flex", alignItems: "center", gap: "4px", padding: "2px 4px", borderRadius: "3px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)" }}
+                  >
+                    <span style={{ fontSize: "6px", fontFamily: "monospace", fontWeight: 700, color: EV_COLOR[ev.type] ?? "#666", padding: "0px 2px", background: `${EV_COLOR[ev.type] ?? "#66666618"}18`, borderRadius: "2px", flexShrink: 0 }}>
+                      {EV_LABEL[ev.type] ?? "EVT"}
+                    </span>
+                    <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.28)", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {ev.data["model"] ? String(ev.data["model"]).slice(0, 14)
+                        : ev.data["content"] ? String(ev.data["content"]).slice(0, 18)
+                        : ev.data["mode"] ? String(ev.data["mode"]) : "—"}
+                    </span>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {/* ── REC / JSON / LOG / PDF buttons ── */}
           <div style={{ display: "flex", gap: "3px", alignItems: "center" }}>
             <button
               onClick={handleToggle}
@@ -601,6 +692,261 @@ function SatellitePanel() {
         <div style={{ position: "absolute", top: 5, left: 5, width: 8, height: 8, borderTop: "1px solid rgba(0,229,255,0.35)", borderLeft: "1px solid rgba(0,229,255,0.35)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", bottom: 5, right: 5, width: 8, height: 8, borderBottom: "1px solid rgba(168,85,247,0.35)", borderRight: "1px solid rgba(168,85,247,0.35)", pointerEvents: "none" }} />
       </div>
+    </motion.div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   THREAT FEED PANEL  — live AI-generated security alert stream
+   Ultra-3D holographic design · auto-detects threats from trafficBus
+══════════════════════════════════════════════════════════════════ */
+const THREAT_RULES = [
+  { re: /\bCVE-\d{4}-\d+\b/i,          label: "CVE DETECTED",  sev: "CRIT", color: "#e21227" },
+  { re: /\bexploit\b/i,                 label: "EXPLOIT CODE",  sev: "CRIT", color: "#e21227" },
+  { re: /reverse.?shell|revshell/i,     label: "REV SHELL",     sev: "CRIT", color: "#e21227" },
+  { re: /\b0.?day\b/i,                  label: "ZERO-DAY",      sev: "CRIT", color: "#e21227" },
+  { re: /sql.?inject|sqlmap/i,          label: "SQLi ATTACK",   sev: "HIGH", color: "#f97316" },
+  { re: /\bpayload\b/i,                 label: "PAYLOAD DROP",  sev: "HIGH", color: "#f97316" },
+  { re: /privilege.?escal/i,            label: "PRIVESC",       sev: "HIGH", color: "#f97316" },
+  { re: /\bmalware\b/i,                 label: "MALWARE SIG",   sev: "HIGH", color: "#f97316" },
+  { re: /\bbotnet\b/i,                  label: "BOTNET NODE",   sev: "HIGH", color: "#f97316" },
+  { re: /code.?inject|\binjection\b/i,  label: "CODE INJECT",   sev: "HIGH", color: "#f97316" },
+  { re: /data.?exfil/i,                 label: "DATA EXFIL",    sev: "HIGH", color: "#f97316" },
+  { re: /\bphish/i,                     label: "PHISHING",      sev: "MED",  color: "#f59e0b" },
+  { re: /\brecon\b/i,                   label: "RECON OPS",     sev: "MED",  color: "#f59e0b" },
+  { re: /auth.?bypass|\bbypass\b/i,     label: "AUTH BYPASS",   sev: "MED",  color: "#f59e0b" },
+  { re: /port.?scan|nmap/i,             label: "PORT SCAN",     sev: "LOW",  color: "#a855f7" },
+  { re: /\bxss\b|\bcross.?site/i,       label: "XSS VECTOR",    sev: "MED",  color: "#f59e0b" },
+];
+const DEMO_THREATS = [
+  { id: "d1", label: "RECON OPS",   sev: "MED",  color: "#f59e0b", model: "CHAT-GPT" },
+  { id: "d2", label: "PORT SCAN",   sev: "LOW",  color: "#a855f7", model: "CHAT-GPT" },
+  { id: "d3", label: "PAYLOAD DROP",sev: "HIGH", color: "#f97316", model: "CHAT-GPT" },
+  { id: "d4", label: "AUTH BYPASS", sev: "MED",  color: "#f59e0b", model: "CHAT-GPT" },
+];
+interface ThreatItem { id: string; label: string; sev: string; color: string; model: string; ts: number; }
+
+function ThreatFeedPanel() {
+  const [threats, setThreats] = useState<ThreatItem[]>([]);
+  const [scan, setScan]       = useState(0);
+  const [glitch, setGlitch]   = useState(false);
+
+  /* Subscribe to trafficBus — detect threats in AI responses */
+  useEffect(() => {
+    const unsub = trafficBus.subscribe(ev => {
+      if (ev.status !== "success" && ev.status !== "streaming") return;
+      const txt = (ev.responsePreview ?? "") + " " + (ev.payloadPreview ?? "");
+      THREAT_RULES.forEach(rule => {
+        if (!rule.re.test(txt)) return;
+        const item: ThreatItem = {
+          id: `${ev.id}-${rule.label}`,
+          label: rule.label, sev: rule.sev, color: rule.color,
+          model: ev.model.slice(0, 12), ts: Date.now(),
+        };
+        setThreats(prev => {
+          const filtered = prev.filter(t => !(t.label === item.label && Date.now() - t.ts < 15000));
+          return [item, ...filtered].slice(0, 8);
+        });
+        /* glitch flash on new critical */
+        if (rule.sev === "CRIT") { setGlitch(true); setTimeout(() => setGlitch(false), 380); }
+      });
+    });
+    return unsub;
+  }, []);
+
+  /* Animated vertical scan line */
+  useEffect(() => {
+    const iv = setInterval(() => setScan(p => (p + 2) % 104), 20);
+    return () => clearInterval(iv);
+  }, []);
+
+  const display = threats.length > 0 ? threats : DEMO_THREATS;
+  const critCount = display.filter(t => t.sev === "CRIT").length;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20, scale: 0.86 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 20, scale: 0.86 }}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
+      style={{
+        position: "absolute", right: "290px", bottom: "-6px",
+        width: "178px", zIndex: 10, pointerEvents: "none",
+        perspective: "600px",
+      }}
+    >
+      {/* 3D tilt wrapper */}
+      <motion.div
+        animate={{ rotateX: [0, 0.8, 0, -0.8, 0], rotateY: [-0.5, 0.5, -0.5] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        {/* Connection wire to SatellitePanel */}
+        <motion.div
+          animate={{ opacity: [0.2, 0.55, 0.2] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          style={{
+            position: "absolute", right: "-18px", top: "50%",
+            transform: "translateY(-50%)",
+            width: "18px", height: "1px",
+            background: "linear-gradient(90deg, rgba(226,18,39,0), rgba(226,18,39,0.5), rgba(226,18,39,0.9))",
+            pointerEvents: "none",
+          }}
+        />
+        <motion.div
+          animate={{ opacity: [0.4, 1, 0.4], scale: [0.8, 1.15, 0.8] }}
+          transition={{ duration: 1.4, repeat: Infinity }}
+          style={{
+            position: "absolute", right: "-22px", top: "50%",
+            transform: "translateY(-50%)",
+            width: "4px", height: "4px", borderRadius: "50%",
+            background: "#e21227", boxShadow: "0 0 8px #e21227",
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Card body */}
+        <motion.div
+          animate={glitch ? { x: [0, -2, 3, -1, 0], opacity: [1, 0.7, 1] } : {}}
+          transition={{ duration: 0.35 }}
+          style={{
+            background: "linear-gradient(148deg, rgba(12,3,5,0.99) 0%, rgba(18,4,8,0.99) 60%, rgba(8,2,4,0.99) 100%)",
+            border: `1px solid ${critCount > 0 ? "rgba(226,18,39,0.35)" : "rgba(226,18,39,0.18)"}`,
+            borderRadius: "14px", overflow: "hidden",
+            boxShadow: critCount > 0
+              ? "0 6px 48px rgba(0,0,0,0.95), 0 0 40px rgba(226,18,39,0.14), inset 0 1px 0 rgba(255,255,255,0.03)"
+              : "0 6px 40px rgba(0,0,0,0.93), 0 0 20px rgba(226,18,39,0.07), inset 0 1px 0 rgba(255,255,255,0.02)",
+            position: "relative",
+          }}
+        >
+          {/* Vertical scan line */}
+          <div style={{
+            position: "absolute", left: 0, right: 0,
+            top: `${scan}%`, height: "1px",
+            background: "linear-gradient(90deg, transparent, rgba(226,18,39,0.25), rgba(255,80,80,0.18), transparent)",
+            pointerEvents: "none", zIndex: 1,
+          }} />
+
+          {/* Hex grid overlay */}
+          <div style={{
+            position: "absolute", inset: 0,
+            backgroundImage: "radial-gradient(circle, rgba(226,18,39,0.04) 1px, transparent 1px)",
+            backgroundSize: "10px 10px",
+            pointerEvents: "none", zIndex: 0,
+          }} />
+
+          {/* Top accent stripe */}
+          <motion.div
+            animate={{ opacity: [0.5, 1, 0.5], scaleX: [0.8, 1, 0.8] }}
+            transition={{ duration: 1.6, repeat: Infinity }}
+            style={{ height: "2px", background: "linear-gradient(90deg, transparent, rgba(226,18,39,0.9), rgba(255,80,60,0.6), transparent)", transformOrigin: "center" }}
+          />
+          <HoloShimmer color="#e21227" />
+
+          <div style={{ padding: "7px 9px", position: "relative", zIndex: 2 }}>
+
+            {/* ── Header ── */}
+            <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "7px" }}>
+              <motion.div
+                animate={{ opacity: [0.5, 1, 0.5], scale: [0.85, 1.2, 0.85], boxShadow: ["0 0 5px #e21227", "0 0 14px #e21227", "0 0 5px #e21227"] }}
+                transition={{ duration: 1.1, repeat: Infinity }}
+                style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#e21227", flexShrink: 0 }}
+              />
+              <span style={{ fontSize: "7px", fontFamily: "monospace", fontWeight: 900, color: "#e21227", letterSpacing: "2px", textShadow: "0 0 14px rgba(226,18,39,0.75)", flex: 1 }}>
+                THREAT FEED
+              </span>
+              <AlertTriangle style={{ width: "8px", height: "8px", color: "#e21227", opacity: 0.85, flexShrink: 0 }} />
+              <motion.span
+                animate={{ opacity: [0.3, 1, 0.3] }}
+                transition={{ duration: 0.75, repeat: Infinity }}
+                style={{ fontSize: "5px", fontFamily: "monospace", fontWeight: 700, color: "#e21227", letterSpacing: "0.8px", padding: "1px 3px", borderRadius: "2px", background: "rgba(226,18,39,0.12)", border: "1px solid rgba(226,18,39,0.3)", flexShrink: 0 }}
+              >LIVE</motion.span>
+            </div>
+
+            {/* ── Threat items ── */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "3px", marginBottom: "6px" }}>
+              <AnimatePresence mode="popLayout">
+                {display.slice(0, 5).map((t, i) => (
+                  <motion.div
+                    key={t.id}
+                    initial={{ opacity: 0, x: 10, height: 0 }}
+                    animate={{ opacity: 1, x: 0, height: "auto" }}
+                    exit={{ opacity: 0, x: -8, height: 0 }}
+                    transition={{ duration: 0.22, delay: i * 0.04 }}
+                    style={{ display: "flex", alignItems: "center", gap: "5px", padding: "3px 6px", borderRadius: "6px", background: `${t.color}09`, border: `1px solid ${t.color}20` }}
+                  >
+                    <motion.div
+                      animate={{ opacity: [0.4, 1, 0.4], scale: [0.8, 1.1, 0.8] }}
+                      transition={{ duration: 1.3 + i * 0.2, repeat: Infinity }}
+                      style={{ width: "3px", height: "3px", borderRadius: "50%", background: t.color, boxShadow: `0 0 6px ${t.color}`, flexShrink: 0 }}
+                    />
+                    <span style={{ fontSize: "7px", fontFamily: "monospace", fontWeight: 700, color: t.color, letterSpacing: "0.8px", flex: 1, textShadow: `0 0 8px ${t.color}55` }}>
+                      {t.label}
+                    </span>
+                    <span style={{ fontSize: "5px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", padding: "1px 3px", borderRadius: "2px", background: `${t.color}18`, border: `1px solid ${t.color}22`, letterSpacing: "0.5px", flexShrink: 0 }}>
+                      {t.sev}
+                    </span>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* ── Count + severity breakdown ── */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
+              <div style={{ display: "flex", gap: "5px" }}>
+                {[
+                  { label: "CRIT", color: "#e21227", count: display.filter(t => t.sev === "CRIT").length },
+                  { label: "HIGH", color: "#f97316", count: display.filter(t => t.sev === "HIGH").length },
+                  { label: "MED",  color: "#f59e0b", count: display.filter(t => t.sev === "MED").length },
+                ].map(({ label, color: c, count }) => (
+                  <div key={label} style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "5px", fontFamily: "monospace", color: "rgba(255,255,255,0.2)" }}>{label}</div>
+                    <motion.div key={count} initial={{ scale: 1.3 }} animate={{ scale: 1 }}
+                      style={{ fontSize: "8px", fontFamily: "monospace", fontWeight: 700, color: c, textShadow: `0 0 7px ${c}` }}>
+                      {count}
+                    </motion.div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "5px", fontFamily: "monospace", color: "rgba(255,255,255,0.2)" }}>TOTAL</div>
+                <motion.div key={display.length} initial={{ scale: 1.4 }} animate={{ scale: 1 }}
+                  style={{ fontSize: "11px", fontFamily: "monospace", fontWeight: 900, color: "#e21227", textShadow: "0 0 12px rgba(226,18,39,0.8)" }}>
+                  {display.length}
+                </motion.div>
+              </div>
+            </div>
+
+            {/* ── Mini threat waveform ── */}
+            <div style={{ height: "18px", position: "relative", overflow: "hidden", borderRadius: "5px", background: "rgba(226,18,39,0.03)", border: "1px solid rgba(226,18,39,0.12)" }}>
+              <span style={{ position: "absolute", bottom: 2, left: 4, fontSize: "5px", fontFamily: "monospace", color: "rgba(226,18,39,0.4)", letterSpacing: "0.8px", zIndex: 2 }}>ACTIVITY</span>
+              {Array.from({ length: 24 }, (_, i) => (
+                <motion.div key={i}
+                  animate={{ height: [`${8 + Math.random() * 82}%`, `${12 + Math.random() * 78}%`, `${8 + Math.random() * 82}%`] }}
+                  transition={{ duration: 0.38 + i * 0.045, repeat: Infinity, ease: "easeInOut", delay: i * 0.018 }}
+                  style={{
+                    position: "absolute", bottom: 0,
+                    left: `${1 + i * 4.1}%`, width: "3.4%",
+                    background: i % 6 === 0 ? `rgba(226,18,39,0.85)` : i % 3 === 0 ? `rgba(255,80,50,0.55)` : `rgba(226,18,39,0.22)`,
+                    borderRadius: "1px 1px 0 0",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom accent */}
+          <motion.div
+            animate={{ opacity: [0.25, 0.75, 0.25] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            style={{ height: "1.5px", background: "linear-gradient(90deg, transparent, rgba(226,18,39,0.7), rgba(255,80,60,0.45), transparent)" }}
+          />
+
+          {/* Corner brackets */}
+          <div style={{ position: "absolute", top: 5, left: 5, width: 8, height: 8, borderTop: "1px solid rgba(226,18,39,0.45)", borderLeft: "1px solid rgba(226,18,39,0.45)", pointerEvents: "none", zIndex: 3 }} />
+          <div style={{ position: "absolute", bottom: 5, right: 5, width: 8, height: 8, borderBottom: "1px solid rgba(226,18,39,0.45)", borderRight: "1px solid rgba(226,18,39,0.45)", pointerEvents: "none", zIndex: 3 }} />
+        </motion.div>
+      </motion.div>
     </motion.div>
   );
 }
@@ -836,10 +1182,13 @@ function DockButton({
       onMouseLeave={() => { setHovered(false); setTilt({ x: 0, y: 0 }); }}
       onMouseMove={handleMouseMove}
     >
-      {/* Satellite panel — combined SYS MONITOR + IDLE TRACK + NET TOPOLOGY */}
+      {/* Satellite panels */}
       <AnimatePresence>
         {(hovered || showSatellites) && !dragging && (
-          <SatellitePanel />
+          <>
+            <ThreatFeedPanel />
+            <SatellitePanel />
+          </>
         )}
       </AnimatePresence>
 
@@ -1033,29 +1382,19 @@ function DockButton({
           )}
         </AnimatePresence>
 
-        {/* ══ SYS + IDLE + TOPO indicator dots (bottom row) ══ */}
+        {/* ══ Indicator dots (bottom row) ══ */}
         <div style={{
           position: "absolute", bottom: "-14px", left: "50%", transform: "translateX(-50%)",
           display: "flex", gap: "4px", alignItems: "center", zIndex: 5,
         }}>
-          <motion.div
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1.4, repeat: Infinity }}
-            title="SYS MONITOR"
-            style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 5px #10b981" }}
-          />
-          <motion.div
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1.8, repeat: Infinity, delay: 0.3 }}
-            title="IDLE TRACK"
-            style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#f472b6", boxShadow: "0 0 5px #f472b6" }}
-          />
-          <motion.div
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1.6, repeat: Infinity, delay: 0.6 }}
-            title="NET TOPOLOGY"
-            style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#a855f7", boxShadow: "0 0 5px #a855f7" }}
-          />
+          <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.4, repeat: Infinity }}
+            title="NET TOPOLOGY" style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#a855f7", boxShadow: "0 0 5px #a855f7" }} />
+          <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.6, repeat: Infinity, delay: 0.25 }}
+            title="SESSION REC" style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#00e5ff", boxShadow: "0 0 5px #00e5ff" }} />
+          <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0.5 }}
+            title="IDLE TRACK" style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 5px #22c55e" }} />
+          <motion.div animate={{ opacity: [0.4, 1, 0.4], scale: [0.8, 1.2, 0.8] }} transition={{ duration: 1.0, repeat: Infinity, delay: 0.1 }}
+            title="THREAT FEED" style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#e21227", boxShadow: "0 0 7px #e21227" }} />
         </div>
       </motion.div>
 
