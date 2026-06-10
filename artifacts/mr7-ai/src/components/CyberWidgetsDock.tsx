@@ -14,6 +14,7 @@ import { NetworkPacketInspector } from "./NetworkPacketInspector";
 import { ModelBenchmarkPanel }    from "./ModelBenchmarkPanel";
 import { SysMonitorWidget }       from "./SysMonitorWidget";
 import { IdleWidget }             from "./IdleWidget";
+import { NetworkActivityPage }    from "./NetworkActivityPage";
 import { trafficBus }             from "@/lib/trafficBus";
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -1259,13 +1260,18 @@ function HUDClock() {
    MAIN HUD OVERLAY  — 6-panel grid (Panel 7+8 in orb)
 ══════════════════════════════════════════════════════════════════ */
 function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
-  const [loaded,       setLoaded]       = useState(false);
-  const [focusedPanel, setFocusedPanel] = useState<string | null>(null);
-  const [focusAnim,    setFocusAnim]    = useState(false);
+  const [loaded,           setLoaded]           = useState(false);
+  const [focusedPanel,     setFocusedPanel]     = useState<string | null>(null);
+  const [focusAnim,        setFocusAnim]        = useState(false);
+  const [showNetActivity,  setShowNetActivity]  = useState(false);
 
   useEffect(() => { const tt = setTimeout(() => setLoaded(true), 80); return () => clearTimeout(tt); }, []);
 
   const handleExpand = useCallback((id: string) => {
+    if (id === "topology") {
+      setShowNetActivity(true);
+      return;
+    }
     setFocusAnim(false); setFocusedPanel(id);
     setTimeout(() => setFocusAnim(true), 30);
   }, []);
@@ -1280,20 +1286,25 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
   ].find(p => p.id === focusedPanel)! : null;
 
   const wrapper = (children: React.ReactNode) => (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-      style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", flexDirection: "column", overflow: "hidden" }}
-    >
-      <HUDBackground />
-      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
-        backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.007) 2px, rgba(255,255,255,0.007) 4px)" }} />
-      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
-        background: "radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.6) 100%)" }} />
-      {children}
-    </motion.div>
+    <>
+      <AnimatePresence>
+        {showNetActivity && <NetworkActivityPage onClose={() => setShowNetActivity(false)} />}
+      </AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.98 }}
+        transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+        style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", flexDirection: "column", overflow: "hidden" }}
+      >
+        <HUDBackground />
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
+          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.007) 2px, rgba(255,255,255,0.007) 4px)" }} />
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
+          background: "radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.6) 100%)" }} />
+        {children}
+      </motion.div>
+    </>
   );
 
   /* ── Focused single panel ── */

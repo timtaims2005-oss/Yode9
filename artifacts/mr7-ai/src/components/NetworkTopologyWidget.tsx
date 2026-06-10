@@ -136,26 +136,63 @@ export function NetworkTopologyWidget({ embedded = false }: { embedded?: boolean
       frameRef.current = requestAnimationFrame(frame);
       const t = tickRef.current++;
       const mr = manRotRef.current;
-      if(!mr.active){ mr.ry+=0.003; mr.vx*=0.96; mr.vy*=0.96; }
+      if(!mr.active){ mr.ry+=0.0028; mr.vx*=0.96; mr.vy*=0.96; }
 
       ctx.clearRect(0,0,W,H);
 
-      // Deep background
-      const bg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.7);
-      bg.addColorStop(0,"rgba(2,6,18,1)"); bg.addColorStop(0.6,"rgba(1,3,12,1)"); bg.addColorStop(1,"rgba(0,1,6,1)");
+      // Deep space background
+      const bg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.75);
+      bg.addColorStop(0,"rgba(3,8,24,1)"); bg.addColorStop(0.5,"rgba(1,4,14,1)"); bg.addColorStop(1,"rgba(0,1,6,1)");
       ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+      // Corner nebula glows
+      [[W*0.05,H*0.05,"rgba(168,85,247,0.06)"],[W*0.95,H*0.05,"rgba(226,18,39,0.04)"],[W*0.5,H*0.9,"rgba(0,229,255,0.04)"]].forEach(([nx,ny,nc])=>{
+        const ng=ctx.createRadialGradient(nx as number,ny as number,0,nx as number,ny as number,120);
+        ng.addColorStop(0,nc as string); ng.addColorStop(1,"rgba(0,0,0,0)");
+        ctx.fillStyle=ng; ctx.fillRect(0,0,W,H);
+      });
 
       // Stars
       STARS.forEach(s=>{
+        const tw=(Math.sin(t*0.018+s.a*10)+1)/2;
         ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-        ctx.fillStyle=`rgba(255,255,255,${s.a})`; ctx.fill();
+        ctx.fillStyle=`rgba(255,255,255,${s.a*(0.3+tw*0.7)})`; ctx.fill();
       });
 
-      // Reference grid
-      ctx.strokeStyle="rgba(0,229,255,0.04)"; ctx.lineWidth=0.5;
+      // 3D hex floor grid
+      const floorY = 92;
+      const hexSize = 22;
+      for(let hcol=-5;hcol<=5;hcol++){
+        for(let hrow=0;hrow<=4;hrow++){
+          const hx = hcol*hexSize*1.73 + (hrow%2)*hexSize*0.865;
+          const hy = floorY + hrow*hexSize*0.9;
+          const hz = -30 + hrow*18;
+          const pc = project3D(hx,hy,hz,t,mr.ry,mr.rx);
+          const hexR = hexSize * pc.scale * 0.85;
+          const depthAlpha = Math.max(0,0.06 - (pc.sz/VZ)*0.05);
+          ctx.strokeStyle=`rgba(0,229,255,${depthAlpha})`;
+          ctx.lineWidth=0.4;
+          ctx.beginPath();
+          for(let hi=0;hi<6;hi++){
+            const ha=(hi/6)*Math.PI*2 - Math.PI/6;
+            const hpx = pc.sx + hexR*Math.cos(ha);
+            const hpy = pc.sy + hexR*Math.sin(ha);
+            hi===0 ? ctx.moveTo(hpx,hpy) : ctx.lineTo(hpx,hpy);
+          }
+          ctx.closePath(); ctx.stroke();
+        }
+      }
+
+      // Vertical reference grid lines
+      ctx.strokeStyle="rgba(0,229,255,0.035)"; ctx.lineWidth=0.4;
       for(let gx=-160;gx<=160;gx+=40){
-        const p0=project3D(gx,-100,-100,t,mr.ry,mr.rx);
-        const p1=project3D(gx,100,-100,t,mr.ry,mr.rx);
+        const p0=project3D(gx,-100,-80,t,mr.ry,mr.rx);
+        const p1=project3D(gx,100,-80,t,mr.ry,mr.rx);
+        ctx.beginPath(); ctx.moveTo(p0.sx,p0.sy); ctx.lineTo(p1.sx,p1.sy); ctx.stroke();
+      }
+      for(let gz=-80;gz<=80;gz+=40){
+        const p0=project3D(-160,100,gz,t,mr.ry,mr.rx);
+        const p1=project3D(160,100,gz,t,mr.ry,mr.rx);
         ctx.beginPath(); ctx.moveTo(p0.sx,p0.sy); ctx.lineTo(p1.sx,p1.sy); ctx.stroke();
       }
 
@@ -166,21 +203,36 @@ export function NetworkTopologyWidget({ embedded = false }: { embedded?: boolean
         return {n,p};
       });
 
-      // Draw links
-      LINKS.forEach((lk,li)=>{
+      // Draw links — volumetric glow tubes
+      LINKS.forEach((lk)=>{
         const pa=projected.find(p=>p.n.id===lk.a);
         const pb=projected.find(p=>p.n.id===lk.b);
         if(!pa||!pb) return;
         const depth = (pa.p.sz+pb.p.sz)/2;
-        const alpha = Math.max(0.05, 0.4 - depth/VZ*0.3);
+        const alpha = Math.max(0.04, 0.55 - depth/VZ*0.4);
+        const nsA = statesRef.current.get(lk.a);
+        const nsB = statesRef.current.get(lk.b);
+        const hasAlert = (nsA?.status!=="ok") || (nsB?.status!=="ok");
+        const linkColor = hasAlert ? "#e21227" : "#00e5ff";
 
-        // glow tube effect — 3 passes
-        [5,2.5,1].forEach((lw,li2)=>{
+        // Volumetric 4-pass glow tube
+        [8, 4, 1.8, 0.7].forEach((lw, li2)=>{
           ctx.beginPath();
           ctx.moveTo(pa.p.sx,pa.p.sy); ctx.lineTo(pb.p.sx,pb.p.sy);
-          ctx.strokeStyle=`rgba(0,229,255,${alpha*(li2===2?1:0.15)})`;
-          ctx.lineWidth=lw; ctx.stroke();
+          const alphaPass = alpha * [0.05, 0.12, 0.45, 1.0][li2];
+          ctx.strokeStyle = hasAlert
+            ? `rgba(226,18,39,${alphaPass})`
+            : `rgba(0,229,255,${alphaPass})`;
+          ctx.lineWidth=lw; ctx.lineCap="round"; ctx.stroke();
         });
+
+        // Animated energy pulse along link
+        const pulse = (t * 0.008) % 1;
+        const px = pa.p.sx + (pb.p.sx - pa.p.sx) * pulse;
+        const py = pa.p.sy + (pb.p.sy - pa.p.sy) * pulse;
+        const pg = ctx.createRadialGradient(px,py,0,px,py,4);
+        pg.addColorStop(0,`${linkColor}ee`); pg.addColorStop(1,"rgba(0,0,0,0)");
+        ctx.fillStyle=pg; ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fill();
       });
 
       // Draw packets on links

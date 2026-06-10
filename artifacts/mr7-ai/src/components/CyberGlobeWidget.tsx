@@ -20,25 +20,29 @@ interface Star { x: number; y: number; r: number; alpha: number; twinkle: number
 interface OrbParticle { angle: number; radius: number; speed: number; size: number; alpha: number; color: string }
 interface Explosion { x: number; y: number; r: number; alpha: number; color: string }
 
-const NODES: GeoNode[] = [
-  { id:"ru", name:"Russia",    lat: 55.75, lon:  37.62, type:"attacker", color:"#e21227" },
-  { id:"cn", name:"China",     lat: 39.93, lon: 116.39, type:"attacker", color:"#e21227" },
-  { id:"ir", name:"Iran",      lat: 35.69, lon:  51.39, type:"attacker", color:"#f59e0b" },
-  { id:"kp", name:"N.Korea",   lat: 39.02, lon: 125.75, type:"attacker", color:"#e21227" },
-  { id:"br", name:"Brazil",    lat:-15.78, lon: -47.93, type:"relay",    color:"#a78bfa" },
-  { id:"in", name:"India",     lat: 28.61, lon:  77.21, type:"relay",    color:"#a78bfa" },
-  { id:"us", name:"USA",       lat: 38.90, lon: -77.04, type:"target",   color:"#00e5ff" },
-  { id:"gb", name:"UK",        lat: 51.51, lon:  -0.13, type:"target",   color:"#00e5ff" },
-  { id:"de", name:"Germany",   lat: 52.52, lon:  13.41, type:"target",   color:"#22c55e" },
-  { id:"ua", name:"Ukraine",   lat: 50.45, lon:  30.52, type:"target",   color:"#22c55e" },
-  { id:"jp", name:"Japan",     lat: 35.68, lon: 139.69, type:"target",   color:"#22c55e" },
-  { id:"sa", name:"KSA",       lat: 24.68, lon:  46.72, type:"relay",    color:"#a78bfa" },
-  { id:"sg", name:"Singapore", lat:  1.35, lon: 103.82, type:"relay",    color:"#a78bfa" },
-  { id:"au", name:"Australia", lat:-33.87, lon: 151.21, type:"target",   color:"#22c55e" },
-  { id:"ca", name:"Canada",    lat: 45.42, lon: -75.70, type:"target",   color:"#00e5ff" },
-  { id:"fr", name:"France",    lat: 48.85, lon:   2.35, type:"target",   color:"#22c55e" },
-  { id:"nl", name:"Nether.",   lat: 52.37, lon:   4.90, type:"target",   color:"#22c55e" },
-  { id:"tw", name:"Taiwan",    lat: 25.03, lon: 121.56, type:"target",   color:"#00e5ff" },
+interface GeoNodeEx extends GeoNode { ip: string; port: string; protocol: string }
+
+const NODES: GeoNodeEx[] = [
+  { id:"ru", name:"Russia",    lat: 55.75, lon:  37.62, type:"attacker", color:"#e21227", ip:"185.220.101.42", port:"4444",  protocol:"TCP"  },
+  { id:"cn", name:"China",     lat: 39.93, lon: 116.39, type:"attacker", color:"#e21227", ip:"114.119.148.55", port:"8080",  protocol:"HTTP" },
+  { id:"ir", name:"Iran",      lat: 35.69, lon:  51.39, type:"attacker", color:"#f59e0b", ip:"91.108.56.149",  port:"443",   protocol:"TLS"  },
+  { id:"kp", name:"N.Korea",   lat: 39.02, lon: 125.75, type:"attacker", color:"#e21227", ip:"175.45.176.72",  port:"22",    protocol:"SSH"  },
+  { id:"br", name:"Brazil",    lat:-15.78, lon: -47.93, type:"relay",    color:"#a78bfa", ip:"189.40.12.201",  port:"9050",  protocol:"TOR"  },
+  { id:"in", name:"India",     lat: 28.61, lon:  77.21, type:"relay",    color:"#a78bfa", ip:"103.59.235.88",  port:"1080",  protocol:"SOCKS"},
+  { id:"us", name:"USA",       lat: 38.90, lon: -77.04, type:"target",   color:"#00e5ff", ip:"104.26.10.229",  port:"443",   protocol:"TLS"  },
+  { id:"gb", name:"UK",        lat: 51.51, lon:  -0.13, type:"target",   color:"#00e5ff", ip:"51.195.27.214",  port:"80",    protocol:"HTTP" },
+  { id:"de", name:"Germany",   lat: 52.52, lon:  13.41, type:"target",   color:"#22c55e", ip:"94.130.41.198",  port:"22",    protocol:"SSH"  },
+  { id:"ua", name:"Ukraine",   lat: 50.45, lon:  30.52, type:"target",   color:"#22c55e", ip:"91.196.8.24",    port:"3389",  protocol:"RDP"  },
+  { id:"jp", name:"Japan",     lat: 35.68, lon: 139.69, type:"target",   color:"#22c55e", ip:"133.130.100.8",  port:"443",   protocol:"TLS"  },
+  { id:"sa", name:"KSA",       lat: 24.68, lon:  46.72, type:"relay",    color:"#a78bfa", ip:"109.234.82.36",  port:"8443",  protocol:"HTTPS"},
+  { id:"sg", name:"Singapore", lat:  1.35, lon: 103.82, type:"relay",    color:"#a78bfa", ip:"103.86.99.37",   port:"9001",  protocol:"TOR"  },
+  { id:"au", name:"Australia", lat:-33.87, lon: 151.21, type:"target",   color:"#22c55e", ip:"1.1.1.1",        port:"53",    protocol:"DNS"  },
+  { id:"ca", name:"Canada",    lat: 45.42, lon: -75.70, type:"target",   color:"#00e5ff", ip:"192.99.188.237", port:"443",   protocol:"TLS"  },
+  { id:"fr", name:"France",    lat: 48.85, lon:   2.35, type:"target",   color:"#22c55e", ip:"51.77.19.20",    port:"80",    protocol:"HTTP" },
+  { id:"nl", name:"Nether.",   lat: 52.37, lon:   4.90, type:"target",   color:"#22c55e", ip:"82.196.8.86",    port:"445",   protocol:"SMB"  },
+  { id:"tw", name:"Taiwan",    lat: 25.03, lon: 121.56, type:"target",   color:"#00e5ff", ip:"101.10.26.141",  port:"3306",  protocol:"MySQL"},
+  { id:"mx", name:"Mexico",    lat: 19.43, lon: -99.13, type:"relay",    color:"#a78bfa", ip:"187.163.39.44",  port:"1194",  protocol:"VPN"  },
+  { id:"za", name:"S.Africa",  lat:-25.74, lon:  28.19, type:"target",   color:"#22c55e", ip:"196.25.1.110",   port:"25",    protocol:"SMTP" },
 ];
 
 const ARCS_INIT = [
@@ -54,6 +58,12 @@ const ARCS_INIT = [
   { srcId:"cn", dstId:"au", speed:0.0015, color:"#f59e0b" },
   { srcId:"kp", dstId:"tw", speed:0.0019, color:"#e21227" },
   { srcId:"ir", dstId:"sa", speed:0.0013, color:"#f59e0b" },
+  { srcId:"kp", dstId:"us", speed:0.0014, color:"#e21227" },
+  { srcId:"cn", dstId:"fr", speed:0.0016, color:"#f59e0b" },
+  { srcId:"ru", dstId:"de", speed:0.0018, color:"#ff4d4d" },
+  { srcId:"mx", dstId:"us", speed:0.0021, color:"#a78bfa" },
+  { srcId:"ir", dstId:"tw", speed:0.0015, color:"#f59e0b" },
+  { srcId:"ru", dstId:"nl", speed:0.0013, color:"#e21227" },
 ];
 
 // Continental dot clouds — simplified land mass simulation
@@ -317,30 +327,6 @@ export function CyberGlobeWidget({ embedded = false }: { embedded?: boolean } = 
         const dst = NODES.find(n => n.id === arc.dstId)!;
         if (!src || !dst) return;
 
-        // store trail
-        arc.trail.unshift(arc.progress);
-        if (arc.trail.length > 18) arc.trail.pop();
-
-        // draw trail
-        arc.trail.forEach((tp, ti) => {
-          const alpha = (1 - ti / arc.trail.length) * 0.5;
-          const srcR = toRad(90 - src.lat); const srcL = toRad(src.lon + rotRef.current);
-          const dstR = toRad(90 - dst.lat); const dstL = toRad(dst.lon + rotRef.current);
-          const ax = Math.sin(srcR)*Math.cos(srcL); const ay = Math.cos(srcR); const az = Math.sin(srcR)*Math.sin(srcL);
-          const bx = Math.sin(dstR)*Math.cos(dstL); const by = Math.cos(dstR); const bz = Math.sin(dstR)*Math.sin(dstL);
-          const [axR, ayR, azR] = [ax, ay * Math.cos(toRad(rotXRef.current)) - az * Math.sin(toRad(rotXRef.current)), ay * Math.sin(toRad(rotXRef.current)) + az * Math.cos(toRad(rotXRef.current))];
-          const [bxR, byR, bzR] = [bx, by * Math.cos(toRad(rotXRef.current)) - bz * Math.sin(toRad(rotXRef.current)), by * Math.sin(toRad(rotXRef.current)) + bz * Math.cos(toRad(rotXRef.current))];
-          const pp = getArcPoint(axR, ayR, azR, bxR, byR, bzR, tp, 0.45);
-          if (pp.z > -0.1) {
-            ctx.beginPath(); ctx.arc(pp.x, pp.y, 1.2 * (1 - ti/arc.trail.length), 0, Math.PI*2);
-            ctx.fillStyle = arc.color;
-            ctx.globalAlpha = alpha;
-            ctx.fill();
-          }
-        });
-        ctx.globalAlpha = 1;
-
-        // draw arc head
         const srcR = toRad(90 - src.lat); const srcL = toRad(src.lon + rotRef.current);
         const dstR = toRad(90 - dst.lat); const dstL = toRad(dst.lon + rotRef.current);
         const ax = Math.sin(srcR)*Math.cos(srcL); const ay = Math.cos(srcR); const az = Math.sin(srcR)*Math.sin(srcL);
@@ -349,19 +335,65 @@ export function CyberGlobeWidget({ embedded = false }: { embedded?: boolean } = 
         const axR = ax; const ayR = ay * Math.cos(rotRad) - az * Math.sin(rotRad); const azR = ay * Math.sin(rotRad) + az * Math.cos(rotRad);
         const bxR = bx; const byR = by * Math.cos(rotRad) - bz * Math.sin(rotRad); const bzR = by * Math.sin(rotRad) + bz * Math.cos(rotRad);
 
-        const pp = getArcPoint(axR, ayR, azR, bxR, byR, bzR, arc.progress, 0.45);
+        // Draw glowing arc tube (full path from start to head)
+        const steps = Math.max(8, Math.round(arc.progress * 40));
+        [
+          { lw: 4.5, alpha: 0.08 },
+          { lw: 2.5, alpha: 0.20 },
+          { lw: 1.2, alpha: 0.55 },
+          { lw: 0.5, alpha: 0.90 },
+        ].forEach(({ lw, alpha }) => {
+          ctx.beginPath();
+          let firstPt = true;
+          for (let s = 0; s <= steps; s++) {
+            const tp = (s / Math.max(steps, 1)) * arc.progress;
+            const pp2 = getArcPoint(axR, ayR, azR, bxR, byR, bzR, tp, 0.48);
+            if (pp2.z > -0.05) {
+              firstPt ? ctx.moveTo(pp2.x, pp2.y) : ctx.lineTo(pp2.x, pp2.y);
+              firstPt = false;
+            } else { firstPt = true; }
+          }
+          ctx.strokeStyle = arc.color;
+          ctx.globalAlpha = alpha;
+          ctx.lineWidth = lw;
+          ctx.lineCap = "round";
+          ctx.stroke();
+        });
+        ctx.globalAlpha = 1;
+
+        // store trail
+        arc.trail.unshift(arc.progress);
+        if (arc.trail.length > 18) arc.trail.pop();
+
+        // draw trail dots
+        arc.trail.forEach((tp, ti) => {
+          const pp = getArcPoint(axR, ayR, azR, bxR, byR, bzR, tp, 0.48);
+          if (pp.z > -0.1) {
+            ctx.beginPath(); ctx.arc(pp.x, pp.y, 1.6 * (1 - ti/arc.trail.length), 0, Math.PI*2);
+            ctx.fillStyle = arc.color;
+            ctx.globalAlpha = (1 - ti / arc.trail.length) * 0.6;
+            ctx.fill();
+          }
+        });
+        ctx.globalAlpha = 1;
+
+        // draw arc head (glowing orb)
+        const pp = getArcPoint(axR, ayR, azR, bxR, byR, bzR, arc.progress, 0.48);
         if (pp.z > -0.1) {
-          const grd = ctx.createRadialGradient(pp.x, pp.y, 0, pp.x, pp.y, 6);
-          grd.addColorStop(0, arc.color);
-          grd.addColorStop(0.4, arc.color.replace("rgb(","rgba(").replace(")",",0.6)"));
+          // outer glow
+          const grd = ctx.createRadialGradient(pp.x, pp.y, 0, pp.x, pp.y, 10);
+          grd.addColorStop(0, arc.color + "cc");
+          grd.addColorStop(0.5, arc.color + "44");
           grd.addColorStop(1, "rgba(0,0,0,0)");
           ctx.fillStyle = grd;
-          ctx.beginPath(); ctx.arc(pp.x, pp.y, 6, 0, Math.PI*2);
-          ctx.fill();
-          ctx.beginPath(); ctx.arc(pp.x, pp.y, 2.5, 0, Math.PI*2);
-          ctx.fillStyle = "#fff";
-          ctx.globalAlpha = 0.9;
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(pp.x, pp.y, 10, 0, Math.PI*2); ctx.fill();
+          // core
+          ctx.beginPath(); ctx.arc(pp.x, pp.y, 3, 0, Math.PI*2);
+          ctx.fillStyle = "#fff"; ctx.globalAlpha = 0.95; ctx.fill();
+          ctx.globalAlpha = 1;
+          // ring pulse
+          ctx.beginPath(); ctx.arc(pp.x, pp.y, 5 + Math.sin(t * 0.3) * 1.5, 0, Math.PI*2);
+          ctx.strokeStyle = arc.color; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.8; ctx.stroke();
           ctx.globalAlpha = 1;
         }
 
@@ -370,11 +402,12 @@ export function CyberGlobeWidget({ embedded = false }: { embedded?: boolean } = 
         if (arc.progress >= 1) {
           arc.progress = 0; arc.trail = [];
           atkTotal++;
-          if (atkTotal % 8 === 0) setAttackCount(atkTotal);
-          // explosion
+          if (atkTotal % 6 === 0) setAttackCount(atkTotal);
+          // explosion ring
           const dstP = project(dst.lat, dst.lon, rotRef.current, rotXRef.current);
           if (dstP.z > 0) {
-            exploRef.current.push({ x: dstP.x, y: dstP.y, r: 1, alpha: 0.9, color: arc.color });
+            exploRef.current.push({ x: dstP.x, y: dstP.y, r: 1, alpha: 0.95, color: arc.color });
+            exploRef.current.push({ x: dstP.x, y: dstP.y, r: 1, alpha: 0.6, color: "#ffffff" });
           }
         }
       });
@@ -431,13 +464,28 @@ export function CyberGlobeWidget({ embedded = false }: { embedded?: boolean } = 
         ctx.beginPath(); ctx.arc(n.p.x, n.p.y, r, 0, Math.PI*2);
         ctx.fillStyle = cg; ctx.fill();
 
-        // label
+        // label + IP
         if (n.p.z > 0.3) {
-          ctx.fillStyle = n.color;
-          ctx.globalAlpha = Math.min(1, (n.p.z - 0.3) * 2.5);
-          ctx.font = `bold ${Math.round(7 + sc * 2)}px monospace`;
+          const labelAlpha = Math.min(1, (n.p.z - 0.3) * 2.5);
           ctx.textAlign = "center";
-          ctx.fillText(n.name, n.p.x, n.p.y + r + 8);
+          ctx.globalAlpha = labelAlpha;
+          ctx.font = `bold ${Math.round(7 + sc * 2)}px monospace`;
+          ctx.fillStyle = n.color;
+          ctx.fillText(n.name, n.p.x, n.p.y + r + 9);
+          if (n.p.z > 0.45) {
+            const ipAlpha = Math.min(1, (n.p.z - 0.45) * 2.2) * 0.75;
+            ctx.globalAlpha = ipAlpha;
+            ctx.font = `${Math.round(4 + sc * 1.2)}px monospace`;
+            ctx.fillStyle = n.type === "attacker" ? "#ff6666" : n.type === "relay" ? "#c4b5fd" : "#99f6e4";
+            const nEx = n as GeoNodeEx & { p: { x: number; y: number; z: number; scale?: number } };
+            ctx.fillText(`${nEx.ip}:${nEx.port}`, n.p.x, n.p.y + r + 18);
+            if (n.p.z > 0.65) {
+              ctx.globalAlpha = ipAlpha * 0.7;
+              ctx.font = `bold ${Math.round(4 + sc)}px monospace`;
+              ctx.fillStyle = "#ffffff";
+              ctx.fillText(nEx.protocol, n.p.x, n.p.y + r + 25);
+            }
+          }
           ctx.globalAlpha = 1;
         }
       });
