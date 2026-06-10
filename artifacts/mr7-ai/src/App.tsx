@@ -141,6 +141,15 @@ import { SystemStatusWidget } from "./components/SystemStatusWidget";
 import { AmbientParticleField } from "./components/AmbientParticleField";
 import { HoloDataStream } from "./components/HoloDataStream";
 import { IntelligenceCoreModal } from "./components/modals/IntelligenceCoreModal";
+// Batch 10 — Futuristic 3D Features
+import { ThreatGlobeModal } from "./components/modals/ThreatGlobeModal";
+import { VulnGraph3DModal } from "./components/modals/VulnGraph3DModal";
+import { LiveCodingModal } from "./components/modals/LiveCodingModal";
+import { ExploitSandboxModal } from "./components/modals/ExploitSandboxModal";
+import { GestureControlModal } from "./components/modals/GestureControlModal";
+import { NeuralVoiceModal } from "./components/modals/NeuralVoiceModal";
+import { BlockchainAuditModal } from "./components/modals/BlockchainAuditModal";
+import { E2ESessionModal } from "./components/modals/E2ESessionModal";
 
 const queryClient = new QueryClient();
 
@@ -323,6 +332,15 @@ function AppContent() {
   const [changelogOpen, setChangelogOpen] = useState(false);
   const [useCaseLibOpen, setUseCaseLibOpen] = useState(false);
   const [intelligenceCoreOpen, setIntelligenceCoreOpen] = useState(false);
+  // Batch 10 — Futuristic 3D Features
+  const [threatGlobeOpen, setThreatGlobeOpen] = useState(false);
+  const [vulnGraph3DOpen, setVulnGraph3DOpen] = useState(false);
+  const [liveCodingOpen, setLiveCodingOpen] = useState(false);
+  const [exploitSandboxOpen, setExploitSandboxOpen] = useState(false);
+  const [gestureControlOpen, setGestureControlOpen] = useState(false);
+  const [neuralVoiceOpen, setNeuralVoiceOpen] = useState(false);
+  const [blockchainAuditOpen, setBlockchainAuditOpen] = useState(false);
+  const [e2eSessionOpen, setE2ESessionOpen] = useState(false);
 
   const [pipelineKeyRef] = useState(() => ({ n: 0 }));
   const [ragPipelineDoc, setRagPipelineDoc] = useState<{ text: string; name: string; key: number } | undefined>();
@@ -361,6 +379,22 @@ function AppContent() {
       setDefensiveAIOpen(true);
     } else if (id === "openskynet") {
       setOpenSkynetOpen(true);
+    } else if (id === "threatglobe") {
+      setThreatGlobeOpen(true);
+    } else if (id === "vulngraph3d") {
+      setVulnGraph3DOpen(true);
+    } else if (id === "livecoding") {
+      setLiveCodingOpen(true);
+    } else if (id === "exploitsandbox") {
+      setExploitSandboxOpen(true);
+    } else if (id === "gesturecontrol") {
+      setGestureControlOpen(true);
+    } else if (id === "neuralvoice") {
+      setNeuralVoiceOpen(true);
+    } else if (id === "blockchainaudit") {
+      setBlockchainAuditOpen(true);
+    } else if (id === "e2esession") {
+      setE2ESessionOpen(true);
     } else {
       setArsenalPage(id);
     }
@@ -692,6 +726,15 @@ function AppContent() {
 
       {/* Intelligence Core — 16 engine modal */}
       <IntelligenceCoreModal open={intelligenceCoreOpen} onOpenChange={setIntelligenceCoreOpen} />
+      {/* Batch 10 — Futuristic 3D Features */}
+      <ThreatGlobeModal open={threatGlobeOpen} onOpenChange={setThreatGlobeOpen} />
+      <VulnGraph3DModal open={vulnGraph3DOpen} onOpenChange={setVulnGraph3DOpen} />
+      <LiveCodingModal open={liveCodingOpen} onOpenChange={setLiveCodingOpen} />
+      <ExploitSandboxModal open={exploitSandboxOpen} onOpenChange={setExploitSandboxOpen} />
+      <GestureControlModal open={gestureControlOpen} onOpenChange={setGestureControlOpen} />
+      <NeuralVoiceModal open={neuralVoiceOpen} onOpenChange={setNeuralVoiceOpen} />
+      <BlockchainAuditModal open={blockchainAuditOpen} onOpenChange={setBlockchainAuditOpen} />
+      <E2ESessionModal open={e2eSessionOpen} onOpenChange={setE2ESessionOpen} />
 
       {/* Global HUD scan line — year 3090 effect */}
       <div className="hud-scan-line pointer-events-none" />

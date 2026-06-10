@@ -10,6 +10,7 @@ import {
   Flame, TrendingDown, Monitor, BarChart2, Bug, Factory,
   FlaskConical, Search, Wifi, Rocket, FileText, Skull, Shuffle,
   Settings, Eye, AlertTriangle, Microscope, Globe, TrendingUp, Crown, Map, Orbit,
+  Radio, Lock as LockIcon,
 } from "lucide-react";
 import { pipeline, type PipelineHistoryEntry, type ChainRule } from "@/lib/pipeline";
 
@@ -54,7 +55,10 @@ export type ArsenalModuleId =
   | "cyberevolution" | "malwareanalysis" | "aisafety" | "multireality"
   | "zeroboundary" | "globalintelsync" | "privacyrisk" | "crossdomain"
   | "selfimprove" | "hyperadaptive" | "causalreason" | "fullspectrum"
-  | "autonomousoversight" | "largescaleanomaly";
+  | "autonomousoversight" | "largescaleanomaly"
+  // Batch 10 — Futuristic 3D Features
+  | "threatglobe" | "vulngraph3d" | "livecoding" | "exploitsandbox"
+  | "gesturecontrol" | "neuralvoice" | "blockchainaudit" | "e2esession";
 
 export type ArsenalModule = {
   id: ArsenalModuleId;
@@ -758,6 +762,55 @@ export const ARSENAL_MODULES: ArsenalModule[] = [
     desc: "Real-time connection status dashboard for all configured AI providers — latency, uptime, auto-refresh every 30 seconds.",
     icon: Wifi, color: "#3b82f6", border: "rgba(59,130,246,0.35)", bg: "rgba(59,130,246,0.07)", glow: "rgba(59,130,246,0.25)",
     source: "KaliGPT Native", tag: "MONITORING",
+  },
+  // ── Batch 10 — Futuristic 3D Features ────────────────────────────────────
+  {
+    id: "threatglobe", name: "Threat Globe 3D", subtitle: "Real-Time Global Attack Map",
+    desc: "Interactive Three.js 3D globe with live attack arc animations between countries, severity-coded by CRITICAL/HIGH/MEDIUM/LOW. Drag to rotate.",
+    icon: Globe, color: "#e21227", border: "rgba(226,18,39,0.35)", bg: "rgba(226,18,39,0.07)", glow: "rgba(226,18,39,0.25)",
+    source: "KaliGPT Native", tag: "3D",
+  },
+  {
+    id: "vulngraph3d", name: "Vuln Graph 3D", subtitle: "3D Exploit Chain Visualization",
+    desc: "Interactive 3D node graph of CVEs, exploits, and target systems in space. Click nodes to inspect — drag/scroll to navigate the vulnerability network.",
+    icon: Network, color: "#a78bfa", border: "rgba(167,139,250,0.35)", bg: "rgba(167,139,250,0.07)", glow: "rgba(167,139,250,0.25)",
+    source: "KaliGPT Native", tag: "3D",
+  },
+  {
+    id: "livecoding", name: "Live Code Engine", subtitle: "Auto-Typing Exploit Streams",
+    desc: "Real-time auto-typing code editor with 4 exploit demonstrations: Log4Shell PoC, SQLi Scanner, Reverse Shell Generator, JWT Forge. Full syntax highlighting.",
+    icon: Code2, color: "#00e5ff", border: "rgba(0,229,255,0.35)", bg: "rgba(0,229,255,0.07)", glow: "rgba(0,229,255,0.25)",
+    source: "KaliGPT Native", tag: "LIVE",
+  },
+  {
+    id: "exploitsandbox", name: "Exploit Sandbox", subtitle: "Isolated Browser Environment",
+    desc: "Run 3 exploit scenarios (Log4Shell, SSRF→Cloud, WAF Bypass SQLi) in a sandboxed isolated terminal. Animated step execution — no real systems touched.",
+    icon: FlaskConical, color: "#f97316", border: "rgba(249,115,22,0.35)", bg: "rgba(249,115,22,0.07)", glow: "rgba(249,115,22,0.25)",
+    source: "KaliGPT Native", tag: "SANDBOX",
+  },
+  {
+    id: "gesturecontrol", name: "Gesture Control", subtitle: "21-Landmark Hand Tracking",
+    desc: "Neural hand tracking engine with 21-point landmark model, 6 gesture recognition modes, and real-time canvas rendering of hand skeleton. 30+ FPS simulation.",
+    icon: Cpu, color: "#00e5ff", border: "rgba(0,229,255,0.35)", bg: "rgba(0,229,255,0.07)", glow: "rgba(0,229,255,0.25)",
+    source: "KaliGPT Native", tag: "AI/VISION",
+  },
+  {
+    id: "neuralvoice", name: "Neural Voice Engine", subtitle: "Tone-Shifting Synthesis",
+    desc: "5 voice profiles (Tactical, Ghost, Neural, Shadow, FreqBreach) with real-time waveform visualization, spectrum analyzer, pitch/rate controls, and speech synthesis.",
+    icon: Radio, color: "#a78bfa", border: "rgba(167,139,250,0.35)", bg: "rgba(167,139,250,0.07)", glow: "rgba(167,139,250,0.25)",
+    source: "KaliGPT Native", tag: "VOICE",
+  },
+  {
+    id: "blockchainaudit", name: "Blockchain Audit Log", subtitle: "Immutable Cryptographic Chain",
+    desc: "Tamper-evident audit log backed by cryptographic hash chain. Auto-mines new blocks, click-to-inspect any block, verify chain integrity, hash visualization.",
+    icon: Link2, color: "#10b981", border: "rgba(16,185,129,0.35)", bg: "rgba(16,185,129,0.07)", glow: "rgba(16,185,129,0.25)",
+    source: "KaliGPT Native", tag: "CRYPTO",
+  },
+  {
+    id: "e2esession", name: "E2E Session Manager", subtitle: "End-to-End Encrypted Sessions",
+    desc: "TLS 1.3 session manager with DH key exchange visualization, AES-256-GCM + X25519, rekey support, message encryption demo, forward secrecy, session timers.",
+    icon: LockIcon, color: "#00e5ff", border: "rgba(0,229,255,0.35)", bg: "rgba(0,229,255,0.07)", glow: "rgba(0,229,255,0.25)",
+    source: "KaliGPT Native", tag: "CRYPTO",
   },
 ];
 
