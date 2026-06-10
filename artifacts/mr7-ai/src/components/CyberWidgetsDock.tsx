@@ -4,7 +4,7 @@ import {
   Globe, Network, Activity, Package, BarChart3, X, Monitor,
   Layers, Radar, Wifi, Cpu, Shield, Maximize2,
   ChevronLeft, LayoutGrid, Thermometer, Clock, Zap,
-  AlertTriangle,
+  AlertTriangle, Keyboard,
 } from "lucide-react";
 import { CyberGlobeWidget }       from "./CyberGlobeWidget";
 import { InteractiveGlobeWidget } from "./InteractiveGlobeWidget";
@@ -17,16 +17,17 @@ import { IdleWidget }             from "./IdleWidget";
 import { trafficBus }             from "@/lib/trafficBus";
 
 /* ══════════════════════════════════════════════════════════════════════
-   CYBER WIDGETS DOCK  v4  — ULTRA 3D FUTURISTIC
-   ▸ Monitor icon + HUD text (like original) + live canvas bg + rings
-   ▸ Live data feed on button: CPU% · API calls · Threat count
-   ▸ 8-panel holographic HUD — 4×2 grid with deep 3D glass panels
-   ▸ SYS MONITOR (panel 7) + IDLE (panel 8) embedded inside HUD
-   ▸ Drag-anywhere · Ctrl+Shift+H toggle · ESC close
+   CYBER WIDGETS DOCK  v5  — ULTRA 3D FUTURISTIC
+   ▸ 6-panel grid (Panel 7 & 8 removed from grid)
+   ▸ SYS MONITOR + IDLE embedded as satellite mini-panels around orb
+   ▸ Keyboard shortcut glow indicator on button press
+   ▸ Threat spike alert flash animation
+   ▸ Draggable anywhere · Ctrl+Shift+H toggle · ESC close
 ══════════════════════════════════════════════════════════════════════ */
 
-const DOCK_POS_KEY = "cyber-hud-dock-pos-v4";
+const DOCK_POS_KEY = "cyber-hud-dock-pos-v5";
 
+/* 6 core intelligence panels (Panel 7+8 removed from grid) */
 const PANELS = [
   { id: "globe-threat", label: "GLOBAL THREAT MAP", icon: Globe,        color: "#e21227", desc: "Live attack origins"   },
   { id: "globe-map",    label: "GLOBAL MAP",         icon: Radar,        color: "#3b82f6", desc: "Interactive 3D globe"  },
@@ -34,8 +35,6 @@ const PANELS = [
   { id: "traffic",      label: "TRAFFIC ANALYZER",   icon: Activity,     color: "#22c55e", desc: "Real-time API calls"   },
   { id: "packets",      label: "PACKET INSPECTOR",   icon: Package,      color: "#f59e0b", desc: "Wireshark-style HUD"   },
   { id: "benchmark",    label: "MODEL BENCHMARK",    icon: BarChart3,    color: "#06b6d4", desc: "LLM leaderboard"       },
-  { id: "sysmon",       label: "SYS MONITOR",         icon: Thermometer,  color: "#10b981", desc: "System resources"      },
-  { id: "idle",         label: "IDLE / ACTIVITY",     icon: Clock,        color: "#f472b6", desc: "Session tracker"       },
 ];
 
 /* ── Position persistence ───────────────────────────────────────── */
@@ -52,9 +51,11 @@ function getInitialPos(): { x: number; y: number } {
 
 /* ── Live stats hook — CPU · API calls · Threat count ───────────── */
 function useLiveStats() {
-  const cpuRef  = useRef(34);
-  const tRef    = useRef(0);
-  const [stats, setStats] = useState({ cpu: 34, api: 0, thr: 3 });
+  const cpuRef   = useRef(34);
+  const memRef   = useRef(61);
+  const tRef     = useRef(0);
+  const prevThr  = useRef(3);
+  const [stats, setStats] = useState({ cpu: 34, mem: 61, api: 0, thr: 3, thrSpike: false });
   useEffect(() => {
     const iv = setInterval(() => {
       tRef.current += 1;
@@ -62,8 +63,13 @@ function useLiveStats() {
       cpuRef.current = Math.max(8, Math.min(95,
         cpuRef.current + noise() + Math.sin(tRef.current * 0.07) * 10
       ));
+      memRef.current = Math.max(35, Math.min(92,
+        memRef.current + (Math.random() - 0.48) * 1.5
+      ));
       const thr = Math.floor(2 + Math.sin(tRef.current * 0.05) * 2 + Math.random() * 2);
-      setStats({ cpu: Math.round(cpuRef.current), api: trafficBus.history.length, thr });
+      const thrSpike = thr > prevThr.current + 2;
+      prevThr.current = thr;
+      setStats({ cpu: Math.round(cpuRef.current), mem: Math.round(memRef.current), api: trafficBus.history.length, thr, thrSpike });
     }, 900);
     return () => clearInterval(iv);
   }, []);
@@ -116,10 +122,7 @@ function OrbCanvas({ cpu, thr }: { cpu: number; thr: number }) {
     const S = 76; cv.width = S; cv.height = S;
     const CX = S / 2, CY = S / 2, R = S / 2 - 1;
 
-    // Radar data (static shape, animated with sin)
     const radarData = Array.from({ length: 48 }, () => Math.random() * 0.55 + 0.28);
-
-    // Tiny sensor blips at edge
     const blips = Array.from({ length: 5 }, (_, i) => ({
       angle: (i / 5) * Math.PI * 2,
       phase: Math.random() * Math.PI * 2,
@@ -130,18 +133,15 @@ function OrbCanvas({ cpu, thr }: { cpu: number; thr: number }) {
       const t = (tkRef.current += 0.018);
       ctx.clearRect(0, 0, S, S);
 
-      /* clip to circle */
       ctx.save();
       ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2); ctx.clip();
 
-      /* 1. Dark radial background — matches screenshot */
       const bg = ctx.createRadialGradient(CX - 6, CY - 8, 0, CX, CY, R);
       bg.addColorStop(0,   "rgba(14,14,30,1)");
       bg.addColorStop(0.5, "rgba(6,6,18,1)");
       bg.addColorStop(1,   "rgba(2,2,8,1)");
       ctx.fillStyle = bg; ctx.fillRect(0, 0, S, S);
 
-      /* 2. Very faint polar grid (4 rings + 8 spokes) */
       ctx.strokeStyle = "rgba(0,229,255,0.07)";
       ctx.lineWidth = 0.5;
       [0.28, 0.5, 0.72, 0.92].forEach(f => {
@@ -155,7 +155,6 @@ function OrbCanvas({ cpu, thr }: { cpu: number; thr: number }) {
         ctx.lineTo(CX + Math.cos(a) * R, CY + Math.sin(a) * R); ctx.stroke();
       }
 
-      /* 3. Slow rotating radar sweep (very faint) */
       const sweepA = t * 0.6;
       ctx.save(); ctx.translate(CX, CY); ctx.rotate(sweepA);
       const swg = ctx.createLinearGradient(0, 0, R, 0);
@@ -167,7 +166,6 @@ function OrbCanvas({ cpu, thr }: { cpu: number; thr: number }) {
       ctx.arc(0, 0, R, -0.3, 0.3); ctx.closePath(); ctx.fill();
       ctx.restore();
 
-      /* 4. CPU-reactive waveform ring */
       const cpuFrac = cpu / 100;
       ctx.beginPath();
       for (let i = 0; i < 48; i++) {
@@ -182,7 +180,6 @@ function OrbCanvas({ cpu, thr }: { cpu: number; thr: number }) {
       const waveAlpha = 0.25 + cpuFrac * 0.25;
       ctx.strokeStyle = `rgba(0,229,255,${waveAlpha})`; ctx.lineWidth = 1.0; ctx.stroke();
 
-      /* 5. Threat-reactive red accent corner glow */
       if (thr > 0) {
         const thrAlpha = Math.min(0.18, thr * 0.04) + Math.sin(t * 2) * 0.03;
         const tg = ctx.createRadialGradient(CX + R * 0.5, CY - R * 0.5, 0, CX, CY, R);
@@ -191,7 +188,6 @@ function OrbCanvas({ cpu, thr }: { cpu: number; thr: number }) {
         ctx.fillStyle = tg; ctx.fillRect(0, 0, S, S);
       }
 
-      /* 6. Vertical scan line (sweeps down slowly) */
       const scanY = ((t * 18) % S);
       const sl = ctx.createLinearGradient(0, scanY - 5, 0, scanY + 5);
       sl.addColorStop(0, "rgba(0,229,255,0)");
@@ -199,7 +195,6 @@ function OrbCanvas({ cpu, thr }: { cpu: number; thr: number }) {
       sl.addColorStop(1, "rgba(0,229,255,0)");
       ctx.fillStyle = sl; ctx.fillRect(0, scanY - 5, S, 10);
 
-      /* 7. Sensor blips at edge */
       blips.forEach(b => {
         const alpha = 0.4 + Math.sin(t * 3 + b.phase) * 0.4;
         const bx = CX + Math.cos(b.angle) * R * 0.78;
@@ -210,7 +205,6 @@ function OrbCanvas({ cpu, thr }: { cpu: number; thr: number }) {
         ctx.strokeStyle = `rgba(0,229,255,${alpha * 0.25})`; ctx.lineWidth = 0.8; ctx.stroke();
       });
 
-      /* 8. Top sheen — glass highlight */
       const sheen = ctx.createLinearGradient(0, 0, 0, CY * 0.7);
       sheen.addColorStop(0, "rgba(255,255,255,0.08)");
       sheen.addColorStop(1, "rgba(255,255,255,0)");
@@ -254,7 +248,6 @@ function DataArcCanvas({ cpu, api, thr }: { cpu: number; api: number; thr: numbe
       const t = (tkRef.current += 0.012);
       ctx.clearRect(0, 0, S, S);
 
-      /* CPU arc — bottom left quadrant */
       const cpuFrac = cpu / 100;
       const cpuStart = Math.PI * 0.62;
       const cpuEnd   = cpuStart + Math.PI * 0.7 * cpuFrac;
@@ -265,7 +258,6 @@ function DataArcCanvas({ cpu, api, thr }: { cpu: number; api: number; thr: numbe
       ctx.strokeStyle = `rgba(0,229,255,${0.6 + Math.sin(t * 3) * 0.15})`; ctx.lineWidth = 3;
       ctx.lineCap = "round"; ctx.stroke();
 
-      /* THR arc — bottom right quadrant */
       const thrFrac = Math.min(1, thr / 10);
       const thrStart = Math.PI * 1.68;
       const thrEnd   = thrStart + Math.PI * 0.7 * thrFrac;
@@ -276,7 +268,6 @@ function DataArcCanvas({ cpu, api, thr }: { cpu: number; api: number; thr: numbe
       ctx.strokeStyle = `rgba(226,18,39,${0.6 + Math.sin(t * 2.5) * 0.15})`; ctx.lineWidth = 3;
       ctx.lineCap = "round"; ctx.stroke();
 
-      /* Rotating API dot */
       const apiAngle = t * 1.4 + Math.PI * 1.5;
       const apiR = R - 6;
       const ax = CX + Math.cos(apiAngle) * apiR;
@@ -286,25 +277,19 @@ function DataArcCanvas({ cpu, api, thr }: { cpu: number; api: number; thr: numbe
       ctx.beginPath(); ctx.arc(ax, ay, 5, 0, Math.PI * 2);
       ctx.strokeStyle = "rgba(34,197,94,0.25)"; ctx.lineWidth = 0.8; ctx.stroke();
 
-      /* Labels */
       ctx.font = "bold 7px monospace";
       ctx.textAlign = "center";
 
-      /* CPU label */
-      const cpuLabelAngle = cpuStart + Math.PI * 0.35 * cpuFrac;
       const clx = CX + Math.cos(cpuStart + Math.PI * 0.35) * (R + 7);
       const cly = CY + Math.sin(cpuStart + Math.PI * 0.35) * (R + 7);
       ctx.fillStyle = "rgba(0,229,255,0.8)";
       ctx.fillText(`${cpu}%`, clx, cly);
-      void cpuLabelAngle;
 
-      /* THR label */
       const tlx = CX + Math.cos(Math.PI * 1.68 + Math.PI * 0.35) * (R + 7);
       const tly = CY + Math.sin(Math.PI * 1.68 + Math.PI * 0.35) * (R + 7);
       ctx.fillStyle = thr > 4 ? "rgba(226,18,39,0.9)" : "rgba(226,18,39,0.6)";
       ctx.fillText(`T${thr}`, tlx, tly);
 
-      /* API label near dot */
       ctx.fillStyle = "rgba(34,197,94,0.8)";
       ctx.fillText(`${api}`, ax + Math.cos(apiAngle) * 10, ay + Math.sin(apiAngle) * 10);
     }
@@ -322,9 +307,327 @@ function DataArcCanvas({ cpu, api, thr }: { cpu: number; api: number; thr: numbe
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   SATELLITE MINI PANEL  — compact SysMonitor or Idle panel
+   Appears as floating card next to the orb
+══════════════════════════════════════════════════════════════════ */
+function SysMiniPanel({ cpu, mem }: { cpu: number; mem: number }) {
+  const cpuHot = cpu > 70;
+  const memHot = mem > 80;
+  const bars = [
+    { label: "CPU", value: cpu,  color: cpuHot ? "#e21227" : "#00e5ff" },
+    { label: "MEM", value: mem,  color: memHot ? "#f59e0b" : "#10b981" },
+    { label: "NET", value: Math.round(20 + Math.random() * 60), color: "#a855f7" },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20, scale: 0.85 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 20, scale: 0.85 }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        position: "absolute", right: "94px", bottom: 0,
+        width: "148px",
+        background: "linear-gradient(135deg, rgba(6,6,20,0.98) 0%, rgba(10,8,24,0.98) 100%)",
+        border: "1px solid rgba(16,185,129,0.3)",
+        borderRadius: "12px",
+        padding: "9px 10px",
+        backdropFilter: "blur(24px)",
+        boxShadow: "0 4px 40px rgba(0,0,0,0.92), 0 0 20px rgba(16,185,129,0.12), inset 0 1px 0 rgba(255,255,255,0.04)",
+        pointerEvents: "none",
+        zIndex: 10,
+      }}
+    >
+      <HoloShimmer color="#10b981" />
+      {/* Top accent */}
+      <div style={{ height: "1.5px", background: "linear-gradient(90deg, transparent, #10b981cc, transparent)", marginBottom: "7px", borderRadius: "1px" }} />
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "8px" }}>
+        <motion.div
+          animate={{ opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 1.6, repeat: Infinity }}
+          style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 8px #10b981", flexShrink: 0 }}
+        />
+        <span style={{ fontSize: "7.5px", fontFamily: "monospace", fontWeight: 900, color: "#10b981", letterSpacing: "2px", textShadow: "0 0 10px rgba(16,185,129,0.6)" }}>
+          SYS MONITOR
+        </span>
+        <Thermometer style={{ width: "8px", height: "8px", color: "#10b981", marginLeft: "auto" }} />
+      </div>
+
+      {/* Metric bars */}
+      {bars.map(b => (
+        <div key={b.label} style={{ marginBottom: "5px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2px" }}>
+            <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.3)", letterSpacing: "1px" }}>{b.label}</span>
+            <motion.span
+              key={Math.round(b.value / 5)}
+              initial={{ opacity: 0.5 }}
+              animate={{ opacity: 1 }}
+              style={{ fontSize: "7.5px", fontFamily: "monospace", fontWeight: 700, color: b.color, textShadow: `0 0 8px ${b.color}` }}
+            >{Math.round(b.value)}%</motion.span>
+          </div>
+          <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden" }}>
+            <motion.div
+              animate={{ width: `${b.value}%` }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              style={{
+                height: "100%", borderRadius: "2px",
+                background: `linear-gradient(90deg, ${b.color}88, ${b.color})`,
+                boxShadow: `0 0 6px ${b.color}`,
+              }}
+            />
+          </div>
+        </div>
+      ))}
+
+      {/* Corner brackets */}
+      <div style={{ position: "absolute", top: 4, left: 4, width: 7, height: 7, borderTop: "1px solid rgba(16,185,129,0.45)", borderLeft: "1px solid rgba(16,185,129,0.45)" }} />
+      <div style={{ position: "absolute", bottom: 4, right: 4, width: 7, height: 7, borderBottom: "1px solid rgba(16,185,129,0.45)", borderRight: "1px solid rgba(16,185,129,0.45)" }} />
+    </motion.div>
+  );
+}
+
+function IdleMiniPanel({ cpu }: { cpu: number }) {
+  void cpu;
+  const [elapsed, setElapsed] = useState(0);
+  const [isIdle, setIsIdle] = useState(false);
+  const startRef = useRef(Date.now());
+  const lastRef  = useRef(Date.now());
+  const [activity, setActivity] = useState(72);
+
+  useEffect(() => {
+    function onAct() { lastRef.current = Date.now(); }
+    document.addEventListener("mousemove", onAct);
+    document.addEventListener("keydown", onAct);
+    return () => { document.removeEventListener("mousemove", onAct); document.removeEventListener("keydown", onAct); };
+  }, []);
+
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setElapsed(Date.now() - startRef.current);
+      setIsIdle(Date.now() - lastRef.current > 5000);
+      setActivity(prev => Math.max(5, Math.min(100, prev + (Math.random() - 0.45) * 15)));
+    }, 800);
+    return () => clearInterval(iv);
+  }, []);
+
+  const pad = (n: number) => String(Math.floor(n)).padStart(2, "0");
+  const s = elapsed / 1000;
+  const timeStr = `${pad(s / 3600)}:${pad((s % 3600) / 60)}:${pad(s % 60)}`;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20, scale: 0.85 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 20, scale: 0.85 }}
+      transition={{ duration: 0.22, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        position: "absolute", right: "94px", bottom: "82px",
+        width: "148px",
+        background: "linear-gradient(135deg, rgba(6,6,20,0.98) 0%, rgba(10,8,24,0.98) 100%)",
+        border: "1px solid rgba(244,114,182,0.3)",
+        borderRadius: "12px",
+        padding: "9px 10px",
+        backdropFilter: "blur(24px)",
+        boxShadow: "0 4px 40px rgba(0,0,0,0.92), 0 0 20px rgba(244,114,182,0.12), inset 0 1px 0 rgba(255,255,255,0.04)",
+        pointerEvents: "none",
+        zIndex: 10,
+      }}
+    >
+      <HoloShimmer color="#f472b6" />
+      <div style={{ height: "1.5px", background: "linear-gradient(90deg, transparent, #f472b6cc, transparent)", marginBottom: "7px", borderRadius: "1px" }} />
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "7px" }}>
+        <motion.div
+          animate={{ opacity: isIdle ? [0.3, 0.7, 0.3] : [0.7, 1, 0.7] }}
+          transition={{ duration: isIdle ? 2.5 : 1.2, repeat: Infinity }}
+          style={{ width: "5px", height: "5px", borderRadius: "50%", background: isIdle ? "#f59e0b" : "#f472b6", boxShadow: `0 0 8px ${isIdle ? "#f59e0b" : "#f472b6"}`, flexShrink: 0 }}
+        />
+        <span style={{ fontSize: "7.5px", fontFamily: "monospace", fontWeight: 900, color: "#f472b6", letterSpacing: "2px", textShadow: "0 0 10px rgba(244,114,182,0.6)" }}>
+          IDLE TRACK
+        </span>
+        <Clock style={{ width: "8px", height: "8px", color: "#f472b6", marginLeft: "auto" }} />
+      </div>
+
+      {/* Session timer */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+        <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>SESSION</span>
+        <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 900, color: "#f472b6", textShadow: "0 0 10px rgba(244,114,182,0.6)", letterSpacing: "1px" }}>{timeStr}</span>
+      </div>
+
+      {/* Activity mini bar */}
+      <div style={{ marginBottom: "5px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "2px" }}>
+          <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>ACTIVITY</span>
+          <span style={{ fontSize: "6.5px", fontFamily: "monospace", color: isIdle ? "#f59e0b" : "#f472b6" }}>{isIdle ? "IDLE" : "ACTIVE"}</span>
+        </div>
+        <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden" }}>
+          <motion.div
+            animate={{ width: `${activity}%` }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            style={{
+              height: "100%", borderRadius: "2px",
+              background: isIdle
+                ? "linear-gradient(90deg, rgba(245,158,11,0.6), #f59e0b)"
+                : "linear-gradient(90deg, rgba(244,114,182,0.6), #f472b6)",
+              boxShadow: `0 0 6px ${isIdle ? "#f59e0b" : "#f472b6"}`,
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Queries */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>AI CALLS</span>
+        <span style={{ fontSize: "8px", fontFamily: "monospace", fontWeight: 700, color: "#22c55e" }}>{trafficBus.history.length}</span>
+      </div>
+
+      <div style={{ position: "absolute", top: 4, left: 4, width: 7, height: 7, borderTop: "1px solid rgba(244,114,182,0.45)", borderLeft: "1px solid rgba(244,114,182,0.45)" }} />
+      <div style={{ position: "absolute", bottom: 4, right: 4, width: 7, height: 7, borderBottom: "1px solid rgba(244,114,182,0.45)", borderRight: "1px solid rgba(244,114,182,0.45)" }} />
+    </motion.div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   THREAT SPIKE FLASH  — full-screen alert overlay
+══════════════════════════════════════════════════════════════════ */
+function ThreatSpikeFlash({ active }: { active: boolean }) {
+  return (
+    <AnimatePresence>
+      {active && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.18, 0.08, 0.22, 0] }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
+          style={{
+            position: "fixed", inset: 0, zIndex: 999, pointerEvents: "none",
+            background: "radial-gradient(ellipse at center, rgba(226,18,39,0.28) 0%, rgba(226,18,39,0.12) 50%, transparent 80%)",
+            border: "2px solid rgba(226,18,39,0)",
+          }}
+        >
+          {/* Corner flash beams */}
+          {[
+            { top: 0, left: 0, origin: "top left" },
+            { top: 0, right: 0, origin: "top right" },
+            { bottom: 0, left: 0, origin: "bottom left" },
+            { bottom: 0, right: 0, origin: "bottom right" },
+          ].map((pos, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: [0, 0.7, 0], scale: [0, 1.4, 0] }}
+              transition={{ duration: 0.7, delay: i * 0.06 }}
+              style={{
+                position: "absolute",
+                width: "120px", height: "120px",
+                ...pos,
+                background: "radial-gradient(circle, rgba(226,18,39,0.5) 0%, transparent 70%)",
+                transformOrigin: pos.origin,
+                pointerEvents: "none",
+              }}
+            />
+          ))}
+          {/* Alert text */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: -20 }}
+            animate={{ opacity: [0, 1, 0.8, 0], scale: [0.8, 1.05, 1, 0.9], y: [-20, 0, 0, 10] }}
+            transition={{ duration: 0.9 }}
+            style={{
+              position: "absolute", top: "50%", left: "50%",
+              transform: "translate(-50%, -50%)",
+              fontFamily: "monospace", fontWeight: 900,
+              fontSize: "clamp(14px, 2vw, 22px)",
+              color: "#e21227", letterSpacing: "6px",
+              textShadow: "0 0 30px rgba(226,18,39,0.9), 0 0 60px rgba(226,18,39,0.5)",
+              pointerEvents: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
+            THREAT SPIKE DETECTED
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   KEYBOARD SHORTCUT GLOW  — animated ring on Ctrl+Shift+H
+══════════════════════════════════════════════════════════════════ */
+function KeyGlowRing({ active }: { active: boolean }) {
+  return (
+    <AnimatePresence>
+      {active && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: [0, 1, 0.6, 0], scale: [0.8, 1.6, 2.0, 2.4] }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.75, ease: "easeOut" }}
+          style={{
+            position: "absolute", inset: "-16px", borderRadius: "50%",
+            border: "2px solid rgba(0,229,255,0.85)",
+            boxShadow: "0 0 24px rgba(0,229,255,0.7), 0 0 48px rgba(0,229,255,0.35)",
+            pointerEvents: "none",
+            zIndex: 20,
+          }}
+        />
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   KEYBOARD INDICATOR BADGE  — glows when hotkey used recently
+══════════════════════════════════════════════════════════════════ */
+function KeyIndicatorBadge({ active }: { active: boolean }) {
+  return (
+    <AnimatePresence>
+      {active && (
+        <motion.div
+          initial={{ opacity: 0, y: 8, scale: 0.7 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 8, scale: 0.7 }}
+          transition={{ duration: 0.2 }}
+          style={{
+            position: "absolute", top: "-28px", left: "50%", transform: "translateX(-50%)",
+            background: "rgba(0,229,255,0.12)",
+            border: "1px solid rgba(0,229,255,0.5)",
+            borderRadius: "6px",
+            padding: "3px 7px",
+            display: "flex", alignItems: "center", gap: "4px",
+            whiteSpace: "nowrap",
+            boxShadow: "0 0 14px rgba(0,229,255,0.35)",
+            backdropFilter: "blur(12px)",
+            zIndex: 20,
+          }}
+        >
+          <Keyboard style={{ width: "8px", height: "8px", color: "#00e5ff" }} />
+          <span style={{ fontSize: "6.5px", fontFamily: "monospace", fontWeight: 700, color: "#00e5ff", letterSpacing: "1.5px" }}>
+            CTRL+SHIFT+H
+          </span>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
    DOCK BUTTON  — Monitor icon + HUD text + live data + 3D rings
 ══════════════════════════════════════════════════════════════════ */
-function DockButton({ onClick }: { onClick: () => void }) {
+function DockButton({
+  onClick,
+  keyGlow,
+  showSatellites,
+  stats,
+}: {
+  onClick: () => void;
+  keyGlow: boolean;
+  showSatellites: boolean;
+  stats: { cpu: number; mem: number; api: number; thr: number };
+}) {
   const [pos,      setPos]      = useState(getInitialPos);
   const [hovered,  setHovered]  = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -332,7 +635,6 @@ function DockButton({ onClick }: { onClick: () => void }) {
   const posRef  = useRef(pos);
   const dragRef = useRef({ active: false, sx: 0, sy: 0, spx: 0, spy: 0, moved: false });
   const btnRef  = useRef<HTMLDivElement>(null);
-  const stats = useLiveStats();
 
   useEffect(() => { posRef.current = pos; }, [pos]);
 
@@ -419,6 +721,16 @@ function DockButton({ onClick }: { onClick: () => void }) {
       onMouseLeave={() => { setHovered(false); setTilt({ x: 0, y: 0 }); }}
       onMouseMove={handleMouseMove}
     >
+      {/* Satellite mini panels — appear on hover */}
+      <AnimatePresence>
+        {(hovered || showSatellites) && !dragging && (
+          <>
+            <SysMiniPanel cpu={stats.cpu} mem={stats.mem} />
+            <IdleMiniPanel cpu={stats.cpu} />
+          </>
+        )}
+      </AnimatePresence>
+
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
         animate={{
@@ -434,6 +746,12 @@ function DockButton({ onClick }: { onClick: () => void }) {
           perspective: "350px",
         }}
       >
+        {/* Keyboard glow ring */}
+        <KeyGlowRing active={keyGlow} />
+
+        {/* Keyboard indicator badge */}
+        <KeyIndicatorBadge active={keyGlow} />
+
         {/* ══ Layer 1: Outermost dashed blue ring ══ */}
         <motion.div
           style={{
@@ -447,7 +765,20 @@ function DockButton({ onClick }: { onClick: () => void }) {
           transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
         />
 
-        {/* ══ Layer 2: Pulsing outer red ring (matches screenshot) ══ */}
+        {/* ══ Layer 1b: Counter-rotating dashed ring ══ */}
+        <motion.div
+          style={{
+            position: "absolute",
+            inset: "-10px",
+            borderRadius: "50%",
+            border: "1px dashed rgba(244,114,182,0.22)",
+            pointerEvents: "none",
+          }}
+          animate={{ rotate: -360 }}
+          transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+        />
+
+        {/* ══ Layer 2: Pulsing outer red ring ══ */}
         <motion.div
           style={{
             position: "absolute", inset: "-5px",
@@ -465,7 +796,7 @@ function DockButton({ onClick }: { onClick: () => void }) {
           transition={{ duration: 2.2, repeat: Infinity }}
         />
 
-        {/* ══ Layer 3: Inner blue ring (matches screenshot) ══ */}
+        {/* ══ Layer 3: Inner blue ring ══ */}
         <motion.div
           style={{
             position: "absolute", inset: "-2px",
@@ -515,7 +846,6 @@ function DockButton({ onClick }: { onClick: () => void }) {
           alignItems: "center", justifyContent: "center",
           gap: "3px", zIndex: 4, pointerEvents: "none",
         }}>
-          {/* Monitor icon — exactly like screenshot */}
           <motion.div
             style={{ filter: "drop-shadow(0 0 9px #00e5ff)" }}
             animate={{ opacity: [0.88, 1, 0.88] }}
@@ -524,18 +854,13 @@ function DockButton({ onClick }: { onClick: () => void }) {
             <Monitor style={{ width: "21px", height: "21px", color: "#00e5ff" }} />
           </motion.div>
 
-          {/* HUD text — exactly like screenshot */}
           <span style={{
             fontSize: "7px", fontFamily: "monospace", fontWeight: 900,
             color: "#00e5ff", letterSpacing: "2.5px",
             textShadow: "0 0 12px rgba(0,229,255,0.8), 0 0 24px rgba(0,229,255,0.4)",
           }}>HUD</span>
 
-          {/* Live data strip */}
-          <div style={{
-            display: "flex", gap: "3px", alignItems: "center", marginTop: "1px",
-          }}>
-            {/* CPU bar */}
+          <div style={{ display: "flex", gap: "3px", alignItems: "center", marginTop: "1px" }}>
             <motion.span
               key={stats.cpu}
               initial={{ opacity: 0.4 }}
@@ -551,7 +876,6 @@ function DockButton({ onClick }: { onClick: () => void }) {
               {stats.cpu}%
             </motion.span>
             <span style={{ width: "1px", height: "5px", background: "rgba(255,255,255,0.15)", borderRadius: "1px" }} />
-            {/* API dot */}
             <motion.div
               animate={{ opacity: [0.5, 1, 0.5], scale: [0.9, 1.1, 0.9] }}
               transition={{ duration: 0.9, repeat: Infinity }}
@@ -574,7 +898,7 @@ function DockButton({ onClick }: { onClick: () => void }) {
             boxShadow: "0 0 10px rgba(226,18,39,0.7)",
             zIndex: 5,
           }}
-        >8</motion.div>
+        >6</motion.div>
 
         {/* ══ Layer 9: Threat warning badge ══ */}
         <AnimatePresence>
@@ -596,6 +920,25 @@ function DockButton({ onClick }: { onClick: () => void }) {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* ══ SYS + IDLE indicator dots (bottom row) ══ */}
+        <div style={{
+          position: "absolute", bottom: "-14px", left: "50%", transform: "translateX(-50%)",
+          display: "flex", gap: "4px", alignItems: "center", zIndex: 5,
+        }}>
+          <motion.div
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.4, repeat: Infinity }}
+            title="SYS MONITOR"
+            style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 5px #10b981" }}
+          />
+          <motion.div
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.8, repeat: Infinity, delay: 0.4 }}
+            title="IDLE TRACKER"
+            style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#f472b6", boxShadow: "0 0 5px #f472b6" }}
+          />
+        </div>
       </motion.div>
 
       {/* ══ Tooltip ══ */}
@@ -619,24 +962,20 @@ function DockButton({ onClick }: { onClick: () => void }) {
             <div style={{ height: "1px", background: "linear-gradient(90deg, transparent, rgba(0,229,255,0.5), transparent)", marginBottom: "8px" }} />
             <div style={{ fontSize: "11px", fontFamily: "monospace", fontWeight: 900, color: "#fff", letterSpacing: "2.5px" }}>CYBER HUD</div>
             <div style={{ fontSize: "7px", fontFamily: "monospace", color: "rgba(255,255,255,0.3)", letterSpacing: "1px", marginTop: "2px" }}>
-              8 INTELLIGENCE PANELS · LIVE
+              6 PANELS · SYS + IDLE IN ORB
             </div>
-            {/* Live stats in tooltip */}
             <div style={{ display: "flex", gap: "10px", marginTop: "8px", paddingTop: "6px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "0.5px" }}>CPU</span>
-                <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, color: cpuHot ? "#e21227" : "#00e5ff" }}>{stats.cpu}%</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "0.5px" }}>API</span>
-                <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, color: "#22c55e" }}>{stats.api}</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "0.5px" }}>THR</span>
-                <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, color: thrHot ? "#e21227" : "#f59e0b" }}>{stats.thr}</span>
-              </div>
+              {[
+                { label: "CPU", val: `${stats.cpu}%`, color: stats.cpu > 70 ? "#e21227" : "#00e5ff" },
+                { label: "API", val: `${stats.api}`,  color: "#22c55e" },
+                { label: "THR", val: `${stats.thr}`,  color: stats.thr > 4 ? "#e21227" : "#f59e0b" },
+              ].map(({ label, val, color }) => (
+                <div key={label} style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                  <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "0.5px" }}>{label}</span>
+                  <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, color }}>{val}</span>
+                </div>
+              ))}
             </div>
-            {/* Panel dots */}
             <div style={{ display: "flex", gap: "4px", marginTop: "7px" }}>
               {PANELS.map(p => (
                 <motion.div key={p.id}
@@ -645,6 +984,11 @@ function DockButton({ onClick }: { onClick: () => void }) {
                   style={{ width: "5px", height: "5px", borderRadius: "50%", background: p.color, boxShadow: `0 0 5px ${p.color}` }}
                 />
               ))}
+              {/* SYS + IDLE dots */}
+              <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0.8 }}
+                style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 5px #10b981" }} />
+              <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.6, repeat: Infinity, delay: 1.1 }}
+                style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#f472b6", boxShadow: "0 0 5px #f472b6" }} />
             </div>
             <div style={{ position: "absolute", top: 4, left: 4, width: 6, height: 6, borderTop: "1px solid rgba(0,229,255,0.4)", borderLeft: "1px solid rgba(0,229,255,0.4)" }} />
             <div style={{ position: "absolute", bottom: 4, right: 4, width: 6, height: 6, borderBottom: "1px solid rgba(0,229,255,0.4)", borderRight: "1px solid rgba(0,229,255,0.4)" }} />
@@ -703,13 +1047,11 @@ function WidgetCard({
     >
       {hov && <HoloShimmer color={color} />}
 
-      {/* Top accent */}
       <motion.div
         animate={{ opacity: hov ? 1 : 0.5, scaleX: hov ? 1 : 0.6 }}
         style={{ height: "2px", background: `linear-gradient(90deg, transparent, ${color}dd, ${color}, transparent)`, flexShrink: 0, transformOrigin: "center" }}
       />
 
-      {/* Header */}
       <div style={{
         display: "flex", alignItems: "center", gap: "6px",
         padding: "6px 9px",
@@ -801,12 +1143,10 @@ function HUDBackground() {
       const t = (tkRef.current += 0.013);
       ctx.clearRect(0, 0, W, H);
 
-      /* Deep bg */
       const bg = ctx.createRadialGradient(W * 0.5, H * 0.38, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.85);
       bg.addColorStop(0, "rgba(5,4,18,1)"); bg.addColorStop(0.5, "rgba(2,2,10,1)"); bg.addColorStop(1, "rgba(0,0,5,1)");
       ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
-      /* Corner glows */
       [
         { x: 0,   y: 0,   c: "rgba(226,18,39,0.055)"  },
         { x: W,   y: 0,   c: "rgba(59,130,246,0.04)"  },
@@ -818,7 +1158,6 @@ function HUDBackground() {
         ctx.fillStyle = cg; ctx.fillRect(0, 0, W, H);
       });
 
-      /* 3D perspective grid */
       const vp = { x: W * 0.5, y: H * 0.42 };
       const gScroll = (t * 20) % (H / 14);
       for (let i = -16; i <= 16; i++) {
@@ -838,12 +1177,10 @@ function HUDBackground() {
         ctx.beginPath(); ctx.moveTo(vp.x - halfW2, gy); ctx.lineTo(vp.x + halfW2, gy); ctx.stroke();
       }
 
-      /* Vanishing point glow */
       const vpg = ctx.createRadialGradient(vp.x, vp.y, 0, vp.x, vp.y, 140);
       vpg.addColorStop(0, "rgba(226,18,39,0.12)"); vpg.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = vpg; ctx.fillRect(vp.x - 140, vp.y - 90, 280, 200);
 
-      /* DNA helix columns */
       [0.06, 0.94].forEach(cx2 => {
         const hx = cx2 * W;
         const amp = 11, freq = 0.044, nodeCount = 26;
@@ -872,7 +1209,6 @@ function HUDBackground() {
         }
       });
 
-      /* Particles */
       pts.forEach(p => {
         p.x += p.vx; p.y += p.vy;
         if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
@@ -893,7 +1229,6 @@ function HUDBackground() {
       });
       ctx.globalAlpha = 1;
 
-      /* Scan sweep */
       const scanY = (t * 50) % H;
       const sg = ctx.createLinearGradient(0, scanY - 8, 0, scanY + 8);
       sg.addColorStop(0, "rgba(0,229,255,0)"); sg.addColorStop(0.5, "rgba(0,229,255,0.045)"); sg.addColorStop(1, "rgba(0,229,255,0)");
@@ -921,7 +1256,7 @@ function HUDClock() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   MAIN HUD OVERLAY
+   MAIN HUD OVERLAY  — 6-panel grid (Panel 7+8 in orb)
 ══════════════════════════════════════════════════════════════════ */
 function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
   const [loaded,       setLoaded]       = useState(false);
@@ -939,7 +1274,10 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
     setTimeout(() => setFocusedPanel(null), 150);
   }, []);
 
-  const focusedMeta = focusedPanel ? PANELS.find(p => p.id === focusedPanel)! : null;
+  const focusedMeta = focusedPanel ? [...PANELS,
+    { id: "sysmon", label: "SYS MONITOR", icon: Thermometer, color: "#10b981", desc: "System resources" },
+    { id: "idle",   label: "IDLE / ACTIVITY", icon: Clock, color: "#f472b6", desc: "Session tracker" },
+  ].find(p => p.id === focusedPanel)! : null;
 
   const wrapper = (children: React.ReactNode) => (
     <motion.div
@@ -950,10 +1288,8 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
       style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", flexDirection: "column", overflow: "hidden" }}
     >
       <HUDBackground />
-      {/* CRT scanlines */}
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
         backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.007) 2px, rgba(255,255,255,0.007) 4px)" }} />
-      {/* Vignette */}
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
         background: "radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.6) 100%)" }} />
       {children}
@@ -1040,7 +1376,7 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
     );
   }
 
-  /* ── 8-panel grid ── */
+  /* ── 6-panel grid ── */
   return wrapper(
     <>
       {/* Header */}
@@ -1070,13 +1406,14 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
             <motion.span animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.2, repeat: Infinity }}
               style={{ fontSize: "7px", fontFamily: "monospace", fontWeight: 700, color: "#22c55e", letterSpacing: "1px", padding: "2px 7px", borderRadius: "4px",
                 background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.28)", boxShadow: "0 0 8px rgba(34,197,94,0.2)" }}>LIVE</motion.span>
-            <span style={{ fontSize: "7px", fontFamily: "monospace", color: "rgba(0,229,255,0.4)" }}>v4.0</span>
+            <span style={{ fontSize: "7px", fontFamily: "monospace", color: "rgba(0,229,255,0.4)" }}>v5.0</span>
           </div>
           <div style={{ fontSize: "8px", fontFamily: "monospace", color: "rgba(255,255,255,0.2)", letterSpacing: "1.2px", marginTop: "2px" }}>
-            8 INTELLIGENCE PANELS · SYS MONITOR · IDLE TRACKER · REAL-TIME
+            6 INTELLIGENCE PANELS · SYS + IDLE LIVE IN ORB
           </div>
         </div>
 
+        {/* Panel dots + SYS/IDLE quick-launch */}
         <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
           {PANELS.map((p, i) => (
             <motion.button key={p.id} title={p.label}
@@ -1087,6 +1424,21 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
               style={{ width: "6px", height: "6px", borderRadius: "50%", background: p.color, boxShadow: `0 0 6px ${p.color}`, cursor: "pointer", border: "none" }}
             />
           ))}
+          <div style={{ width: "1px", height: "12px", background: "rgba(255,255,255,0.1)" }} />
+          <motion.button title="SYS MONITOR"
+            onClick={() => handleExpand("sysmon")}
+            whileHover={{ scale: 2 }}
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.4, repeat: Infinity }}
+            style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 6px #10b981", cursor: "pointer", border: "none" }}
+          />
+          <motion.button title="IDLE / ACTIVITY"
+            onClick={() => handleExpand("idle")}
+            whileHover={{ scale: 2 }}
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.8, repeat: Infinity, delay: 0.5 }}
+            style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#f472b6", boxShadow: "0 0 6px #f472b6", cursor: "pointer", border: "none" }}
+          />
         </div>
 
         <HUDClock />
@@ -1102,10 +1454,10 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
         </button>
       </div>
 
-      {/* 4×2 panel grid */}
+      {/* 3×2 panel grid (6 panels) */}
       <div style={{
         position: "relative", zIndex: 5, flex: 1, display: "grid",
-        gridTemplateColumns: "repeat(4, 1fr)",
+        gridTemplateColumns: "repeat(3, 1fr)",
         gridTemplateRows: "repeat(2, 1fr)",
         gap: "8px", padding: "10px", overflow: "hidden",
       }}>
@@ -1113,7 +1465,7 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
           <motion.div key={panel.id}
             initial={{ opacity: 0, y: 20, scale: 0.92, rotateX: -10 }}
             animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-            transition={{ delay: i * 0.055, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ delay: i * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             style={{ display: "flex", flexDirection: "column", minHeight: 0 }}
           >
             <WidgetCard id={panel.id} label={panel.label} icon={panel.icon} color={panel.color} desc={panel.desc}
@@ -1126,24 +1478,25 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
         ))}
       </div>
 
-      {/* Footer status bar */}
+      {/* Footer — includes SYS + IDLE status */}
       <div style={{
         position: "relative", zIndex: 10,
-        display: "flex", alignItems: "center", gap: "18px",
+        display: "flex", alignItems: "center", gap: "14px",
         padding: "7px 18px",
         borderTop: "1px solid rgba(255,255,255,0.04)",
         background: "rgba(3,3,12,0.82)", backdropFilter: "blur(14px)", flexShrink: 0,
+        overflowX: "auto",
       }}>
         {[
-          { icon: Wifi,          label: "FEEDS",    val: "8/8",    color: "#22c55e" },
-          { icon: Cpu,           label: "LATENCY",  val: "12ms",   color: "#3b82f6" },
-          { icon: Shield,        label: "THREATS",  val: "ACTIVE", color: "#e21227" },
-          { icon: Monitor,       label: "PANELS",   val: "8 LIVE", color: "#a855f7" },
-          { icon: Zap,           label: "NEURAL",   val: "ONLINE", color: "#f59e0b" },
-          { icon: Thermometer,   label: "SYS MON",  val: "LIVE",   color: "#10b981" },
-          { icon: Clock,         label: "IDLE TRK", val: "ACTIVE", color: "#f472b6" },
+          { icon: Wifi,        label: "FEEDS",    val: "6/6",    color: "#22c55e" },
+          { icon: Cpu,         label: "LATENCY",  val: "12ms",   color: "#3b82f6" },
+          { icon: Shield,      label: "THREATS",  val: "ACTIVE", color: "#e21227" },
+          { icon: Monitor,     label: "PANELS",   val: "6 LIVE", color: "#a855f7" },
+          { icon: Zap,         label: "NEURAL",   val: "ONLINE", color: "#f59e0b" },
+          { icon: Thermometer, label: "SYS MON",  val: "IN ORB", color: "#10b981" },
+          { icon: Clock,       label: "IDLE TRK", val: "IN ORB", color: "#f472b6" },
         ].map(({ icon: Icon, label, val, color }) => (
-          <div key={label} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: "5px", flexShrink: 0 }}>
             <motion.div animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.8 + Math.random(), repeat: Infinity }}>
               <Icon style={{ width: "9px", height: "9px", color }} />
             </motion.div>
@@ -1152,7 +1505,7 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
           </div>
         ))}
         <div style={{ flex: 1 }} />
-        <span style={{ fontSize: "7px", fontFamily: "monospace", color: "rgba(255,255,255,0.1)", letterSpacing: "1px" }}>
+        <span style={{ fontSize: "7px", fontFamily: "monospace", color: "rgba(255,255,255,0.1)", letterSpacing: "1px", flexShrink: 0 }}>
           ESC · CTRL+SHIFT+H · ⊞ EXPAND
         </span>
       </div>
@@ -1164,12 +1517,30 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
    PUBLIC EXPORT
 ══════════════════════════════════════════════════════════════════ */
 export function CyberWidgetsDock() {
-  const [open, setOpen] = useState(false);
+  const [open,          setOpen]          = useState(false);
+  const [keyGlow,       setKeyGlow]       = useState(false);
+  const [showSatellites, setShowSatellites] = useState(false);
+  const [threatFlash,   setThreatFlash]   = useState(false);
+  const stats = useLiveStats();
+
+  /* Threat spike flash */
+  useEffect(() => {
+    if (!stats.thrSpike) return;
+    setThreatFlash(true);
+    const t = setTimeout(() => setThreatFlash(false), 1000);
+    return () => clearTimeout(t);
+  }, [stats.thrSpike]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "h") {
-        e.preventDefault(); setOpen(v => !v);
+        e.preventDefault();
+        /* Keyboard glow flash */
+        setKeyGlow(true);
+        setShowSatellites(true);
+        setTimeout(() => setKeyGlow(false), 750);
+        setTimeout(() => setShowSatellites(false), 3000);
+        setOpen(v => !v);
       }
       if (e.key === "Escape" && open) setOpen(false);
     }
@@ -1179,7 +1550,13 @@ export function CyberWidgetsDock() {
 
   return (
     <>
-      <DockButton onClick={() => setOpen(true)} />
+      <ThreatSpikeFlash active={threatFlash} />
+      <DockButton
+        onClick={() => setOpen(true)}
+        keyGlow={keyGlow}
+        showSatellites={showSatellites}
+        stats={stats}
+      />
       <AnimatePresence>
         {open && <CyberHUDOverlay onClose={() => setOpen(false)} />}
       </AnimatePresence>
