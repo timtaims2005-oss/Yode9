@@ -30,7 +30,7 @@ import type { SessionEvent }      from "@/lib/sessionRecorder";
    ▸ Draggable anywhere · Ctrl+Shift+H toggle · ESC close
 ══════════════════════════════════════════════════════════════════════ */
 
-const DOCK_POS_KEY = "cyber-hud-dock-pos-v5";
+const DOCK_POS_KEY = "cyber-hud-dock-pos-v6";
 
 /* 6 core intelligence panels (Panel 7+8 removed from grid) */
 const PANELS = [
@@ -44,14 +44,20 @@ const PANELS = [
 
 /* ── Position persistence ───────────────────────────────────────── */
 function getInitialPos(): { x: number; y: number } {
+  const W = typeof window !== "undefined" ? window.innerWidth  : 1280;
+  const H = typeof window !== "undefined" ? window.innerHeight : 800;
+  const defaultX = W - 108;
+  const defaultY = H - 120;
   try {
     const s = localStorage.getItem(DOCK_POS_KEY);
-    if (s) return JSON.parse(s);
+    if (s) {
+      const { x, y } = JSON.parse(s) as { x: number; y: number };
+      const cx = Math.max(8, Math.min(W - 80, x));
+      const cy = Math.max(8, Math.min(H - 100, y));
+      return { x: cx, y: cy };
+    }
   } catch {}
-  return {
-    x: typeof window !== "undefined" ? window.innerWidth  - 96 : 900,
-    y: typeof window !== "undefined" ? window.innerHeight - 96 : 600,
-  };
+  return { x: defaultX, y: defaultY };
 }
 
 /* ── Draggable hook for floating HUD panel (mirrors NET INTRUSION) ── */
@@ -1726,7 +1732,7 @@ function DockButton({
     <div
       ref={btnRef}
       style={{
-        position: "fixed", left: pos.x, top: pos.y, zIndex: 95,
+        position: "fixed", left: pos.x, top: pos.y, zIndex: 9999,
         cursor: dragging ? "grabbing" : "grab", userSelect: "none",
       }}
       onMouseDown={onMouseDown}
@@ -2369,24 +2375,255 @@ function CyberPanelFocusView({ id, onClose }: { id: string; onClose: () => void 
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   CYBER HUD OVERLAY  — small draggable floating panel
-   Same spring animation + 3D tilt + drag as NET INTRUSION
+   HUD PANEL CANVAS  — animated 3D holographic background
+══════════════════════════════════════════════════════════════════ */
+function HUDPanelCanvas() {
+  const cvRef  = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    const cv = cvRef.current; if (!cv) return;
+    const ctx = cv.getContext("2d")!;
+    const dpr = window.devicePixelRatio || 1;
+    function resize() {
+      const W = cv.offsetWidth, H = cv.offsetHeight;
+      cv.width = W * dpr; cv.height = H * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    resize();
+    const W = () => cv.offsetWidth;
+    const H = () => cv.offsetHeight;
+
+    const nodes = Array.from({ length: 22 }, () => ({
+      x: Math.random() * W(), y: Math.random() * H(),
+      vx: (Math.random() - 0.5) * 0.22, vy: (Math.random() - 0.5) * 0.22,
+      r: Math.random() * 1.3 + 0.5,
+      color: ["#e21227", "#ff3a50", "#00e5ff", "#a855f7", "#22c55e", "#f59e0b"][Math.floor(Math.random() * 6)],
+      pulse: Math.random() * Math.PI * 2,
+    }));
+
+    const particles = Array.from({ length: 28 }, () => ({
+      x: Math.random() * W(), y: Math.random() * H(),
+      vy: -(Math.random() * 0.35 + 0.08),
+      alpha: Math.random() * 0.35 + 0.08,
+      r: Math.random() * 0.7 + 0.2,
+      color: Math.random() < 0.7 ? "#e21227" : "#00e5ff",
+    }));
+
+    let t = 0;
+    function frame() {
+      rafRef.current = requestAnimationFrame(frame);
+      t += 0.016;
+      const cw = W(), ch = H();
+      ctx.clearRect(0, 0, cw, ch);
+
+      // Dark bg
+      ctx.fillStyle = "rgba(3,2,14,0.82)";
+      ctx.fillRect(0, 0, cw, ch);
+
+      // Perspective grid scrolling forward
+      const vp = { x: cw * 0.5, y: ch * 0.32 };
+      const scroll = (t * 16) % (ch / 9);
+      for (let i = -9; i <= 9; i++) {
+        const frac = (i + 9) / 18;
+        const cx2 = frac * cw;
+        const alpha = 0.055 - Math.abs(i) / 9 * 0.04;
+        ctx.strokeStyle = `rgba(226,18,39,${alpha})`;
+        ctx.lineWidth = 0.45;
+        ctx.beginPath(); ctx.moveTo(cx2, ch); ctx.lineTo(vp.x, vp.y); ctx.stroke();
+      }
+      for (let j = 0; j <= 10; j++) {
+        const gy = vp.y + scroll + (j / 9) * (ch - vp.y);
+        if (gy > ch) continue;
+        const frac2 = (gy - vp.y) / (ch - vp.y);
+        const hw = frac2 * (cw * 0.5);
+        ctx.strokeStyle = j % 3 === 0
+          ? `rgba(0,229,255,${frac2 * 0.07})`
+          : `rgba(226,18,39,${frac2 * 0.04})`;
+        ctx.lineWidth = 0.35;
+        ctx.beginPath(); ctx.moveTo(vp.x - hw, gy); ctx.lineTo(vp.x + hw, gy); ctx.stroke();
+      }
+
+      // Vanishing point glow
+      const vpg = ctx.createRadialGradient(vp.x, vp.y, 0, vp.x, vp.y, 50);
+      vpg.addColorStop(0, "rgba(226,18,39,0.1)"); vpg.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = vpg; ctx.fillRect(vp.x - 55, vp.y - 35, 110, 70);
+
+      // Neural nodes
+      nodes.forEach(n => {
+        n.x += n.vx; n.y += n.vy; n.pulse += 0.045;
+        if (n.x < 0) n.x = cw; if (n.x > cw) n.x = 0;
+        if (n.y < 0) n.y = ch; if (n.y > ch) n.y = 0;
+      });
+      nodes.forEach((a, i) => {
+        nodes.slice(i + 1, i + 5).forEach(b => {
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < 52) {
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = a.color;
+            ctx.globalAlpha = (1 - d / 52) * 0.11;
+            ctx.lineWidth = 0.45; ctx.stroke();
+          }
+        });
+      });
+      nodes.forEach(n => {
+        const pulse = 0.5 + Math.sin(n.pulse) * 0.4;
+        const nr = n.r + Math.sin(n.pulse) * 0.5;
+        // Halo
+        const halo = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, nr * 5);
+        halo.addColorStop(0, n.color + "44"); halo.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = halo; ctx.globalAlpha = 0.22;
+        ctx.beginPath(); ctx.arc(n.x, n.y, nr * 5, 0, Math.PI * 2); ctx.fill();
+        // Core
+        ctx.globalAlpha = pulse * 0.7;
+        ctx.beginPath(); ctx.arc(n.x, n.y, nr, 0, Math.PI * 2);
+        ctx.fillStyle = n.color; ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+
+      // Hex grid overlay (faint)
+      const hexR = 14, hexH = hexR * Math.sqrt(3);
+      ctx.strokeStyle = "rgba(226,18,39,0.022)"; ctx.lineWidth = 0.4;
+      for (let col = -1; col < cw / (hexR * 1.5) + 1; col++) {
+        for (let row = -1; row < ch / hexH + 1; row++) {
+          const hx = col * hexR * 1.5;
+          const hy = row * hexH + (col % 2 === 0 ? 0 : hexH / 2);
+          ctx.beginPath();
+          for (let side = 0; side < 6; side++) {
+            const angle = (Math.PI / 3) * side - Math.PI / 6;
+            const px = hx + hexR * Math.cos(angle);
+            const py = hy + hexR * Math.sin(angle);
+            if (side === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.closePath(); ctx.stroke();
+        }
+      }
+
+      // Rising particles
+      particles.forEach(p => {
+        p.y += p.vy;
+        if (p.y < 0) { p.y = ch; p.x = Math.random() * cw; }
+        ctx.globalAlpha = p.alpha * (0.5 + Math.sin(t * 2 + p.x) * 0.35);
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+
+      // Scan line
+      const scanY2 = (t * 32) % ch;
+      const sg = ctx.createLinearGradient(0, scanY2 - 6, 0, scanY2 + 6);
+      sg.addColorStop(0, "rgba(226,18,39,0)");
+      sg.addColorStop(0.5, "rgba(226,18,39,0.06)");
+      sg.addColorStop(1, "rgba(226,18,39,0)");
+      ctx.fillStyle = sg; ctx.fillRect(0, scanY2 - 6, cw, 12);
+    }
+
+    frame();
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
+  return (
+    <canvas ref={cvRef}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0 }} />
+  );
+}
+
+/* ── HUD Arc Meter — tiny animated arc for stats ─────────────────── */
+function HUDArcMeter({ value, max, color, size }: { value: number; max: number; color: string; size: number }) {
+  const cvRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const cv = cvRef.current; if (!cv) return;
+    const ctx = cv.getContext("2d")!;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = size * dpr; cv.height = size * dpr;
+    ctx.scale(dpr, dpr);
+    const cx = size / 2, cy = size / 2 + 2;
+    const r = size / 2 - 5;
+    const startAngle = Math.PI * 0.75;
+    const endAngle   = Math.PI * 2.25;
+    const pct = Math.min(Math.max(value / max, 0), 1);
+    const arcEnd = startAngle + (endAngle - startAngle) * pct;
+
+    ctx.clearRect(0, 0, size, size);
+
+    // Track
+    ctx.beginPath(); ctx.arc(cx, cy, r, startAngle, endAngle);
+    ctx.strokeStyle = "rgba(255,255,255,0.07)";
+    ctx.lineWidth = 2.5; ctx.lineCap = "round"; ctx.stroke();
+
+    if (pct > 0.01) {
+      // Filled arc
+      const grad = ctx.createLinearGradient(cx - r, cy, cx + r, cy);
+      grad.addColorStop(0, color + "77"); grad.addColorStop(1, color);
+      ctx.beginPath(); ctx.arc(cx, cy, r, startAngle, arcEnd);
+      ctx.strokeStyle = grad; ctx.lineWidth = 2.5; ctx.stroke();
+
+      // Tip glow
+      const tipX = cx + Math.cos(arcEnd) * r;
+      const tipY = cy + Math.sin(arcEnd) * r;
+      const tipG = ctx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 5);
+      tipG.addColorStop(0, color + "cc"); tipG.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = tipG;
+      ctx.beginPath(); ctx.arc(tipX, tipY, 5, 0, Math.PI * 2); ctx.fill();
+    }
+  }, [value, max, color, size]);
+
+  return <canvas ref={cvRef} style={{ width: `${size}px`, height: `${size}px`, flexShrink: 0 }} />;
+}
+
+/* ── HUD Mini Sparkbar ───────────────────────────────────────────── */
+function HUDMiniBar({ color }: { color: string }) {
+  const bars = useRef(Array.from({ length: 5 }, () => Math.random())).current;
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const iv = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(iv);
+  }, []);
+  const vals = bars.map((b, i) => (b + tick * 0.19 + i * 0.28) % 1);
+  return (
+    <div style={{ display: "flex", gap: "1.5px", alignItems: "flex-end", height: "12px", flexShrink: 0 }}>
+      {vals.map((v, i) => (
+        <motion.div
+          key={i}
+          animate={{ height: `${Math.max(18, v * 100)}%` }}
+          transition={{ type: "spring", stiffness: 160, damping: 16 }}
+          style={{
+            width: "2.5px", background: color, borderRadius: "1px",
+            opacity: 0.4 + v * 0.5, alignSelf: "flex-end", minHeight: "2px",
+            boxShadow: `0 0 3px ${color}66`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CYBER HUD OVERLAY  — IDENTICAL to NET INTRUSION:
+   270px · spring(24,210) · tilt±14 · perspective700
+   + 3D holographic interior: canvas bg, arc meters, neural list
 ══════════════════════════════════════════════════════════════════ */
 function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
   const [focusedPanel,    setFocusedPanel]    = useState<string | null>(null);
   const [showNetActivity, setShowNetActivity] = useState(false);
-  const [scanY, setScanY] = useState(0);
   const [tilt,  setTilt]  = useState({ x: 0, y: 0 });
   const [hov,   setHov]   = useState(false);
+  const [critFlash, setCritFlash] = useState(false);
   const stats    = useLiveStats();
   const panelRef = useRef<HTMLDivElement>(null);
 
-  const defaultX = typeof window !== "undefined" ? window.innerWidth - 360 : 900;
-  const { pos, onMouseDown, onTouchStart } = useDraggableHUD(defaultX, 100);
+  const defaultX = typeof window !== "undefined" ? Math.max(0, window.innerWidth - 290) : 800;
+  const { pos, onMouseDown, onTouchStart } = useDraggableHUD(defaultX, 120);
 
-  /* Animated scan line */
+  /* Occasional critical flash */
   useEffect(() => {
-    const iv = setInterval(() => setScanY(p => (p + 1.8) % 100), 20);
+    const iv = setInterval(() => {
+      if (Math.random() < 0.12) {
+        setCritFlash(true);
+        setTimeout(() => setCritFlash(false), 500);
+      }
+    }, 4500);
     return () => clearInterval(iv);
   }, []);
 
@@ -2394,8 +2631,8 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
     const el = panelRef.current; if (!el) return;
     const r = el.getBoundingClientRect();
     setTilt({
-      x: ((e.clientX - r.left) / r.width  - 0.5) * 8,
-      y: ((e.clientY - r.top)  / r.height - 0.5) * -8,
+      x: ((e.clientX - r.left) / r.width  - 0.5) * 14,
+      y: ((e.clientY - r.top)  / r.height - 0.5) * -14,
     });
   }
 
@@ -2419,179 +2656,244 @@ function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
         )}
       </AnimatePresence>
 
-      {/* ── Floating panel — identical spring/tilt/drag to NET INTRUSION ── */}
+      {/* ── Floating panel — IDENTICAL spring/tilt/drag to NET INTRUSION ── */}
       <motion.div
+        ref={panelRef}
         initial={{ opacity: 0, scale: 0.75, y: 24 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
+        animate={{
+          opacity: 1, scale: 1, y: 0,
+          rotateX: tilt.y, rotateY: tilt.x,
+          boxShadow: hov
+            ? "0 16px 70px rgba(0,0,0,0.98), 0 0 40px rgba(226,18,39,0.2), 0 0 0 1px rgba(226,18,39,0.35)"
+            : critFlash
+            ? "0 8px 40px rgba(0,0,0,0.92), 0 0 55px rgba(226,18,39,0.4), 0 0 0 1px rgba(226,18,39,0.55)"
+            : "0 8px 40px rgba(0,0,0,0.92), 0 0 20px rgba(226,18,39,0.08), 0 0 0 1px rgba(226,18,39,0.18)",
+        }}
         exit={{ opacity: 0, scale: 0.75, y: 24 }}
         transition={{ type: "spring", damping: 24, stiffness: 210 }}
         style={{
-          position: "fixed", left: pos.x, top: pos.y,
-          zIndex: 200, width: "310px",
-          pointerEvents: "auto", perspective: "700px",
+          position: "fixed",
+          left: pos.x, top: pos.y,
+          width: "270px",
+          zIndex: 200,
+          transformStyle: "preserve-3d",
+          perspective: "700px",
+          userSelect: "none",
+          pointerEvents: "auto",
         }}
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => { setHov(false); setTilt({ x: 0, y: 0 }); }}
+        onMouseMove={handleMouseMove}
       >
-        <motion.div
-          ref={panelRef}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={() => { setTilt({ x: 0, y: 0 }); setHov(false); }}
-          onMouseEnter={() => setHov(true)}
-          animate={{ rotateX: tilt.y, rotateY: tilt.x }}
-          transition={{ type: "spring", stiffness: 240, damping: 24 }}
-          style={{ transformStyle: "preserve-3d" }}
-        >
-          {/* Outer glow — pulses on hover */}
+        <div style={{
+          background: "linear-gradient(148deg, rgba(2,4,14,0.99) 0%, rgba(7,3,13,0.99) 55%, rgba(2,4,10,0.99) 100%)",
+          border: `1px solid rgba(226,18,39,${critFlash ? "0.6" : "0.2"})`,
+          borderRadius: "14px",
+          overflow: "hidden",
+          backdropFilter: "blur(32px)",
+          position: "relative",
+          transition: "border-color 0.2s",
+        }}>
+
+          {/* ── 3D HOLOGRAPHIC CANVAS BACKGROUND ── */}
+          <HUDPanelCanvas />
+
+          {/* Critical flash overlay */}
+          <AnimatePresence>
+            {critFlash && (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                style={{
+                  position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
+                  background: "rgba(226,18,39,0.07)", borderRadius: "14px",
+                  border: "1px solid rgba(226,18,39,0.5)",
+                }}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Dot grid overlay */}
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1,
+            backgroundImage: "radial-gradient(circle, rgba(226,18,39,0.025) 1px, transparent 1px)",
+            backgroundSize: "10px 10px",
+          }} />
+
+          {/* Hex grid accent overlay */}
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1, opacity: 0.35,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='32'%3E%3Cpath d='M14 2 L26 9 L26 23 L14 30 L2 23 L2 9 Z' fill='none' stroke='rgba(226,18,39,0.08)' stroke-width='0.5'/%3E%3C/svg%3E")`,
+            backgroundSize: "28px 32px",
+          }} />
+
+          {/* Top accent gradient */}
           <motion.div
-            animate={{ opacity: hov ? [0.4, 0.85, 0.4] : [0.12, 0.3, 0.12] }}
-            transition={{ duration: 2.5, repeat: Infinity }}
+            animate={{
+              opacity: critFlash ? 1 : hov ? 1 : 0.55,
+              scaleX: hov ? 1 : 0.6,
+            }}
             style={{
-              position: "absolute", inset: "-5px", borderRadius: "20px",
-              border: `1px solid rgba(226,18,39,${hov ? "0.45" : "0.18"})`,
-              pointerEvents: "none", zIndex: -1,
-              boxShadow: `0 0 ${hov ? 64 : 36}px rgba(226,18,39,${hov ? "0.16" : "0.07"})`,
-              transition: "all 0.4s ease",
+              height: "2px",
+              background: critFlash
+                ? "linear-gradient(90deg, transparent, #e21227cc, #e21227, #e21227cc, transparent)"
+                : "linear-gradient(90deg, transparent, #e21227aa, #e21227, #00e5ff55, transparent)",
+              transformOrigin: "center",
+              position: "relative", zIndex: 3,
             }}
           />
 
-          <div style={{
-            background: "linear-gradient(160deg, rgba(2,4,14,0.99) 0%, rgba(7,3,13,0.99) 50%, rgba(2,4,10,0.99) 100%)",
-            border: "1px solid rgba(226,18,39,0.22)",
-            borderRadius: "16px", overflow: "hidden",
-            boxShadow: "0 18px 80px rgba(0,0,0,0.97), 0 0 50px rgba(226,18,39,0.06), inset 0 1px 0 rgba(255,255,255,0.04)",
-            position: "relative",
-          }}>
-            {/* Scan line */}
-            <div style={{ position: "absolute", left: 0, right: 0, top: `${scanY}%`, height: "1px",
-              background: "linear-gradient(90deg, transparent, rgba(226,18,39,0.22), transparent)",
-              pointerEvents: "none", zIndex: 1 }} />
-            {/* Dot grid */}
-            <div style={{ position: "absolute", inset: 0,
-              backgroundImage: "radial-gradient(circle, rgba(226,18,39,0.025) 1px, transparent 1px)",
-              backgroundSize: "12px 12px", pointerEvents: "none", zIndex: 0 }} />
-
-            {/* Top accent stripe */}
+          {/* ── HEADER / drag handle ── */}
+          <div
+            onMouseDown={onMouseDown}
+            onTouchStart={onTouchStart}
+            style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              padding: "7px 9px",
+              borderBottom: "1px solid rgba(226,18,39,0.09)",
+              background: "linear-gradient(90deg, rgba(226,18,39,0.07), transparent)",
+              cursor: "grab", position: "relative", zIndex: 3,
+            }}
+          >
             <motion.div
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 1.9, repeat: Infinity }}
-              style={{ height: "2px", background: "linear-gradient(90deg, transparent, rgba(226,18,39,0.9), rgba(0,229,255,0.45), transparent)" }}
-            />
-
-            {/* ── HEADER / drag handle ── */}
-            <div
-              onMouseDown={onMouseDown}
-              onTouchStart={onTouchStart}
-              style={{
-                display: "flex", alignItems: "center", gap: "8px",
-                padding: "10px 14px 8px",
-                borderBottom: "1px solid rgba(226,18,39,0.1)",
-                cursor: "grab", position: "relative", zIndex: 2, userSelect: "none",
+              animate={{
+                opacity: [0.7, 1, 0.7],
+                filter: ["drop-shadow(0 0 4px #e21227)", "drop-shadow(0 0 12px #e21227)", "drop-shadow(0 0 4px #e21227)"],
               }}
+              transition={{ duration: 1.8, repeat: Infinity }}
             >
-              <motion.div
-                animate={{ filter: ["drop-shadow(0 0 4px #e21227)", "drop-shadow(0 0 12px #e21227)", "drop-shadow(0 0 4px #e21227)"] }}
-                transition={{ duration: 2.2, repeat: Infinity }}
-              >
-                <Layers style={{ width: "11px", height: "11px", color: "#e21227", flexShrink: 0 }} />
-              </motion.div>
-              <span style={{
-                fontSize: "11px", fontFamily: "monospace", fontWeight: 900,
-                color: "#e21227", letterSpacing: "2px",
-                textShadow: "0 0 14px rgba(226,18,39,0.75)", flex: 1,
-              }}>CYBER HUD</span>
-              <motion.span
-                animate={{ opacity: [0.3, 1, 0.3] }}
-                transition={{ duration: 0.9, repeat: Infinity }}
-                style={{ fontSize: "7px", fontFamily: "monospace", color: "#22c55e", padding: "1px 5px", borderRadius: "3px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.28)" }}
-              >LIVE</motion.span>
-              <HUDClock />
-              <button
-                onClick={onClose}
-                style={{ width: "24px", height: "24px", borderRadius: "6px", background: "rgba(226,18,39,0.08)", border: "1px solid rgba(226,18,39,0.28)", color: "#e21227", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s", flexShrink: 0 }}
-                onMouseEnter={e => { e.currentTarget.style.background = "rgba(226,18,39,0.22)"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "rgba(226,18,39,0.08)"; }}
-              >
-                <X style={{ width: "10px", height: "10px" }} />
-              </button>
-            </div>
+              <Layers style={{ width: "12px", height: "12px", color: "#e21227", flexShrink: 0 }} />
+            </motion.div>
 
-            {/* ── STATS ROW ── */}
-            <div style={{
-              display: "flex", gap: "5px", padding: "7px 12px 6px",
-              borderBottom: "1px solid rgba(255,255,255,0.04)",
-              background: "rgba(0,0,0,0.22)", position: "relative", zIndex: 2,
+            <span style={{
+              fontSize: "7.5px", fontFamily: "monospace", fontWeight: 900,
+              color: "#e21227", letterSpacing: "2.5px", flex: 1,
+              textShadow: "0 0 12px rgba(226,18,39,0.8)",
             }}>
-              {([ 
-                { label: "CPU", val: `${stats.cpu}%`, color: stats.cpu > 70 ? "#e21227" : "#00e5ff" },
-                { label: "MEM", val: `${stats.mem}%`, color: "#a855f7" },
-                { label: "API", val: String(stats.api), color: "#22c55e" },
-                { label: "THR", val: String(stats.thr), color: stats.thr > 4 ? "#e21227" : "#f59e0b" },
-              ] as { label: string; val: string; color: string }[]).map(({ label, val, color }) => (
-                <div key={label} style={{ flex: 1, textAlign: "center", padding: "5px 0", borderRadius: "7px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                  <div style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.2)", letterSpacing: "1px", marginBottom: "2px" }}>{label}</div>
-                  <div style={{ fontSize: "11px", fontFamily: "monospace", fontWeight: 900, color, textShadow: `0 0 8px ${color}80` }}>{val}</div>
-                </div>
-              ))}
-            </div>
+              CYBER HUD
+            </span>
 
-            {/* ── PANEL LIST ── */}
-            <div style={{ padding: "7px 10px 9px", display: "flex", flexDirection: "column", gap: "3px", position: "relative", zIndex: 2 }}>
-              {allPanels.map((panel) => {
-                const Icon = panel.icon as React.ComponentType<{ style?: React.CSSProperties }>;
-                return (
-                  <motion.button
-                    key={panel.id}
-                    whileHover={{ x: 2 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleExpand(panel.id)}
-                    style={{
-                      display: "flex", alignItems: "center", gap: "7px",
-                      padding: "6px 9px", borderRadius: "8px",
-                      background: "rgba(255,255,255,0.02)",
-                      border: `1px solid ${panel.color}14`,
-                      cursor: "pointer", width: "100%", textAlign: "left",
-                      transition: "all 0.15s",
-                    }}
-                    onMouseEnter={e => {
-                      const b = e.currentTarget;
-                      b.style.background   = `${panel.color}0e`;
-                      b.style.borderColor  = `${panel.color}35`;
-                      b.style.boxShadow    = `0 0 14px ${panel.color}10`;
-                    }}
-                    onMouseLeave={e => {
-                      const b = e.currentTarget;
-                      b.style.background   = "rgba(255,255,255,0.02)";
-                      b.style.borderColor  = `${panel.color}14`;
-                      b.style.boxShadow    = "none";
-                    }}
-                  >
-                    <motion.div
-                      animate={{ opacity: [0.4, 1, 0.4], scale: [0.85, 1.15, 0.85] }}
-                      transition={{ duration: 1.8, repeat: Infinity, delay: Math.random() * 1.5 }}
-                      style={{ width: "5px", height: "5px", borderRadius: "50%", background: panel.color, boxShadow: `0 0 6px ${panel.color}`, flexShrink: 0 }}
-                    />
-                    <Icon style={{ width: "10px", height: "10px", color: panel.color, flexShrink: 0 }} />
-                    <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, color: "rgba(255,255,255,0.72)", letterSpacing: "1.2px", flex: 1 }}>
-                      {panel.label}
-                    </span>
-                    <span style={{ fontSize: "6.5px", fontFamily: "monospace", color: "rgba(255,255,255,0.18)" }}>{panel.desc}</span>
-                    <ChevronRight style={{ width: "9px", height: "9px", color: "rgba(255,255,255,0.22)", flexShrink: 0 }} />
-                  </motion.button>
-                );
-              })}
-            </div>
-
-            {/* Corner brackets */}
-            <div style={{ position: "absolute", top: 6, left: 6, width: 10, height: 10, borderTop: "1.5px solid rgba(226,18,39,0.5)", borderLeft: "1.5px solid rgba(226,18,39,0.5)", pointerEvents: "none", zIndex: 3 }} />
-            <div style={{ position: "absolute", bottom: 6, right: 6, width: 10, height: 10, borderBottom: "1.5px solid rgba(226,18,39,0.5)", borderRight: "1.5px solid rgba(226,18,39,0.5)", pointerEvents: "none", zIndex: 3 }} />
-
-            {/* Bottom accent stripe */}
+            {/* Live blinker */}
             <motion.div
-              animate={{ opacity: [0.25, 0.75, 0.25] }}
-              transition={{ duration: 2.3, repeat: Infinity }}
-              style={{ height: "1.5px", background: "linear-gradient(90deg, transparent, rgba(226,18,39,0.7), rgba(0,229,255,0.4), transparent)" }}
+              animate={{ opacity: [1, 0.2, 1] }}
+              transition={{ duration: 1.1, repeat: Infinity }}
+              style={{
+                width: "4px", height: "4px", borderRadius: "50%",
+                background: "#22c55e", boxShadow: "0 0 7px #22c55e",
+              }}
             />
+
+            <HUDClock />
+
+            <button
+              onClick={onClose}
+              style={{
+                width: "17px", height: "17px", borderRadius: "4px",
+                background: "rgba(226,18,39,0.09)",
+                border: "1px solid rgba(226,18,39,0.3)",
+                color: "#e21227", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(226,18,39,0.28)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(226,18,39,0.09)"; }}
+            >
+              <X style={{ width: "8px", height: "8px" }} />
+            </button>
           </div>
-        </motion.div>
+
+          {/* ── STATS ROW — animated arc meters ── */}
+          <div style={{
+            display: "flex", padding: "8px 8px 6px",
+            borderBottom: "1px solid rgba(226,18,39,0.06)",
+            background: "rgba(0,0,0,0.3)", position: "relative", zIndex: 3,
+            gap: "4px",
+          }}>
+            {([
+              { label: "CPU", value: stats.cpu, max: 100, color: stats.cpu > 70 ? "#e21227" : "#00e5ff", unit: "%" },
+              { label: "MEM", value: stats.mem, max: 100, color: "#a855f7",  unit: "%" },
+              { label: "API", value: stats.api, max: 20,  color: "#22c55e",  unit: "" },
+              { label: "THR", value: stats.thr, max: 10,  color: stats.thr > 4 ? "#e21227" : "#f59e0b", unit: "" },
+            ]).map(({ label, value, max, color, unit }) => (
+              <div key={label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "1px" }}>
+                <HUDArcMeter value={value} max={max} color={color} size={36} />
+                <div style={{ fontSize: "5px", fontFamily: "monospace", color: "rgba(255,255,255,0.28)", letterSpacing: "0.8px" }}>{label}</div>
+                <div style={{ fontSize: "8px", fontFamily: "monospace", fontWeight: 900, color, textShadow: `0 0 8px ${color}88` }}>{value}{unit}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── PANEL LIST — neural depth rows ── */}
+          <div style={{ padding: "5px 7px 7px", display: "flex", flexDirection: "column", gap: "2px", position: "relative", zIndex: 3 }}>
+            {allPanels.map((panel, idx) => {
+              const Icon = panel.icon as React.ComponentType<{ style?: React.CSSProperties }>;
+              return (
+                <motion.button
+                  key={panel.id}
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.035, type: "spring", stiffness: 260, damping: 22 }}
+                  whileHover={{ x: 3 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleExpand(panel.id)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "6px",
+                    padding: "5px 7px", borderRadius: "7px",
+                    background: "rgba(255,255,255,0.018)",
+                    border: `1px solid ${panel.color}12`,
+                    cursor: "pointer", width: "100%", textAlign: "left",
+                    transition: "all 0.16s",
+                  }}
+                  onMouseEnter={e => {
+                    const b = e.currentTarget;
+                    b.style.background  = `${panel.color}0d`;
+                    b.style.borderColor = `${panel.color}38`;
+                    b.style.boxShadow   = `0 0 16px ${panel.color}0f, inset 0 0 10px ${panel.color}06`;
+                  }}
+                  onMouseLeave={e => {
+                    const b = e.currentTarget;
+                    b.style.background  = "rgba(255,255,255,0.018)";
+                    b.style.borderColor = `${panel.color}12`;
+                    b.style.boxShadow   = "none";
+                  }}
+                >
+                  {/* Pulse dot */}
+                  <motion.div
+                    animate={{ opacity: [0.4, 1, 0.4], scale: [0.8, 1.25, 0.8] }}
+                    transition={{ duration: 1.5 + idx * 0.18, repeat: Infinity, delay: idx * 0.13 }}
+                    style={{ width: "4px", height: "4px", borderRadius: "50%", background: panel.color, boxShadow: `0 0 6px ${panel.color}`, flexShrink: 0 }}
+                  />
+
+                  <Icon style={{ width: "9px", height: "9px", color: panel.color, flexShrink: 0 }} />
+
+                  <span style={{
+                    fontSize: "8px", fontFamily: "monospace", fontWeight: 700,
+                    color: "rgba(255,255,255,0.72)", letterSpacing: "1px", flex: 1,
+                  }}>
+                    {panel.label}
+                  </span>
+
+                  {/* Mini sparkbar */}
+                  <HUDMiniBar color={panel.color} />
+
+                  <ChevronRight style={{ width: "8px", height: "8px", color: "rgba(255,255,255,0.18)", flexShrink: 0 }} />
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Corner brackets — red/cyan mixed */}
+          <div style={{ position: "absolute", top: 5, left: 5, width: 9, height: 9, borderTop: "1.5px solid rgba(226,18,39,0.6)", borderLeft: "1.5px solid rgba(226,18,39,0.6)", pointerEvents: "none", zIndex: 4 }} />
+          <div style={{ position: "absolute", top: 5, right: 5, width: 9, height: 9, borderTop: "1.5px solid rgba(0,229,255,0.3)", borderRight: "1.5px solid rgba(0,229,255,0.3)", pointerEvents: "none", zIndex: 4 }} />
+          <div style={{ position: "absolute", bottom: 5, left: 5, width: 9, height: 9, borderBottom: "1.5px solid rgba(0,229,255,0.3)", borderLeft: "1.5px solid rgba(0,229,255,0.3)", pointerEvents: "none", zIndex: 4 }} />
+          <div style={{ position: "absolute", bottom: 5, right: 5, width: 9, height: 9, borderBottom: "1.5px solid rgba(226,18,39,0.6)", borderRight: "1.5px solid rgba(226,18,39,0.6)", pointerEvents: "none", zIndex: 4 }} />
+
+          {/* Bottom accent stripe */}
+          <motion.div
+            animate={{ opacity: [0.3, 0.85, 0.3] }}
+            transition={{ duration: 2.4, repeat: Infinity }}
+            style={{ height: "1.5px", background: "linear-gradient(90deg, transparent, #e21227bb, #e21227, transparent)", position: "relative", zIndex: 3 }}
+          />
+        </div>
       </motion.div>
     </>
   );
