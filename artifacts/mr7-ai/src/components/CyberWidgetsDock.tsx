@@ -492,6 +492,334 @@ function IdleMiniPanel({ cpu }: { cpu: number }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   SATELLITE CAROUSEL  — unified cycling panel (SYS · IDLE · TOPO)
+   Replaces the two separate SysMiniPanel + IdleMiniPanel
+══════════════════════════════════════════════════════════════════ */
+const CAROUSEL_PANELS = [
+  { label: "SYS MONITOR", color: "#10b981" },
+  { label: "IDLE TRACK",  color: "#f472b6" },
+  { label: "NET TOPOLOGY", color: "#a855f7" },
+];
+
+function SatelliteCarousel({ cpu, mem, thr }: { cpu: number; mem: number; thr: number }) {
+  const [panel, setPanel] = useState(0);
+  const [dir,   setDir]   = useState(1);
+
+  /* IDLE tracking */
+  const [elapsed,  setElapsed]  = useState(0);
+  const [isIdle,   setIsIdle]   = useState(false);
+  const [activity, setActivity] = useState(72);
+  const startRef = useRef(Date.now());
+  const lastRef  = useRef(Date.now());
+
+  /* NET TOPO live stats */
+  const [topoStats, setTopoStats] = useState({ nodes: 20, active: 14, packets: 8421, threats: 6 });
+
+  useEffect(() => {
+    const onAct = () => { lastRef.current = Date.now(); };
+    document.addEventListener("mousemove", onAct);
+    document.addEventListener("keydown",   onAct);
+    return () => { document.removeEventListener("mousemove", onAct); document.removeEventListener("keydown", onAct); };
+  }, []);
+
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setElapsed(Date.now() - startRef.current);
+      setIsIdle(Date.now() - lastRef.current > 5000);
+      setActivity(p => Math.max(5, Math.min(100, p + (Math.random() - 0.45) * 15)));
+    }, 800);
+    return () => clearInterval(iv);
+  }, []);
+
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setTopoStats(p => ({
+        nodes: p.nodes,
+        active:  Math.max(8,  Math.min(20, p.active  + Math.round((Math.random() - 0.4) * 2))),
+        packets: p.packets + Math.round(Math.random() * 150 + 50),
+        threats: Math.max(0,  Math.min(10, p.threats + Math.round((Math.random() - 0.45)))),
+      }));
+    }, 1200);
+    return () => clearInterval(iv);
+  }, []);
+
+  const next = () => { setDir(1); setPanel(p => (p + 1) % 3); };
+
+  const { color } = CAROUSEL_PANELS[panel];
+  const pad  = (n: number) => String(Math.floor(n)).padStart(2, "0");
+  const s    = elapsed / 1000;
+  const tStr = `${pad(s / 3600)}:${pad((s % 3600) / 60)}:${pad(s % 60)}`;
+
+  const sysBars = [
+    { label: "CPU", value: cpu, color: cpu > 70 ? "#e21227" : "#00e5ff" },
+    { label: "MEM", value: mem, color: mem > 80 ? "#f59e0b" : "#10b981" },
+    { label: "NET", value: 32 + Math.round(Math.random() * 40), color: "#a855f7" },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 24, scale: 0.88 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 24, scale: 0.88 }}
+      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        position: "absolute", right: "94px", bottom: "-6px",
+        width: "166px", zIndex: 10,
+        pointerEvents: "none",
+      }}
+    >
+      {/* ── Connection wire to orb ── */}
+      <motion.div
+        animate={{ opacity: [0.35, 0.75, 0.35] }}
+        transition={{ duration: 1.6, repeat: Infinity }}
+        style={{
+          position: "absolute", right: "-18px",
+          top: "50%", transform: "translateY(-50%)",
+          width: "18px", height: "1px",
+          background: `linear-gradient(90deg, ${color}00, ${color}44, ${color}bb)`,
+          pointerEvents: "none",
+        }}
+      />
+      {/* Connection dot at orb edge */}
+      <motion.div
+        animate={{ opacity: [0.4, 1, 0.4], scale: [0.85, 1.2, 0.85] }}
+        transition={{ duration: 1.4, repeat: Infinity }}
+        style={{
+          position: "absolute", right: "-22px",
+          top: "50%", transform: "translateY(-50%)",
+          width: "5px", height: "5px", borderRadius: "50%",
+          background: color, boxShadow: `0 0 8px ${color}`,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* ── Card ── */}
+      <motion.div
+        animate={{ borderColor: color + "28" }}
+        transition={{ duration: 0.3 }}
+        style={{
+          background: "linear-gradient(135deg, rgba(5,5,18,0.98) 0%, rgba(9,7,22,0.98) 100%)",
+          border: `1px solid ${color}28`,
+          borderRadius: "13px",
+          overflow: "hidden",
+          boxShadow: `0 4px 40px rgba(0,0,0,0.92), 0 0 24px ${color}0e, inset 0 1px 0 rgba(255,255,255,0.04)`,
+        }}
+      >
+        {/* Accent line */}
+        <motion.div
+          animate={{ opacity: [0.55, 1, 0.55] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          style={{ height: "1.5px", background: `linear-gradient(90deg, transparent, ${color}cc, transparent)` }}
+        />
+
+        <HoloShimmer color={color} />
+
+        {/* Header: panel label + LIVE badge + NEXT button */}
+        <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 8px 4px", pointerEvents: "auto" }}>
+          <motion.div
+            animate={{ opacity: [0.65, 1, 0.65] }}
+            transition={{ duration: 1.4, repeat: Infinity }}
+            style={{ width: "5px", height: "5px", borderRadius: "50%", background: color, boxShadow: `0 0 8px ${color}`, flexShrink: 0 }}
+          />
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={panel}
+              initial={{ opacity: 0, x: dir * 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -dir * 10 }}
+              transition={{ duration: 0.16 }}
+              style={{
+                fontSize: "7px", fontFamily: "monospace", fontWeight: 900, color,
+                letterSpacing: "1.6px", textShadow: `0 0 10px ${color}70`,
+                flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}
+            >
+              {CAROUSEL_PANELS[panel].label}
+            </motion.span>
+          </AnimatePresence>
+
+          {/* LIVE badge */}
+          <motion.span
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.1, repeat: Infinity }}
+            style={{
+              fontSize: "5.5px", fontFamily: "monospace", fontWeight: 700,
+              color: "#22c55e", letterSpacing: "0.8px",
+              padding: "1px 4px", borderRadius: "3px",
+              background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.18)",
+              flexShrink: 0,
+            }}
+          >LIVE</motion.span>
+
+          {/* NEXT button */}
+          <button
+            onClick={next}
+            style={{
+              width: "19px", height: "17px", borderRadius: "5px",
+              background: `${color}14`, border: `1px solid ${color}28`,
+              color, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0, fontSize: "10px", lineHeight: 1,
+              fontFamily: "monospace", fontWeight: 900, paddingBottom: "1px",
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = color + "28"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = color + "14"; }}
+          >›</button>
+        </div>
+
+        {/* Thin separator */}
+        <div style={{ height: "1px", background: "rgba(255,255,255,0.04)", margin: "0 8px" }} />
+
+        {/* Panel content */}
+        <div style={{ padding: "6px 8px 6px", minHeight: "82px", overflow: "hidden" }}>
+          <AnimatePresence mode="wait">
+
+            {/* ── Panel 0: SYS MONITOR ── */}
+            {panel === 0 && (
+              <motion.div key="sys"
+                initial={{ opacity: 0, x: dir * 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -dir * 16 }}
+                transition={{ duration: 0.18 }}
+              >
+                {sysBars.map(b => (
+                  <div key={b.label} style={{ marginBottom: "5px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "2px" }}>
+                      <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.28)", letterSpacing: "1px" }}>{b.label}</span>
+                      <span style={{ fontSize: "7.5px", fontFamily: "monospace", fontWeight: 700, color: b.color, textShadow: `0 0 8px ${b.color}` }}>{Math.round(b.value)}%</span>
+                    </div>
+                    <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden" }}>
+                      <motion.div
+                        animate={{ width: `${b.value}%` }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        style={{ height: "100%", borderRadius: "2px", background: `linear-gradient(90deg, ${b.color}80, ${b.color})`, boxShadow: `0 0 5px ${b.color}` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "3px" }}>
+                  <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>THREATS</span>
+                  <motion.span
+                    key={thr}
+                    initial={{ scale: 1.2 }}
+                    animate={{ scale: 1 }}
+                    style={{ fontSize: "8px", fontFamily: "monospace", fontWeight: 700, color: thr > 4 ? "#e21227" : "#f59e0b", textShadow: `0 0 8px ${thr > 4 ? "#e21227" : "#f59e0b"}` }}
+                  >{thr}</motion.span>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── Panel 1: IDLE TRACK ── */}
+            {panel === 1 && (
+              <motion.div key="idle"
+                initial={{ opacity: 0, x: dir * 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -dir * 16 }}
+                transition={{ duration: 0.18 }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "7px" }}>
+                  <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>SESSION</span>
+                  <span style={{ fontSize: "9.5px", fontFamily: "monospace", fontWeight: 900, color: "#f472b6", textShadow: "0 0 10px rgba(244,114,182,0.65)", letterSpacing: "1px" }}>{tStr}</span>
+                </div>
+                <div style={{ marginBottom: "6px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "2px" }}>
+                    <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>ACTIVITY</span>
+                    <motion.span
+                      animate={{ color: isIdle ? "#f59e0b" : "#f472b6" }}
+                      style={{ fontSize: "6.5px", fontFamily: "monospace" }}
+                    >{isIdle ? "IDLE" : "ACTIVE"}</motion.span>
+                  </div>
+                  <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden" }}>
+                    <motion.div
+                      animate={{ width: `${activity}%` }}
+                      transition={{ duration: 0.7 }}
+                      style={{ height: "100%", borderRadius: "2px", background: isIdle ? "linear-gradient(90deg, rgba(245,158,11,0.6), #f59e0b)" : "linear-gradient(90deg, rgba(244,114,182,0.6), #f472b6)", boxShadow: `0 0 6px ${isIdle ? "#f59e0b" : "#f472b6"}` }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                  <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>AI CALLS</span>
+                  <span style={{ fontSize: "8px", fontFamily: "monospace", fontWeight: 700, color: "#22c55e" }}>{trafficBus.history.length}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "1px" }}>STATUS</span>
+                  <span style={{ fontSize: "6.5px", fontFamily: "monospace", color: isIdle ? "#f59e0b" : "#22c55e", padding: "1px 5px", borderRadius: "3px", background: isIdle ? "rgba(245,158,11,0.1)" : "rgba(34,197,94,0.1)" }}>
+                    {isIdle ? "STANDBY" : "RUNNING"}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── Panel 2: NET TOPOLOGY ── */}
+            {panel === 2 && (
+              <motion.div key="topo"
+                initial={{ opacity: 0, x: dir * 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -dir * 16 }}
+                transition={{ duration: 0.18 }}
+              >
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", marginBottom: "6px" }}>
+                  {[
+                    { label: "NODES",   val: topoStats.nodes,                  color: "#a855f7" },
+                    { label: "ACTIVE",  val: topoStats.active,                  color: "#22c55e" },
+                    { label: "PACKETS", val: topoStats.packets.toLocaleString(), color: "#00e5ff" },
+                    { label: "THREATS", val: topoStats.threats,                  color: topoStats.threats > 3 ? "#e21227" : "#f59e0b" },
+                  ].map(({ label, val, color: c }) => (
+                    <div key={label} style={{ padding: "4px 6px", borderRadius: "6px", background: `${c}0a`, border: `1px solid ${c}18` }}>
+                      <div style={{ fontSize: "5.5px", fontFamily: "monospace", color: "rgba(255,255,255,0.22)", letterSpacing: "0.8px", marginBottom: "1px" }}>{label}</div>
+                      <motion.div
+                        key={String(val)}
+                        initial={{ opacity: 0.5, y: -3 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, color: c, textShadow: `0 0 8px ${c}` }}
+                      >{val}</motion.div>
+                    </div>
+                  ))}
+                </div>
+                {/* Mini waveform bars */}
+                <div style={{ height: "22px", position: "relative", overflow: "hidden", borderRadius: "5px", background: "rgba(168,85,247,0.04)", border: "1px solid rgba(168,85,247,0.1)" }}>
+                  <div style={{ position: "absolute", bottom: 2, left: 3, fontSize: "5.5px", fontFamily: "monospace", color: "rgba(168,85,247,0.5)", letterSpacing: "0.8px" }}>TRAFFIC</div>
+                  {Array.from({ length: 18 }, (_, i) => (
+                    <motion.div key={i}
+                      animate={{ height: [`${18 + Math.random() * 65}%`, `${25 + Math.random() * 60}%`, `${18 + Math.random() * 65}%`] }}
+                      transition={{ duration: 0.7 + i * 0.08, repeat: Infinity, ease: "easeInOut" }}
+                      style={{
+                        position: "absolute", bottom: 0,
+                        left: `${3 + i * 5.5}%`, width: "4%",
+                        background: `rgba(168,85,247,${0.35 + (i % 3) * 0.15})`,
+                        borderRadius: "2px 2px 0 0",
+                      }}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+          </AnimatePresence>
+        </div>
+
+        {/* Footer: panel indicator dots */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "6px", paddingBottom: "6px" }}>
+          {CAROUSEL_PANELS.map((pm, i) => (
+            <motion.div
+              key={i}
+              animate={{ opacity: i === panel ? 1 : 0.28, scale: i === panel ? 1.25 : 1 }}
+              transition={{ duration: 0.2 }}
+              style={{ width: "4px", height: "4px", borderRadius: "50%", background: pm.color, boxShadow: i === panel ? `0 0 7px ${pm.color}` : "none" }}
+            />
+          ))}
+        </div>
+
+        {/* Corner brackets */}
+        <div style={{ position: "absolute", top: 4, left: 4, width: 7, height: 7, borderTop: `1px solid ${color}40`, borderLeft: `1px solid ${color}40` }} />
+        <div style={{ position: "absolute", bottom: 4, right: 4, width: 7, height: 7, borderBottom: `1px solid ${color}40`, borderRight: `1px solid ${color}40` }} />
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
    THREAT SPIKE FLASH  — full-screen alert overlay
 ══════════════════════════════════════════════════════════════════ */
 function ThreatSpikeFlash({ active }: { active: boolean }) {
@@ -722,13 +1050,10 @@ function DockButton({
       onMouseLeave={() => { setHovered(false); setTilt({ x: 0, y: 0 }); }}
       onMouseMove={handleMouseMove}
     >
-      {/* Satellite mini panels — appear on hover */}
+      {/* Satellite carousel — unified cycling panel (SYS · IDLE · NET TOPO) */}
       <AnimatePresence>
         {(hovered || showSatellites) && !dragging && (
-          <>
-            <SysMiniPanel cpu={stats.cpu} mem={stats.mem} />
-            <IdleMiniPanel cpu={stats.cpu} />
-          </>
+          <SatelliteCarousel cpu={stats.cpu} mem={stats.mem} thr={stats.thr} />
         )}
       </AnimatePresence>
 

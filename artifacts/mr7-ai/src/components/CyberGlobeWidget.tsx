@@ -1,7 +1,8 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useDraggable } from "@/hooks/useDraggable";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Globe, Shield, Crosshair, Minimize2, Maximize2, Radio } from "lucide-react";
+import { IPGeoLookupOverlay } from "./IPGeoLookupOverlay";
 
 /* ═══════════════════════════════════════════════════════════════════════
    GLOBAL THREAT MAP — Ultra 3D Holographic Earth v2
@@ -169,30 +170,58 @@ export function CyberGlobeWidget({ embedded = false }: { embedded?: boolean } = 
   const [minimized, setMinimized] = useState(false);
   const [threatLevel] = useState(92);
   const [attackCount, setAttackCount] = useState(0);
+  const [selectedNode, setSelectedNode] = useState<GeoNodeEx | null>(null);
+
+  const movedRef = useRef(false);
+  const downClientRef = useRef({ x: 0, y: 0 });
 
   const { pos, rootRef, onDragMouseDown, onDragTouchStart } = useDraggable(STOR_KEY, { x: 12, y: 110 });
 
+  const handleNodeClick = useCallback((clientX: number, clientY: number) => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = W / rect.width;
+    const scaleY = H / rect.height;
+    const cx = (clientX - rect.left) * scaleX;
+    const cy = (clientY - rect.top) * scaleY;
+    let closest: GeoNodeEx | null = null;
+    let closestDist = 999;
+    NODES.forEach(n => {
+      const p = project(n.lat, n.lon, rotRef.current, rotXRef.current);
+      if (p.z < 0) return;
+      const d = Math.hypot(p.x - cx, p.y - cy);
+      if (d < closestDist && d < 24) { closestDist = d; closest = n; }
+    });
+    if (closest) setSelectedNode(closest);
+  }, []);
+
   const onCanvasMouseDown = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    movedRef.current = false;
+    downClientRef.current = { x: e.clientX, y: e.clientY };
     let lastX = e.clientX; let lastY = e.clientY;
     dragRef.current = { dragging: true, lastX, lastY };
     velYRef.current = 0; velXRef.current = 0;
     const move = (ev: MouseEvent) => {
       const dx = ev.clientX - lastX; const dy = ev.clientY - lastY;
       lastX = ev.clientX; lastY = ev.clientY;
+      const totalDx = ev.clientX - downClientRef.current.x;
+      const totalDy = ev.clientY - downClientRef.current.y;
+      if (Math.abs(totalDx) > 4 || Math.abs(totalDy) > 4) movedRef.current = true;
       velYRef.current = dx * 0.5; velXRef.current = dy * 0.4;
       rotRef.current  += dx * 0.5;
       rotXRef.current  = Math.max(-60, Math.min(60, rotXRef.current + dy * 0.4));
     };
-    const up = () => {
+    const up = (ev: MouseEvent) => {
       dragRef.current.dragging = false;
+      if (!movedRef.current) handleNodeClick(ev.clientX, ev.clientY);
       setTimeout(() => { velYRef.current = -0.10; velXRef.current = 0; }, 2000);
       window.removeEventListener("mousemove", move);
       window.removeEventListener("mouseup", up);
     };
     window.addEventListener("mousemove", move);
     window.addEventListener("mouseup", up);
-  }, []);
+  }, [handleNodeClick]);
 
   useEffect(() => {
     const canvas = canvasRef.current; if (!canvas) return;
@@ -538,12 +567,21 @@ export function CyberGlobeWidget({ embedded = false }: { embedded?: boolean } = 
 
   if (embedded) {
     return (
-      <div style={{ width: "100%", height: "100%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(4,2,12,0.97)" }}>
+      <div style={{ width: "100%", height: "100%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(4,2,12,0.97)", position: "relative" }}>
         <canvas
           ref={canvasRef} width={W} height={H}
           style={{ width: "100%", height: "100%", objectFit: "contain", cursor: "crosshair", display: "block" }}
           onMouseDown={onCanvasMouseDown}
         />
+        {/* Click hint overlay */}
+        <div style={{ position: "absolute", bottom: 4, left: "50%", transform: "translateX(-50%)", fontSize: "6px", fontFamily: "monospace", color: "rgba(0,229,255,0.3)", letterSpacing: "1px", pointerEvents: "none", whiteSpace: "nowrap" }}>
+          CLICK NODE — IP INTEL
+        </div>
+        <AnimatePresence>
+          {selectedNode && (
+            <IPGeoLookupOverlay node={selectedNode} onClose={() => setSelectedNode(null)} />
+          )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -594,12 +632,17 @@ export function CyberGlobeWidget({ embedded = false }: { embedded?: boolean } = 
               </div>
               <div className="flex items-center gap-1">
                 <Radio size={9} className="text-[#a78bfa]" />
-                <span className="text-[9px] font-mono text-[#555]">DRAG TO ROTATE</span>
+                <span className="text-[9px] font-mono text-[#555]">CLICK NODE</span>
               </div>
             </div>
           </>
         )}
       </motion.div>
+      <AnimatePresence>
+        {selectedNode && (
+          <IPGeoLookupOverlay node={selectedNode} onClose={() => setSelectedNode(null)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
