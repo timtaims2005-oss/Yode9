@@ -2320,9 +2320,9 @@ export function PersonaEditorModal({ open, onOpenChange }: PersonaEditorModalPro
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-1 min-h-0 overflow-hidden">
+        <div className="flex flex-1 min-h-0 overflow-hidden flex-col sm:flex-row">
           {/* Left: persona list */}
-          <div className="w-60 flex-shrink-0 border-r border-border flex flex-col min-h-0">
+          <div className="w-full sm:w-52 flex-shrink-0 border-b sm:border-b-0 sm:border-r border-border flex flex-col min-h-0 max-h-48 sm:max-h-none">
             {/* Search bar */}
             <div className="px-2 pt-2 pb-1 border-b border-border">
               <div className="relative">

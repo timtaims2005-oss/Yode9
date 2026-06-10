@@ -41,7 +41,7 @@ import { FuturisticBackground3D } from "./FuturisticBackground3D";
 import { ChatEmptyState } from "./ChatEmptyState";
 import { TokenCounter3D } from "./TokenCounter3D";
 import { NeuralStreamHUD } from "./NeuralStreamHUD";
-import { FloatingChatPanels } from "./FloatingChatPanels";
+import { FloatingNetworkPanel } from "./FloatingNetworkPanel";
 
 const SLASH = [
   { cmd: "/code", hint: "Generate code for a task" },
@@ -960,8 +960,8 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
 
   return (
     <div className="flex-1 flex flex-col h-full relative overflow-hidden">
-      {/* Floating 3D draggable panels — SYS MONITOR + IDLE TRACKER */}
-      <FloatingChatPanels />
+      {/* Floating network intrusion log + 3D monitor button */}
+      <FloatingNetworkPanel />
       {/* 3D futuristic background — layered: depth grid + hex nodes + scan line */}
       <FuturisticBackground3D opacity={0.55} />
       {/* Legacy neural pulse overlay at very low opacity for extra depth */}
