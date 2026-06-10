@@ -11,6 +11,7 @@ import {
   FlaskConical, Search, Wifi, Rocket, FileText, Skull, Shuffle,
   Settings, Eye, AlertTriangle, Microscope, Globe, TrendingUp, Crown, Map, Orbit,
   Radio, Lock as LockIcon,
+  Target, EyeOff, Crosshair, Binary, Workflow,
 } from "lucide-react";
 import { pipeline, type PipelineHistoryEntry, type ChainRule } from "@/lib/pipeline";
 
@@ -58,7 +59,12 @@ export type ArsenalModuleId =
   | "autonomousoversight" | "largescaleanomaly"
   // Batch 10 — Futuristic 3D Features
   | "threatglobe" | "vulngraph3d" | "livecoding" | "exploitsandbox"
-  | "gesturecontrol" | "neuralvoice" | "blockchainaudit" | "e2esession";
+  | "gesturecontrol" | "neuralvoice" | "blockchainaudit" | "e2esession"
+  // Batch 11 — Advanced Cyber Intelligence Suite
+  | "autonomousredteam" | "cybervision" | "jitexploit" | "evasionengine"
+  | "vulntopology" | "precisionstrike" | "livecve" | "bassimulation"
+  | "networktopo" | "binaryanalysis" | "webfuzzing" | "multiagentsoc"
+  | "orchestrationengine" | "globalvulnheatmap";
 
 export type ArsenalModule = {
   id: ArsenalModuleId;
@@ -811,6 +817,91 @@ export const ARSENAL_MODULES: ArsenalModule[] = [
     desc: "TLS 1.3 session manager with DH key exchange visualization, AES-256-GCM + X25519, rekey support, message encryption demo, forward secrecy, session timers.",
     icon: LockIcon, color: "#00e5ff", border: "rgba(0,229,255,0.35)", bg: "rgba(0,229,255,0.07)", glow: "rgba(0,229,255,0.25)",
     source: "KaliGPT Native", tag: "CRYPTO",
+  },
+  // ── Batch 11 — Advanced Cyber Intelligence Suite ─────────────────────────
+  {
+    id: "autonomousredteam", name: "Autonomous Red-Team Engine", subtitle: "Kill-Chain 3D · Auto-Exploit",
+    desc: "Fully autonomous red-teaming engine with 3D kill-chain visualization. Configure target → watch RECON → WEAPON → DELIVERY → EXPLOIT → C2 → EXFIL animate live with terminal log.",
+    icon: Target, color: "#e21227", border: "rgba(226,18,39,0.35)", bg: "rgba(226,18,39,0.07)", glow: "rgba(226,18,39,0.25)",
+    source: "KaliGPT Native", tag: "3D / AUTO",
+  },
+  {
+    id: "cybervision", name: "Cyber-Vision UI", subtitle: "Digital Infiltration · Particles",
+    desc: "Matrix-style digital infiltration visualization with three modes: Matrix rain, Haptic particle field, Neural mesh. Threat level slider controls density and color shift.",
+    icon: Eye, color: "#00e5ff", border: "rgba(0,229,255,0.35)", bg: "rgba(0,229,255,0.07)", glow: "rgba(0,229,255,0.25)",
+    source: "KaliGPT Native", tag: "3D / VISUAL",
+  },
+  {
+    id: "jitexploit", name: "JIT Exploit Generator", subtitle: "Just-In-Time Payload Engineering",
+    desc: "Generate shellcode, SQLi, XSS, BOF, RCE, LFI payloads for any architecture (x64/ARM/MIPS). Multi-layer obfuscation engine — Base64, XOR, Polymorphic, Hex.",
+    icon: Zap, color: "#e21227", border: "rgba(226,18,39,0.35)", bg: "rgba(226,18,39,0.07)", glow: "rgba(226,18,39,0.25)",
+    source: "KaliGPT Native", tag: "EXPLOIT",
+  },
+  {
+    id: "evasionengine", name: "Evasion Engine", subtitle: "Anti-AV · Anti-EDR · Polymorphic",
+    desc: "8 obfuscation techniques: Polymorphic, Base64, XOR cipher, Dead code, String fragmentation, API hashing, Junk insertion, Sandbox evasion. AV/EDR bypass scoring.",
+    icon: EyeOff, color: "#a855f7", border: "rgba(168,85,247,0.35)", bg: "rgba(168,85,247,0.07)", glow: "rgba(168,85,247,0.25)",
+    source: "KaliGPT Native", tag: "STEALTH",
+  },
+  {
+    id: "vulntopology", name: "Vulnerability Topology", subtitle: "3D Black-Hole Network Graph",
+    desc: "3D network graph where critical vulnerabilities appear as black holes with gravitational effects. Click nodes to exploit or patch. Live attack propagation animation.",
+    icon: Globe, color: "#f97316", border: "rgba(249,115,22,0.35)", bg: "rgba(249,115,22,0.07)", glow: "rgba(249,115,22,0.25)",
+    source: "KaliGPT Native", tag: "3D / TOPO",
+  },
+  {
+    id: "precisionstrike", name: "Precision Strike Protocol", subtitle: "Apex Protocol · Weakest Point ID",
+    desc: "AI identifies the single weakest attack vector, then launches a precision strike. Crosshair HUD with 6-phase tracker. Full terminal simulation with live logs.",
+    icon: Crosshair, color: "#e21227", border: "rgba(226,18,39,0.35)", bg: "rgba(226,18,39,0.07)", glow: "rgba(226,18,39,0.25)",
+    source: "KaliGPT Native", tag: "APEX",
+  },
+  {
+    id: "livecve", name: "Live CVE Intelligence Feed", subtitle: "Zero-Day Monitor · Sim Engine",
+    desc: "Real-time CVE feed with zero-day filtering. Select any CVE to run a full sandboxed exploitation simulation with terminal output. CVSSv3 scores and vendor data.",
+    icon: Radio, color: "#e21227", border: "rgba(226,18,39,0.35)", bg: "rgba(226,18,39,0.07)", glow: "rgba(226,18,39,0.25)",
+    source: "KaliGPT Native", tag: "INTEL",
+  },
+  {
+    id: "bassimulation", name: "Breach & Attack Simulation", subtitle: "BAS Framework · Defense Scoring",
+    desc: "6 attack scenarios: Ransomware, APT, Insider, Supply Chain, DDoS, Zero-Trust Bypass. Each scenario tests 8 defense phases with live scoring and defense effectiveness report.",
+    icon: Shield, color: "#4ade80", border: "rgba(74,222,128,0.35)", bg: "rgba(74,222,128,0.07)", glow: "rgba(74,222,128,0.25)",
+    source: "KaliGPT Native", tag: "BAS",
+  },
+  {
+    id: "networktopo", name: "Live Network Topology", subtitle: "Real-Time Packet Flow · Anomaly",
+    desc: "3D-style network map with animated packet flows. Color-coded anomaly detection. Click any node (router/server/IoT) for traffic stats. Live traffic log sidebar.",
+    icon: Network, color: "#3b82f6", border: "rgba(59,130,246,0.35)", bg: "rgba(59,130,246,0.07)", glow: "rgba(59,130,246,0.25)",
+    source: "KaliGPT Native", tag: "NETWORK",
+  },
+  {
+    id: "binaryanalysis", name: "Binary Analysis Engine", subtitle: "Static Analysis · Disassembly",
+    desc: "Upload or paste binary hex for full static analysis: vulnerability detection (UAF, BOF, format string), disassembly, string extraction, dangerous import highlighting.",
+    icon: Binary, color: "#a855f7", border: "rgba(168,85,247,0.35)", bg: "rgba(168,85,247,0.07)", glow: "rgba(168,85,247,0.25)",
+    source: "KaliGPT Native", tag: "REVERSE",
+  },
+  {
+    id: "webfuzzing", name: "AI Web Fuzzer", subtitle: "Intelligent Fuzzing · API Discovery",
+    desc: "AI-powered web fuzzer with 5 mutation strategies. Real-time result stream with status codes, size, endpoint type. Directory brute-force, param fuzzing, SQLi probe.",
+    icon: Globe, color: "#fbbf24", border: "rgba(251,191,36,0.35)", bg: "rgba(251,191,36,0.07)", glow: "rgba(251,191,36,0.25)",
+    source: "KaliGPT Native", tag: "WEB",
+  },
+  {
+    id: "multiagentsoc", name: "Multi-Agent SOC System", subtitle: "4 Parallel AI Agents · Synthesis",
+    desc: "4 specialized agents (RECON, EXPLOIT, ANALYST, DEFENSE) run simultaneously on a target. Neural coordinator synthesizes findings into a comprehensive threat report.",
+    icon: Users, color: "#a855f7", border: "rgba(168,85,247,0.35)", bg: "rgba(168,85,247,0.07)", glow: "rgba(168,85,247,0.25)",
+    source: "KaliGPT Native", tag: "MULTI-AGENT",
+  },
+  {
+    id: "orchestrationengine", name: "Orchestration Engine", subtitle: "Nmap → Nuclei → Metasploit",
+    desc: "Build automated attack pipelines by chaining 8 tools: Nmap, Nuclei, SQLMap, Metasploit, Burp Suite, Hydra, Nikto, Hashcat. Pipeline builder with live output for each step.",
+    icon: Workflow, color: "#00e5ff", border: "rgba(0,229,255,0.35)", bg: "rgba(0,229,255,0.07)", glow: "rgba(0,229,255,0.25)",
+    source: "KaliGPT Native", tag: "ORCH",
+  },
+  {
+    id: "globalvulnheatmap", name: "Global Vulnerability Heatmap", subtitle: "World CVE Distribution · Live",
+    desc: "World map with vulnerability density heatmap per country. Animated attack arcs between threat actors and victims. Click countries for detailed stats. Top CVE sidebar.",
+    icon: Globe, color: "#e21227", border: "rgba(226,18,39,0.35)", bg: "rgba(226,18,39,0.07)", glow: "rgba(226,18,39,0.25)",
+    source: "KaliGPT Native", tag: "GLOBAL",
   },
 ];
 

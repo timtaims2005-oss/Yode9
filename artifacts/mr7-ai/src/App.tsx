@@ -150,6 +150,20 @@ import { GestureControlModal } from "./components/modals/GestureControlModal";
 import { NeuralVoiceModal } from "./components/modals/NeuralVoiceModal";
 import { BlockchainAuditModal } from "./components/modals/BlockchainAuditModal";
 import { E2ESessionModal } from "./components/modals/E2ESessionModal";
+import { AutonomousRedTeamModal } from "./components/modals/AutonomousRedTeamModal";
+import { CyberVisionModal } from "./components/modals/CyberVisionModal";
+import { JITExploitModal } from "./components/modals/JITExploitModal";
+import { EvasionEngineModal } from "./components/modals/EvasionEngineModal";
+import { VulnTopologyModal } from "./components/modals/VulnTopologyModal";
+import { PrecisionStrikeModal } from "./components/modals/PrecisionStrikeModal";
+import { LiveCVEModal } from "./components/modals/LiveCVEModal";
+import { BASSimulationModal } from "./components/modals/BASSimulationModal";
+import { NetworkTopoModal } from "./components/modals/NetworkTopoModal";
+import { BinaryAnalysisModal } from "./components/modals/BinaryAnalysisModal";
+import { WebFuzzingModal } from "./components/modals/WebFuzzingModal";
+import { MultiAgentSOCModal } from "./components/modals/MultiAgentSOCModal";
+import { OrchestrationEngineModal } from "./components/modals/OrchestrationEngineModal";
+import { GlobalVulnHeatmapModal } from "./components/modals/GlobalVulnHeatmapModal";
 
 const queryClient = new QueryClient();
 
@@ -341,6 +355,20 @@ function AppContent() {
   const [neuralVoiceOpen, setNeuralVoiceOpen] = useState(false);
   const [blockchainAuditOpen, setBlockchainAuditOpen] = useState(false);
   const [e2eSessionOpen, setE2ESessionOpen] = useState(false);
+  const [autonomousRedTeamOpen, setAutonomousRedTeamOpen] = useState(false);
+  const [cyberVisionOpen, setCyberVisionOpen] = useState(false);
+  const [jitExploitOpen, setJITExploitOpen] = useState(false);
+  const [evasionEngineOpen, setEvasionEngineOpen] = useState(false);
+  const [vulnTopologyOpen, setVulnTopologyOpen] = useState(false);
+  const [precisionStrikeOpen, setPrecisionStrikeOpen] = useState(false);
+  const [liveCVEOpen, setLiveCVEOpen] = useState(false);
+  const [basSimulationOpen, setBASSimulationOpen] = useState(false);
+  const [networkTopoOpen, setNetworkTopoOpen] = useState(false);
+  const [binaryAnalysisOpen, setBinaryAnalysisOpen] = useState(false);
+  const [webFuzzingOpen, setWebFuzzingOpen] = useState(false);
+  const [multiAgentSOCOpen, setMultiAgentSOCOpen] = useState(false);
+  const [orchestrationEngineOpen, setOrchestrationEngineOpen] = useState(false);
+  const [globalVulnHeatmapOpen, setGlobalVulnHeatmapOpen] = useState(false);
 
   const [pipelineKeyRef] = useState(() => ({ n: 0 }));
   const [ragPipelineDoc, setRagPipelineDoc] = useState<{ text: string; name: string; key: number } | undefined>();
@@ -395,6 +423,34 @@ function AppContent() {
       setBlockchainAuditOpen(true);
     } else if (id === "e2esession") {
       setE2ESessionOpen(true);
+    } else if (id === "autonomousredteam") {
+      setAutonomousRedTeamOpen(true);
+    } else if (id === "cybervision") {
+      setCyberVisionOpen(true);
+    } else if (id === "jitexploit") {
+      setJITExploitOpen(true);
+    } else if (id === "evasionengine") {
+      setEvasionEngineOpen(true);
+    } else if (id === "vulntopology") {
+      setVulnTopologyOpen(true);
+    } else if (id === "precisionstrike") {
+      setPrecisionStrikeOpen(true);
+    } else if (id === "livecve") {
+      setLiveCVEOpen(true);
+    } else if (id === "bassimulation") {
+      setBASSimulationOpen(true);
+    } else if (id === "networktopo") {
+      setNetworkTopoOpen(true);
+    } else if (id === "binaryanalysis") {
+      setBinaryAnalysisOpen(true);
+    } else if (id === "webfuzzing") {
+      setWebFuzzingOpen(true);
+    } else if (id === "multiagentsoc") {
+      setMultiAgentSOCOpen(true);
+    } else if (id === "orchestrationengine") {
+      setOrchestrationEngineOpen(true);
+    } else if (id === "globalvulnheatmap") {
+      setGlobalVulnHeatmapOpen(true);
     } else {
       setArsenalPage(id);
     }
@@ -735,6 +791,20 @@ function AppContent() {
       <NeuralVoiceModal open={neuralVoiceOpen} onOpenChange={setNeuralVoiceOpen} />
       <BlockchainAuditModal open={blockchainAuditOpen} onOpenChange={setBlockchainAuditOpen} />
       <E2ESessionModal open={e2eSessionOpen} onOpenChange={setE2ESessionOpen} />
+      <AutonomousRedTeamModal open={autonomousRedTeamOpen} onOpenChange={setAutonomousRedTeamOpen} />
+      <CyberVisionModal open={cyberVisionOpen} onOpenChange={setCyberVisionOpen} />
+      <JITExploitModal open={jitExploitOpen} onOpenChange={setJITExploitOpen} />
+      <EvasionEngineModal open={evasionEngineOpen} onOpenChange={setEvasionEngineOpen} />
+      <VulnTopologyModal open={vulnTopologyOpen} onOpenChange={setVulnTopologyOpen} />
+      <PrecisionStrikeModal open={precisionStrikeOpen} onOpenChange={setPrecisionStrikeOpen} />
+      <LiveCVEModal open={liveCVEOpen} onOpenChange={setLiveCVEOpen} />
+      <BASSimulationModal open={basSimulationOpen} onOpenChange={setBASSimulationOpen} />
+      <NetworkTopoModal open={networkTopoOpen} onOpenChange={setNetworkTopoOpen} />
+      <BinaryAnalysisModal open={binaryAnalysisOpen} onOpenChange={setBinaryAnalysisOpen} />
+      <WebFuzzingModal open={webFuzzingOpen} onOpenChange={setWebFuzzingOpen} />
+      <MultiAgentSOCModal open={multiAgentSOCOpen} onOpenChange={setMultiAgentSOCOpen} />
+      <OrchestrationEngineModal open={orchestrationEngineOpen} onOpenChange={setOrchestrationEngineOpen} />
+      <GlobalVulnHeatmapModal open={globalVulnHeatmapOpen} onOpenChange={setGlobalVulnHeatmapOpen} />
 
       {/* Global HUD scan line — year 3090 effect */}
       <div className="hud-scan-line pointer-events-none" />
