@@ -7,8 +7,9 @@ import {
   Plus, Trash2, Settings2, Database, BookOpen, Filter, ArrowRight, Terminal,
   Sparkles, Code2, Infinity, Crosshair, Dna, Save, RotateCcw, Sliders,
   CheckCircle2, CircleDot, ChevronDown, BarChart3, Gauge, Cpu as CpuIcon,
-  Network, Layers3, ListFilter,
+  Network, Layers3, ListFilter, HeartPulse,
 } from "lucide-react";
+import { ProviderHealthDashboard3D } from "../ProviderHealthDashboard3D";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -19,10 +20,18 @@ type ProviderInfo = { id: string; name: string; available: boolean; models: stri
 type WorldModel = {
   id: string; label: string; provider: string; providerKey: string; ctx: string;
   speed: "fast" | "medium" | "slow";
-  category: "general" | "code" | "reasoning" | "vision" | "uncensored" | "multimodal" | "agent" | "think";
+  category:
+    | "general" | "code" | "reasoning" | "vision" | "uncensored" | "multimodal" | "agent" | "think"
+    | "arabic" | "science" | "math" | "medical" | "legal" | "finance" | "security" | "creative"
+    | "roleplay" | "translation" | "summarization" | "embedding" | "speech" | "image" | "video"
+    | "audio" | "biology" | "chemistry" | "physics" | "education" | "research" | "enterprise"
+    | "multilingual" | "small" | "edge" | "quantized" | "finetuned" | "rag" | "tools"
+    | "offensive" | "redteam" | "osint" | "malware" | "forensics" | "network" | "crypto"
+    | "social" | "defense" | "pentest" | "exploit" | "recon" | "reverse" | "asm" | "fuzzing";
   cost: "free" | "$" | "$$" | "$$$";
   hot?: boolean; note?: string; new?: boolean;
   baseURL?: string;
+  virtual?: boolean;
 };
 
 type ProviderDef = {
@@ -717,7 +726,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
   const { state, dispatch } = useStore();
   const { toast } = useToast();
 
-  const [tab, setTab] = useState<"providers" | "keys" | "catalog" | "settings" | "modes">("providers");
+  const [tab, setTab] = useState<"providers" | "keys" | "catalog" | "health" | "settings" | "modes">("providers");
   const [serverProviders, setServerProviders] = useState<ProviderInfo[]>([]);
   const [loadingProviders, setLoadingProviders] = useState(false);
   const [reloading, setReloading] = useState(false);
@@ -966,11 +975,12 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
   const activeModelCount = PROVIDERS.filter(p => providerKeys[p.id]?.trim()).length + (state.settings.personalApiKey ? 1 : 0);
 
   const TABS = [
-    { id: "providers", label: "المزودون", icon: Database },
-    { id: "keys", label: "مفاتيح API", icon: Key },
-    { id: "catalog", label: "النماذج", icon: BookOpen },
-    { id: "settings", label: "الإعدادات", icon: Sliders },
-    { id: "modes", label: "الأوضاع", icon: Zap },
+    { id: "providers", label: "المزودون",   icon: Database    },
+    { id: "keys",      label: "مفاتيح API", icon: Key         },
+    { id: "catalog",   label: "النماذج",    icon: BookOpen    },
+    { id: "health",    label: "الصحة 3D",   icon: HeartPulse  },
+    { id: "settings",  label: "الإعدادات",  icon: Sliders     },
+    { id: "modes",     label: "الأوضاع",    icon: Zap         },
   ] as const;
 
   return (
@@ -1839,6 +1849,11 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                     </p>
                   </div>
                 </div>
+              )}
+
+              {/* ══════════════ TAB: HEALTH 3D ══════════════ */}
+              {tab === "health" && (
+                <ProviderHealthDashboard3D />
               )}
 
             </div>
