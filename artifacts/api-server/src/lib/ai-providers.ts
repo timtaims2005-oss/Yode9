@@ -104,37 +104,29 @@ const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
   personal: {
     name: "Personal / Custom",
     envKey: "PERSONAL_API_KEY",
-    baseURL: "https://api.openai.com/v1",
+    baseURL: "",
     models: [],
     requiresKey: false,
   },
 };
 
 function getPersonalBase(): string {
-  return (
-    process.env.PERSONAL_API_BASE_URL?.trim() ||
-    process.env.AI_INTEGRATIONS_OPENAI_BASE_URL?.trim() ||
-    "https://api.openai.com/v1"
-  );
+  return process.env.PERSONAL_API_BASE_URL?.trim() || "";
 }
 
 function getPersonalKey(): string {
-  return (
-    process.env.PERSONAL_API_KEY?.trim() ||
-    process.env.AI_INTEGRATIONS_OPENAI_API_KEY?.trim() ||
-    "no-key"
-  );
+  return process.env.PERSONAL_API_KEY?.trim() || "";
 }
 
 export function hasAnyApiKey(): boolean {
   return !!(
     process.env.PERSONAL_API_KEY?.trim() ||
-    process.env.AI_INTEGRATIONS_OPENAI_API_KEY?.trim() ||
     process.env.ANTHROPIC_API_KEY?.trim() ||
     process.env.GROQ_API_KEY?.trim() ||
     process.env.GEMINI_API_KEY?.trim() ||
     process.env.OPENROUTER_API_KEY?.trim() ||
-    process.env.CUSTOM_API_KEY?.trim()
+    process.env.CUSTOM_API_KEY?.trim() ||
+    process.env.OPENAI_API_KEY?.trim()
   );
 }
 
@@ -143,19 +135,17 @@ export function listProviders(): ProviderInfo[] {
     ([id, cfg]) => {
       let available: boolean;
       if (id === "personal") {
-        available = true;
+        available = !!getPersonalKey();
       } else if (id === "custom") {
         available = !!(process.env.CUSTOM_API_KEY || process.env.CUSTOM_API_BASE_URL);
       } else if (id === "openai") {
-        available = !!(process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY);
+        available = !!process.env.OPENAI_API_KEY;
       } else if (id === "anthropic") {
         available = !!(process.env.ANTHROPIC_API_KEY || process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY);
       } else {
         available = !!process.env[cfg.envKey];
       }
-      const baseURL = id === "personal"
-        ? getPersonalBase()
-        : cfg.baseURL;
+      const baseURL = id === "personal" ? getPersonalBase() : cfg.baseURL;
       return { id, name: cfg.name, available, models: cfg.models, baseURL };
     }
   );
@@ -164,7 +154,7 @@ export function listProviders(): ProviderInfo[] {
 let _openaiClients: Partial<Record<string, OpenAI>> = {};
 let _anthropic: Anthropic | null = null;
 
-export function getOpenAICompatibleClient(provider: ProviderName): OpenAI {
+export function getOpenAICompatibleClient(provider: ProviderName): OpenAI | null {
   const cacheKey = provider;
   if (_openaiClients[cacheKey]) return _openaiClients[cacheKey]!;
 
@@ -173,23 +163,19 @@ export function getOpenAICompatibleClient(provider: ProviderName): OpenAI {
   let baseURL: string | undefined = cfg.baseURL;
 
   if (provider === "custom") {
-    apiKey = process.env.CUSTOM_API_KEY || "no-key";
+    apiKey = process.env.CUSTOM_API_KEY || undefined;
     baseURL = process.env.CUSTOM_API_BASE_URL || "https://api.openai.com/v1";
   } else if (provider === "personal") {
-    apiKey = getPersonalKey();
-    baseURL = getPersonalBase();
+    apiKey = getPersonalKey() || undefined;
+    baseURL = getPersonalBase() || undefined;
   } else if (provider === "openai") {
-    apiKey = process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
-    baseURL = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || cfg.baseURL;
+    apiKey = process.env.OPENAI_API_KEY || undefined;
+    baseURL = cfg.baseURL;
   } else {
     apiKey = process.env[cfg.envKey];
   }
 
-  if (!apiKey) {
-    const client = new OpenAI({ apiKey: getPersonalKey(), baseURL: getPersonalBase() });
-    _openaiClients[cacheKey] = client;
-    return client;
-  }
+  if (!apiKey) return null;
 
   const clientOpts: ConstructorParameters<typeof OpenAI>[0] = { apiKey };
   if (baseURL) clientOpts.baseURL = baseURL;
@@ -206,8 +192,21 @@ export function getOpenAICompatibleClient(provider: ProviderName): OpenAI {
   return client;
 }
 
-export function getPersonalOpenAI(): OpenAI {
-  return new OpenAI({ apiKey: getPersonalKey(), baseURL: getPersonalBase() });
+export function getPersonalOpenAI(): OpenAI | null {
+  const key = getPersonalKey();
+  const base = getPersonalBase();
+  if (!key) return null;
+  return new OpenAI({ apiKey: key, ...(base ? { baseURL: base } : {}) });
+}
+
+export function requirePersonalOpenAI(): OpenAI {
+  const client = getPersonalOpenAI();
+  if (!client) {
+    throw new Error(
+      "لم يتم ضبط مفتاح API. افتح إعدادات المزود من القائمة الجانبية واختر مزوداً وأدخل المفتاح."
+    );
+  }
+  return client;
 }
 
 export function getAnthropicClient(): Anthropic {
@@ -233,6 +232,7 @@ export async function callOnce(
   const timeout = setTimeout(() => controller.abort(), 30_000);
   try {
     const client = getPersonalOpenAI();
+    if (!client) return "";
     const res = await client.chat.completions.create({
       model: PERSONAL_DEFAULT_MODEL,
       max_tokens: maxTokens,
@@ -248,8 +248,8 @@ export async function callOnce(
 
 export function getClientWithCredentials(apiKey: string, apiBaseURL?: string): OpenAI {
   return new OpenAI({
-    apiKey: apiKey || "no-key",
-    baseURL: apiBaseURL || "https://api.openai.com/v1",
+    apiKey,
+    ...(apiBaseURL ? { baseURL: apiBaseURL } : {}),
   });
 }
 
@@ -265,6 +265,7 @@ export async function* streamCompletion(
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
+    // ── Path 1: Frontend passed a key directly (from ProviderSettingsModal) ──
     if (opts?.apiKey && opts.apiKey.trim().length > 10) {
       const client = getClientWithCredentials(opts.apiKey.trim(), opts.apiBaseURL?.trim());
       const resolvedModel = model || PERSONAL_DEFAULT_MODEL;
@@ -288,6 +289,7 @@ export async function* streamCompletion(
       }
     }
 
+    // ── Path 2: Anthropic (server-side key) ──
     if (provider === "anthropic") {
       try {
         const client = getAnthropicClient();
@@ -321,41 +323,42 @@ export async function* streamCompletion(
       }
     }
 
-    try {
-      const resolvedProvider: ProviderName =
-        (provider === "personal" || !PROVIDER_CONFIGS[provider])
-          ? "personal"
-          : provider;
+    // ── Path 3: OpenAI-compatible provider (server-side key) ──
+    const resolvedProvider: ProviderName =
+      (provider === "personal" || !PROVIDER_CONFIGS[provider])
+        ? "personal"
+        : provider;
 
-      const hasKey = resolvedProvider === "personal"
-        ? true
-        : !!process.env[PROVIDER_CONFIGS[resolvedProvider].envKey];
+    const client = getOpenAICompatibleClient(resolvedProvider);
 
-      const client = hasKey
-        ? getOpenAICompatibleClient(resolvedProvider)
-        : getPersonalOpenAI();
-
-      const resolvedModel = model || PERSONAL_DEFAULT_MODEL;
-
-      const streamRes = await client.chat.completions.create({
-        model: resolvedModel,
-        messages,
-        stream: true,
-        temperature,
-      }, { signal: controller.signal });
-
-      for await (const chunk of streamRes) {
-        const content = chunk.choices?.[0]?.delta?.content;
-        if (content) yield { content };
-      }
-      yield { done: true };
-    } catch (e) {
-      const isAbort = e instanceof Error && (e.name === "AbortError" || e.message.includes("abort"));
-      const msg = isAbort
-        ? "Request timed out — check your API key or provider settings"
-        : e instanceof Error ? e.message : "AI provider error";
-      yield { error: msg };
+    if (!client) {
+      yield {
+        error:
+          "لم يتم ضبط مفتاح API. افتح إعدادات المزود من القائمة الجانبية واختر مزوداً وأدخل المفتاح.",
+      };
+      return;
     }
+
+    const resolvedModel = model || PERSONAL_DEFAULT_MODEL;
+
+    const streamRes = await client.chat.completions.create({
+      model: resolvedModel,
+      messages,
+      stream: true,
+      temperature,
+    }, { signal: controller.signal });
+
+    for await (const chunk of streamRes) {
+      const content = chunk.choices?.[0]?.delta?.content;
+      if (content) yield { content };
+    }
+    yield { done: true };
+  } catch (e) {
+    const isAbort = e instanceof Error && (e.name === "AbortError" || e.message.includes("abort"));
+    const msg = isAbort
+      ? "انتهت مهلة الطلب — تحقق من مفتاح API وإعدادات المزود"
+      : e instanceof Error ? e.message : "AI provider error";
+    yield { error: msg };
   } finally {
     clearTimeout(timeout);
   }

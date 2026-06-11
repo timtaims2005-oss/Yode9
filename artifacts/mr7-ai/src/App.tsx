@@ -166,6 +166,7 @@ import { OrchestrationEngineModal } from "./components/modals/OrchestrationEngin
 import { GlobalVulnHeatmapModal } from "./components/modals/GlobalVulnHeatmapModal";
 import { CyberWarfareMatrixModal } from "./components/modals/CyberWarfareMatrixModal";
 import { SentientCyberSphereModal } from "./components/modals/SentientCyberSphereModal";
+import { AIAutoSetup3D } from "./components/AIAutoSetup3D";
 
 const queryClient = new QueryClient();
 
@@ -348,6 +349,49 @@ function AppContent() {
   const [changelogOpen, setChangelogOpen] = useState(false);
   const [useCaseLibOpen, setUseCaseLibOpen] = useState(false);
   const [intelligenceCoreOpen, setIntelligenceCoreOpen] = useState(false);
+  // AI Auto-Setup 3D — shows on first open or when no provider key is configured
+  const [autoSetupVisible, setAutoSetupVisible] = useState(() => {
+    // If never initialized, show
+    if (localStorage.getItem("mr7-ai-autoinit-done") !== "1") return true;
+    // Also show if no provider key exists in localStorage
+    const P_KEY = "mr7-ai-p-key-";
+    const PROVIDERS = ["groq","openai","anthropic","gemini","openrouter","deepseek","xai","mistral","together","fireworks","perplexity","cohere","nvidia","github"];
+    const hasKey = PROVIDERS.some(id => {
+      const k = localStorage.getItem(P_KEY + id)?.trim();
+      return k && k.length > 10;
+    });
+    // Also check personal API key in persisted store
+    try {
+      const s = JSON.parse(localStorage.getItem("mr7-ai-state-v2") || "{}");
+      if (s?.settings?.personalApiKey?.trim()?.length > 10) return false;
+    } catch { /* ignore */ }
+    return !hasKey;
+  });
+
+  // Silent auto-init — runs every load, selects configured provider without showing modal
+  useEffect(() => {
+    if (autoSetupVisible) return; // modal handles it
+    const P_KEY = "mr7-ai-p-key-";
+    const PRIORITY = [
+      { id: "groq", baseURL: "https://api.groq.com/openai/v1", model: "llama-3.3-70b-versatile" },
+      { id: "openai", baseURL: "https://api.openai.com/v1", model: "gpt-4o" },
+      { id: "anthropic", baseURL: "https://api.anthropic.com/v1", model: "claude-sonnet-4-5" },
+      { id: "gemini", baseURL: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.5-flash" },
+      { id: "openrouter", baseURL: "https://openrouter.ai/api/v1", model: "deepseek/deepseek-chat-v3-0324" },
+      { id: "deepseek", baseURL: "https://api.deepseek.com/v1", model: "deepseek-chat" },
+      { id: "xai", baseURL: "https://api.x.ai/v1", model: "grok-3-mini" },
+      { id: "mistral", baseURL: "https://api.mistral.ai/v1", model: "mistral-large-latest" },
+    ] as const;
+    for (const p of PRIORITY) {
+      const key = localStorage.getItem(P_KEY + p.id)?.trim();
+      if (key && key.length > 10) {
+        dispatch({ type: "SET_PROVIDER", provider: p.id as never, providerModel: p.model });
+        return;
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Batch 10 — Futuristic 3D Features
   const [threatGlobeOpen, setThreatGlobeOpen] = useState(false);
   const [vulnGraph3DOpen, setVulnGraph3DOpen] = useState(false);
@@ -815,6 +859,19 @@ function AppContent() {
       <GlobalVulnHeatmapModal open={globalVulnHeatmapOpen} onOpenChange={setGlobalVulnHeatmapOpen} />
       <CyberWarfareMatrixModal open={cyberWarfareMatrixOpen} onOpenChange={setCyberWarfareMatrixOpen} />
       <SentientCyberSphereModal open={sentientCyberSphereOpen} onOpenChange={setSentientCyberSphereOpen} />
+
+      {/* AI Auto-Setup 3D — تهيئة تلقائية عند الفتح */}
+      <AnimatePresence>
+        {autoSetupVisible && (
+          <AIAutoSetup3D
+            key="auto-setup"
+            onComplete={() => {
+              localStorage.setItem("mr7-ai-autoinit-done", "1");
+              setAutoSetupVisible(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Global HUD scan line — year 3090 effect */}
       <div className="hud-scan-line pointer-events-none" />

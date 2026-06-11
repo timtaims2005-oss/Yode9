@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { getPersonalOpenAI, getClientWithCredentials, PERSONAL_DEFAULT_MODEL } from "../lib/ai-providers";
+import { requirePersonalOpenAI, getPersonalOpenAI, getClientWithCredentials, PERSONAL_DEFAULT_MODEL } from "../lib/ai-providers";
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
@@ -233,7 +233,7 @@ router.post("/godmode", async (req, res) => {
     const messages = Array.isArray(body.messages) ? body.messages : [];
     const reqApiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
     const reqApiBaseURL = typeof body.apiBaseURL === "string" ? body.apiBaseURL.trim() : "";
-    const getAI = () => reqApiKey.length > 10 ? getClientWithCredentials(reqApiKey, reqApiBaseURL || undefined) : getPersonalOpenAI();
+    const getAI = () => reqApiKey.length > 10 ? getClientWithCredentials(reqApiKey, reqApiBaseURL || undefined) : requirePersonalOpenAI();
     const userText = messages.filter((m) => m.role === "user").slice(-1)[0]?.content ?? "";
     if (!userText.trim()) {
       res.status(400).json({ error: "no user message" });

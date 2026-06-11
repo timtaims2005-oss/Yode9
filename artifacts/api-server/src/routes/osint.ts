@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { getPersonalOpenAI, PERSONAL_DEFAULT_MODEL } from "../lib/ai-providers";
+import { requirePersonalOpenAI, PERSONAL_DEFAULT_MODEL } from "../lib/ai-providers";
 
 const router: IRouter = Router();
 
@@ -55,7 +55,7 @@ router.post("/osint/url", async (req, res) => {
     const iocs = extractIocs(plainText);
 
     const langNote = body.language === "ar" ? "Respond in Arabic." : "Respond in English.";
-    const analysisText = await getPersonalOpenAI().chat.completions.create({
+    const analysisText = await requirePersonalOpenAI().chat.completions.create({
       model: PERSONAL_DEFAULT_MODEL,
       max_tokens: 1500,
       messages: [
@@ -144,10 +144,10 @@ router.post("/osint/analyze", async (req, res) => {
       ];
     }
 
-    const completion = await getPersonalOpenAI().chat.completions.create({
+    const completion = await requirePersonalOpenAI().chat.completions.create({
       model: PERSONAL_DEFAULT_MODEL,
       max_tokens: 2000,
-      messages: analysisMessages as Parameters<ReturnType<typeof getPersonalOpenAI>["chat"]["completions"]["create"]>[0]["messages"],
+      messages: analysisMessages as import("openai/resources/chat/completions").ChatCompletionMessageParam[],
     });
 
     const iocs = type === "image" ? {} : extractIocs(content);

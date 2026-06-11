@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { getPersonalOpenAI } from "../lib/ai-providers";
+import { requirePersonalOpenAI } from "../lib/ai-providers";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -25,7 +25,7 @@ router.post("/image", async (req, res) => {
     const quality = body.quality ?? "medium";
     const n = Math.min(Math.max(body.n ?? 1, 1), 4);
 
-    const result = await getPersonalOpenAI().images.generate({
+    const result = await requirePersonalOpenAI().images.generate({
       model: "gpt-image-1",
       prompt,
       size,

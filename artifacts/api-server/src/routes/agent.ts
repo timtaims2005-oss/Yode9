@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { getPersonalOpenAI, callOnce, PERSONAL_DEFAULT_MODEL } from "../lib/ai-providers";
+import { requirePersonalOpenAI, callOnce, PERSONAL_DEFAULT_MODEL } from "../lib/ai-providers";
 
 const router: IRouter = Router();
 
@@ -527,7 +527,7 @@ router.post("/agent", async (req, res) => {
       step++;
       sse(res, { type: "step_start", step, maxSteps });
 
-      const response = await getPersonalOpenAI().chat.completions.create({
+      const response = await requirePersonalOpenAI().chat.completions.create({
         model: PERSONAL_DEFAULT_MODEL,
         max_tokens: 4096,
         messages: loop as import("openai/resources/chat/completions").ChatCompletionMessageParam[],

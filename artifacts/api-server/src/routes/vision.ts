@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { getPersonalOpenAI, PERSONAL_DEFAULT_MODEL } from "../lib/ai-providers";
+import { requirePersonalOpenAI, PERSONAL_DEFAULT_MODEL } from "../lib/ai-providers";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -20,7 +20,7 @@ router.post("/vision", async (req, res) => {
       return res.status(400).json({ error: "prompt too long (max 4000 chars)" });
     }
 
-    const completion = await getPersonalOpenAI().chat.completions.create({
+    const completion = await requirePersonalOpenAI().chat.completions.create({
       model: PERSONAL_DEFAULT_MODEL,
       messages: [
         {
