@@ -84,7 +84,7 @@ export function FuturisticBackground3D({
     resize();
 
     function initScene() {
-      const nodeCount = Math.min(40, Math.max(14, Math.floor(W * H / 18000)));
+      const nodeCount = Math.min(18, Math.max(8, Math.floor(W * H / 38000)));
       nodes = Array.from({ length: nodeCount }, () => ({
         x:         Math.random() * W,
         y:         Math.random() * H,
@@ -102,7 +102,7 @@ export function FuturisticBackground3D({
         accentIdx: Math.floor(Math.random() * ACCENT_COLS.length),
       }));
 
-      const pCount = Math.min(80, Math.floor(W * H / 9000));
+      const pCount = Math.min(30, Math.floor(W * H / 20000));
       particles = Array.from({ length: pCount }, () => ({
         x:     Math.random() * W,
         y:     Math.random() * H,
@@ -446,7 +446,11 @@ export function FuturisticBackground3D({
     }
 
     // ── Main loop ─────────────────────────────────────────────────────────
-    function draw() {
+    let lastFrameTs = 0;
+    function draw(now: number) {
+      rafRef.current = requestAnimationFrame(draw);
+      if (now - lastFrameTs < 42) return; // ~24fps cap
+      lastFrameTs = now;
       timeRef.current += 0.011;
       const t = timeRef.current;
       ctx.clearRect(0, 0, W, H);
@@ -459,8 +463,6 @@ export function FuturisticBackground3D({
       maybeGlitch(t);
       drawCornerHUD(t);
       drawStatusBlips(t);
-
-      rafRef.current = requestAnimationFrame(draw);
     }
 
     rafRef.current = requestAnimationFrame(draw);

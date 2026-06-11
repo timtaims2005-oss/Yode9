@@ -2386,6 +2386,7 @@ function HUDPanelCanvas() {
     const ctx = cv.getContext("2d")!;
     const dpr = window.devicePixelRatio || 1;
     function resize() {
+      if (!cv) return;
       const W = cv.offsetWidth, H = cv.offsetHeight;
       cv.width = W * dpr; cv.height = H * dpr;
       ctx.scale(dpr, dpr);

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Brain, Server, Bot, Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight, Wifi, Target, GitBranch, Bug } from "lucide-react";
+import { AIQuickSetupButton } from "./AIQuickSetupButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore, ProviderName } from "@/lib/store";
 import { useT } from "@/lib/i18n";
@@ -239,6 +240,9 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
           </AnimatePresence>
         </div>
       </div>
+
+      {/* AUTO AI SETUP */}
+      <AIQuickSetupButton onOpenProviderSettings={onOpenProviderSettings} />
 
       {/* RIGHT: scrollable toolbar with left/right arrows */}
       <div className="flex items-center gap-0.5 flex-1 min-w-0 justify-end">

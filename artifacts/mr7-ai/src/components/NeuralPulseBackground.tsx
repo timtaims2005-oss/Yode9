@@ -42,6 +42,7 @@ export function NeuralPulseBackground() {
   const frameRef = useRef<number>(0);
   const mouseRef = useRef({ x: -999, y: -999 });
   const timeRef = useRef(0);
+  const lastFrameRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -56,7 +57,7 @@ export function NeuralPulseBackground() {
 
     function initNodes() {
       const w = canvas!.width; const h = canvas!.height;
-      const count = Math.min(50, Math.floor((w * h) / 14000));
+      const count = Math.min(24, Math.floor((w * h) / 28000));
       nodesRef.current = Array.from({ length: count }, (_, i) => ({
         x: Math.random() * w,
         y: Math.random() * h,
@@ -98,7 +99,10 @@ export function NeuralPulseBackground() {
       });
     }
 
-    function draw() {
+    function draw(now: number) {
+      frameRef.current = requestAnimationFrame(draw);
+      if (now - lastFrameRef.current < 42) return;
+      lastFrameRef.current = now;
       timeRef.current += 0.012;
       const t = timeRef.current;
       const w = canvas!.width; const h = canvas!.height;
@@ -210,7 +214,6 @@ export function NeuralPulseBackground() {
         }
       });
 
-      frameRef.current = requestAnimationFrame(draw);
     }
 
     frameRef.current = requestAnimationFrame(draw);
