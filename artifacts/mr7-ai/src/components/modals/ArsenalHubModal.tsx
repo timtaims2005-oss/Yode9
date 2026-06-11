@@ -64,7 +64,8 @@ export type ArsenalModuleId =
   | "autonomousredteam" | "cybervision" | "jitexploit" | "evasionengine"
   | "vulntopology" | "precisionstrike" | "livecve" | "bassimulation"
   | "networktopo" | "binaryanalysis" | "webfuzzing" | "multiagentsoc"
-  | "orchestrationengine" | "globalvulnheatmap";
+  | "orchestrationengine" | "globalvulnheatmap"
+  | "cyberwarfarematrix";
 
 export type ArsenalModule = {
   id: ArsenalModuleId;
@@ -902,6 +903,12 @@ export const ARSENAL_MODULES: ArsenalModule[] = [
     desc: "World map with vulnerability density heatmap per country. Animated attack arcs between threat actors and victims. Click countries for detailed stats. Top CVE sidebar.",
     icon: Globe, color: "#e21227", border: "rgba(226,18,39,0.35)", bg: "rgba(226,18,39,0.07)", glow: "rgba(226,18,39,0.25)",
     source: "KaliGPT Native", tag: "GLOBAL",
+  },
+  {
+    id: "cyberwarfarematrix", name: "Cyber Warfare Command Center", subtitle: "Polymorphic · Swarm · Quantum · SCADA · 3D",
+    desc: "6-in-1 war room: Live 3D network attack matrix, polymorphic code morphing engine, AI swarm warfare agents, quantum cryptanalysis (Shor/Grover), SCADA/ICS infiltration, and a military-grade live terminal with real-time payload compilation.",
+    icon: Crosshair, color: "#e21227", border: "rgba(226,18,39,0.5)", bg: "rgba(226,18,39,0.1)", glow: "rgba(226,18,39,0.4)",
+    source: "KaliGPT Native", tag: "WAR ROOM",
   },
 ];
 
