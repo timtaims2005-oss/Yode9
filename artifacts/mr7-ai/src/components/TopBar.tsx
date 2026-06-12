@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Brain, Server, Bot, Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight, Wifi, Target, GitBranch, Bug, Activity, DollarSign } from "lucide-react";
+import { Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Brain, Server, Bot, Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight, Wifi, Target, GitBranch, Bug, Activity, DollarSign, GitMerge } from "lucide-react";
 import { AIQuickSetupButton } from "./AIQuickSetupButton";
 import { ProviderHealthBadge3D } from "./ProviderHealthBadge3D";
 import { motion, AnimatePresence } from "framer-motion";
@@ -55,9 +55,10 @@ interface TopBarProps {
   onOpenRedTeam?: () => void;
   onOpenPerfDash?: () => void;
   onOpenCostDash?: () => void;
+  onOpenDedupViz?: () => void;
 }
 
-export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash }: TopBarProps) {
+export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash, onOpenDedupViz }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
   const { toast } = useToast();
@@ -612,6 +613,18 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               title="Cost Intelligence 3D"
             >
               <DollarSign className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Dedup Network 3D */}
+          {onOpenDedupViz && (
+            <button
+              onClick={onOpenDedupViz}
+              className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-[#a78bfa] hover:bg-[#a78bfa]/10 transition-colors"
+              aria-label="Dedup Network 3D"
+              title="Dedup Network Visualizer 3D"
+            >
+              <GitMerge className="w-4 h-4" />
             </button>
           )}
 

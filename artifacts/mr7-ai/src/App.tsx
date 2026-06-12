@@ -169,6 +169,7 @@ import { SentientCyberSphereModal } from "./components/modals/SentientCyberSpher
 import { AIAutoSetup3D } from "./components/AIAutoSetup3D";
 import { PerformanceDashboard3D } from "./components/PerformanceDashboard3D";
 import { CostDashboard3D, useCostTracker } from "./components/CostDashboard3D";
+import { DedupVisualizer3D } from "./components/DedupVisualizer3D";
 
 const queryClient = new QueryClient();
 
@@ -459,9 +460,10 @@ function AppContent() {
   const [cyberWarfareMatrixOpen, setCyberWarfareMatrixOpen] = useState(false);
   const [sentientCyberSphereOpen, setSentientCyberSphereOpen] = useState(false);
 
-  // Performance + Cost Dashboards
+  // Performance + Cost + Dedup Dashboards
   const [perfDashOpen, setPerfDashOpen] = useState(false);
   const [costDashOpen, setCostDashOpen] = useState(false);
+  const [dedupVizOpen, setDedupVizOpen] = useState(false);
   const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
 
   const [pipelineKeyRef] = useState(() => ({ n: 0 }));
@@ -691,6 +693,7 @@ function AppContent() {
           onOpenRedTeam={() => setRedTeamDashOpen(true)}
           onOpenPerfDash={() => setPerfDashOpen((v) => !v)}
           onOpenCostDash={() => setCostDashOpen((v) => !v)}
+          onOpenDedupViz={() => setDedupVizOpen((v) => !v)}
         />
         <ChatView onOpenOsintDash={() => setOsintDashOpen(true)} />
         {compareOpen && <CompareView onClose={() => setCompareOpen(false)} />}
@@ -926,6 +929,9 @@ function AppContent() {
 
       {/* Cost Intelligence 3D */}
       {costDashOpen && <CostDashboard3D entries={costEntries} onClose={() => setCostDashOpen(false)} />}
+
+      {/* Dedup Network Visualizer 3D */}
+      {dedupVizOpen && <DedupVisualizer3D onClose={() => setDedupVizOpen(false)} />}
 
       {/* Global HUD scan line — year 3090 effect */}
       <div className="hud-scan-line pointer-events-none" />

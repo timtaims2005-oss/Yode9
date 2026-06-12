@@ -1,5 +1,6 @@
 import { trafficBus } from "./trafficBus";
 import { perfMonitor } from "./perf-monitor";
+import { requestDedup } from "./request-dedup";
 
 export type ChatRole = "user" | "assistant";
 export type ChatMessage = { role: ChatRole; content: string };
@@ -104,6 +105,22 @@ export async function streamChat(req: ChatRequest, onChunk: (text: string) => vo
     trafficBus.failCall(callId);
     throw err;
   }
+}
+
+export async function streamChatDeduped(
+  req: ChatRequest,
+  onChunk: (text: string) => void,
+  signal?: AbortSignal,
+): Promise<string> {
+  return requestDedup.dedupStream(
+    req.model,
+    req.provider ?? "personal",
+    req.messages,
+    req.model,
+    (broadcastChunk) => streamChat(req, broadcastChunk, signal),
+    onChunk,
+    signal,
+  );
 }
 
 /**

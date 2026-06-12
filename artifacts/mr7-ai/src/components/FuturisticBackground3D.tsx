@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { getCanvasConfig } from "@/lib/adaptive-quality";
 
 /*
   FUTURISTIC BACKGROUND 3D — v2
@@ -84,7 +85,8 @@ export function FuturisticBackground3D({
     resize();
 
     function initScene() {
-      const nodeCount = Math.min(18, Math.max(8, Math.floor(W * H / 38000)));
+      const qcfg = getCanvasConfig();
+      const nodeCount = Math.min(qcfg.nodeCount, Math.max(6, Math.floor(W * H / 38000)));
       nodes = Array.from({ length: nodeCount }, () => ({
         x:         Math.random() * W,
         y:         Math.random() * H,
@@ -102,7 +104,8 @@ export function FuturisticBackground3D({
         accentIdx: Math.floor(Math.random() * ACCENT_COLS.length),
       }));
 
-      const pCount = Math.min(30, Math.floor(W * H / 20000));
+      const qcfg2 = getCanvasConfig();
+      const pCount = Math.min(qcfg2.particleCount, Math.floor(W * H / 20000));
       particles = Array.from({ length: pCount }, () => ({
         x:     Math.random() * W,
         y:     Math.random() * H,
