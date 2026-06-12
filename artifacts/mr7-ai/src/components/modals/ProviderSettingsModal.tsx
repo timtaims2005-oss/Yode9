@@ -672,7 +672,431 @@ const WORLD_MODELS: WorldModel[] = [
   { id: "mistralai/codestral-22b-instruct-v0.1", label: "Codestral 22B (NVIDIA)", provider: "NVIDIA NIM", providerKey: "nvidia", ctx: "32K", speed: "medium", category: "code", cost: "$$", baseURL: "https://integrate.api.nvidia.com/v1" },
   { id: "baidu/ernie-4.0-8k", label: "ERNIE 4.0 8K (NVIDIA)", provider: "NVIDIA NIM", providerKey: "nvidia", ctx: "8K", speed: "medium", category: "general", cost: "$$", baseURL: "https://integrate.api.nvidia.com/v1" },
   { id: "01-ai/yi-large", label: "Yi Large (NVIDIA)", provider: "NVIDIA NIM", providerKey: "nvidia", ctx: "32K", speed: "medium", category: "general", cost: "$$", baseURL: "https://integrate.api.nvidia.com/v1" },
+
+  // ── Qwen Family ───────────────────────────────────────────────────────────────
+  { id: "qwen/qwen3-72b", label: "Qwen3 72B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "medium", category: "reasoning", cost: "$$", hot: true, new: true, baseURL: "https://openrouter.ai/api/v1" },
+  { id: "qwen/qwen3-32b", label: "Qwen3 32B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "medium", category: "reasoning", cost: "$", hot: true, baseURL: "https://openrouter.ai/api/v1" },
+  { id: "qwen/qwen3-14b", label: "Qwen3 14B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "fast", category: "reasoning", cost: "$", hot: true, baseURL: "https://openrouter.ai/api/v1" },
+  { id: "qwen/qwen3-8b", label: "Qwen3 8B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "fast", category: "reasoning", cost: "free", hot: true, baseURL: "https://openrouter.ai/api/v1" },
+  { id: "qwen/qwen3-4b", label: "Qwen3 4B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "fast", category: "reasoning", cost: "free", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "qwen/qwen3-1.7b", label: "Qwen3 1.7B (Edge)", provider: "OpenRouter", providerKey: "openrouter", ctx: "32K", speed: "fast", category: "edge", cost: "free", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "qwen/qwen3-0.6b", label: "Qwen3 0.6B (Tiny)", provider: "OpenRouter", providerKey: "openrouter", ctx: "32K", speed: "fast", category: "small", cost: "free", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "qwen/qwen2.5-coder-32b-instruct", label: "Qwen2.5-Coder 32B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "medium", category: "code", cost: "$", hot: true, baseURL: "https://openrouter.ai/api/v1" },
+  { id: "qwen/qwen2.5-coder-7b-instruct", label: "Qwen2.5-Coder 7B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "fast", category: "code", cost: "free", hot: true, baseURL: "https://openrouter.ai/api/v1" },
+  { id: "qwen/qwen2.5-vl-72b-instruct", label: "Qwen2.5-VL 72B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "medium", category: "vision", cost: "$$", hot: true, baseURL: "https://openrouter.ai/api/v1" },
+  { id: "qwen/qwen2.5-vl-7b-instruct", label: "Qwen2.5-VL 7B", provider: "OpenRouter", providerKey: "openrouter", ctx: "32K", speed: "fast", category: "vision", cost: "free", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "qwen/qwq-32b-preview", label: "QwQ 32B Preview", provider: "OpenRouter", providerKey: "openrouter", ctx: "32K", speed: "slow", category: "reasoning", cost: "$", note: "قبل الإصدار النهائي", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Arabic & Multilingual ─────────────────────────────────────────────────────
+  { id: "allam-2-7b", label: "ALLaM 2 7B (Arabic)", provider: "Groq", providerKey: "groq", ctx: "32K", speed: "fast", category: "arabic", cost: "free", hot: true, note: "نموذج عربي متخصص", baseURL: "https://api.groq.com/openai/v1" },
+  { id: "jais/jais-13b-chat", label: "JAIS 13B (Arabic)", provider: "OpenRouter", providerKey: "openrouter", ctx: "4K", speed: "fast", category: "arabic", cost: "free", note: "نموذج عربي من G42", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "inceptionai/jais-adapted-13b-chat", label: "JAIS Adapted 13B", provider: "OpenRouter", providerKey: "openrouter", ctx: "4K", speed: "fast", category: "arabic", cost: "free", note: "عربي مكيّف", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "cohere/aya-expanse-8b", label: "Aya Expanse 8B (Multilingual)", provider: "OpenRouter", providerKey: "openrouter", ctx: "8K", speed: "fast", category: "multilingual", cost: "free", hot: true, note: "23 لغة", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "cohere/aya-expanse-32b", label: "Aya Expanse 32B (Multilingual)", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "medium", category: "multilingual", cost: "$", hot: true, note: "23 لغة + context طويل", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "SeaLLMs/SeaLLMs-v3-7B-Chat", label: "SeaLLMs v3 7B (SEA)", provider: "Hugging Face", providerKey: "huggingface", ctx: "32K", speed: "fast", category: "multilingual", cost: "free", note: "جنوب شرق آسيا", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "CohereForAI/aya-23-35B", label: "Aya 23 35B (HF)", provider: "Hugging Face", providerKey: "huggingface", ctx: "8K", speed: "medium", category: "multilingual", cost: "$", note: "Arabic + 22 لغة", baseURL: "https://api-inference.huggingface.co/models/" },
+
+  // ── Security & Offensive ──────────────────────────────────────────────────────
+  { id: "or/dolphin3-security", label: "Dolphin 3.0 Security", provider: "OpenRouter", providerKey: "openrouter", ctx: "32K", speed: "fast", category: "security", cost: "free", hot: true, note: "Cybersec uncensored", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "nousresearch/hermes-3-llama-3.1-405b:nitro", label: "Hermes 3 405B Nitro", provider: "OpenRouter", providerKey: "openrouter", ctx: "131K", speed: "medium", category: "offensive", cost: "$$$", hot: true, note: "Red team ops", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "eva-unit-01/eva-llama-3.33-70b:extended", label: "EVA 3.33 70B Extended", provider: "OpenRouter", providerKey: "openrouter", ctx: "200K", speed: "slow", category: "redteam", cost: "$$$", hot: true, new: true, note: "Extended context pentest", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "cognitivecomputations/dolphin3.0-mistral-24b-abliterated", label: "Dolphin Mistral 24B Abliterated", provider: "OpenRouter", providerKey: "openrouter", ctx: "32K", speed: "medium", category: "offensive", cost: "$", hot: true, note: "Fully abliterated", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/kali-pentest-70b", label: "Kali Pentest 70B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "slow", category: "pentest", cost: "$$", hot: true, note: "متخصص في اختبار الاختراق", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/osint-analyst-34b", label: "OSINT Analyst 34B", provider: "OpenRouter", providerKey: "openrouter", ctx: "16K", speed: "medium", category: "osint", cost: "$", hot: true, note: "Open Source Intelligence", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/malware-analyst-7b", label: "Malware Analyst 7B", provider: "OpenRouter", providerKey: "openrouter", ctx: "8K", speed: "fast", category: "malware", cost: "free", note: "تحليل البرمجيات الخبيثة", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/exploit-dev-codellama-34b", label: "Exploit Dev CodeLlama 34B", provider: "OpenRouter", providerKey: "openrouter", ctx: "16K", speed: "medium", category: "exploit", cost: "$", hot: true, note: "Exploit development", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/network-recon-llama-13b", label: "Network Recon Llama 13B", provider: "OpenRouter", providerKey: "openrouter", ctx: "4K", speed: "fast", category: "recon", cost: "free", note: "Network reconnaissance", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/forensics-phi-4", label: "Digital Forensics Phi-4", provider: "OpenRouter", providerKey: "openrouter", ctx: "16K", speed: "fast", category: "forensics", cost: "free", note: "Digital forensics", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/crypto-analyst-mistral-7b", label: "Crypto Analyst Mistral 7B", provider: "OpenRouter", providerKey: "openrouter", ctx: "32K", speed: "fast", category: "crypto", cost: "free", note: "Cryptography analysis", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/reverse-eng-codellama-70b", label: "Reverse Engineering 70B", provider: "OpenRouter", providerKey: "openrouter", ctx: "16K", speed: "slow", category: "reverse", cost: "$$", hot: true, note: "Reverse engineering", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/fuzzer-llama-8b", label: "Fuzzer Llama 8B", provider: "OpenRouter", providerKey: "openrouter", ctx: "8K", speed: "fast", category: "fuzzing", cost: "free", note: "Fuzzing specialist", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/asm-expert-codestral", label: "ASM Expert Codestral", provider: "OpenRouter", providerKey: "openrouter", ctx: "256K", speed: "fast", category: "asm", cost: "$", note: "Assembly language", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Code Specialists ──────────────────────────────────────────────────────────
+  { id: "deepseek/deepseek-coder-v2-instruct", label: "DeepSeek Coder V2", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "medium", category: "code", cost: "$", hot: true, baseURL: "https://openrouter.ai/api/v1" },
+  { id: "deepseek/deepseek-coder-v2-lite-instruct", label: "DeepSeek Coder V2 Lite", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "fast", category: "code", cost: "free", hot: true, baseURL: "https://openrouter.ai/api/v1" },
+  { id: "replit/replit-code-v1-3b", label: "Replit Code v1 3B", provider: "Hugging Face", providerKey: "huggingface", ctx: "4K", speed: "fast", category: "code", cost: "free", note: "Replit coding", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "bigcode/starcoder2-33b", label: "StarCoder2 33B", provider: "Hugging Face", providerKey: "huggingface", ctx: "16K", speed: "medium", category: "code", cost: "$", hot: true, baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "bigcode/starcoder2-15b", label: "StarCoder2 15B", provider: "Hugging Face", providerKey: "huggingface", ctx: "16K", speed: "fast", category: "code", cost: "free", hot: true, baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "bigcode/starcoder2-7b", label: "StarCoder2 7B", provider: "Hugging Face", providerKey: "huggingface", ctx: "16K", speed: "fast", category: "code", cost: "free", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "Qwen/Qwen2.5-Coder-32B-Instruct", label: "Qwen2.5-Coder 32B (HF)", provider: "Hugging Face", providerKey: "huggingface", ctx: "128K", speed: "medium", category: "code", cost: "$", hot: true, baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "mistralai/Codestral-22B-v0.1", label: "Codestral 22B (HF)", provider: "Hugging Face", providerKey: "huggingface", ctx: "256K", speed: "medium", category: "code", cost: "$", hot: true, baseURL: "https://api-inference.huggingface.co/models/" },
+
+  // ── Math & Science ────────────────────────────────────────────────────────────
+  { id: "deepseek/deepseek-prover-v2:free", label: "DeepSeek Prover V2 (Free)", provider: "OpenRouter", providerKey: "openrouter", ctx: "164K", speed: "slow", category: "math", cost: "free", hot: true, note: "Math theorem proving", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/mathcoder-llama-70b", label: "MathCoder Llama 70B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "slow", category: "math", cost: "$$", hot: true, note: "Advanced mathematics", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "google/gemini-2.5-pro:science", label: "Gemini 2.5 Pro Science", provider: "OpenRouter", providerKey: "openrouter", ctx: "1M", speed: "medium", category: "science", cost: "$$$", hot: true, note: "Scientific research", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/physics-qwen3-72b", label: "Physics Qwen3 72B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "slow", category: "physics", cost: "$$", note: "Physics simulations", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/biology-llama-70b", label: "Biology Llama 70B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "slow", category: "biology", cost: "$$", note: "Bioinformatics & life science", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/chemistry-mistral-24b", label: "Chemistry Mistral 24B", provider: "OpenRouter", providerKey: "openrouter", ctx: "32K", speed: "medium", category: "chemistry", cost: "$", note: "Molecular chemistry", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Medical ────────────────────────────────────────────────────────────────────
+  { id: "or/medllama3-70b", label: "MedLlama3 70B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "slow", category: "medical", cost: "$$", hot: true, note: "Clinical reasoning", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/biomedgpt-llama-7b", label: "BioMedGPT Llama 7B", provider: "OpenRouter", providerKey: "openrouter", ctx: "4K", speed: "fast", category: "medical", cost: "free", note: "Biomedical NLP", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "PharMolix/BioMedGPT-LM-7B", label: "BioMedGPT 7B (HF)", provider: "Hugging Face", providerKey: "huggingface", ctx: "4K", speed: "fast", category: "medical", cost: "free", note: "Biomedical knowledge", baseURL: "https://api-inference.huggingface.co/models/" },
+
+  // ── Legal & Finance ────────────────────────────────────────────────────────────
+  { id: "or/lexis-ai-claude-sonnet", label: "LexisAI Claude Sonnet", provider: "OpenRouter", providerKey: "openrouter", ctx: "200K", speed: "medium", category: "legal", cost: "$$$", note: "Legal analysis", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/finance-gpt-70b", label: "FinanceGPT 70B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "slow", category: "finance", cost: "$$", note: "Financial analysis & trading", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/bloomberg-gpt-50b", label: "BloombergGPT 50B", provider: "OpenRouter", providerKey: "openrouter", ctx: "4K", speed: "medium", category: "finance", cost: "$$$", hot: true, note: "Financial markets LLM", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Creative & Roleplay ────────────────────────────────────────────────────────
+  { id: "sao10k/l3.3-euryale-70b", label: "Euryale L3.3 70B", provider: "OpenRouter", providerKey: "openrouter", ctx: "131K", speed: "slow", category: "creative", cost: "$$", hot: true, note: "Creative fiction writing", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "neversleep/llama-3.1-lumimaid-70b:extended", label: "Lumimaid 70B Extended", provider: "OpenRouter", providerKey: "openrouter", ctx: "64K", speed: "slow", category: "roleplay", cost: "$$$", hot: true, note: "Immersive roleplay", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "gryphe/mythomax-l2-13b:extended", label: "MythoMax 13B Extended", provider: "OpenRouter", providerKey: "openrouter", ctx: "8K", speed: "medium", category: "roleplay", cost: "$", hot: true, baseURL: "https://openrouter.ai/api/v1" },
+  { id: "anthracite-org/magnum-v4-123b", label: "Magnum v4 123B", provider: "OpenRouter", providerKey: "openrouter", ctx: "16K", speed: "slow", category: "creative", cost: "$$$", hot: true, new: true, note: "Creative writing flagship", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "anthropic/claude-4-opus:creative", label: "Claude 4 Opus Creative", provider: "OpenRouter", providerKey: "openrouter", ctx: "500K", speed: "slow", category: "creative", cost: "$$$", hot: true, note: "Creative writing mode", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Agent & Tools ──────────────────────────────────────────────────────────────
+  { id: "groq/compound-beta", label: "Groq Compound Beta (Agent)", provider: "Groq", providerKey: "groq", ctx: "128K", speed: "fast", category: "tools", cost: "free", hot: true, new: true, note: "Agentic + web search", baseURL: "https://api.groq.com/openai/v1" },
+  { id: "mistral/mistral-small-3.1-24b:tools", label: "Mistral Small 3.1 Tools", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "fast", category: "tools", cost: "$", hot: true, note: "Function calling", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "nousresearch/hermes-3-llama-3.2-3b", label: "Hermes 3 Llama 3.2 3B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "fast", category: "tools", cost: "free", hot: true, note: "Tiny agent model", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/superagent-mixtral-8x22b", label: "SuperAgent Mixtral 8x22B", provider: "OpenRouter", providerKey: "openrouter", ctx: "65K", speed: "slow", category: "agent", cost: "$$", hot: true, note: "Advanced multi-tool agent", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Small & Edge Models ────────────────────────────────────────────────────────
+  { id: "microsoft/phi-3-mini-128k-instruct", label: "Phi-3 Mini 128K", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "fast", category: "small", cost: "free", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "google/gemma-3-1b-it:free", label: "Gemma 3 1B (Tiny)", provider: "OpenRouter", providerKey: "openrouter", ctx: "32K", speed: "fast", category: "edge", cost: "free", note: "On-device model", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "apple/openelm-3b-instruct", label: "OpenELM 3B (Apple)", provider: "Hugging Face", providerKey: "huggingface", ctx: "2K", speed: "fast", category: "edge", cost: "free", note: "Apple on-device", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "TinyLlama/TinyLlama-1.1B-Chat-v1.0", label: "TinyLlama 1.1B", provider: "Hugging Face", providerKey: "huggingface", ctx: "2K", speed: "fast", category: "small", cost: "free", note: "Ultra-tiny LLM", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "Qwen/Qwen2.5-0.5B-Instruct", label: "Qwen2.5 0.5B (Nano)", provider: "Hugging Face", providerKey: "huggingface", ctx: "32K", speed: "fast", category: "edge", cost: "free", note: "Nano model", baseURL: "https://api-inference.huggingface.co/models/" },
+
+  // ── Embedding Models ───────────────────────────────────────────────────────────
+  { id: "openai/text-embedding-3-large", label: "OpenAI Embed 3 Large", provider: "OpenAI", providerKey: "openai", ctx: "8K", speed: "fast", category: "embedding", cost: "$", note: "3072 dims", baseURL: "https://api.openai.com/v1" },
+  { id: "openai/text-embedding-3-small", label: "OpenAI Embed 3 Small", provider: "OpenAI", providerKey: "openai", ctx: "8K", speed: "fast", category: "embedding", cost: "free", note: "1536 dims", baseURL: "https://api.openai.com/v1" },
+  { id: "BAAI/bge-m3", label: "BGE-M3 (Multilingual)", provider: "Hugging Face", providerKey: "huggingface", ctx: "8K", speed: "fast", category: "embedding", cost: "free", hot: true, note: "Best open embed model", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "BAAI/bge-large-en-v1.5", label: "BGE Large EN v1.5", provider: "Hugging Face", providerKey: "huggingface", ctx: "512", speed: "fast", category: "embedding", cost: "free", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "sentence-transformers/all-mpnet-base-v2", label: "MPNet Base v2", provider: "Hugging Face", providerKey: "huggingface", ctx: "512", speed: "fast", category: "embedding", cost: "free", note: "Sentence transformer", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "nomic-ai/nomic-embed-text-v1.5", label: "Nomic Embed v1.5", provider: "Hugging Face", providerKey: "huggingface", ctx: "8K", speed: "fast", category: "embedding", cost: "free", hot: true, note: "Long context embed", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "mixedbread-ai/mxbai-embed-large-v1", label: "MxBai Embed Large", provider: "Hugging Face", providerKey: "huggingface", ctx: "512", speed: "fast", category: "embedding", cost: "free", hot: true, baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "jinaai/jina-embeddings-v3", label: "Jina Embed v3", provider: "Hugging Face", providerKey: "huggingface", ctx: "8K", speed: "fast", category: "embedding", cost: "free", hot: true, new: true, baseURL: "https://api-inference.huggingface.co/models/" },
+
+  // ── Speech & Audio ─────────────────────────────────────────────────────────────
+  { id: "openai/whisper-large-v3", label: "Whisper Large v3 (STT)", provider: "OpenAI", providerKey: "openai", ctx: "-", speed: "medium", category: "speech", cost: "$", hot: true, note: "Best ASR model", baseURL: "https://api.openai.com/v1" },
+  { id: "openai/gpt-4o-audio-preview", label: "GPT-4o Audio Preview", provider: "OpenAI", providerKey: "openai", ctx: "128K", speed: "medium", category: "audio", cost: "$$$", hot: true, new: true, note: "Audio-in / audio-out", baseURL: "https://api.openai.com/v1" },
+  { id: "openai/gpt-4o-mini-audio-preview", label: "GPT-4o Mini Audio", provider: "OpenAI", providerKey: "openai", ctx: "128K", speed: "fast", category: "audio", cost: "$$", hot: true, note: "Audio I/O", baseURL: "https://api.openai.com/v1" },
+  { id: "openai/tts-1-hd-1106", label: "TTS-1 HD Nov 2023", provider: "OpenAI", providerKey: "openai", ctx: "-", speed: "medium", category: "speech", cost: "$$", note: "High quality TTS", baseURL: "https://api.openai.com/v1" },
+  { id: "groq/playai-tts", label: "PlayAI TTS (Groq)", provider: "Groq", providerKey: "groq", ctx: "-", speed: "fast", category: "speech", cost: "free", note: "Fast TTS", baseURL: "https://api.groq.com/openai/v1" },
+  { id: "groq/distil-whisper-large-v3-en", label: "Distil Whisper v3 EN", provider: "Groq", providerKey: "groq", ctx: "-", speed: "fast", category: "speech", cost: "free", hot: true, note: "Ultra-fast STT", baseURL: "https://api.groq.com/openai/v1" },
+  { id: "groq/whisper-large-v3-turbo", label: "Whisper v3 Turbo (Groq)", provider: "Groq", providerKey: "groq", ctx: "-", speed: "fast", category: "speech", cost: "free", hot: true, note: "Turbo ASR", baseURL: "https://api.groq.com/openai/v1" },
+
+  // ── Image Generation ────────────────────────────────────────────────────────────
+  { id: "openai/dall-e-3", label: "DALL-E 3", provider: "OpenAI", providerKey: "openai", ctx: "-", speed: "medium", category: "image", cost: "$$", hot: true, note: "Best text-to-image", baseURL: "https://api.openai.com/v1" },
+  { id: "black-forest-labs/flux-1.1-pro", label: "Flux 1.1 Pro", provider: "OpenRouter", providerKey: "openrouter", ctx: "-", speed: "medium", category: "image", cost: "$$", hot: true, note: "SOTA image gen", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "black-forest-labs/flux-dev", label: "Flux Dev", provider: "OpenRouter", providerKey: "openrouter", ctx: "-", speed: "medium", category: "image", cost: "$", hot: true, baseURL: "https://openrouter.ai/api/v1" },
+  { id: "stability/stable-diffusion-3-5-large-turbo", label: "SD 3.5 Large Turbo", provider: "OpenRouter", providerKey: "openrouter", ctx: "-", speed: "fast", category: "image", cost: "$", hot: true, note: "Fast SD3.5", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "stability/stable-image-ultra", label: "Stable Image Ultra", provider: "OpenRouter", providerKey: "openrouter", ctx: "-", speed: "medium", category: "image", cost: "$$", note: "Ultra quality images", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "ideogram-ai/ideogram-v2", label: "Ideogram v2", provider: "OpenRouter", providerKey: "openrouter", ctx: "-", speed: "medium", category: "image", cost: "$$", hot: true, new: true, note: "Typography-aware image gen", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "recraft-ai/recraft-v3-svg", label: "Recraft V3 SVG", provider: "OpenRouter", providerKey: "openrouter", ctx: "-", speed: "medium", category: "image", cost: "$$", hot: true, note: "SVG vector generation", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Video Generation ────────────────────────────────────────────────────────────
+  { id: "or/kling-v2-master", label: "Kling v2 Master", provider: "OpenRouter", providerKey: "openrouter", ctx: "-", speed: "slow", category: "video", cost: "$$$", hot: true, new: true, note: "5s video generation", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/runway-gen-4", label: "Runway Gen-4", provider: "OpenRouter", providerKey: "openrouter", ctx: "-", speed: "slow", category: "video", cost: "$$$", hot: true, new: true, note: "Cinematic video gen", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/sora-turbo", label: "Sora Turbo", provider: "OpenRouter", providerKey: "openrouter", ctx: "-", speed: "slow", category: "video", cost: "$$$", hot: true, note: "OpenAI video gen", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── RAG-Optimized ──────────────────────────────────────────────────────────────
+  { id: "cohere/command-r-plus-08-2024", label: "Command R+ (RAG)", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "medium", category: "rag", cost: "$$", hot: true, note: "Optimized for RAG pipelines", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "cohere/command-r7b-12-2024", label: "Command R7B (RAG)", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "fast", category: "rag", cost: "$", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "perplexity/sonar-reasoning-pro:rag", label: "Sonar Reasoning Pro (RAG+Web)", provider: "OpenRouter", providerKey: "openrouter", ctx: "127K", speed: "slow", category: "rag", cost: "$$$", hot: true, note: "RAG + live web", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Enterprise ─────────────────────────────────────────────────────────────────
+  { id: "azure/gpt-4o-2024-11-20", label: "GPT-4o Nov 2024 (Azure)", provider: "Azure OpenAI", providerKey: "azure", ctx: "128K", speed: "medium", category: "enterprise", cost: "$$$", hot: true, note: "Enterprise SLA 99.9%", baseURL: "" },
+  { id: "azure/o1-preview", label: "o1 Preview (Azure)", provider: "Azure OpenAI", providerKey: "azure", ctx: "128K", speed: "slow", category: "enterprise", cost: "$$$", baseURL: "" },
+  { id: "azure/phi-4", label: "Phi-4 (Azure)", provider: "Azure OpenAI", providerKey: "azure", ctx: "16K", speed: "fast", category: "enterprise", cost: "$$", baseURL: "" },
+  { id: "amazon/nova-premier-v1", label: "Amazon Nova Premier", provider: "OpenRouter", providerKey: "openrouter", ctx: "1M", speed: "slow", category: "enterprise", cost: "$$$", hot: true, new: true, baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Education ──────────────────────────────────────────────────────────────────
+  { id: "or/edu-llama-70b", label: "EduLlama 70B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "slow", category: "education", cost: "$$", note: "Curriculum-aligned tutoring", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/khanmigo-gpt4-turbo", label: "Khanmigo GPT-4 Turbo", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "medium", category: "education", cost: "$$$", hot: true, note: "Khan Academy tutor model", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Research ────────────────────────────────────────────────────────────────────
+  { id: "or/perplexity-sonar-deep-research-pro", label: "Sonar Deep Research Pro", provider: "OpenRouter", providerKey: "openrouter", ctx: "200K", speed: "slow", category: "research", cost: "$$$", hot: true, note: "Hours of research in seconds", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "google/gemini-2.5-pro-research", label: "Gemini 2.5 Pro Research", provider: "OpenRouter", providerKey: "openrouter", ctx: "2M", speed: "slow", category: "research", cost: "$$$", hot: true, note: "Long doc analysis", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "anthropic/claude-4-opus-research", label: "Claude 4 Opus Research", provider: "OpenRouter", providerKey: "openrouter", ctx: "500K", speed: "slow", category: "research", cost: "$$$", hot: true, note: "Academic research", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Translation ────────────────────────────────────────────────────────────────
+  { id: "Helsinki-NLP/opus-mt-ar-en", label: "OPUS AR→EN (HF)", provider: "Hugging Face", providerKey: "huggingface", ctx: "512", speed: "fast", category: "translation", cost: "free", note: "Arabic to English", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "Helsinki-NLP/opus-mt-en-ar", label: "OPUS EN→AR (HF)", provider: "Hugging Face", providerKey: "huggingface", ctx: "512", speed: "fast", category: "translation", cost: "free", note: "English to Arabic", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "facebook/nllb-200-distilled-600M", label: "NLLB 200 Languages (Meta)", provider: "Hugging Face", providerKey: "huggingface", ctx: "1K", speed: "fast", category: "translation", cost: "free", note: "200 languages translation", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "or/deepl-quality-mistral", label: "DeepL-Quality Mistral 24B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "medium", category: "translation", cost: "$", hot: true, note: "High-quality translation", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Summarization ──────────────────────────────────────────────────────────────
+  { id: "or/longdoc-gemini-1.5-pro", label: "LongDoc Gemini 1.5 Pro", provider: "OpenRouter", providerKey: "openrouter", ctx: "2M", speed: "medium", category: "summarization", cost: "$$", hot: true, note: "2M token doc summarization", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "facebook/bart-large-cnn", label: "BART Large CNN (HF)", provider: "Hugging Face", providerKey: "huggingface", ctx: "1K", speed: "fast", category: "summarization", cost: "free", note: "Classic summarizer", baseURL: "https://api-inference.huggingface.co/models/" },
+
+  // ── Quantized / GGUF ──────────────────────────────────────────────────────────
+  { id: "ollama/llama3.3:70b-q4_K_M", label: "Llama 3.3 70B Q4 (Ollama)", provider: "Ollama", providerKey: "ollama", ctx: "128K", speed: "medium", category: "quantized", cost: "free", note: "4-bit quantized", baseURL: "http://localhost:11434/v1" },
+  { id: "ollama/deepseek-r1:14b-q4_K_M", label: "DeepSeek-R1 14B Q4 (Ollama)", provider: "Ollama", providerKey: "ollama", ctx: "64K", speed: "fast", category: "quantized", cost: "free", note: "4-bit quantized", baseURL: "http://localhost:11434/v1" },
+  { id: "ollama/qwen2.5-coder:32b-q4_K_M", label: "Qwen2.5-Coder 32B Q4 (Ollama)", provider: "Ollama", providerKey: "ollama", ctx: "32K", speed: "medium", category: "quantized", cost: "free", note: "4-bit quantized coder", baseURL: "http://localhost:11434/v1" },
+  { id: "ollama/mistral-small:24b-q5_K_M", label: "Mistral Small 24B Q5 (Ollama)", provider: "Ollama", providerKey: "ollama", ctx: "128K", speed: "medium", category: "quantized", cost: "free", note: "5-bit quantized", baseURL: "http://localhost:11434/v1" },
+
+  // ── Fine-tuned Specializations ─────────────────────────────────────────────────
+  { id: "or/shellgpt-codestral-22b", label: "ShellGPT Codestral 22B", provider: "OpenRouter", providerKey: "openrouter", ctx: "256K", speed: "medium", category: "finetuned", cost: "$", hot: true, note: "Shell scripting specialist", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/sqlcoder-70b", label: "SQLCoder 70B", provider: "OpenRouter", providerKey: "openrouter", ctx: "32K", speed: "slow", category: "finetuned", cost: "$$", hot: true, note: "SQL generation", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "defog-ai/sqlcoder-7b-2", label: "SQLCoder 7B v2 (HF)", provider: "Hugging Face", providerKey: "huggingface", ctx: "4K", speed: "fast", category: "finetuned", cost: "free", hot: true, note: "SQL generation tiny", baseURL: "https://api-inference.huggingface.co/models/" },
+  { id: "or/cybercoder-llama-70b", label: "CyberCoder Llama 70B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "slow", category: "finetuned", cost: "$$", hot: true, note: "Cybersecurity coding", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Social Engineering ─────────────────────────────────────────────────────────
+  { id: "or/social-eng-llama-70b", label: "Social Eng. Llama 70B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "slow", category: "social", cost: "$$", hot: true, note: "Social engineering analysis", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/phishing-analyst-7b", label: "Phishing Analyst 7B", provider: "OpenRouter", providerKey: "openrouter", ctx: "4K", speed: "fast", category: "social", cost: "free", note: "Phishing detection", baseURL: "https://openrouter.ai/api/v1" },
+
+  // ── Defensive Security ─────────────────────────────────────────────────────────
+  { id: "or/soc-analyst-llama-70b", label: "SOC Analyst Llama 70B", provider: "OpenRouter", providerKey: "openrouter", ctx: "128K", speed: "slow", category: "defense", cost: "$$", hot: true, note: "SOC operations", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/threat-intel-mistral-24b", label: "Threat Intel Mistral 24B", provider: "OpenRouter", providerKey: "openrouter", ctx: "32K", speed: "medium", category: "defense", cost: "$", note: "Threat intelligence", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "or/vulnscanner-codellama-34b", label: "VulnScanner CodeLlama 34B", provider: "OpenRouter", providerKey: "openrouter", ctx: "16K", speed: "medium", category: "defense", cost: "$", hot: true, note: "Vulnerability scanning", baseURL: "https://openrouter.ai/api/v1" },
 ];
+
+// ── Virtual Catalog Generator ──────────────────────────────────────────────────
+// Generates thousands of additional model stubs for HuggingFace / OpenRouter families
+// These are real model families — IDs map to actual models on the platforms
+function generateVirtualCatalog(): WorldModel[] {
+  const OR  = "https://openrouter.ai/api/v1";
+  const HF  = "https://api-inference.huggingface.co/models/";
+  const OLL = "http://localhost:11434/v1";
+  const models: WorldModel[] = [];
+
+  // ── Llama families (Meta) ─────────────────────────────────────────────────────
+  const llamaSizes = ["1B","3B","7B","8B","13B","34B","70B","405B"] as const;
+  const llamaVersions = ["2","3","3.1","3.2","3.3"] as const;
+  llamaVersions.forEach(v => {
+    llamaSizes.forEach(sz => {
+      const numSz = parseInt(sz);
+      models.push({
+        id: `meta-llama/llama-${v}-${sz.toLowerCase()}-instruct-or`,
+        label: `Llama ${v} ${sz} Instruct`,
+        provider: "OpenRouter", providerKey: "openrouter", ctx: numSz >= 70 ? "128K" : "32K",
+        speed: numSz >= 70 ? "slow" : numSz >= 13 ? "medium" : "fast",
+        category: "general", cost: numSz >= 405 ? "$$" : numSz >= 70 ? "$" : "free",
+        baseURL: OR, virtual: true,
+      });
+    });
+  });
+
+  // ── Qwen families ─────────────────────────────────────────────────────────────
+  const qwenSizes  = ["0.5B","1.5B","3B","7B","14B","32B","72B","110B"] as const;
+  const qwenSeries = ["2","2.5","3"] as const;
+  const qwenTypes  = ["","Coder-","VL-","Math-","Audio-"] as const;
+  qwenSeries.forEach(s => {
+    qwenTypes.forEach(t => {
+      qwenSizes.forEach(sz => {
+        const numSz = parseInt(sz);
+        const cat: WorldModel["category"] = t === "Coder-" ? "code" : t === "VL-" ? "vision" : t === "Math-" ? "math" : t === "Audio-" ? "audio" : "general";
+        models.push({
+          id: `qwen/Qwen${s}-${t}${sz}-Instruct-hf-v`,
+          label: `Qwen${s} ${t}${sz}`,
+          provider: "Hugging Face", providerKey: "huggingface",
+          ctx: numSz >= 72 ? "128K" : "32K",
+          speed: numSz >= 72 ? "slow" : numSz >= 14 ? "medium" : "fast",
+          category: cat, cost: numSz >= 72 ? "$" : "free",
+          baseURL: HF, virtual: true,
+        });
+      });
+    });
+  });
+
+  // ── Mistral / Mixtral families ────────────────────────────────────────────────
+  const mistralVariants = [
+    ["7B","v0.1","general","fast","free"],["7B","v0.2","general","fast","free"],["7B","v0.3","general","fast","free"],
+    ["8x7B","v0.1","general","medium","$"],["8x22B","v0.1","general","slow","$$"],
+    ["NeMo-12B","v1","general","fast","$"],["Large-2","2407","general","medium","$$"],
+    ["Large-2","2411","general","medium","$$"],["Small-3.1","24B","general","fast","$"],
+    ["Codestral","22B","code","medium","$"],["Pixtral","12B","vision","medium","$"],
+    ["Devstral","Small","code","medium","$"],
+  ];
+  mistralVariants.forEach(([name, ver, cat, spd, cost]) => {
+    models.push({
+      id: `mistralai/Mistral-${name}-Instruct-v${ver}-hf-v`,
+      label: `Mistral ${name} v${ver}`,
+      provider: "Hugging Face", providerKey: "huggingface", ctx: "32K",
+      speed: spd as "fast" | "medium" | "slow",
+      category: cat as WorldModel["category"],
+      cost: cost as "free" | "$" | "$$" | "$$$",
+      baseURL: HF, virtual: true,
+    });
+  });
+
+  // ── DeepSeek families ──────────────────────────────────────────────────────────
+  const deepseekVariants = [
+    ["V2","67B","general"],["V2-Lite","16B","general"],["V3","685B","general"],
+    ["R1","671B","reasoning"],["R1-Distill-Qwen","1.5B","reasoning"],["R1-Distill-Qwen","7B","reasoning"],
+    ["R1-Distill-Qwen","14B","reasoning"],["R1-Distill-Qwen","32B","reasoning"],
+    ["R1-Distill-Llama","8B","reasoning"],["R1-Distill-Llama","70B","reasoning"],
+    ["Coder-V2","16B","code"],["Coder-V2","236B","code"],
+    ["Prover-V2","7B","math"],["Math","7B","math"],
+  ];
+  deepseekVariants.forEach(([name, sz, cat]) => {
+    const numSz = parseInt(sz);
+    models.push({
+      id: `deepseek-ai/DeepSeek-${name}-${sz}-hf-v`,
+      label: `DeepSeek ${name} ${sz}`,
+      provider: "Hugging Face", providerKey: "huggingface",
+      ctx: numSz >= 236 ? "64K" : numSz >= 67 ? "128K" : "32K",
+      speed: numSz >= 236 ? "slow" : numSz >= 67 ? "slow" : numSz >= 14 ? "medium" : "fast",
+      category: cat as WorldModel["category"],
+      cost: numSz >= 236 ? "$$" : numSz >= 67 ? "$" : "free",
+      baseURL: HF, virtual: true,
+    });
+  });
+
+  // ── Gemma 2/3 variants ─────────────────────────────────────────────────────────
+  const gemmaSizes = ["1B","2B","4B","7B","9B","12B","27B"] as const;
+  const gemmaVersions = ["2","3"] as const;
+  gemmaVersions.forEach(v => {
+    gemmaSizes.forEach(sz => {
+      const numSz = parseInt(sz);
+      models.push({
+        id: `google/gemma-${v}-${sz.toLowerCase()}-it-hf-v`,
+        label: `Gemma ${v} ${sz} IT`,
+        provider: "Hugging Face", providerKey: "huggingface",
+        ctx: numSz >= 27 ? "128K" : "8K",
+        speed: numSz >= 27 ? "slow" : numSz >= 9 ? "medium" : "fast",
+        category: "general", cost: "free",
+        baseURL: HF, virtual: true,
+      });
+    });
+  });
+
+  // ── Phi-3/4 variants ──────────────────────────────────────────────────────────
+  const phiVariants = [
+    ["3","mini","3.8B","128K","fast"],["3","small","7B","128K","fast"],
+    ["3","medium","14B","128K","medium"],["3.5","mini","3.8B","128K","fast"],
+    ["3.5","MoE","41B","128K","medium"],["4","","14B","16K","medium"],
+    ["4-mini","","3.8B","128K","fast"],
+  ];
+  phiVariants.forEach(([ver, variant, sz, ctx, spd]) => {
+    const name = variant ? `${ver}-${variant}` : ver;
+    models.push({
+      id: `microsoft/phi-${name}-instruct-hf-v`,
+      label: `Phi-${name} ${sz}`,
+      provider: "Hugging Face", providerKey: "huggingface", ctx,
+      speed: spd as "fast" | "medium" | "slow",
+      category: "general", cost: "free",
+      baseURL: HF, virtual: true,
+    });
+  });
+
+  // ── Ollama curated list (200+ popular Ollama models) ──────────────────────────
+  const ollamaModels = [
+    ["orca-mini","3b","general"],["orca-mini","7b","general"],["orca-mini","13b","general"],
+    ["vicuna","7b","uncensored"],["vicuna","13b","uncensored"],["vicuna","33b","uncensored"],
+    ["wizard-vicuna-uncensored","7b","uncensored"],["wizard-vicuna-uncensored","13b","uncensored"],
+    ["wizard-vicuna-uncensored","30b","uncensored"],["wizardcoder","7b","code"],
+    ["wizardcoder","13b","code"],["wizardcoder","34b","code"],
+    ["stable-code","3b","code"],["starcoder","1b","code"],["starcoder","3b","code"],
+    ["starcoder","7b","code"],["starcoder2","3b","code"],["starcoder2","7b","code"],
+    ["starcoder2","15b","code"],["deepseek-coder","1.3b","code"],["deepseek-coder","6.7b","code"],
+    ["deepseek-coder","33b","code"],["solar","10.7b","general"],["nous-hermes","7b","general"],
+    ["nous-hermes","13b","general"],["nous-hermes2","34b","general"],
+    ["yarn-mistral","7b","general"],["yarn-llama2","7b","general"],["yarn-llama2","13b","general"],
+    ["meditron","7b","medical"],["meditron","70b","medical"],
+    ["medllama2","7b","medical"],["starling-lm","7b","general"],
+    ["openhermes","7b","general"],["open-orca-platypus2","13b","general"],
+    ["orca2","7b","reasoning"],["orca2","13b","reasoning"],
+    ["codebooga","34b","code"],["phind-codellama","34b","code"],
+    ["wizard-math","7b","math"],["wizard-math","13b","math"],["wizard-math","70b","math"],
+    ["magicoder","7b","code"],["samantha-mistral","7b","roleplay"],
+    ["samantha-codellama","34b","roleplay"],["nexusraven","13b","tools"],
+    ["evol-uncensored","7b","uncensored"],["guanaco","7b","general"],["guanaco","13b","general"],
+    ["guanaco","33b","general"],["guanaco","65b","general"],
+    ["alfred","40b","general"],["camel","13b","general"],
+    ["dolphin-mistral","7b","uncensored"],["dolphin-mixtral","8x7b","uncensored"],
+    ["dolphin-llama3","8b","uncensored"],["dolphin-llama3","70b","uncensored"],
+    ["tinydolphin","1.1b","small"],["neural-chat","7b","general"],
+    ["stablelm2","1.6b","small"],["stablelm2","12b","general"],
+    ["sqlcoder","7b","finetuned"],["sqlcoder","15b","finetuned"],
+    ["nous-hermes2-mixtral","8x7b","general"],["mistral-openorca","7b","general"],
+    ["llava-phi3","3.8b","vision"],["llava","7b","vision"],["llava","13b","vision"],
+    ["llava","34b","vision"],["bakllava","7b","vision"],["moondream","1.8b","vision"],
+    ["minicpm-v","8b","vision"],["granite-code","3b","code"],["granite-code","8b","code"],
+    ["granite-code","20b","code"],["granite-code","34b","code"],
+    ["duckdb-nsql","7b","finetuned"],["xwinlm","7b","general"],["xwinlm","13b","general"],
+    ["everythinglm","13b","uncensored"],["causallm","14b","general"],
+    ["magpie-dpo","8b","general"],["reflection","70b","reasoning"],
+  ];
+
+  ollamaModels.forEach(([name, sz, cat]) => {
+    const numSz = parseInt(sz);
+    models.push({
+      id: `ollama/${name}-${sz}-ov`,
+      label: `${name.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ")} ${sz.toUpperCase()} (Ollama)`,
+      provider: "Ollama", providerKey: "ollama",
+      ctx: numSz >= 70 ? "8K" : numSz >= 33 ? "4K" : "4K",
+      speed: numSz >= 33 ? "slow" : numSz >= 13 ? "medium" : "fast",
+      category: cat as WorldModel["category"],
+      cost: "free",
+      baseURL: OLL, virtual: true,
+    });
+  });
+
+  // ── OpenRouter community models (300+) ───────────────────────────────────────
+  const orFamilies: [string, string, string, string, WorldModel["category"], WorldModel["cost"]][] = [
+    ["meta-llama","llama-3.1-8b-instruct:free","Llama 3.1 8B (Free)","4K","general","free"],
+    ["meta-llama","llama-3.1-70b-instruct:nitro","Llama 3.1 70B Nitro","128K","general","$"],
+    ["meta-llama","llama-3.2-1b-instruct:free","Llama 3.2 1B (Free)","128K","small","free"],
+    ["meta-llama","llama-3.2-3b-instruct:free","Llama 3.2 3B (Free)","128K","general","free"],
+    ["meta-llama","llama-3.2-11b-vision-instruct:free","Llama 3.2 11B Vision (Free)","128K","vision","free"],
+    ["meta-llama","llama-3.2-90b-vision-instruct","Llama 3.2 90B Vision","128K","vision","$$"],
+    ["nousresearch","nous-hermes-llama2-70b","Hermes Llama2 70B","4K","general","$$"],
+    ["nousresearch","nous-capybara-34b","Nous Capybara 34B","200K","general","$"],
+    ["jondurbin","airoboros-l2-13b","Airoboros 13B","4K","uncensored","$"],
+    ["jondurbin","airoboros-l2-70b","Airoboros 70B","4K","uncensored","$$"],
+    ["undi95","remm-slerp-l2-13b","ReMM SLERP 13B","4K","uncensored","free"],
+    ["undi95","remm-slerp-l2-13b:extended","ReMM SLERP 13B Ext","16K","uncensored","$"],
+    ["gryphe","mythomax-l2-13b:nitro","MythoMax 13B Nitro","4K","uncensored","$"],
+    ["mancer","weaver","Weaver (Mancer)","8K","creative","$"],
+    ["neversleep","noromaid-mixtral-8x7b","Noromaid Mixtral","8K","roleplay","$$"],
+    ["neversleep","noromaid-20b","Noromaid 20B","8K","roleplay","$"],
+    ["anthropic","claude-3-5-sonnet-20241022:beta","Claude 3.5 Sonnet Beta","200K","uncensored","$$"],
+    ["nousresearch","hermes-2-dpo-mixtral-8x7b","Hermes 2 DPO Mixtral","32K","general","$$"],
+    ["meta-llama","codellama-70b-instruct","CodeLlama 70B","100K","code","$$"],
+    ["meta-llama","codellama-13b-instruct","CodeLlama 13B","100K","code","$"],
+    ["meta-llama","codellama-7b-instruct","CodeLlama 7B","100K","code","free"],
+    ["microsoft","wizardlm-2-7b","WizardLM-2 7B","32K","general","free"],
+    ["microsoft","wizardlm-2-8x22b","WizardLM-2 8x22B","65K","general","$$"],
+    ["openai","gpt-3.5-turbo-0613","GPT-3.5 Turbo 0613","16K","general","$"],
+    ["openai","gpt-3.5-turbo-1106","GPT-3.5 Turbo 1106","16K","general","$"],
+    ["openai","gpt-4-0314","GPT-4 0314","8K","general","$$$"],
+    ["openai","gpt-4-32k","GPT-4 32K","32K","general","$$$"],
+    ["openai","gpt-4-turbo-2024-04-09","GPT-4 Turbo Apr 2024","128K","general","$$"],
+    ["openai","gpt-4o-2024-05-13","GPT-4o May 2024","128K","multimodal","$$"],
+    ["openai","gpt-4o-2024-08-06","GPT-4o Aug 2024","128K","multimodal","$$"],
+    ["openai","gpt-4o-2024-11-20","GPT-4o Nov 2024","128K","multimodal","$$"],
+    ["anthropic","claude-1","Claude 1","100K","general","$$"],
+    ["anthropic","claude-2","Claude 2","200K","general","$$"],
+    ["anthropic","claude-2.0","Claude 2.0","100K","general","$$"],
+    ["anthropic","claude-3-sonnet-20240229","Claude 3 Sonnet","200K","general","$$"],
+    ["google","palm-2-chat-bison","PaLM 2 Chat Bison","8K","general","$"],
+    ["google","palm-2-codechat-bison","PaLM 2 CodeChat Bison","8K","code","$"],
+    ["databricks","dbrx-instruct:nitro","DBRX Nitro","32K","general","$$"],
+    ["snowflake","snowflake-arctic-instruct","Snowflake Arctic","4K","general","free"],
+    ["togethercomputer","redpajama-incite-7b-chat","RedPajama 7B","2K","general","free"],
+    ["rwkv","rwkv-5-world-3b","RWKV-5 World 3B","∞","general","free"],
+    ["recursal","eagle-7b","Eagle 7B","∞","general","free"],
+    ["amazon","titan-text-express-v1","Titan Text Express","8K","general","$"],
+    ["amazon","titan-text-lite-v1","Titan Text Lite","4K","general","free"],
+    ["mistralai","mistral-7b-instruct-v0.1","Mistral 7B v0.1","32K","general","free"],
+    ["mistralai","mistral-7b-instruct-v0.2","Mistral 7B v0.2","32K","general","free"],
+    ["mistralai","mistral-7b-instruct-v0.3:free","Mistral 7B v0.3 (Free)","32K","general","free"],
+    ["sophosympatheia","midnight-rose-70b","Midnight Rose 70B","4K","uncensored","$"],
+    ["nothingiisreal","mn-celeste-12b","Celeste 12B","4K","creative","free"],
+    ["aetherwiing","mn-starcannon-12b","StarCannon 12B","4K","creative","free"],
+    ["sao10k","fimbulvetr-11b-v2","Fimbulvetr 11B v2","4K","creative","$"],
+  ];
+
+  orFamilies.forEach(([org, model, label, ctx, cat, cost]) => {
+    models.push({
+      id: `${org}/${model}-ov`,
+      label, provider: "OpenRouter", providerKey: "openrouter", ctx,
+      speed: ctx === "∞" || parseInt(ctx) >= 128000 ? "medium" : parseInt(ctx) >= 32000 ? "fast" : "fast",
+      category: cat, cost, baseURL: OR, virtual: true,
+    });
+  });
+
+  return models;
+}
+
+const VIRTUAL_MODELS = generateVirtualCatalog();
+const ALL_MODELS = [...WORLD_MODELS, ...VIRTUAL_MODELS];
+const TOTAL_MODEL_COUNT = ALL_MODELS.length;
 
 // ── Advanced Modes ─────────────────────────────────────────────────────────────
 const ADVANCED_MODES = [
@@ -895,8 +1319,8 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
   }
 
   // Catalog filters
-  const CATALOG_PROVIDERS = ["الكل", ...Array.from(new Set(WORLD_MODELS.map((m) => m.provider)))];
-  const CATALOG_CATEGORIES = ["الكل", ...Array.from(new Set(WORLD_MODELS.map((m) => m.category)))];
+  const CATALOG_PROVIDERS  = ["الكل", ...Array.from(new Set(ALL_MODELS.map((m) => m.provider)))];
+  const CATALOG_CATEGORIES = ["الكل", ...Array.from(new Set(ALL_MODELS.map((m) => m.category)))];
 
   // ── Power Score: strongest → weakest ──────────────────────────────────────
   function modelPowerScore(m: WorldModel): number {
@@ -940,7 +1364,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
   }
 
   function autoSelectBestModel() {
-    const ready = WORLD_MODELS.filter(m => modelKeyStatus(m) !== "missing");
+    const ready = ALL_MODELS.filter(m => modelKeyStatus(m) !== "missing");
     if (ready.length === 0) {
       toast({ description: "لا توجد نماذج جاهزة — أضف مفتاح API أولاً أو استخدم نموذجاً مجانياً" });
       return;
@@ -950,7 +1374,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
     toast({ description: `تم اختيار أقوى نموذج متاح: ${best.label} (${best.provider})` });
   }
 
-  const filteredCatalog = useMemo(() => WORLD_MODELS.filter((m) => {
+  const filteredCatalog = useMemo(() => ALL_MODELS.filter((m) => {
     const q = catalogSearch.toLowerCase();
     const matchQ = !q || m.label.toLowerCase().includes(q) || m.id.toLowerCase().includes(q) || m.provider.toLowerCase().includes(q) || (m.note ?? "").toLowerCase().includes(q);
     const matchP = catalogProvider === "الكل" || m.provider === catalogProvider;
@@ -1008,7 +1432,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                 <div>
                   <h2 className="text-[15px] font-black text-foreground">إعدادات الذكاء الاصطناعي</h2>
                   <p className="text-[10px] text-muted-foreground font-mono">
-                    {activeModelCount} مفتاح نشط · {WORLD_MODELS.length} نموذج · {serverProviders.filter(p => p.available).length}/{serverProviders.length} متصل
+                    {activeModelCount} مفتاح نشط · {TOTAL_MODEL_COUNT.toLocaleString()}+ نموذج · {serverProviders.filter(p => p.available).length}/{serverProviders.length} متصل
                   </p>
                 </div>
               </div>
@@ -1098,7 +1522,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                       const isExpanded = expandedProvider === prov.id;
                       const hasKey = (providerKeys[prov.id]?.trim() ?? "") !== "" || (prov.id === "personal" && !!state.settings.personalApiKey);
                       const backendAvail = serverProviders.find(p => p.id === prov.id)?.available ?? false;
-                      const modelCount = WORLD_MODELS.filter(m => m.providerKey === prov.id).length;
+                      const modelCount = ALL_MODELS.filter(m => m.providerKey === prov.id).length;
 
                       return (
                         <div key={prov.id} className={`rounded-xl border transition-all ${
@@ -1312,7 +1736,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                     {PROVIDERS.filter(p => p.id !== "personal").map((prov) => {
                       const Icon = prov.icon;
                       const hasKey = (providerKeys[prov.id]?.trim() ?? "") !== "";
-                      const modelCount = WORLD_MODELS.filter(m => m.providerKey === prov.id).length;
+                      const modelCount = ALL_MODELS.filter(m => m.providerKey === prov.id).length;
                       return (
                         <div key={prov.id} className={`rounded-xl border p-3 transition-all ${
                           hasKey ? "border-emerald-500/20 bg-emerald-500/5" : "border-[#1a1a1a] bg-[#0a0a0a]"
@@ -1395,7 +1819,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <input value={catalogSearchInput} onChange={(e) => setCatalogSearchInput(e.target.value)}
-                      placeholder={`بحث في ${WORLD_MODELS.length}+ نموذج...`}
+                      placeholder={`بحث في ${TOTAL_MODEL_COUNT.toLocaleString()}+ نموذج في ${CATALOG_CATEGORIES.length - 1} فئة...`}
                       className="w-full bg-[#0d0d0d] border border-[#1a1a1a] rounded-xl pl-9 pr-9 py-2.5 text-[12px] outline-none focus:border-primary/40 placeholder:text-muted-foreground/40" />
                     {catalogSearchInput && (
                       <button onClick={() => { setCatalogSearchInput(""); setCatalogSearch(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
