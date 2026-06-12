@@ -167,6 +167,8 @@ import { GlobalVulnHeatmapModal } from "./components/modals/GlobalVulnHeatmapMod
 import { CyberWarfareMatrixModal } from "./components/modals/CyberWarfareMatrixModal";
 import { SentientCyberSphereModal } from "./components/modals/SentientCyberSphereModal";
 import { AIAutoSetup3D } from "./components/AIAutoSetup3D";
+import { PerformanceDashboard3D } from "./components/PerformanceDashboard3D";
+import { CostDashboard3D, useCostTracker } from "./components/CostDashboard3D";
 
 const queryClient = new QueryClient();
 
@@ -457,6 +459,11 @@ function AppContent() {
   const [cyberWarfareMatrixOpen, setCyberWarfareMatrixOpen] = useState(false);
   const [sentientCyberSphereOpen, setSentientCyberSphereOpen] = useState(false);
 
+  // Performance + Cost Dashboards
+  const [perfDashOpen, setPerfDashOpen] = useState(false);
+  const [costDashOpen, setCostDashOpen] = useState(false);
+  const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
+
   const [pipelineKeyRef] = useState(() => ({ n: 0 }));
   const [ragPipelineDoc, setRagPipelineDoc] = useState<{ text: string; name: string; key: number } | undefined>();
   const [agentPipelineTask, setAgentPipelineTask] = useState<{ text: string; key: number } | undefined>();
@@ -682,6 +689,8 @@ function AppContent() {
           onOpenDeepSearch={() => setDeepSearchOpen(true)}
           onOpenChainInvestigation={() => setChainInvestigationOpen(true)}
           onOpenRedTeam={() => setRedTeamDashOpen(true)}
+          onOpenPerfDash={() => setPerfDashOpen((v) => !v)}
+          onOpenCostDash={() => setCostDashOpen((v) => !v)}
         />
         <ChatView onOpenOsintDash={() => setOsintDashOpen(true)} />
         {compareOpen && <CompareView onClose={() => setCompareOpen(false)} />}
@@ -911,6 +920,12 @@ function AppContent() {
           />
         )}
       </AnimatePresence>
+
+      {/* Performance Monitor 3D */}
+      {perfDashOpen && <PerformanceDashboard3D onClose={() => setPerfDashOpen(false)} />}
+
+      {/* Cost Intelligence 3D */}
+      {costDashOpen && <CostDashboard3D entries={costEntries} onClose={() => setCostDashOpen(false)} />}
 
       {/* Global HUD scan line — year 3090 effect */}
       <div className="hud-scan-line pointer-events-none" />

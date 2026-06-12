@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Brain, Server, Bot, Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight, Wifi, Target, GitBranch, Bug } from "lucide-react";
+import { Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Brain, Server, Bot, Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight, Wifi, Target, GitBranch, Bug, Activity, DollarSign } from "lucide-react";
 import { AIQuickSetupButton } from "./AIQuickSetupButton";
 import { ProviderHealthBadge3D } from "./ProviderHealthBadge3D";
 import { motion, AnimatePresence } from "framer-motion";
@@ -53,9 +53,11 @@ interface TopBarProps {
   onOpenDeepSearch?: () => void;
   onOpenChainInvestigation?: () => void;
   onOpenRedTeam?: () => void;
+  onOpenPerfDash?: () => void;
+  onOpenCostDash?: () => void;
 }
 
-export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam }: TopBarProps) {
+export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
   const { toast } = useToast();
@@ -586,6 +588,30 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               title="Analytics"
             >
               <BarChart2 className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Performance Monitor 3D */}
+          {onOpenPerfDash && (
+            <button
+              onClick={onOpenPerfDash}
+              className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-[#e21227] hover:bg-[#e21227]/10 transition-colors"
+              aria-label="Performance Monitor 3D"
+              title="Performance Monitor 3D"
+            >
+              <Activity className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Cost Intelligence 3D */}
+          {onOpenCostDash && (
+            <button
+              onClick={onOpenCostDash}
+              className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-[#22c55e] hover:bg-[#22c55e]/10 transition-colors"
+              aria-label="Cost Intelligence 3D"
+              title="Cost Intelligence 3D"
+            >
+              <DollarSign className="w-4 h-4" />
             </button>
           )}
 

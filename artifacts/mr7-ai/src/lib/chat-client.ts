@@ -1,4 +1,5 @@
 import { trafficBus } from "./trafficBus";
+import { perfMonitor } from "./perf-monitor";
 
 export type ChatRole = "user" | "assistant";
 export type ChatMessage = { role: ChatRole; content: string };
@@ -45,6 +46,7 @@ export async function streamChat(req: ChatRequest, onChunk: (text: string) => vo
 
   let bytesReceived = 0;
   let tokenCount = 0;
+  const t0 = performance.now();
 
   try {
     const res = await fetch("/api/chat", {
@@ -93,9 +95,12 @@ export async function streamChat(req: ChatRequest, onChunk: (text: string) => vo
         }
       }
     }
+    perfMonitor.recordLatency(performance.now() - t0);
+    perfMonitor.recordTokens(tokenCount);
     trafficBus.completeCall(callId, { tokens: tokenCount, bytesReceived });
     return full;
   } catch (err) {
+    perfMonitor.recordLatency(performance.now() - t0);
     trafficBus.failCall(callId);
     throw err;
   }
