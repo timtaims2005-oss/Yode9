@@ -280,6 +280,32 @@
   0% { left: -30%; }
   100% { left: 130%; }
 }
+@keyframes kev-ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes neon-pill-pulse {
+  0%, 100% { box-shadow: 0 0 8px currentColor; }
+  50% { box-shadow: 0 0 18px currentColor, 0 0 32px currentColor; }
+}
+@keyframes btn-glow-in {
+  from { box-shadow: 0 0 0 transparent; }
+  to { box-shadow: 0 0 14px rgba(226,18,39,0.35), 0 0 28px rgba(226,18,39,0.15); }
+}
+@keyframes holo-scan {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes float-y {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes cyber-blink {
+  0%, 94%, 100% { opacity: 1; }
+  95% { opacity: 0.6; }
+  97% { opacity: 1; }
+  98% { opacity: 0.8; }
+}
 @keyframes orbit {
   0% { transform: rotate(0deg) translateX(14px) rotate(0deg); }
   100% { transform: rotate(360deg) translateX(14px) rotate(-360deg); }
@@ -424,15 +450,45 @@
   transform: translateY(0px) translateZ(0);
 }
 
+/* ── Futuristic Pill Buttons ── */
+.pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.23,1,0.32,1);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.pill-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+.pill-btn:hover {
+  transform: translateY(-1px) scale(1.03);
+  filter: brightness(1.15);
+}
+.pill-btn:active { transform: translateY(0) scale(0.98); }
+
 /* ── Holographic Input ── */
 .holo-input {
-  background: linear-gradient(160deg, rgba(14,14,22,0.92), rgba(8,8,14,0.96)) !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
+  background: linear-gradient(160deg, rgba(14,14,22,0.96), rgba(8,8,14,0.98)) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.05),
-    inset 0 -1px 0 rgba(226,18,39,0.06),
-    0 0 0 1px rgba(0,0,0,0.6),
-    0 4px 24px rgba(0,0,0,0.4) !important;
+    inset 0 1px 0 rgba(255,255,255,0.07),
+    inset 0 -1px 0 rgba(226,18,39,0.08),
+    0 0 0 1px rgba(226,18,39,0.06),
+    0 4px 32px rgba(0,0,0,0.55),
+    0 0 60px rgba(226,18,39,0.04) !important;
   transition: all 0.35s ease;
   position: relative;
   overflow: hidden;

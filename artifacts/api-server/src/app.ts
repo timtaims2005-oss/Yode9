@@ -9,6 +9,7 @@ import passport from "passport";
 import router from "./routes";
 import providersRouter from "./routes/providers";
 import cloudChatsRouter from "./routes/cloud-chats";
+import { cisaRouter } from "./routes/cisa";
 import { logger } from "./lib/logger";
 import { internalAuth } from "./middlewares/internalAuth";
 import { pool, ensureAuthTables } from "./db";
@@ -126,6 +127,7 @@ app.use(["/api/shell/exec"], shellLimiter);
 // ── Public routes (no internalAuth gate) ────────────────────────────────────
 app.use("/api", providersRouter);
 app.use("/api", cloudChatsRouter);
+app.use("/api", cisaRouter);
 
 // ── Auth routes (no internalAuth gate) ──────────────────────────────────────
 (async () => {

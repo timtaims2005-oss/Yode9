@@ -564,23 +564,40 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
           {/* Power Mode */}
           <button
             onClick={togglePower}
-            className={`flex-shrink-0 flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all ${
-              powerOn
-                ? "bg-primary/15 border-primary/60 text-primary shadow-[0_0_18px_rgba(226,18,39,0.45)] animate-pulse"
-                : "bg-card border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-            }`}
+            className="flex-shrink-0 flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all hover:scale-105"
+            style={powerOn ? {
+              background: "rgba(226,18,39,0.18)",
+              border: "1px solid rgba(226,18,39,0.65)",
+              color: "#e21227",
+              boxShadow: "0 0 18px rgba(226,18,39,0.5), 0 0 40px rgba(226,18,39,0.15)",
+              animation: "cyber-blink 3s infinite",
+            } : {
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.22)",
+              color: "rgba(200,210,230,0.8)",
+              boxShadow: "0 0 8px rgba(255,255,255,0.04)",
+            }}
             aria-label={t("power.title")}
             title={t(powerOn ? "power.tooltipOn" : "power.tooltipOff")}
           >
             <Zap className={`w-3.5 h-3.5 ${powerOn ? "fill-current" : ""}`} />
             <span className="hidden sm:inline">{t("power.title")}</span>
-            {powerOn && <span className="text-[9px] font-mono px-1 rounded bg-primary/20">ON</span>}
+            {powerOn && (
+              <span className="text-[9px] font-mono px-1 rounded"
+                style={{ background: "rgba(226,18,39,0.25)", color: "#ff4466" }}>
+                ON
+              </span>
+            )}
           </button>
 
           {/* Buy Tokens */}
           <button
             onClick={onOpenPricing}
-            className="flex-shrink-0 flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 rounded-full bg-gradient-to-r from-fuchsia-500 to-violet-500 text-white text-xs font-bold whitespace-nowrap hover:opacity-95 transition-opacity shadow-[0_0_18px_rgba(217,70,239,0.35)]"
+            className="flex-shrink-0 flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 rounded-full text-white text-xs font-bold whitespace-nowrap transition-all hover:scale-105 hover:brightness-110"
+            style={{
+              background: "linear-gradient(135deg,#d946ef 0%,#8b5cf6 100%)",
+              boxShadow: "0 0 18px rgba(217,70,239,0.4), 0 0 40px rgba(139,92,246,0.2), inset 0 1px 0 rgba(255,255,255,0.2)",
+            }}
             aria-label={t("top.buyTokens")}
             title={t("top.buyTokens")}
           >
@@ -770,7 +787,8 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               animate={{ opacity: 1, width: "auto" }}
               exit={{ opacity: 0, width: 0 }}
               onClick={() => scrollBy(160)}
-              className="flex-shrink-0 p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              className="flex-shrink-0 p-1 rounded-lg transition-colors"
+              style={{ color: "rgba(200,210,230,0.7)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
               aria-label="تمرير لليمين"
             >
               <ChevronRight className="w-4 h-4" />
