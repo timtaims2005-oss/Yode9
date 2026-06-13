@@ -57,12 +57,56 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    target: "es2020",
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react":    ["react", "react-dom"],
+          "vendor-framer":   ["framer-motion"],
+          "vendor-three":    ["three"],
+          "vendor-ui":       ["@radix-ui/react-dialog", "@radix-ui/react-tooltip", "@radix-ui/react-popover"],
+          "vendor-tanstack": ["@tanstack/react-query"],
+          "vendor-lucide":   ["lucide-react"],
+          "vendor-monaco":   ["@monaco-editor/react"],
+        },
+      },
+    },
+  },
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "framer-motion",
+      "lucide-react",
+      "@tanstack/react-query",
+      "three",
+    ],
+    exclude: [
+      "@monaco-editor/react",
+    ],
+  },
+  esbuild: {
+    target: "es2020",
+    logOverride: { "this-is-undefined-in-esm": "silent" },
   },
   server: {
     port,
     strictPort: true,
     host: "0.0.0.0",
     allowedHosts: true,
+    warmup: {
+      clientFiles: [
+        "./src/main.tsx",
+        "./src/App.tsx",
+        "./src/components/ChatView.tsx",
+        "./src/components/TopBar.tsx",
+        "./src/components/Sidebar.tsx",
+      ],
+    },
+    hmr: {
+      timeout: 5000,
+    },
     fs: {
       strict: true,
     },

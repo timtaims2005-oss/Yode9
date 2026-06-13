@@ -63,9 +63,10 @@ interface TopBarProps {
   onOpenMasterHud?: () => void;
   onOpenAnomalyLog?: () => void;
   onOpenNetworkTopo?: () => void;
+  onOpenCyberHub?: () => void;
 }
 
-export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash, onOpenContextMemory, onOpenPrefetch, onOpenMasterHud, onOpenAnomalyLog, onOpenNetworkTopo }: TopBarProps) {
+export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash, onOpenContextMemory, onOpenPrefetch, onOpenMasterHud, onOpenAnomalyLog, onOpenNetworkTopo, onOpenCyberHub }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
   const { toast } = useToast();
@@ -716,6 +717,33 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               title="System Master HUD 3D"
             >
               <Globe className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Cyber Command Center 3D */}
+          {onOpenCyberHub && (
+            <button
+              onClick={onOpenCyberHub}
+              className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-bold text-[11px] tracking-widest transition-all"
+              aria-label="Cyber Command Center 3D"
+              title="Cyber Command Center 3D"
+              style={{
+                background: "linear-gradient(135deg, rgba(226,18,39,0.18) 0%, rgba(0,229,255,0.12) 100%)",
+                border: "1px solid rgba(226,18,39,0.45)",
+                color: "#e21227",
+                boxShadow: "0 0 12px rgba(226,18,39,0.2)",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = "linear-gradient(135deg, rgba(226,18,39,0.3) 0%, rgba(0,229,255,0.18) 100%)";
+                e.currentTarget.style.boxShadow = "0 0 20px rgba(226,18,39,0.4)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = "linear-gradient(135deg, rgba(226,18,39,0.18) 0%, rgba(0,229,255,0.12) 100%)";
+                e.currentTarget.style.boxShadow = "0 0 12px rgba(226,18,39,0.2)";
+              }}
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span className="hidden lg:block">CYBER HUB</span>
             </button>
           )}
 

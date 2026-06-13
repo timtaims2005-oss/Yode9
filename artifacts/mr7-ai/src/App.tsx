@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useReducer, useState, useCallback } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,160 +12,17 @@ import { PricingView } from "./components/PricingView";
 import { AITerminal } from "./components/AITerminal";
 import { StoreProvider, useStore } from "./lib/store";
 import { checkAndExpireSubscription } from "./lib/subscription";
-import { ApiAccessModal } from "./components/modals/ApiAccessModal";
-import { SettingsModal } from "./components/modals/SettingsModal";
-import { AccountModal } from "./components/modals/AccountModal";
-import { ToolModal } from "./components/modals/ToolModal";
-import { UtilityToolModal, type UtilityTool } from "./components/modals/UtilityToolModal";
-import { ToolsHubModal } from "./components/modals/ToolsHubModal";
-import { ShortcutsModal } from "./components/modals/ShortcutsModal";
-import { CommandPalette } from "./components/CommandPalette";
-import { MemoryModal } from "./components/modals/MemoryModal";
-import { BookmarksModal } from "./components/modals/BookmarksModal";
-import { SearchModal } from "./components/modals/SearchModal";
-import { CompareView } from "./components/CompareView";
 import { FloatingActionDock } from "./components/FloatingActionDock";
-import { PersonaEditorModal } from "./components/modals/PersonaEditorModal";
-import { LocalModelModal } from "./components/modals/LocalModelModal";
-import { ProviderSettingsModal } from "./components/modals/ProviderSettingsModal";
-import { OsintDashboard } from "./components/modals/OsintDashboard";
-import { AdminPanel } from "./components/modals/AdminPanel";
-import { ActivateModal } from "./components/modals/ActivateModal";
-import { AgentModal } from "./components/modals/AgentModal";
-import { NexusModal } from "./components/modals/NexusModal";
-import { ArsenalHubModal, type ArsenalModuleId } from "./components/modals/ArsenalHubModal";
-import { JarvisModal } from "./components/modals/JarvisModal";
-import { ParseltongueModal } from "./components/modals/ParseltongueModal";
-import { RagModal } from "./components/modals/RagModal";
-import { TeamAgentModal } from "./components/modals/TeamAgentModal";
-import { SkillsLibraryModal } from "./components/modals/SkillsLibraryModal";
-import { OpenGravityModal } from "./components/modals/OpenGravityModal";
-import { AgentOSModal } from "./components/modals/AgentOSModal";
-import { GeminiCLIModal } from "./components/modals/GeminiCLIModal";
 import { PipelineHUD } from "./components/PipelineHUD";
 import type { PipelineItem } from "./lib/pipeline";
-// New Arsenal modules — batch 1
-import { HermesModal } from "./components/modals/HermesModal";
-import { GraphifyModal } from "./components/modals/GraphifyModal";
-import { GetShitDoneModal } from "./components/modals/GetShitDoneModal";
-import { CCSwitchModal } from "./components/modals/CCSwitchModal";
-import { UIUXProModal } from "./components/modals/UIUXProModal";
-import { CareerOpsModal } from "./components/modals/CareerOpsModal";
-import { ABTopModal } from "./components/modals/ABTopModal";
-import { AwesomeLLMModal } from "./components/modals/AwesomeLLMModal";
-// New Arsenal modules — batch 2 (from uploaded ZIPs)
-import { OsintScannerModal } from "./components/modals/OsintScannerModal";
-import { NanoBotModal } from "./components/modals/NanoBotModal";
-import { AgentKanbanModal } from "./components/modals/AgentKanbanModal";
-import { AutoBEModal } from "./components/modals/AutoBEModal";
-import { SuperpowersModal } from "./components/modals/SuperpowersModal";
-import { LerimCLIModal } from "./components/modals/LerimCLIModal";
-import { ClaudePromptsModal } from "./components/modals/ClaudePromptsModal";
-import { RunVSAgentModal } from "./components/modals/RunVSAgentModal";
-import { CodexMobileModal } from "./components/modals/CodexMobileModal";
-import { OpenACPModal } from "./components/modals/OpenACPModal";
-import { HandClawModal } from "./components/modals/HandClawModal";
-import { RalphAgentModal } from "./components/modals/RalphAgentModal";
-import { BurnBabyBurnModal } from "./components/modals/BurnBabyBurnModal";
-import { CrushModal } from "./components/modals/CrushModal";
-import { RTKModal } from "./components/modals/RTKModal";
-import { CodexBarModal } from "./components/modals/CodexBarModal";
-import { CodexSaverModal } from "./components/modals/CodexSaverModal";
-import { AgentMemoryModal } from "./components/modals/AgentMemoryModal";
-import { DecepticonModal } from "./components/modals/DecepticonModal";
-import { DroidDeskModal } from "./components/modals/DroidDeskModal";
-import { BugHunterModal } from "./components/modals/BugHunterModal";
-import { HyperResearchModal } from "./components/modals/HyperResearchModal";
-import { AIFactoryModal } from "./components/modals/AIFactoryModal";
-import { GemmaChatModal } from "./components/modals/GemmaChatModal";
-import { CodeGraphModal } from "./components/modals/CodeGraphModal";
-import { OhMyPiModal } from "./components/modals/OhMyPiModal";
-import { AwesomeOpenCodeModal } from "./components/modals/AwesomeOpenCodeModal";
-// New Arsenal modules — batch 4 (OpenRepLove / Dyad / Ghostwriter / AgentScope / InsForge)
-import { OpenRepLoveModal } from "./components/modals/OpenRepLoveModal";
-import { DyadModal } from "./components/modals/DyadModal";
-import { GhostwriterModal } from "./components/modals/GhostwriterModal";
-import { AgentScopeModal } from "./components/modals/AgentScopeModal";
-import { InsForgeModal } from "./components/modals/InsForgeModal";
-import { MalwareArsenalModal } from "./components/modals/MalwareArsenalModal";
-import { ThreatIntelModal } from "./components/modals/ThreatIntelModal";
-import { WormGPTModal } from "./components/modals/WormGPTModal";
-// New Arsenal modules — batch 5 (AntigravityMgr, AxonHub, BigAGI, HackingTool, G0DM0D3, GeminiResearch, OpenAntigravity)
-import { AntigravityManagerModal } from "./components/modals/AntigravityManagerModal";
-import { AxonHubModal } from "./components/modals/AxonHubModal";
-import { BigAGIModal } from "./components/modals/BigAGIModal";
-import { HackingToolModal } from "./components/modals/HackingToolModal";
-import { GodMod3Modal } from "./components/modals/GodMod3Modal";
-import { GeminiResearchModal } from "./components/modals/GeminiResearchModal";
-import { OpenAntigravityModal } from "./components/modals/OpenAntigravityModal";
-import { ChangelogModal } from "./components/modals/ChangelogModal";
-import { UseCaseLibraryModal } from "./components/modals/UseCaseLibraryModal";
-import { DeepSearchModal } from "./components/modals/DeepSearchModal";
-import { ChainInvestigationModal } from "./components/modals/ChainInvestigationModal";
-// New modules from uploaded files
-import { PaseoModal } from "./components/modals/PaseoModal";
-import { GemmaLibModal } from "./components/modals/GemmaLibModal";
-import { RogueMasterModal } from "./components/modals/RogueMasterModal";
-import { PasswordAttackModal } from "./components/modals/PasswordAttackModal";
-import { AIHackingSkillsModal } from "./components/modals/AIHackingSkillsModal";
-import { AITerminalModal } from "./components/modals/AITerminalModal";
-// Batch 7 — new ZIPs
-import { MarkXXXIXModal } from "./components/modals/MarkXXXIXModal";
-import { MarkXXXIXORModal } from "./components/modals/MarkXXXIXORModal";
-import { FreeLLMAPIModal } from "./components/modals/FreeLLMAPIModal";
-import { NineRouterModal } from "./components/modals/NineRouterModal";
-import { FeynmanModal } from "./components/modals/FeynmanModal";
-import { GovernorModal } from "./components/modals/GovernorModal";
-import { HeadroomModal } from "./components/modals/HeadroomModal";
-import { TokenOptimizerModal } from "./components/modals/TokenOptimizerModal";
-import { ClaudeCodeMemoryModal } from "./components/modals/ClaudeCodeMemoryModal";
-// New native modules — Security Kanban + Network Monitor
-import { SecurityKanbanModal } from "./components/modals/SecurityKanbanModal";
-import { NetworkMonitorModal } from "./components/modals/NetworkMonitorModal";
-// Arsenal full-page system
+import { CompareView } from "./components/CompareView";
 import { ArsenalFullPage } from "./components/ArsenalFullPage";
 import { QRSyncModal, useQRSyncImport } from "./components/modals/QRSyncModal";
-import { ModelCompareModal } from "./components/modals/ModelCompareModal";
-import { NeuralMatrixModal } from "./components/modals/NeuralMatrixModal";
-import { ShellGeneratorModal } from "./components/modals/ShellGeneratorModal";
-import { AnalyticsDashboard } from "./components/modals/AnalyticsDashboard";
-import { MonacoEditorModal } from "./components/modals/MonacoEditorModal";
-import { DefensiveAIModal } from "./components/modals/DefensiveAIModal";
-import { OpenSkynetModal } from "./components/modals/OpenSkynetModal";
-import { WarRoomModal } from "./components/modals/WarRoomModal";
-import { RedTeamDashboard } from "./components/modals/RedTeamDashboard";
-import { ExploitChainModal } from "./components/modals/ExploitChainModal";
-import { CyberHeatmapHUD } from "./components/CyberHeatmapHUD";
-import { CyberWidgetsDock } from "./components/CyberWidgetsDock";
-import { SystemStatusWidget } from "./components/SystemStatusWidget";
 import { AmbientParticleField } from "./components/AmbientParticleField";
 import { HoloDataStream } from "./components/HoloDataStream";
-import { IntelligenceCoreModal } from "./components/modals/IntelligenceCoreModal";
-// Batch 10 — Futuristic 3D Features
-import { ThreatGlobeModal } from "./components/modals/ThreatGlobeModal";
-import { VulnGraph3DModal } from "./components/modals/VulnGraph3DModal";
-import { LiveCodingModal } from "./components/modals/LiveCodingModal";
-import { ExploitSandboxModal } from "./components/modals/ExploitSandboxModal";
-import { GestureControlModal } from "./components/modals/GestureControlModal";
-import { NeuralVoiceModal } from "./components/modals/NeuralVoiceModal";
-import { BlockchainAuditModal } from "./components/modals/BlockchainAuditModal";
-import { E2ESessionModal } from "./components/modals/E2ESessionModal";
-import { AutonomousRedTeamModal } from "./components/modals/AutonomousRedTeamModal";
-import { CyberVisionModal } from "./components/modals/CyberVisionModal";
-import { JITExploitModal } from "./components/modals/JITExploitModal";
-import { EvasionEngineModal } from "./components/modals/EvasionEngineModal";
-import { VulnTopologyModal } from "./components/modals/VulnTopologyModal";
-import { PrecisionStrikeModal } from "./components/modals/PrecisionStrikeModal";
-import { LiveCVEModal } from "./components/modals/LiveCVEModal";
-import { BASSimulationModal } from "./components/modals/BASSimulationModal";
-import { NetworkTopoModal } from "./components/modals/NetworkTopoModal";
-import { BinaryAnalysisModal } from "./components/modals/BinaryAnalysisModal";
-import { WebFuzzingModal } from "./components/modals/WebFuzzingModal";
-import { MultiAgentSOCModal } from "./components/modals/MultiAgentSOCModal";
-import { OrchestrationEngineModal } from "./components/modals/OrchestrationEngineModal";
-import { GlobalVulnHeatmapModal } from "./components/modals/GlobalVulnHeatmapModal";
-import { CyberWarfareMatrixModal } from "./components/modals/CyberWarfareMatrixModal";
-import { SentientCyberSphereModal } from "./components/modals/SentientCyberSphereModal";
+import { CyberWidgetsDock } from "./components/CyberWidgetsDock";
+import { SystemStatusWidget } from "./components/SystemStatusWidget";
+import { CyberHeatmapHUD } from "./components/CyberHeatmapHUD";
 import { AIAutoSetup3D } from "./components/AIAutoSetup3D";
 import { PerformanceDashboard3D } from "./components/PerformanceDashboard3D";
 import { CostDashboard3D, useCostTracker } from "./components/CostDashboard3D";
@@ -180,9 +37,225 @@ import { NetworkTopology3D } from "./components/NetworkTopology3D";
 import { contextMemory } from "./lib/context-memory";
 import { securityLayer } from "./lib/security-layer";
 import { prefetchEngine } from "./lib/prefetch-engine";
+import type { ArsenalModuleId } from "./components/modals/ArsenalHubModal";
+import type { UtilityTool } from "./components/modals/UtilityToolModal";
+
+// ── LAZY MODAL IMPORTS ────────────────────────────────────────────────────────
+const ApiAccessModal        = lazy(() => import("./components/modals/ApiAccessModal").then(m=>({default:m.ApiAccessModal})));
+const SettingsModal         = lazy(() => import("./components/modals/SettingsModal").then(m=>({default:m.SettingsModal})));
+const AccountModal          = lazy(() => import("./components/modals/AccountModal").then(m=>({default:m.AccountModal})));
+const ToolModal             = lazy(() => import("./components/modals/ToolModal").then(m=>({default:m.ToolModal})));
+const UtilityToolModal      = lazy(() => import("./components/modals/UtilityToolModal").then(m=>({default:m.UtilityToolModal})));
+const ToolsHubModal         = lazy(() => import("./components/modals/ToolsHubModal").then(m=>({default:m.ToolsHubModal})));
+const ShortcutsModal        = lazy(() => import("./components/modals/ShortcutsModal").then(m=>({default:m.ShortcutsModal})));
+const CommandPalette        = lazy(() => import("./components/CommandPalette").then(m=>({default:m.CommandPalette})));
+const MemoryModal           = lazy(() => import("./components/modals/MemoryModal").then(m=>({default:m.MemoryModal})));
+const BookmarksModal        = lazy(() => import("./components/modals/BookmarksModal").then(m=>({default:m.BookmarksModal})));
+const SearchModal           = lazy(() => import("./components/modals/SearchModal").then(m=>({default:m.SearchModal})));
+const PersonaEditorModal    = lazy(() => import("./components/modals/PersonaEditorModal").then(m=>({default:m.PersonaEditorModal})));
+const LocalModelModal       = lazy(() => import("./components/modals/LocalModelModal").then(m=>({default:m.LocalModelModal})));
+const ProviderSettingsModal = lazy(() => import("./components/modals/ProviderSettingsModal").then(m=>({default:m.ProviderSettingsModal})));
+const OsintDashboard        = lazy(() => import("./components/modals/OsintDashboard").then(m=>({default:m.OsintDashboard})));
+const AdminPanel            = lazy(() => import("./components/modals/AdminPanel").then(m=>({default:m.AdminPanel})));
+const ActivateModal         = lazy(() => import("./components/modals/ActivateModal").then(m=>({default:m.ActivateModal})));
+const AgentModal            = lazy(() => import("./components/modals/AgentModal").then(m=>({default:m.AgentModal})));
+const NexusModal            = lazy(() => import("./components/modals/NexusModal").then(m=>({default:m.NexusModal})));
+const ArsenalHubModal       = lazy(() => import("./components/modals/ArsenalHubModal").then(m=>({default:m.ArsenalHubModal})));
+const JarvisModal           = lazy(() => import("./components/modals/JarvisModal").then(m=>({default:m.JarvisModal})));
+const ParseltongueModal     = lazy(() => import("./components/modals/ParseltongueModal").then(m=>({default:m.ParseltongueModal})));
+const RagModal              = lazy(() => import("./components/modals/RagModal").then(m=>({default:m.RagModal})));
+const TeamAgentModal        = lazy(() => import("./components/modals/TeamAgentModal").then(m=>({default:m.TeamAgentModal})));
+const SkillsLibraryModal    = lazy(() => import("./components/modals/SkillsLibraryModal").then(m=>({default:m.SkillsLibraryModal})));
+const OpenGravityModal      = lazy(() => import("./components/modals/OpenGravityModal").then(m=>({default:m.OpenGravityModal})));
+const AgentOSModal          = lazy(() => import("./components/modals/AgentOSModal").then(m=>({default:m.AgentOSModal})));
+const GeminiCLIModal        = lazy(() => import("./components/modals/GeminiCLIModal").then(m=>({default:m.GeminiCLIModal})));
+const HermesModal           = lazy(() => import("./components/modals/HermesModal").then(m=>({default:m.HermesModal})));
+const GraphifyModal         = lazy(() => import("./components/modals/GraphifyModal").then(m=>({default:m.GraphifyModal})));
+const GetShitDoneModal      = lazy(() => import("./components/modals/GetShitDoneModal").then(m=>({default:m.GetShitDoneModal})));
+const CCSwitchModal         = lazy(() => import("./components/modals/CCSwitchModal").then(m=>({default:m.CCSwitchModal})));
+const UIUXProModal          = lazy(() => import("./components/modals/UIUXProModal").then(m=>({default:m.UIUXProModal})));
+const CareerOpsModal        = lazy(() => import("./components/modals/CareerOpsModal").then(m=>({default:m.CareerOpsModal})));
+const ABTopModal            = lazy(() => import("./components/modals/ABTopModal").then(m=>({default:m.ABTopModal})));
+const AwesomeLLMModal       = lazy(() => import("./components/modals/AwesomeLLMModal").then(m=>({default:m.AwesomeLLMModal})));
+const OsintScannerModal     = lazy(() => import("./components/modals/OsintScannerModal").then(m=>({default:m.OsintScannerModal})));
+const NanoBotModal          = lazy(() => import("./components/modals/NanoBotModal").then(m=>({default:m.NanoBotModal})));
+const AgentKanbanModal      = lazy(() => import("./components/modals/AgentKanbanModal").then(m=>({default:m.AgentKanbanModal})));
+const AutoBEModal           = lazy(() => import("./components/modals/AutoBEModal").then(m=>({default:m.AutoBEModal})));
+const SuperpowersModal      = lazy(() => import("./components/modals/SuperpowersModal").then(m=>({default:m.SuperpowersModal})));
+const LerimCLIModal         = lazy(() => import("./components/modals/LerimCLIModal").then(m=>({default:m.LerimCLIModal})));
+const ClaudePromptsModal    = lazy(() => import("./components/modals/ClaudePromptsModal").then(m=>({default:m.ClaudePromptsModal})));
+const RunVSAgentModal       = lazy(() => import("./components/modals/RunVSAgentModal").then(m=>({default:m.RunVSAgentModal})));
+const CodexMobileModal      = lazy(() => import("./components/modals/CodexMobileModal").then(m=>({default:m.CodexMobileModal})));
+const OpenACPModal          = lazy(() => import("./components/modals/OpenACPModal").then(m=>({default:m.OpenACPModal})));
+const HandClawModal         = lazy(() => import("./components/modals/HandClawModal").then(m=>({default:m.HandClawModal})));
+const RalphAgentModal       = lazy(() => import("./components/modals/RalphAgentModal").then(m=>({default:m.RalphAgentModal})));
+const BurnBabyBurnModal     = lazy(() => import("./components/modals/BurnBabyBurnModal").then(m=>({default:m.BurnBabyBurnModal})));
+const CrushModal            = lazy(() => import("./components/modals/CrushModal").then(m=>({default:m.CrushModal})));
+const RTKModal              = lazy(() => import("./components/modals/RTKModal").then(m=>({default:m.RTKModal})));
+const CodexBarModal         = lazy(() => import("./components/modals/CodexBarModal").then(m=>({default:m.CodexBarModal})));
+const CodexSaverModal       = lazy(() => import("./components/modals/CodexSaverModal").then(m=>({default:m.CodexSaverModal})));
+const AgentMemoryModal      = lazy(() => import("./components/modals/AgentMemoryModal").then(m=>({default:m.AgentMemoryModal})));
+const DecepticonModal       = lazy(() => import("./components/modals/DecepticonModal").then(m=>({default:m.DecepticonModal})));
+const DroidDeskModal        = lazy(() => import("./components/modals/DroidDeskModal").then(m=>({default:m.DroidDeskModal})));
+const BugHunterModal        = lazy(() => import("./components/modals/BugHunterModal").then(m=>({default:m.BugHunterModal})));
+const HyperResearchModal    = lazy(() => import("./components/modals/HyperResearchModal").then(m=>({default:m.HyperResearchModal})));
+const AIFactoryModal        = lazy(() => import("./components/modals/AIFactoryModal").then(m=>({default:m.AIFactoryModal})));
+const GemmaChatModal        = lazy(() => import("./components/modals/GemmaChatModal").then(m=>({default:m.GemmaChatModal})));
+const CodeGraphModal        = lazy(() => import("./components/modals/CodeGraphModal").then(m=>({default:m.CodeGraphModal})));
+const OhMyPiModal           = lazy(() => import("./components/modals/OhMyPiModal").then(m=>({default:m.OhMyPiModal})));
+const AwesomeOpenCodeModal  = lazy(() => import("./components/modals/AwesomeOpenCodeModal").then(m=>({default:m.AwesomeOpenCodeModal})));
+const OpenRepLoveModal      = lazy(() => import("./components/modals/OpenRepLoveModal").then(m=>({default:m.OpenRepLoveModal})));
+const DyadModal             = lazy(() => import("./components/modals/DyadModal").then(m=>({default:m.DyadModal})));
+const GhostwriterModal      = lazy(() => import("./components/modals/GhostwriterModal").then(m=>({default:m.GhostwriterModal})));
+const AgentScopeModal       = lazy(() => import("./components/modals/AgentScopeModal").then(m=>({default:m.AgentScopeModal})));
+const InsForgeModal         = lazy(() => import("./components/modals/InsForgeModal").then(m=>({default:m.InsForgeModal})));
+const MalwareArsenalModal   = lazy(() => import("./components/modals/MalwareArsenalModal").then(m=>({default:m.MalwareArsenalModal})));
+const ThreatIntelModal      = lazy(() => import("./components/modals/ThreatIntelModal").then(m=>({default:m.ThreatIntelModal})));
+const WormGPTModal          = lazy(() => import("./components/modals/WormGPTModal").then(m=>({default:m.WormGPTModal})));
+const AntigravityManagerModal = lazy(() => import("./components/modals/AntigravityManagerModal").then(m=>({default:m.AntigravityManagerModal})));
+const AxonHubModal          = lazy(() => import("./components/modals/AxonHubModal").then(m=>({default:m.AxonHubModal})));
+const BigAGIModal           = lazy(() => import("./components/modals/BigAGIModal").then(m=>({default:m.BigAGIModal})));
+const HackingToolModal      = lazy(() => import("./components/modals/HackingToolModal").then(m=>({default:m.HackingToolModal})));
+const GodMod3Modal          = lazy(() => import("./components/modals/GodMod3Modal").then(m=>({default:m.GodMod3Modal})));
+const GeminiResearchModal   = lazy(() => import("./components/modals/GeminiResearchModal").then(m=>({default:m.GeminiResearchModal})));
+const OpenAntigravityModal  = lazy(() => import("./components/modals/OpenAntigravityModal").then(m=>({default:m.OpenAntigravityModal})));
+const ChangelogModal        = lazy(() => import("./components/modals/ChangelogModal").then(m=>({default:m.ChangelogModal})));
+const UseCaseLibraryModal   = lazy(() => import("./components/modals/UseCaseLibraryModal").then(m=>({default:m.UseCaseLibraryModal})));
+const DeepSearchModal       = lazy(() => import("./components/modals/DeepSearchModal").then(m=>({default:m.DeepSearchModal})));
+const ChainInvestigationModal = lazy(() => import("./components/modals/ChainInvestigationModal").then(m=>({default:m.ChainInvestigationModal})));
+const PaseoModal            = lazy(() => import("./components/modals/PaseoModal").then(m=>({default:m.PaseoModal})));
+const GemmaLibModal         = lazy(() => import("./components/modals/GemmaLibModal").then(m=>({default:m.GemmaLibModal})));
+const RogueMasterModal      = lazy(() => import("./components/modals/RogueMasterModal").then(m=>({default:m.RogueMasterModal})));
+const PasswordAttackModal   = lazy(() => import("./components/modals/PasswordAttackModal").then(m=>({default:m.PasswordAttackModal})));
+const AIHackingSkillsModal  = lazy(() => import("./components/modals/AIHackingSkillsModal").then(m=>({default:m.AIHackingSkillsModal})));
+const AITerminalModal       = lazy(() => import("./components/modals/AITerminalModal").then(m=>({default:m.AITerminalModal})));
+const MarkXXXIXModal        = lazy(() => import("./components/modals/MarkXXXIXModal").then(m=>({default:m.MarkXXXIXModal})));
+const MarkXXXIXORModal      = lazy(() => import("./components/modals/MarkXXXIXORModal").then(m=>({default:m.MarkXXXIXORModal})));
+const FreeLLMAPIModal       = lazy(() => import("./components/modals/FreeLLMAPIModal").then(m=>({default:m.FreeLLMAPIModal})));
+const NineRouterModal       = lazy(() => import("./components/modals/NineRouterModal").then(m=>({default:m.NineRouterModal})));
+const FeynmanModal          = lazy(() => import("./components/modals/FeynmanModal").then(m=>({default:m.FeynmanModal})));
+const GovernorModal         = lazy(() => import("./components/modals/GovernorModal").then(m=>({default:m.GovernorModal})));
+const HeadroomModal         = lazy(() => import("./components/modals/HeadroomModal").then(m=>({default:m.HeadroomModal})));
+const TokenOptimizerModal   = lazy(() => import("./components/modals/TokenOptimizerModal").then(m=>({default:m.TokenOptimizerModal})));
+const ClaudeCodeMemoryModal = lazy(() => import("./components/modals/ClaudeCodeMemoryModal").then(m=>({default:m.ClaudeCodeMemoryModal})));
+const ModelCompareModal     = lazy(() => import("./components/modals/ModelCompareModal").then(m=>({default:m.ModelCompareModal})));
+const NeuralMatrixModal     = lazy(() => import("./components/modals/NeuralMatrixModal").then(m=>({default:m.NeuralMatrixModal})));
+const ShellGeneratorModal   = lazy(() => import("./components/modals/ShellGeneratorModal").then(m=>({default:m.ShellGeneratorModal})));
+const AnalyticsDashboard    = lazy(() => import("./components/modals/AnalyticsDashboard").then(m=>({default:m.AnalyticsDashboard})));
+const MonacoEditorModal     = lazy(() => import("./components/modals/MonacoEditorModal").then(m=>({default:m.MonacoEditorModal})));
+const DefensiveAIModal      = lazy(() => import("./components/modals/DefensiveAIModal").then(m=>({default:m.DefensiveAIModal})));
+const OpenSkynetModal       = lazy(() => import("./components/modals/OpenSkynetModal").then(m=>({default:m.OpenSkynetModal})));
+const WarRoomModal          = lazy(() => import("./components/modals/WarRoomModal").then(m=>({default:m.WarRoomModal})));
+const RedTeamDashboard      = lazy(() => import("./components/modals/RedTeamDashboard").then(m=>({default:m.RedTeamDashboard})));
+const ExploitChainModal     = lazy(() => import("./components/modals/ExploitChainModal").then(m=>({default:m.ExploitChainModal})));
+const IntelligenceCoreModal = lazy(() => import("./components/modals/IntelligenceCoreModal").then(m=>({default:m.IntelligenceCoreModal})));
+const ThreatGlobeModal      = lazy(() => import("./components/modals/ThreatGlobeModal").then(m=>({default:m.ThreatGlobeModal})));
+const VulnGraph3DModal      = lazy(() => import("./components/modals/VulnGraph3DModal").then(m=>({default:m.VulnGraph3DModal})));
+const LiveCodingModal       = lazy(() => import("./components/modals/LiveCodingModal").then(m=>({default:m.LiveCodingModal})));
+const ExploitSandboxModal   = lazy(() => import("./components/modals/ExploitSandboxModal").then(m=>({default:m.ExploitSandboxModal})));
+const GestureControlModal   = lazy(() => import("./components/modals/GestureControlModal").then(m=>({default:m.GestureControlModal})));
+const NeuralVoiceModal      = lazy(() => import("./components/modals/NeuralVoiceModal").then(m=>({default:m.NeuralVoiceModal})));
+const BlockchainAuditModal  = lazy(() => import("./components/modals/BlockchainAuditModal").then(m=>({default:m.BlockchainAuditModal})));
+const E2ESessionModal       = lazy(() => import("./components/modals/E2ESessionModal").then(m=>({default:m.E2ESessionModal})));
+const AutonomousRedTeamModal = lazy(() => import("./components/modals/AutonomousRedTeamModal").then(m=>({default:m.AutonomousRedTeamModal})));
+const CyberVisionModal      = lazy(() => import("./components/modals/CyberVisionModal").then(m=>({default:m.CyberVisionModal})));
+const JITExploitModal       = lazy(() => import("./components/modals/JITExploitModal").then(m=>({default:m.JITExploitModal})));
+const EvasionEngineModal    = lazy(() => import("./components/modals/EvasionEngineModal").then(m=>({default:m.EvasionEngineModal})));
+const VulnTopologyModal     = lazy(() => import("./components/modals/VulnTopologyModal").then(m=>({default:m.VulnTopologyModal})));
+const PrecisionStrikeModal  = lazy(() => import("./components/modals/PrecisionStrikeModal").then(m=>({default:m.PrecisionStrikeModal})));
+const LiveCVEModal          = lazy(() => import("./components/modals/LiveCVEModal").then(m=>({default:m.LiveCVEModal})));
+const BASSimulationModal    = lazy(() => import("./components/modals/BASSimulationModal").then(m=>({default:m.BASSimulationModal})));
+const NetworkTopoModal      = lazy(() => import("./components/modals/NetworkTopoModal").then(m=>({default:m.NetworkTopoModal})));
+const BinaryAnalysisModal   = lazy(() => import("./components/modals/BinaryAnalysisModal").then(m=>({default:m.BinaryAnalysisModal})));
+const WebFuzzingModal       = lazy(() => import("./components/modals/WebFuzzingModal").then(m=>({default:m.WebFuzzingModal})));
+const MultiAgentSOCModal    = lazy(() => import("./components/modals/MultiAgentSOCModal").then(m=>({default:m.MultiAgentSOCModal})));
+const OrchestrationEngineModal = lazy(() => import("./components/modals/OrchestrationEngineModal").then(m=>({default:m.OrchestrationEngineModal})));
+const GlobalVulnHeatmapModal = lazy(() => import("./components/modals/GlobalVulnHeatmapModal").then(m=>({default:m.GlobalVulnHeatmapModal})));
+const CyberWarfareMatrixModal = lazy(() => import("./components/modals/CyberWarfareMatrixModal").then(m=>({default:m.CyberWarfareMatrixModal})));
+const SentientCyberSphereModal = lazy(() => import("./components/modals/SentientCyberSphereModal").then(m=>({default:m.SentientCyberSphereModal})));
+const SecurityKanbanModal   = lazy(() => import("./components/modals/SecurityKanbanModal").then(m=>({default:m.SecurityKanbanModal})));
+const NetworkMonitorModal   = lazy(() => import("./components/modals/NetworkMonitorModal").then(m=>({default:m.NetworkMonitorModal})));
+const CyberCommandCenter3D  = lazy(() => import("./components/CyberCommandCenter3D").then(m=>({default:m.CyberCommandCenter3D})));
+
+// ── MODAL STATE REDUCER ───────────────────────────────────────────────────────
+const MODAL_IDS = [
+  'personaEditor','localModel','providerSettings','pricing','api','settings','account',
+  'tool','shortcuts','palette','toolsHub','memory','bookmarks','search','compare',
+  'osintDash','admin','activate','agent','nexus','arsenal','jarvis','parseltongue',
+  'rag','teamAgent','skills','openGravity','agentOS','geminiCLI','hermes','graphify',
+  'getShitDone','ccswitch','uiuxpro','careerOps','abTop','awesomeLLM','osintScanner',
+  'nanoBot','agentKanban','autoBE','superpowers','lerimCLI','claudePrompts','runVSAgent',
+  'codexMobile','openACP','handClaw','ralph','burnbaby','crush','rtk','codexBar',
+  'codexSaver','agentMemory','decepticon','droidDesk','bugHunter','hyperResearch',
+  'aiFactory','gemmaChat','codeGraph','ohMyPi','awesomeOpenCode','openRepLove','dyad',
+  'ghostwriter','agentScope','insForge','malwareArsenal','threatIntel','wormGPT',
+  'antigravityMgr','axonHub','bigAGI','hackingTool','godMod3','geminiResearch',
+  'openAntigravity','paseo','gemmaLib','rogueMaster','passwordAttack','aiHackingSkills',
+  'aiTerminal','markXXXIX','markXXXIXOR','freeLLMAPI','nineRouter','feynman','governor',
+  'headroom','tokenOptimizer','claudeMemory','qrSync','modelCompare','securityKanban',
+  'networkMonitor','defensiveAI','openSkynet','neuralMatrix','shellGenerator','analytics',
+  'monaco','warRoom','exploitChain','deepSearch','chainInvestigation','redTeamDash',
+  'changelog','useCaseLib','intelligenceCore','threatGlobe','vulnGraph3D','liveCoding',
+  'exploitSandbox','gestureControl','neuralVoice','blockchainAudit','e2eSession',
+  'autonomousRedTeam','cyberVision','jitExploit','evasionEngine','vulnTopology',
+  'precisionStrike','liveCVE','basSimulation','networkTopo','binaryAnalysis','webFuzzing',
+  'multiAgentSOC','orchestrationEngine','globalVulnHeatmap','cyberWarfareMatrix',
+  'sentientCyberSphere','perfDash','costDash','dedupViz','threatFeed','securityDash',
+  'contextMemory','prefetch','masterHud','anomalyLog','net3D','autoSetup','cyberHub','sidebar',
+] as const;
+
+type ModalId = typeof MODAL_IDS[number];
+type ModalState = Record<ModalId, boolean>;
+type ModalAction =
+  | { type: 'OPEN';   id: ModalId }
+  | { type: 'CLOSE';  id: ModalId }
+  | { type: 'TOGGLE'; id: ModalId }
+  | { type: 'SET';    id: ModalId; value: boolean };
+
+function modalReducer(state: ModalState, action: ModalAction): ModalState {
+  switch (action.type) {
+    case 'OPEN':   return state[action.id] ? state : { ...state, [action.id]: true };
+    case 'CLOSE':  return !state[action.id] ? state : { ...state, [action.id]: false };
+    case 'TOGGLE': return { ...state, [action.id]: !state[action.id] };
+    case 'SET':    return state[action.id] === action.value ? state : { ...state, [action.id]: action.value };
+    default: return state;
+  }
+}
+
+function computeInitialAutoSetup(): boolean {
+  if (localStorage.getItem("mr7-ai-autoinit-done") !== "1") return true;
+  const P_KEY = "mr7-ai-p-key-";
+  const PROVIDERS = ["groq","openai","anthropic","gemini","openrouter","deepseek","xai","mistral","together","fireworks","perplexity","cohere","nvidia","github"];
+  const hasKey = PROVIDERS.some(id => { const k = localStorage.getItem(P_KEY + id)?.trim(); return k && k.length > 10; });
+  try { const s = JSON.parse(localStorage.getItem("mr7-ai-state-v2") || "{}"); if ((s?.settings?.personalApiKey?.trim()?.length ?? 0) > 10) return false; } catch { /* ignore */ }
+  return !hasKey;
+}
+
+function makeInitialModals(): ModalState {
+  return Object.fromEntries(MODAL_IDS.map(id => [id, id === 'autoSetup' ? computeInitialAutoSetup() : false])) as ModalState;
+}
+
+// ── ARSENAL → MODAL MAPPING ───────────────────────────────────────────────────
+const ARSENAL_MAP: Partial<Record<string, ModalId>> = {
+  "securitykanban": "securityKanban", "networkmonitor": "networkMonitor",
+  "defensiveai": "defensiveAI",       "openskynet": "openSkynet",
+  "threatglobe": "threatGlobe",       "vulngraph3d": "vulnGraph3D",
+  "livecoding": "liveCoding",         "exploitsandbox": "exploitSandbox",
+  "gesturecontrol": "gestureControl", "neuralvoice": "neuralVoice",
+  "blockchainaudit": "blockchainAudit","e2esession": "e2eSession",
+  "autonomousredteam": "autonomousRedTeam","cybervision": "cyberVision",
+  "jitexploit": "jitExploit",         "evasionengine": "evasionEngine",
+  "vulntopology": "vulnTopology",     "precisionstrike": "precisionStrike",
+  "livecve": "liveCVE",               "bassimulation": "basSimulation",
+  "networktopo": "networkTopo",       "binaryanalysis": "binaryAnalysis",
+  "webfuzzing": "webFuzzing",         "multiagentsoc": "multiAgentSOC",
+  "orchestrationengine": "orchestrationEngine",
+  "globalvulnheatmap": "globalVulnHeatmap",
+  "cyberwarfarematrix": "cyberWarfareMatrix",
+  "sentientcybersphere": "sentientCyberSphere",
+};
 
 const queryClient = new QueryClient();
-
 const KONAMI = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
 
 function AppContent() {
@@ -191,40 +264,57 @@ function AppContent() {
   const { t } = useT();
   const konamiRef = useRef<string[]>([]);
   const [godMode, setGodMode] = useState(false);
+  const debounceMemRef = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const debouncePrefRef = useRef<ReturnType<typeof setTimeout>|null>(null);
 
-  // Check subscription expiry on mount and every minute
+  // ── SINGLE MODAL REDUCER ──────────────────────────────────────────────────
+  const [modals, mDispatch] = useReducer(modalReducer, undefined, makeInitialModals);
+  const open   = useCallback((id: ModalId) => mDispatch({ type: 'OPEN',   id }), []);
+  const close  = useCallback((id: ModalId) => mDispatch({ type: 'CLOSE',  id }), []);
+  const toggle = useCallback((id: ModalId) => mDispatch({ type: 'TOGGLE', id }), []);
+
+  // ── NON-BOOLEAN STATE ─────────────────────────────────────────────────────
+  const [arsenalPage, setArsenalPage] = useState<ArsenalModuleId | "ai-terminal" | null>(null);
+  const [utility, setUtility]         = useState<UtilityTool | null>(null);
+  const [monacoInitCode, setMonacoInitCode] = useState<string | undefined>();
+  const [monacoInitLang, setMonacoInitLang] = useState<string | undefined>();
+  const [shellGeneratorInject, setShellGeneratorInject] = useState<string | undefined>();
+  const [ragPipelineDoc, setRagPipelineDoc]   = useState<{text:string;name:string;key:number}|undefined>();
+  const [agentPipelineTask, setAgentPipelineTask] = useState<{text:string;key:number}|undefined>();
+  const [cliPipelineContext, setCliPipelineContext] = useState<{text:string;key:number}|undefined>();
+  const [idePipelineCode, setIdePipelineCode] = useState<{text:string;key:number}|undefined>();
+  const [pipelineKeyRef] = useState(() => ({ n: 0 }));
+  const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
+  void addCostEntry; void shellGeneratorInject;
+
+  function nextKey() { return ++pipelineKeyRef.n; }
+
+  // ── QR sync ───────────────────────────────────────────────────────────────
+  useQRSyncImport();
+
+  // ── Subscription expiry check ─────────────────────────────────────────────
   useEffect(() => {
     function check() {
-      const subRaw = localStorage.getItem("mr7-ai-state-v2");
-      if (!subRaw) return;
+      const subRaw = localStorage.getItem("mr7-ai-state-v2"); if (!subRaw) return;
       try {
-        const parsed = JSON.parse(subRaw);
-        const sub = parsed?.subscription;
-        if (!sub) return;
+        const parsed = JSON.parse(subRaw); const sub = parsed?.subscription; if (!sub) return;
         const expired = checkAndExpireSubscription(sub);
-        if (expired) {
-          dispatch({ type: "SET_SUBSCRIPTION", patch: expired });
-          toast({ description: "Your subscription has expired. You have been moved to the Free plan." });
-        }
+        if (expired) { dispatch({ type: "SET_SUBSCRIPTION", patch: expired }); toast({ description: "Your subscription has expired. You have been moved to the Free plan." }); }
       } catch { /* ignore */ }
     }
-    check();
-    const id = setInterval(check, 60_000);
-    return () => clearInterval(id);
+    check(); const id = setInterval(check, 60_000); return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Konami code ───────────────────────────────────────────────────────────
   useEffect(() => {
     function onKonami(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
-      const inField = ["INPUT", "TEXTAREA"].includes(target?.tagName) || target?.isContentEditable;
-      if (inField) return;
+      if (["INPUT","TEXTAREA"].includes(target?.tagName) || target?.isContentEditable) return;
       const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
       konamiRef.current = [...konamiRef.current, k].slice(-KONAMI.length);
       if (KONAMI.every((kk, i) => konamiRef.current[i] === kk)) {
-        konamiRef.current = [];
-        setGodMode(true);
-        toast({ description: t("toast.godmodeUnlocked") });
+        konamiRef.current = []; setGodMode(true); toast({ description: t("toast.godmodeUnlocked") });
         setTimeout(() => setGodMode(false), 4500);
       }
     }
@@ -232,161 +322,9 @@ function AppContent() {
     return () => document.removeEventListener("keydown", onKonami);
   }, [toast, t]);
 
-  // ── QR sync: auto-import on ?sync= param ────────────────────────────────────
-  useQRSyncImport();
-
-  // ── Full-page Arsenal view state ────────────────────────────────────────────
-  const [arsenalPage, setArsenalPage] = useState<ArsenalModuleId | "ai-terminal" | null>(null);
-
-  // ── Modal state ─────────────────────────────────────────────────────────────
-  const [personaEditorOpen, setPersonaEditorOpen] = useState(false);
-  const [localModelOpen, setLocalModelOpen] = useState(false);
-  const [providerSettingsOpen, setProviderSettingsOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [pricingOpen, setPricingOpen] = useState(false);
-  const [apiOpen, setApiOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
-  const [toolOpen, setToolOpen] = useState(false);
-  const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [paletteOpen, setPaletteOpen] = useState(false);
-  const [toolsHubOpen, setToolsHubOpen] = useState(false);
-  const [utility, setUtility] = useState<UtilityTool | null>(null);
-  const [memoryOpen, setMemoryOpen] = useState(false);
-  const [bookmarksOpen, setBookmarksOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [compareOpen, setCompareOpen] = useState(false);
-  const [osintDashOpen, setOsintDashOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
-  const [activateOpen, setActivateOpen] = useState(false);
-  const [agentOpen, setAgentOpen] = useState(false);
-  const [nexusOpen, setNexusOpen] = useState(false);
-  const [arsenalOpen, setArsenalOpen] = useState(false);
-  const [jarvisOpen, setJarvisOpen] = useState(false);
-  const [parseltongueOpen, setParseltongueOpen] = useState(false);
-  const [ragOpen, setRagOpen] = useState(false);
-  const [teamAgentOpen, setTeamAgentOpen] = useState(false);
-  const [skillsOpen, setSkillsOpen] = useState(false);
-  const [openGravityOpen, setOpenGravityOpen] = useState(false);
-  const [agentOSOpen, setAgentOSOpen] = useState(false);
-  const [geminiCLIOpen, setGeminiCLIOpen] = useState(false);
-  // New modules — batch 1
-  const [hermesOpen, setHermesOpen] = useState(false);
-  const [graphifyOpen, setGraphifyOpen] = useState(false);
-  const [getShitDoneOpen, setGetShitDoneOpen] = useState(false);
-  const [ccswitchOpen, setCcswitchOpen] = useState(false);
-  const [uiuxproOpen, setUiuxproOpen] = useState(false);
-  const [careerOpsOpen, setCareerOpsOpen] = useState(false);
-  const [abTopOpen, setAbTopOpen] = useState(false);
-  const [awesomeLLMOpen, setAwesomeLLMOpen] = useState(false);
-  // New modules — batch 2 (from uploaded ZIPs)
-  const [osintScannerOpen, setOsintScannerOpen] = useState(false);
-  const [nanoBotOpen, setNanoBotOpen] = useState(false);
-  const [agentKanbanOpen, setAgentKanbanOpen] = useState(false);
-  const [autoBEOpen, setAutoBEOpen] = useState(false);
-  const [superpowersOpen, setSuperpowersOpen] = useState(false);
-  const [lerimCLIOpen, setLerimCLIOpen] = useState(false);
-  const [claudePromptsOpen, setClaudePromptsOpen] = useState(false);
-  const [runVSAgentOpen, setRunVSAgentOpen] = useState(false);
-  const [codexMobileOpen, setCodexMobileOpen] = useState(false);
-  const [openACPOpen, setOpenACPOpen] = useState(false);
-  const [handClawOpen, setHandClawOpen] = useState(false);
-  const [ralphOpen, setRalphOpen] = useState(false);
-  const [burnbabyOpen, setBurnbabyOpen] = useState(false);
-  const [crushOpen, setCrushOpen] = useState(false);
-  const [rtkOpen, setRtkOpen] = useState(false);
-  // New modules — batch 3 (latest uploaded ZIPs)
-  const [codexBarOpen, setCodexBarOpen] = useState(false);
-  const [codexSaverOpen, setCodexSaverOpen] = useState(false);
-  const [agentMemoryOpen, setAgentMemoryOpen] = useState(false);
-  const [decepticonOpen, setDecepticonOpen] = useState(false);
-  const [droidDeskOpen, setDroidDeskOpen] = useState(false);
-  const [bugHunterOpen, setBugHunterOpen] = useState(false);
-  const [hyperResearchOpen, setHyperResearchOpen] = useState(false);
-  const [aiFactoryOpen, setAIFactoryOpen] = useState(false);
-  const [gemmaChatOpen, setGemmaChatOpen] = useState(false);
-  const [codeGraphOpen, setCodeGraphOpen] = useState(false);
-  const [ohMyPiOpen, setOhMyPiOpen] = useState(false);
-  const [awesomeOpenCodeOpen, setAwesomeOpenCodeOpen] = useState(false);
-  // New modules — batch 4
-  const [openRepLoveOpen, setOpenRepLoveOpen] = useState(false);
-  const [dyadOpen, setDyadOpen] = useState(false);
-  const [ghostwriterOpen, setGhostwriterOpen] = useState(false);
-  const [agentScopeOpen, setAgentScopeOpen] = useState(false);
-  const [insForgeOpen, setInsForgeOpen] = useState(false);
-  const [malwareArsenalOpen, setMalwareArsenalOpen] = useState(false);
-  const [threatIntelOpen, setThreatIntelOpen] = useState(false);
-  const [wormGPTOpen, setWormGPTOpen] = useState(false);
-  // New modules — batch 5
-  const [antigravityMgrOpen, setAntigravityMgrOpen] = useState(false);
-  const [axonHubOpen, setAxonHubOpen] = useState(false);
-  const [bigAGIOpen, setBigAGIOpen] = useState(false);
-  const [hackingToolOpen, setHackingToolOpen] = useState(false);
-  const [godMod3Open, setGodMod3Open] = useState(false);
-  const [geminiResearchOpen, setGeminiResearchOpen] = useState(false);
-  const [openAntigravityOpen, setOpenAntigravityOpen] = useState(false);
-  const [paseoOpen, setPaseoOpen] = useState(false);
-  const [gemmaLibOpen, setGemmaLibOpen] = useState(false);
-  const [rogueMasterOpen, setRogueMasterOpen] = useState(false);
-  const [passwordAttackOpen, setPasswordAttackOpen] = useState(false);
-  const [aiHackingSkillsOpen, setAIHackingSkillsOpen] = useState(false);
-  const [aiTerminalOpen, setAiTerminalOpen] = useState(false);
-  // New modules — batch 7
-  const [markXXXIXOpen, setMarkXXXIXOpen] = useState(false);
-  const [markXXXIXOROpen, setMarkXXXIXOROpen] = useState(false);
-  const [freeLLMAPIOpen, setFreeLLMAPIOpen] = useState(false);
-  const [nineRouterOpen, setNineRouterOpen] = useState(false);
-  const [feynmanOpen, setFeynmanOpen] = useState(false);
-  const [governorOpen, setGovernorOpen] = useState(false);
-  const [headroomOpen, setHeadroomOpen] = useState(false);
-  const [tokenOptimizerOpen, setTokenOptimizerOpen] = useState(false);
-  const [claudeMemoryOpen, setClaudeMemoryOpen] = useState(false);
-  const [qrSyncOpen, setQrSyncOpen] = useState(false);
-  const [modelCompareOpen, setModelCompareOpen] = useState(false);
-  const [securityKanbanOpen, setSecurityKanbanOpen] = useState(false);
-  const [networkMonitorOpen, setNetworkMonitorOpen] = useState(false);
-  const [defensiveAIOpen, setDefensiveAIOpen] = useState(false);
-  const [openSkynetOpen, setOpenSkynetOpen] = useState(false);
-  const [neuralMatrixOpen, setNeuralMatrixOpen] = useState(false);
-  const [shellGeneratorOpen, setShellGeneratorOpen] = useState(false);
-  const [analyticsOpen, setAnalyticsOpen] = useState(false);
-  const [monacoOpen, setMonacoOpen] = useState(false);
-  const [monacoInitCode, setMonacoInitCode] = useState<string | undefined>();
-  const [monacoInitLang, setMonacoInitLang] = useState<string | undefined>();
-  const [shellGeneratorInject, setShellGeneratorInject] = useState<string | undefined>();
-  const [warRoomOpen, setWarRoomOpen] = useState(false);
-  const [exploitChainOpen, setExploitChainOpen] = useState(false);
-  const [deepSearchOpen, setDeepSearchOpen] = useState(false);
-  const [chainInvestigationOpen, setChainInvestigationOpen] = useState(false);
-  const [redTeamDashOpen, setRedTeamDashOpen] = useState(false);
-  const [changelogOpen, setChangelogOpen] = useState(false);
-  const [useCaseLibOpen, setUseCaseLibOpen] = useState(false);
-  const [intelligenceCoreOpen, setIntelligenceCoreOpen] = useState(false);
-  // AI Auto-Setup 3D — shows on first open or when no provider key is configured
-  const [autoSetupVisible, setAutoSetupVisible] = useState(() => {
-    // If never initialized, show
-    if (localStorage.getItem("mr7-ai-autoinit-done") !== "1") return true;
-    // Also show if no provider key exists in localStorage
-    const P_KEY = "mr7-ai-p-key-";
-    const PROVIDERS = ["groq","openai","anthropic","gemini","openrouter","deepseek","xai","mistral","together","fireworks","perplexity","cohere","nvidia","github"];
-    const hasKey = PROVIDERS.some(id => {
-      const k = localStorage.getItem(P_KEY + id)?.trim();
-      return k && k.length > 10;
-    });
-    // Also check personal API key in persisted store
-    try {
-      const s = JSON.parse(localStorage.getItem("mr7-ai-state-v2") || "{}");
-      if (s?.settings?.personalApiKey?.trim()?.length > 10) return false;
-    } catch { /* ignore */ }
-    return !hasKey;
-  });
-
-  // ── Silent auto-init ─────────────────────────────────────────────────────────
-  // Runs on every load: server providers → localStorage keys → personal key.
-  // No modal, no interruption. Sets optimal settings silently.
+  // ── Silent auto-init provider ─────────────────────────────────────────────
   useEffect(() => {
-    const P_KEY = "mr7-ai-p-key-";
-    const P_URL = "mr7-ai-p-url-";
+    const P_KEY = "mr7-ai-p-key-"; const P_URL = "mr7-ai-p-url-";
     const PRIORITY = [
       { id: "groq",       baseURL: "https://api.groq.com/openai/v1",                          model: "llama-3.3-70b-versatile"        },
       { id: "openai",     baseURL: "https://api.openai.com/v1",                               model: "gpt-4o"                         },
@@ -397,9 +335,7 @@ function AppContent() {
       { id: "xai",        baseURL: "https://api.x.ai/v1",                                    model: "grok-3-mini"                    },
       { id: "mistral",    baseURL: "https://api.mistral.ai/v1",                               model: "mistral-large-latest"           },
     ] as const;
-
     async function silentInit() {
-      // 1. Check server-configured providers
       try {
         const res = await fetch("/api/providers");
         if (res.ok) {
@@ -408,346 +344,188 @@ function AppContent() {
             if (data.providers?.find((sp: { id: string; available: boolean }) => sp.id === p.id && sp.available)) {
               dispatch({ type: "SET_PROVIDER", provider: p.id as never, providerModel: p.model });
               dispatch({ type: "SET_SETTINGS", patch: { streaming: true, autoTitle: true, showTokenMeter: true } as never });
-              setAutoSetupVisible(false);
-              localStorage.setItem("mr7-ai-autoinit-done", "1");
-              return;
+              mDispatch({ type: 'CLOSE', id: 'autoSetup' }); localStorage.setItem("mr7-ai-autoinit-done", "1"); return;
             }
           }
         }
-      } catch { /* network issue — try localStorage */ }
-
-      // 2. Check localStorage personal keys
+      } catch { /* try localStorage */ }
       for (const p of PRIORITY) {
         const key = localStorage.getItem(P_KEY + p.id)?.trim();
         if (key && key.length > 10) {
           const url = localStorage.getItem(P_URL + p.id)?.trim() || p.baseURL;
           dispatch({ type: "SET_SETTINGS", patch: { personalApiKey: key, personalApiBaseURL: url, streaming: true, autoTitle: true, showTokenMeter: true } as never });
           dispatch({ type: "SET_PROVIDER", provider: "personal", providerModel: p.model });
-          setAutoSetupVisible(false);
-          localStorage.setItem("mr7-ai-autoinit-done", "1");
-          return;
+          mDispatch({ type: 'CLOSE', id: 'autoSetup' }); localStorage.setItem("mr7-ai-autoinit-done", "1"); return;
         }
       }
-
-      // 3. Check personalApiKey already in persisted store
       try {
         const s = JSON.parse(localStorage.getItem("mr7-ai-state-v2") || "{}");
         if ((s?.settings?.personalApiKey?.trim()?.length ?? 0) > 10) {
           dispatch({ type: "SET_SETTINGS", patch: { streaming: true, autoTitle: true, showTokenMeter: true } as never });
-          setAutoSetupVisible(false);
-          localStorage.setItem("mr7-ai-autoinit-done", "1");
+          mDispatch({ type: 'CLOSE', id: 'autoSetup' }); localStorage.setItem("mr7-ai-autoinit-done", "1");
         }
       } catch { /* ignore */ }
     }
-
     silentInit();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Batch 10 — Futuristic 3D Features
-  const [threatGlobeOpen, setThreatGlobeOpen] = useState(false);
-  const [vulnGraph3DOpen, setVulnGraph3DOpen] = useState(false);
-  const [liveCodingOpen, setLiveCodingOpen] = useState(false);
-  const [exploitSandboxOpen, setExploitSandboxOpen] = useState(false);
-  const [gestureControlOpen, setGestureControlOpen] = useState(false);
-  const [neuralVoiceOpen, setNeuralVoiceOpen] = useState(false);
-  const [blockchainAuditOpen, setBlockchainAuditOpen] = useState(false);
-  const [e2eSessionOpen, setE2ESessionOpen] = useState(false);
-  const [autonomousRedTeamOpen, setAutonomousRedTeamOpen] = useState(false);
-  const [cyberVisionOpen, setCyberVisionOpen] = useState(false);
-  const [jitExploitOpen, setJITExploitOpen] = useState(false);
-  const [evasionEngineOpen, setEvasionEngineOpen] = useState(false);
-  const [vulnTopologyOpen, setVulnTopologyOpen] = useState(false);
-  const [precisionStrikeOpen, setPrecisionStrikeOpen] = useState(false);
-  const [liveCVEOpen, setLiveCVEOpen] = useState(false);
-  const [basSimulationOpen, setBASSimulationOpen] = useState(false);
-  const [networkTopoOpen, setNetworkTopoOpen] = useState(false);
-  const [binaryAnalysisOpen, setBinaryAnalysisOpen] = useState(false);
-  const [webFuzzingOpen, setWebFuzzingOpen] = useState(false);
-  const [multiAgentSOCOpen, setMultiAgentSOCOpen] = useState(false);
-  const [orchestrationEngineOpen, setOrchestrationEngineOpen] = useState(false);
-  const [globalVulnHeatmapOpen, setGlobalVulnHeatmapOpen] = useState(false);
-  const [cyberWarfareMatrixOpen, setCyberWarfareMatrixOpen] = useState(false);
-  const [sentientCyberSphereOpen, setSentientCyberSphereOpen] = useState(false);
-
-  // Performance + Cost + Dedup + Threat + Security + Memory Dashboards
-  const [perfDashOpen, setPerfDashOpen] = useState(false);
-  const [costDashOpen, setCostDashOpen] = useState(false);
-  const [dedupVizOpen, setDedupVizOpen] = useState(false);
-  const [threatFeedOpen, setThreatFeedOpen] = useState(false);
-  const [securityDashOpen, setSecurityDashOpen] = useState(false);
-  const [contextMemoryOpen, setContextMemoryOpen] = useState(false);
-  const [prefetchOpen, setPrefetchOpen] = useState(false);
-  const [masterHudOpen, setMasterHudOpen] = useState(true);
-  const [anomalyLogOpen, setAnomalyLogOpen] = useState(false);
-  const [net3DOpen, setNet3DOpen] = useState(false);
-  const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
-
-  // Non-invasive context memory tracking + prefetch analysis
+  // ── Debounced context memory + prefetch ───────────────────────────────────
   useEffect(() => {
     const chat = state.chats.find((c) => c.id === state.activeChatId);
     if (!chat) return;
-    const msgs = chat.messages;
-    if (msgs.length === 0) return;
-    const last = msgs[msgs.length - 1];
-    if (!last) return;
-    contextMemory.addMessage(last.role as "user" | "assistant", last.content);
+    const msgs = chat.messages; if (msgs.length === 0) return;
+    const last = msgs[msgs.length - 1]; if (!last) return;
+    if (debounceMemRef.current) clearTimeout(debounceMemRef.current);
+    debounceMemRef.current = setTimeout(() => {
+      contextMemory.addMessage(last.role as "user" | "assistant", last.content);
+    }, 500);
     if (msgs.length >= 2 && last.role === "assistant") {
       const prev = msgs[msgs.length - 2];
-      if (prev) prefetchEngine.analyze(prev.content, last.content);
+      if (prev) {
+        if (debouncePrefRef.current) clearTimeout(debouncePrefRef.current);
+        debouncePrefRef.current = setTimeout(() => { prefetchEngine.analyze(prev.content, last.content); }, 1000);
+      }
     }
     if (last.role === "user") prefetchEngine.recordHit(last.content);
   }, [state.chats, state.activeChatId]);
 
-  // Non-invasive security audit on session start
-  useEffect(() => { securityLayer.audit("session_start", "info", "App session active"); }, []);
+  // ── Security audit (production only) ─────────────────────────────────────
+  useEffect(() => {
+    if (import.meta.env.PROD) securityLayer.audit("session_start", "info", "App session active");
+  }, []);
 
-  const [pipelineKeyRef] = useState(() => ({ n: 0 }));
-  const [ragPipelineDoc, setRagPipelineDoc] = useState<{ text: string; name: string; key: number } | undefined>();
-  const [agentPipelineTask, setAgentPipelineTask] = useState<{ text: string; key: number } | undefined>();
-  const [cliPipelineContext, setCliPipelineContext] = useState<{ text: string; key: number } | undefined>();
-  const [idePipelineCode, setIdePipelineCode] = useState<{ text: string; key: number } | undefined>();
-
-  function nextKey() { return ++pipelineKeyRef.n; }
-
-  function handlePipeToRag(item: PipelineItem) {
-    setRagPipelineDoc({ text: item.content, name: `[${item.source}] ${item.label}`, key: nextKey() });
-    setRagOpen(true);
-  }
-  function handlePipeToCLI(item: PipelineItem) {
-    setCliPipelineContext({ text: item.content, key: nextKey() });
-    setGeminiCLIOpen(true);
-  }
-  function handlePipeToAgent(item: PipelineItem) {
-    setAgentPipelineTask({ text: item.content, key: nextKey() });
-    setAgentOpen(true);
-  }
-  function handlePipeToIDE(item: PipelineItem) {
-    setIdePipelineCode({ text: item.content, key: nextKey() });
-    setOpenGravityOpen(true);
-  }
-
-  function handleArsenalLaunch(id: ArsenalModuleId) {
-    setArsenalOpen(false);
-    if (id === "ai-terminal") {
-      setAiTerminalOpen(true);
-    } else if (id === "securitykanban") {
-      setSecurityKanbanOpen(true);
-    } else if (id === "networkmonitor") {
-      setNetworkMonitorOpen(true);
-    } else if (id === "defensiveai") {
-      setDefensiveAIOpen(true);
-    } else if (id === "openskynet") {
-      setOpenSkynetOpen(true);
-    } else if (id === "threatglobe") {
-      setThreatGlobeOpen(true);
-    } else if (id === "vulngraph3d") {
-      setVulnGraph3DOpen(true);
-    } else if (id === "livecoding") {
-      setLiveCodingOpen(true);
-    } else if (id === "exploitsandbox") {
-      setExploitSandboxOpen(true);
-    } else if (id === "gesturecontrol") {
-      setGestureControlOpen(true);
-    } else if (id === "neuralvoice") {
-      setNeuralVoiceOpen(true);
-    } else if (id === "blockchainaudit") {
-      setBlockchainAuditOpen(true);
-    } else if (id === "e2esession") {
-      setE2ESessionOpen(true);
-    } else if (id === "autonomousredteam") {
-      setAutonomousRedTeamOpen(true);
-    } else if (id === "cybervision") {
-      setCyberVisionOpen(true);
-    } else if (id === "jitexploit") {
-      setJITExploitOpen(true);
-    } else if (id === "evasionengine") {
-      setEvasionEngineOpen(true);
-    } else if (id === "vulntopology") {
-      setVulnTopologyOpen(true);
-    } else if (id === "precisionstrike") {
-      setPrecisionStrikeOpen(true);
-    } else if (id === "livecve") {
-      setLiveCVEOpen(true);
-    } else if (id === "bassimulation") {
-      setBASSimulationOpen(true);
-    } else if (id === "networktopo") {
-      setNetworkTopoOpen(true);
-    } else if (id === "binaryanalysis") {
-      setBinaryAnalysisOpen(true);
-    } else if (id === "webfuzzing") {
-      setWebFuzzingOpen(true);
-    } else if (id === "multiagentsoc") {
-      setMultiAgentSOCOpen(true);
-    } else if (id === "orchestrationengine") {
-      setOrchestrationEngineOpen(true);
-    } else if (id === "globalvulnheatmap") {
-      setGlobalVulnHeatmapOpen(true);
-    } else if (id === "cyberwarfarematrix") {
-      setCyberWarfareMatrixOpen(true);
-    } else if (id === "sentientcybersphere") {
-      setSentientCyberSphereOpen(true);
-    } else {
-      setArsenalPage(id);
+  // ── Tab visibility optimization ───────────────────────────────────────────
+  useEffect(() => {
+    function onVisibility() {
+      if (document.hidden) { document.body.classList.add('tab-hidden'); }
+      else { document.body.classList.remove('tab-hidden'); }
     }
-  }
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
+  // ── Keyboard shortcuts ────────────────────────────────────────────────────
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
-      const inField = ["INPUT", "TEXTAREA"].includes(target?.tagName) || target?.isContentEditable;
-      if (!inField && e.key === "?") {
-        e.preventDefault();
-        setShortcutsOpen(true);
-      }
-      if (!inField && (e.metaKey || e.ctrlKey) && e.key === "n") {
-        e.preventDefault();
-        dispatch({ type: "NEW_CHAT" });
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setPaletteOpen((v) => !v);
-      }
-      if (!inField && (e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "t") {
-        e.preventDefault();
-        setToolsHubOpen(true);
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "f") {
-        e.preventDefault();
-        setSearchOpen((v) => !v);
-      }
-      if (!inField && (e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "m") {
-        e.preventDefault();
-        setMemoryOpen((v) => !v);
-      }
-      if (!inField && (e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "b") {
-        e.preventDefault();
-        setBookmarksOpen((v) => !v);
-      }
-      if (!inField && (e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "c") {
-        e.preventDefault();
-        setCompareOpen((v) => !v);
-      }
-      if (e.key === "Escape") {
-        setSidebarOpen(false);
-      }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.altKey && e.key.toLowerCase() === "a") {
-        e.preventDefault();
-        setAdminOpen(true);
-      }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "e") {
-        e.preventDefault();
-        setMonacoOpen(true);
-      }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "x") {
-        e.preventDefault();
-        setExploitChainOpen(v => !v);
-      }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "a" && !e.altKey) {
-        e.preventDefault();
-        window.dispatchEvent(new CustomEvent("kali:trigger-auto-setup"));
-      }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "o") {
-        e.preventDefault();
-        setOsintDashOpen(v => !v);
-      }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "l") {
-        e.preventDefault();
-        setChangelogOpen(v => !v);
-      }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "u") {
-        e.preventDefault();
-        setUseCaseLibOpen(v => !v);
-      }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "i") {
-        e.preventDefault();
-        setIntelligenceCoreOpen(v => !v);
-      }
+      const inField = ["INPUT","TEXTAREA"].includes(target?.tagName) || target?.isContentEditable;
+      if (!inField && e.key === "?") { e.preventDefault(); open('shortcuts'); }
+      if (!inField && (e.metaKey||e.ctrlKey) && e.key === "n") { e.preventDefault(); dispatch({ type: "NEW_CHAT" }); }
+      if ((e.metaKey||e.ctrlKey) && e.key === "k") { e.preventDefault(); toggle('palette'); }
+      if (!inField && (e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "t") { e.preventDefault(); open('toolsHub'); }
+      if ((e.metaKey||e.ctrlKey) && e.key.toLowerCase() === "f") { e.preventDefault(); toggle('search'); }
+      if (!inField && (e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "m") { e.preventDefault(); toggle('memory'); }
+      if (!inField && (e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "b") { e.preventDefault(); toggle('bookmarks'); }
+      if (!inField && (e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "c") { e.preventDefault(); toggle('compare'); }
+      if (e.key === "Escape") { close('sidebar' as ModalId); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.altKey && e.key.toLowerCase() === "a") { e.preventDefault(); open('admin'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "e") { e.preventDefault(); open('monaco'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "x") { e.preventDefault(); toggle('exploitChain'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "a" && !e.altKey) { e.preventDefault(); window.dispatchEvent(new CustomEvent("kali:trigger-auto-setup")); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "o") { e.preventDefault(); toggle('osintDash'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "l") { e.preventDefault(); toggle('changelog'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "u") { e.preventDefault(); toggle('useCaseLib'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "i") { e.preventDefault(); toggle('intelligenceCore'); }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [dispatch]);
+  }, [dispatch, open, close, toggle]);
 
+  // ── Palette action handler ────────────────────────────────────────────────
   function handlePaletteAction(action: string, payload?: string) {
-    setPaletteOpen(false);
+    close('palette');
     switch (action) {
       case "new-chat":       dispatch({ type: "NEW_CHAT" }); break;
-      case "open-pricing":   setPricingOpen(true); break;
-      case "open-api":       setApiOpen(true); break;
-      case "open-settings":  setSettingsOpen(true); break;
-      case "open-shortcuts": setShortcutsOpen(true); break;
+      case "open-pricing":   open('pricing'); break;
+      case "open-api":       open('api'); break;
+      case "open-settings":  open('settings'); break;
+      case "open-shortcuts": open('shortcuts'); break;
       case "set-model":      if (payload) dispatch({ type: "SET_MODEL", model: payload }); break;
       case "set-persona":    dispatch({ type: "SET_PERSONA", persona: payload || null }); break;
-      case "open-tools":     setToolsHubOpen(true); break;
+      case "open-tools":     open('toolsHub'); break;
       case "select-chat":    if (payload) dispatch({ type: "SELECT_CHAT", id: payload }); break;
     }
   }
 
-  // suppress unused state warning
+  // ── Pipeline handlers ─────────────────────────────────────────────────────
+  function handlePipeToRag(item: PipelineItem) { setRagPipelineDoc({ text: item.content, name: `[${item.source}] ${item.label}`, key: nextKey() }); open('rag'); }
+  function handlePipeToCLI(item: PipelineItem) { setCliPipelineContext({ text: item.content, key: nextKey() }); open('geminiCLI'); }
+  function handlePipeToAgent(item: PipelineItem) { setAgentPipelineTask({ text: item.content, key: nextKey() }); open('agent'); }
+  function handlePipeToIDE(item: PipelineItem) { setIdePipelineCode({ text: item.content, key: nextKey() }); open('openGravity'); }
+
+  // ── Arsenal launch handler ────────────────────────────────────────────────
+  function handleArsenalLaunch(id: ArsenalModuleId) {
+    close('arsenal');
+    if (id === "ai-terminal") { open('aiTerminal'); return; }
+    const modalId = ARSENAL_MAP[id];
+    if (modalId) { open(modalId); return; }
+    setArsenalPage(id);
+  }
+
   void state;
 
   return (
     <div className="flex h-[100dvh] w-full overflow-hidden text-foreground selection:bg-primary/30 dark">
       <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onOpenPricing={() => setPricingOpen(true)}
-        onOpenApi={() => setApiOpen(true)}
-        onOpenTool={() => setToolOpen(true)}
-        onOpenSettings={() => setSettingsOpen(true)}
-        onOpenAccount={() => setAccountOpen(true)}
+        isOpen={modals.sidebar}
+        onClose={() => close('sidebar')}
+        onOpenPricing={() => open('pricing')}
+        onOpenApi={() => open('api')}
+        onOpenTool={() => open('tool')}
+        onOpenSettings={() => open('settings')}
+        onOpenAccount={() => open('account')}
         onOpenUtility={(name) => setUtility(name)}
-        onOpenToolsHub={() => setToolsHubOpen(true)}
-        onOpenMemory={() => setMemoryOpen(true)}
-        onOpenBookmarks={() => setBookmarksOpen(true)}
-        onOpenSearch={() => setSearchOpen(true)}
-        onOpenCompare={() => setCompareOpen(true)}
-        onOpenQRSync={() => setQrSyncOpen(true)}
-        onOpenChangelog={() => setChangelogOpen(true)}
-        onOpenOsint={() => setOsintDashOpen(true)}
-        onOpenUseCaseLib={() => setUseCaseLibOpen(true)}
+        onOpenToolsHub={() => open('toolsHub')}
+        onOpenMemory={() => open('memory')}
+        onOpenBookmarks={() => open('bookmarks')}
+        onOpenSearch={() => open('search')}
+        onOpenCompare={() => open('compare')}
+        onOpenQRSync={() => open('qrSync')}
+        onOpenChangelog={() => open('changelog')}
+        onOpenOsint={() => open('osintDash')}
+        onOpenUseCaseLib={() => open('useCaseLib')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
         <TopBar
-          onMenuClick={() => setSidebarOpen(true)}
-          onOpenPricing={() => setPricingOpen(true)}
-          onOpenToolsHub={() => setToolsHubOpen(true)}
-          onOpenHelp={() => setShortcutsOpen(true)}
-          onOpenPersonaEditor={() => setPersonaEditorOpen(true)}
-          onOpenLocalModel={() => setLocalModelOpen(true)}
-          onOpenAgent={() => setAgentOpen(true)}
-          onOpenNexus={() => setNexusOpen(true)}
-          onOpenArsenal={() => setArsenalOpen(true)}
-          onOpenProviderSettings={() => setProviderSettingsOpen(true)}
-          onOpenModelCompare={() => setModelCompareOpen(true)}
-          onOpenNeuralMatrix={() => setNeuralMatrixOpen(true)}
-          onOpenAnalytics={() => setAnalyticsOpen(true)}
-          onOpenWarRoom={() => setWarRoomOpen(true)}
-          onOpenDeepSearch={() => setDeepSearchOpen(true)}
-          onOpenChainInvestigation={() => setChainInvestigationOpen(true)}
-          onOpenRedTeam={() => setRedTeamDashOpen(true)}
-          onOpenPerfDash={() => setPerfDashOpen((v) => !v)}
-          onOpenCostDash={() => setCostDashOpen((v) => !v)}
-          onOpenDedupViz={() => setDedupVizOpen((v) => !v)}
-          onOpenThreatFeed={() => setThreatFeedOpen((v) => !v)}
-          onOpenSecurityDash={() => setSecurityDashOpen((v) => !v)}
-          onOpenContextMemory={() => setContextMemoryOpen((v) => !v)}
-          onOpenPrefetch={() => setPrefetchOpen((v) => !v)}
-          onOpenMasterHud={() => setMasterHudOpen((v) => !v)}
-          onOpenAnomalyLog={() => setAnomalyLogOpen((v) => !v)}
-          onOpenNetworkTopo={() => setNet3DOpen((v) => !v)}
+          onMenuClick={() => open('sidebar')}
+          onOpenPricing={() => open('pricing')}
+          onOpenToolsHub={() => open('toolsHub')}
+          onOpenHelp={() => open('shortcuts')}
+          onOpenPersonaEditor={() => open('personaEditor')}
+          onOpenLocalModel={() => open('localModel')}
+          onOpenAgent={() => open('agent')}
+          onOpenNexus={() => open('nexus')}
+          onOpenArsenal={() => open('arsenal')}
+          onOpenProviderSettings={() => open('providerSettings')}
+          onOpenModelCompare={() => open('modelCompare')}
+          onOpenNeuralMatrix={() => open('neuralMatrix')}
+          onOpenAnalytics={() => open('analytics')}
+          onOpenWarRoom={() => open('warRoom')}
+          onOpenDeepSearch={() => open('deepSearch')}
+          onOpenChainInvestigation={() => open('chainInvestigation')}
+          onOpenRedTeam={() => open('redTeamDash')}
+          onOpenPerfDash={() => toggle('perfDash')}
+          onOpenCostDash={() => toggle('costDash')}
+          onOpenDedupViz={() => toggle('dedupViz')}
+          onOpenThreatFeed={() => toggle('threatFeed')}
+          onOpenSecurityDash={() => toggle('securityDash')}
+          onOpenContextMemory={() => toggle('contextMemory')}
+          onOpenPrefetch={() => toggle('prefetch')}
+          onOpenMasterHud={() => toggle('masterHud')}
+          onOpenAnomalyLog={() => toggle('anomalyLog')}
+          onOpenNetworkTopo={() => toggle('net3D')}
+          onOpenCyberHub={() => open('cyberHub')}
         />
-        <ChatView onOpenOsintDash={() => setOsintDashOpen(true)} />
-        {compareOpen && <CompareView onClose={() => setCompareOpen(false)} />}
+        <ChatView onOpenOsintDash={() => open('osintDash')} />
+        {modals.compare && <CompareView onClose={() => close('compare')} />}
       </main>
 
       {/* Arsenal full-page overlays */}
       <AnimatePresence>
         {arsenalPage === "ai-terminal" && (
-          <div className="fixed inset-0 z-40">
-            <AITerminal onBack={() => setArsenalPage(null)} />
-          </div>
+          <div className="fixed inset-0 z-40"><AITerminal onBack={() => setArsenalPage(null)} /></div>
         )}
         {arsenalPage && arsenalPage !== "ai-terminal" && (
           <ArsenalFullPage moduleId={arsenalPage} onBack={() => setArsenalPage(null)} />
@@ -756,148 +534,162 @@ function AppContent() {
 
       <FloatingActionDock
         onNewChat={() => dispatch({ type: "NEW_CHAT" })}
-        onSearch={() => setSearchOpen(true)}
-        onMemory={() => setMemoryOpen(true)}
-        onBookmarks={() => setBookmarksOpen(true)}
-        onCompare={() => setCompareOpen(true)}
-        onTools={() => setToolsHubOpen(true)}
-        onSettings={() => setSettingsOpen(true)}
-        onHelp={() => setShortcutsOpen(true)}
-        onAgent={() => setAgentOpen(true)}
+        onSearch={() => open('search')} onMemory={() => open('memory')}
+        onBookmarks={() => open('bookmarks')} onCompare={() => open('compare')}
+        onTools={() => open('toolsHub')} onSettings={() => open('settings')}
+        onHelp={() => open('shortcuts')} onAgent={() => open('agent')}
       />
 
-      {pricingOpen && <PricingView onClose={() => setPricingOpen(false)} />}
-      <ApiAccessModal open={apiOpen} onOpenChange={setApiOpen} />
-      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
-      <AccountModal open={accountOpen} onOpenChange={setAccountOpen} onUpgrade={() => { setAccountOpen(false); setPricingOpen(true); }} />
-      <ToolModal open={toolOpen} onOpenChange={setToolOpen} />
-      <UtilityToolModal tool={utility} onOpenChange={(v) => { if (!v) setUtility(null); }} />
-      <ToolsHubModal open={toolsHubOpen} onOpenChange={setToolsHubOpen} onSelect={(t) => setUtility(t)} />
-      <ShortcutsModal open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} onAction={handlePaletteAction} />
-      <MemoryModal open={memoryOpen} onOpenChange={setMemoryOpen} />
-      <BookmarksModal open={bookmarksOpen} onOpenChange={setBookmarksOpen} />
-      <SearchModal open={searchOpen} onOpenChange={setSearchOpen} />
-      <PersonaEditorModal open={personaEditorOpen} onOpenChange={setPersonaEditorOpen} />
-      <LocalModelModal open={localModelOpen} onOpenChange={setLocalModelOpen} />
-      <ProviderSettingsModal open={providerSettingsOpen} onClose={() => setProviderSettingsOpen(false)} />
-      <OsintDashboard open={osintDashOpen} onOpenChange={setOsintDashOpen} />
-      <ChangelogModal open={changelogOpen} onOpenChange={setChangelogOpen} />
-      <UseCaseLibraryModal open={useCaseLibOpen} onOpenChange={setUseCaseLibOpen} />
-      <AdminPanel open={adminOpen} onOpenChange={setAdminOpen} />
-      <ActivateModal open={activateOpen} onOpenChange={setActivateOpen} />
-      <QRSyncModal open={qrSyncOpen} onClose={() => setQrSyncOpen(false)} />
-      <ModelCompareModal open={modelCompareOpen} onClose={() => setModelCompareOpen(false)} />
-      <NeuralMatrixModal open={neuralMatrixOpen} onOpenChange={setNeuralMatrixOpen} />
-      <AgentModal open={agentOpen} onOpenChange={setAgentOpen} pipelineTask={agentPipelineTask} />
-      <NexusModal open={nexusOpen} onOpenChange={setNexusOpen} />
-      <ArsenalHubModal open={arsenalOpen} onOpenChange={setArsenalOpen} onLaunch={handleArsenalLaunch} />
-      <JarvisModal open={jarvisOpen} onOpenChange={setJarvisOpen} />
-      <ParseltongueModal open={parseltongueOpen} onOpenChange={setParseltongueOpen} />
-      <RagModal open={ragOpen} onOpenChange={setRagOpen} pipelineDoc={ragPipelineDoc} />
-      <TeamAgentModal open={teamAgentOpen} onOpenChange={setTeamAgentOpen} />
-      <SkillsLibraryModal open={skillsOpen} onOpenChange={setSkillsOpen} />
-      <OpenGravityModal open={openGravityOpen} onOpenChange={setOpenGravityOpen} pipelineCode={idePipelineCode} />
-      <AgentOSModal open={agentOSOpen} onOpenChange={setAgentOSOpen} />
-      <GeminiCLIModal open={geminiCLIOpen} onOpenChange={setGeminiCLIOpen} pipelineContext={cliPipelineContext} />
-      {/* New Arsenal modules — batch 1 */}
-      <HermesModal open={hermesOpen} onOpenChange={setHermesOpen} />
-      <GraphifyModal open={graphifyOpen} onOpenChange={setGraphifyOpen} />
-      <GetShitDoneModal open={getShitDoneOpen} onOpenChange={setGetShitDoneOpen} />
-      <CCSwitchModal open={ccswitchOpen} onOpenChange={setCcswitchOpen} />
-      <UIUXProModal open={uiuxproOpen} onOpenChange={setUiuxproOpen} />
-      <CareerOpsModal open={careerOpsOpen} onOpenChange={setCareerOpsOpen} />
-      <ABTopModal open={abTopOpen} onOpenChange={setAbTopOpen} />
-      <AwesomeLLMModal open={awesomeLLMOpen} onOpenChange={setAwesomeLLMOpen} />
-      {/* New Arsenal modules — batch 2 (from uploaded ZIPs) */}
-      <OsintScannerModal open={osintScannerOpen} onOpenChange={setOsintScannerOpen} onChainToKali={(content) => { setAgentPipelineTask({ text: content, key: nextKey() }); setAgentOpen(true); }} />
-      <NanoBotModal open={nanoBotOpen} onOpenChange={setNanoBotOpen} />
-      <AgentKanbanModal open={agentKanbanOpen} onOpenChange={setAgentKanbanOpen} />
-      <AutoBEModal open={autoBEOpen} onOpenChange={setAutoBEOpen} />
-      <SuperpowersModal open={superpowersOpen} onOpenChange={setSuperpowersOpen} />
-      <LerimCLIModal open={lerimCLIOpen} onOpenChange={setLerimCLIOpen} />
-      <ClaudePromptsModal open={claudePromptsOpen} onOpenChange={setClaudePromptsOpen} />
-      <RunVSAgentModal open={runVSAgentOpen} onOpenChange={setRunVSAgentOpen} />
-      <CodexMobileModal open={codexMobileOpen} onOpenChange={setCodexMobileOpen} />
-      <OpenACPModal open={openACPOpen} onOpenChange={setOpenACPOpen} />
-      <HandClawModal open={handClawOpen} onOpenChange={setHandClawOpen} />
-      <RalphAgentModal open={ralphOpen} onOpenChange={setRalphOpen} />
-      <BurnBabyBurnModal open={burnbabyOpen} onOpenChange={setBurnbabyOpen} />
-      <CrushModal open={crushOpen} onOpenChange={setCrushOpen} />
-      <RTKModal open={rtkOpen} onOpenChange={setRtkOpen} />
-      {/* New Arsenal modules — batch 3 */}
-      <CodexBarModal open={codexBarOpen} onOpenChange={setCodexBarOpen} />
-      <CodexSaverModal open={codexSaverOpen} onOpenChange={setCodexSaverOpen} />
-      <AgentMemoryModal open={agentMemoryOpen} onOpenChange={setAgentMemoryOpen} />
-      <DecepticonModal open={decepticonOpen} onOpenChange={setDecepticonOpen} />
-      <DroidDeskModal open={droidDeskOpen} onOpenChange={setDroidDeskOpen} />
-      <BugHunterModal open={bugHunterOpen} onOpenChange={setBugHunterOpen} />
-      <HyperResearchModal open={hyperResearchOpen} onOpenChange={setHyperResearchOpen} />
-      <AIFactoryModal open={aiFactoryOpen} onOpenChange={setAIFactoryOpen} />
-      <GemmaChatModal open={gemmaChatOpen} onOpenChange={setGemmaChatOpen} />
-      <CodeGraphModal open={codeGraphOpen} onOpenChange={setCodeGraphOpen} />
-      <OhMyPiModal open={ohMyPiOpen} onOpenChange={setOhMyPiOpen} />
-      <AwesomeOpenCodeModal open={awesomeOpenCodeOpen} onOpenChange={setAwesomeOpenCodeOpen} />
-      {/* New Arsenal modules — batch 4 */}
-      <OpenRepLoveModal open={openRepLoveOpen} onOpenChange={setOpenRepLoveOpen} />
-      <DyadModal open={dyadOpen} onOpenChange={setDyadOpen} />
-      <GhostwriterModal open={ghostwriterOpen} onOpenChange={setGhostwriterOpen} />
-      <AgentScopeModal open={agentScopeOpen} onOpenChange={setAgentScopeOpen} />
-      <InsForgeModal open={insForgeOpen} onOpenChange={setInsForgeOpen} />
-      <MalwareArsenalModal open={malwareArsenalOpen} onOpenChange={setMalwareArsenalOpen} />
-      <ThreatIntelModal open={threatIntelOpen} onOpenChange={setThreatIntelOpen} />
-      <WormGPTModal open={wormGPTOpen} onOpenChange={setWormGPTOpen} />
-      {/* New Arsenal modules — batch 5 */}
-      <AntigravityManagerModal open={antigravityMgrOpen} onOpenChange={setAntigravityMgrOpen} />
-      <AxonHubModal open={axonHubOpen} onOpenChange={setAxonHubOpen} />
-      <BigAGIModal open={bigAGIOpen} onOpenChange={setBigAGIOpen} />
-      <HackingToolModal open={hackingToolOpen} onOpenChange={setHackingToolOpen} />
-      <GodMod3Modal open={godMod3Open} onOpenChange={setGodMod3Open} />
-      <GeminiResearchModal open={geminiResearchOpen} onOpenChange={setGeminiResearchOpen} />
-      <OpenAntigravityModal open={openAntigravityOpen} onOpenChange={setOpenAntigravityOpen} />
-      <PaseoModal open={paseoOpen} onOpenChange={setPaseoOpen} />
-      <GemmaLibModal open={gemmaLibOpen} onOpenChange={setGemmaLibOpen} />
-      <RogueMasterModal open={rogueMasterOpen} onOpenChange={setRogueMasterOpen} />
-      <PasswordAttackModal open={passwordAttackOpen} onOpenChange={setPasswordAttackOpen} />
-      <AIHackingSkillsModal open={aiHackingSkillsOpen} onOpenChange={setAIHackingSkillsOpen} />
-      <AITerminalModal open={aiTerminalOpen} onOpenChange={setAiTerminalOpen} />
-      {/* New Arsenal modules — batch 7 */}
-      <MarkXXXIXModal open={markXXXIXOpen} onOpenChange={setMarkXXXIXOpen} />
-      <MarkXXXIXORModal open={markXXXIXOROpen} onOpenChange={setMarkXXXIXOROpen} />
-      <FreeLLMAPIModal open={freeLLMAPIOpen} onOpenChange={setFreeLLMAPIOpen} />
-      <NineRouterModal open={nineRouterOpen} onOpenChange={setNineRouterOpen} />
-      <FeynmanModal open={feynmanOpen} onOpenChange={setFeynmanOpen} />
-      <GovernorModal open={governorOpen} onOpenChange={setGovernorOpen} />
-      <HeadroomModal open={headroomOpen} onOpenChange={setHeadroomOpen} />
-      <TokenOptimizerModal open={tokenOptimizerOpen} onOpenChange={setTokenOptimizerOpen} />
-      <ClaudeCodeMemoryModal open={claudeMemoryOpen} onOpenChange={setClaudeMemoryOpen} />
-      <ShellGeneratorModal open={shellGeneratorOpen} onOpenChange={setShellGeneratorOpen} onInjectToChat={(payload) => { setShellGeneratorInject(payload); }} />
-      <AnalyticsDashboard open={analyticsOpen} onClose={() => setAnalyticsOpen(false)} />
-      <SecurityKanbanModal open={securityKanbanOpen} onOpenChange={setSecurityKanbanOpen} />
-      <NetworkMonitorModal open={networkMonitorOpen} onOpenChange={setNetworkMonitorOpen} />
-      <DefensiveAIModal open={defensiveAIOpen} onOpenChange={setDefensiveAIOpen} />
-      <OpenSkynetModal open={openSkynetOpen} onOpenChange={setOpenSkynetOpen} />
-      <WarRoomModal open={warRoomOpen} onOpenChange={setWarRoomOpen} />
-      <RedTeamDashboard open={redTeamDashOpen} onOpenChange={setRedTeamDashOpen} />
-      <ExploitChainModal open={exploitChainOpen} onOpenChange={setExploitChainOpen} />
-      <DeepSearchModal open={deepSearchOpen} onOpenChange={setDeepSearchOpen} />
-      <ChainInvestigationModal open={chainInvestigationOpen} onOpenChange={setChainInvestigationOpen} />
-      <MonacoEditorModal
-        open={monacoOpen}
-        onClose={() => setMonacoOpen(false)}
-        initialCode={monacoInitCode}
-        initialLang={monacoInitLang}
-        onSendToChat={(code, lang) => {
-          dispatch({ type: "NEW_CHAT" });
-          toast({ description: "Code sent to chat." });
-        }}
-      />
-      <PipelineHUD
-        onSendToRag={handlePipeToRag}
-        onSendToCLI={handlePipeToCLI}
-        onSendToAgent={handlePipeToAgent}
-        onSendToIDE={handlePipeToIDE}
-      />
+      {modals.pricing && <PricingView onClose={() => close('pricing')} />}
+
+      {/* All lazy modals wrapped in Suspense */}
+      <Suspense fallback={null}>
+        <ApiAccessModal open={modals.api} onOpenChange={(v) => mDispatch({type:'SET',id:'api',value:v})} />
+        <SettingsModal open={modals.settings} onOpenChange={(v) => mDispatch({type:'SET',id:'settings',value:v})} />
+        <AccountModal open={modals.account} onOpenChange={(v) => mDispatch({type:'SET',id:'account',value:v})} onUpgrade={() => { close('account'); open('pricing'); }} />
+        <ToolModal open={modals.tool} onOpenChange={(v) => mDispatch({type:'SET',id:'tool',value:v})} />
+        <UtilityToolModal tool={utility} onOpenChange={(v) => { if (!v) setUtility(null); }} />
+        <ToolsHubModal open={modals.toolsHub} onOpenChange={(v) => mDispatch({type:'SET',id:'toolsHub',value:v})} onSelect={(tool) => setUtility(tool)} />
+        <ShortcutsModal open={modals.shortcuts} onOpenChange={(v) => mDispatch({type:'SET',id:'shortcuts',value:v})} />
+        <CommandPalette open={modals.palette} onOpenChange={(v) => mDispatch({type:'SET',id:'palette',value:v})} onAction={handlePaletteAction} />
+        <MemoryModal open={modals.memory} onOpenChange={(v) => mDispatch({type:'SET',id:'memory',value:v})} />
+        <BookmarksModal open={modals.bookmarks} onOpenChange={(v) => mDispatch({type:'SET',id:'bookmarks',value:v})} />
+        <SearchModal open={modals.search} onOpenChange={(v) => mDispatch({type:'SET',id:'search',value:v})} />
+        <PersonaEditorModal open={modals.personaEditor} onOpenChange={(v) => mDispatch({type:'SET',id:'personaEditor',value:v})} />
+        <LocalModelModal open={modals.localModel} onOpenChange={(v) => mDispatch({type:'SET',id:'localModel',value:v})} />
+        <ProviderSettingsModal open={modals.providerSettings} onClose={() => close('providerSettings')} />
+        <OsintDashboard open={modals.osintDash} onOpenChange={(v) => mDispatch({type:'SET',id:'osintDash',value:v})} />
+        <ChangelogModal open={modals.changelog} onOpenChange={(v) => mDispatch({type:'SET',id:'changelog',value:v})} />
+        <UseCaseLibraryModal open={modals.useCaseLib} onOpenChange={(v) => mDispatch({type:'SET',id:'useCaseLib',value:v})} />
+        <AdminPanel open={modals.admin} onOpenChange={(v) => mDispatch({type:'SET',id:'admin',value:v})} />
+        <ActivateModal open={modals.activate} onOpenChange={(v) => mDispatch({type:'SET',id:'activate',value:v})} />
+        <QRSyncModal open={modals.qrSync} onClose={() => close('qrSync')} />
+        <ModelCompareModal open={modals.modelCompare} onClose={() => close('modelCompare')} />
+        <NeuralMatrixModal open={modals.neuralMatrix} onOpenChange={(v) => mDispatch({type:'SET',id:'neuralMatrix',value:v})} />
+        <AgentModal open={modals.agent} onOpenChange={(v) => mDispatch({type:'SET',id:'agent',value:v})} pipelineTask={agentPipelineTask} />
+        <NexusModal open={modals.nexus} onOpenChange={(v) => mDispatch({type:'SET',id:'nexus',value:v})} />
+        <ArsenalHubModal open={modals.arsenal} onOpenChange={(v) => mDispatch({type:'SET',id:'arsenal',value:v})} onLaunch={handleArsenalLaunch} />
+        <JarvisModal open={modals.jarvis} onOpenChange={(v) => mDispatch({type:'SET',id:'jarvis',value:v})} />
+        <ParseltongueModal open={modals.parseltongue} onOpenChange={(v) => mDispatch({type:'SET',id:'parseltongue',value:v})} />
+        <RagModal open={modals.rag} onOpenChange={(v) => mDispatch({type:'SET',id:'rag',value:v})} pipelineDoc={ragPipelineDoc} />
+        <TeamAgentModal open={modals.teamAgent} onOpenChange={(v) => mDispatch({type:'SET',id:'teamAgent',value:v})} />
+        <SkillsLibraryModal open={modals.skills} onOpenChange={(v) => mDispatch({type:'SET',id:'skills',value:v})} />
+        <OpenGravityModal open={modals.openGravity} onOpenChange={(v) => mDispatch({type:'SET',id:'openGravity',value:v})} pipelineCode={idePipelineCode} />
+        <AgentOSModal open={modals.agentOS} onOpenChange={(v) => mDispatch({type:'SET',id:'agentOS',value:v})} />
+        <GeminiCLIModal open={modals.geminiCLI} onOpenChange={(v) => mDispatch({type:'SET',id:'geminiCLI',value:v})} pipelineContext={cliPipelineContext} />
+        <HermesModal open={modals.hermes} onOpenChange={(v) => mDispatch({type:'SET',id:'hermes',value:v})} />
+        <GraphifyModal open={modals.graphify} onOpenChange={(v) => mDispatch({type:'SET',id:'graphify',value:v})} />
+        <GetShitDoneModal open={modals.getShitDone} onOpenChange={(v) => mDispatch({type:'SET',id:'getShitDone',value:v})} />
+        <CCSwitchModal open={modals.ccswitch} onOpenChange={(v) => mDispatch({type:'SET',id:'ccswitch',value:v})} />
+        <UIUXProModal open={modals.uiuxpro} onOpenChange={(v) => mDispatch({type:'SET',id:'uiuxpro',value:v})} />
+        <CareerOpsModal open={modals.careerOps} onOpenChange={(v) => mDispatch({type:'SET',id:'careerOps',value:v})} />
+        <ABTopModal open={modals.abTop} onOpenChange={(v) => mDispatch({type:'SET',id:'abTop',value:v})} />
+        <AwesomeLLMModal open={modals.awesomeLLM} onOpenChange={(v) => mDispatch({type:'SET',id:'awesomeLLM',value:v})} />
+        <OsintScannerModal open={modals.osintScanner} onOpenChange={(v) => mDispatch({type:'SET',id:'osintScanner',value:v})} onChainToKali={(content) => { setAgentPipelineTask({ text: content, key: nextKey() }); open('agent'); }} />
+        <NanoBotModal open={modals.nanoBot} onOpenChange={(v) => mDispatch({type:'SET',id:'nanoBot',value:v})} />
+        <AgentKanbanModal open={modals.agentKanban} onOpenChange={(v) => mDispatch({type:'SET',id:'agentKanban',value:v})} />
+        <AutoBEModal open={modals.autoBE} onOpenChange={(v) => mDispatch({type:'SET',id:'autoBE',value:v})} />
+        <SuperpowersModal open={modals.superpowers} onOpenChange={(v) => mDispatch({type:'SET',id:'superpowers',value:v})} />
+        <LerimCLIModal open={modals.lerimCLI} onOpenChange={(v) => mDispatch({type:'SET',id:'lerimCLI',value:v})} />
+        <ClaudePromptsModal open={modals.claudePrompts} onOpenChange={(v) => mDispatch({type:'SET',id:'claudePrompts',value:v})} />
+        <RunVSAgentModal open={modals.runVSAgent} onOpenChange={(v) => mDispatch({type:'SET',id:'runVSAgent',value:v})} />
+        <CodexMobileModal open={modals.codexMobile} onOpenChange={(v) => mDispatch({type:'SET',id:'codexMobile',value:v})} />
+        <OpenACPModal open={modals.openACP} onOpenChange={(v) => mDispatch({type:'SET',id:'openACP',value:v})} />
+        <HandClawModal open={modals.handClaw} onOpenChange={(v) => mDispatch({type:'SET',id:'handClaw',value:v})} />
+        <RalphAgentModal open={modals.ralph} onOpenChange={(v) => mDispatch({type:'SET',id:'ralph',value:v})} />
+        <BurnBabyBurnModal open={modals.burnbaby} onOpenChange={(v) => mDispatch({type:'SET',id:'burnbaby',value:v})} />
+        <CrushModal open={modals.crush} onOpenChange={(v) => mDispatch({type:'SET',id:'crush',value:v})} />
+        <RTKModal open={modals.rtk} onOpenChange={(v) => mDispatch({type:'SET',id:'rtk',value:v})} />
+        <CodexBarModal open={modals.codexBar} onOpenChange={(v) => mDispatch({type:'SET',id:'codexBar',value:v})} />
+        <CodexSaverModal open={modals.codexSaver} onOpenChange={(v) => mDispatch({type:'SET',id:'codexSaver',value:v})} />
+        <AgentMemoryModal open={modals.agentMemory} onOpenChange={(v) => mDispatch({type:'SET',id:'agentMemory',value:v})} />
+        <DecepticonModal open={modals.decepticon} onOpenChange={(v) => mDispatch({type:'SET',id:'decepticon',value:v})} />
+        <DroidDeskModal open={modals.droidDesk} onOpenChange={(v) => mDispatch({type:'SET',id:'droidDesk',value:v})} />
+        <BugHunterModal open={modals.bugHunter} onOpenChange={(v) => mDispatch({type:'SET',id:'bugHunter',value:v})} />
+        <HyperResearchModal open={modals.hyperResearch} onOpenChange={(v) => mDispatch({type:'SET',id:'hyperResearch',value:v})} />
+        <AIFactoryModal open={modals.aiFactory} onOpenChange={(v) => mDispatch({type:'SET',id:'aiFactory',value:v})} />
+        <GemmaChatModal open={modals.gemmaChat} onOpenChange={(v) => mDispatch({type:'SET',id:'gemmaChat',value:v})} />
+        <CodeGraphModal open={modals.codeGraph} onOpenChange={(v) => mDispatch({type:'SET',id:'codeGraph',value:v})} />
+        <OhMyPiModal open={modals.ohMyPi} onOpenChange={(v) => mDispatch({type:'SET',id:'ohMyPi',value:v})} />
+        <AwesomeOpenCodeModal open={modals.awesomeOpenCode} onOpenChange={(v) => mDispatch({type:'SET',id:'awesomeOpenCode',value:v})} />
+        <OpenRepLoveModal open={modals.openRepLove} onOpenChange={(v) => mDispatch({type:'SET',id:'openRepLove',value:v})} />
+        <DyadModal open={modals.dyad} onOpenChange={(v) => mDispatch({type:'SET',id:'dyad',value:v})} />
+        <GhostwriterModal open={modals.ghostwriter} onOpenChange={(v) => mDispatch({type:'SET',id:'ghostwriter',value:v})} />
+        <AgentScopeModal open={modals.agentScope} onOpenChange={(v) => mDispatch({type:'SET',id:'agentScope',value:v})} />
+        <InsForgeModal open={modals.insForge} onOpenChange={(v) => mDispatch({type:'SET',id:'insForge',value:v})} />
+        <MalwareArsenalModal open={modals.malwareArsenal} onOpenChange={(v) => mDispatch({type:'SET',id:'malwareArsenal',value:v})} />
+        <ThreatIntelModal open={modals.threatIntel} onOpenChange={(v) => mDispatch({type:'SET',id:'threatIntel',value:v})} />
+        <WormGPTModal open={modals.wormGPT} onOpenChange={(v) => mDispatch({type:'SET',id:'wormGPT',value:v})} />
+        <AntigravityManagerModal open={modals.antigravityMgr} onOpenChange={(v) => mDispatch({type:'SET',id:'antigravityMgr',value:v})} />
+        <AxonHubModal open={modals.axonHub} onOpenChange={(v) => mDispatch({type:'SET',id:'axonHub',value:v})} />
+        <BigAGIModal open={modals.bigAGI} onOpenChange={(v) => mDispatch({type:'SET',id:'bigAGI',value:v})} />
+        <HackingToolModal open={modals.hackingTool} onOpenChange={(v) => mDispatch({type:'SET',id:'hackingTool',value:v})} />
+        <GodMod3Modal open={modals.godMod3} onOpenChange={(v) => mDispatch({type:'SET',id:'godMod3',value:v})} />
+        <GeminiResearchModal open={modals.geminiResearch} onOpenChange={(v) => mDispatch({type:'SET',id:'geminiResearch',value:v})} />
+        <OpenAntigravityModal open={modals.openAntigravity} onOpenChange={(v) => mDispatch({type:'SET',id:'openAntigravity',value:v})} />
+        <PaseoModal open={modals.paseo} onOpenChange={(v) => mDispatch({type:'SET',id:'paseo',value:v})} />
+        <GemmaLibModal open={modals.gemmaLib} onOpenChange={(v) => mDispatch({type:'SET',id:'gemmaLib',value:v})} />
+        <RogueMasterModal open={modals.rogueMaster} onOpenChange={(v) => mDispatch({type:'SET',id:'rogueMaster',value:v})} />
+        <PasswordAttackModal open={modals.passwordAttack} onOpenChange={(v) => mDispatch({type:'SET',id:'passwordAttack',value:v})} />
+        <AIHackingSkillsModal open={modals.aiHackingSkills} onOpenChange={(v) => mDispatch({type:'SET',id:'aiHackingSkills',value:v})} />
+        <AITerminalModal open={modals.aiTerminal} onOpenChange={(v) => mDispatch({type:'SET',id:'aiTerminal',value:v})} />
+        <MarkXXXIXModal open={modals.markXXXIX} onOpenChange={(v) => mDispatch({type:'SET',id:'markXXXIX',value:v})} />
+        <MarkXXXIXORModal open={modals.markXXXIXOR} onOpenChange={(v) => mDispatch({type:'SET',id:'markXXXIXOR',value:v})} />
+        <FreeLLMAPIModal open={modals.freeLLMAPI} onOpenChange={(v) => mDispatch({type:'SET',id:'freeLLMAPI',value:v})} />
+        <NineRouterModal open={modals.nineRouter} onOpenChange={(v) => mDispatch({type:'SET',id:'nineRouter',value:v})} />
+        <FeynmanModal open={modals.feynman} onOpenChange={(v) => mDispatch({type:'SET',id:'feynman',value:v})} />
+        <GovernorModal open={modals.governor} onOpenChange={(v) => mDispatch({type:'SET',id:'governor',value:v})} />
+        <HeadroomModal open={modals.headroom} onOpenChange={(v) => mDispatch({type:'SET',id:'headroom',value:v})} />
+        <TokenOptimizerModal open={modals.tokenOptimizer} onOpenChange={(v) => mDispatch({type:'SET',id:'tokenOptimizer',value:v})} />
+        <ClaudeCodeMemoryModal open={modals.claudeMemory} onOpenChange={(v) => mDispatch({type:'SET',id:'claudeMemory',value:v})} />
+        <ShellGeneratorModal open={modals.shellGenerator} onOpenChange={(v) => mDispatch({type:'SET',id:'shellGenerator',value:v})} onInjectToChat={(payload) => { setShellGeneratorInject(payload); }} />
+        <AnalyticsDashboard open={modals.analytics} onClose={() => close('analytics')} />
+        <SecurityKanbanModal open={modals.securityKanban} onOpenChange={(v) => mDispatch({type:'SET',id:'securityKanban',value:v})} />
+        <NetworkMonitorModal open={modals.networkMonitor} onOpenChange={(v) => mDispatch({type:'SET',id:'networkMonitor',value:v})} />
+        <DefensiveAIModal open={modals.defensiveAI} onOpenChange={(v) => mDispatch({type:'SET',id:'defensiveAI',value:v})} />
+        <OpenSkynetModal open={modals.openSkynet} onOpenChange={(v) => mDispatch({type:'SET',id:'openSkynet',value:v})} />
+        <WarRoomModal open={modals.warRoom} onOpenChange={(v) => mDispatch({type:'SET',id:'warRoom',value:v})} />
+        <RedTeamDashboard open={modals.redTeamDash} onOpenChange={(v) => mDispatch({type:'SET',id:'redTeamDash',value:v})} />
+        <ExploitChainModal open={modals.exploitChain} onOpenChange={(v) => mDispatch({type:'SET',id:'exploitChain',value:v})} />
+        <DeepSearchModal open={modals.deepSearch} onOpenChange={(v) => mDispatch({type:'SET',id:'deepSearch',value:v})} />
+        <ChainInvestigationModal open={modals.chainInvestigation} onOpenChange={(v) => mDispatch({type:'SET',id:'chainInvestigation',value:v})} />
+        <MonacoEditorModal open={modals.monaco} onClose={() => close('monaco')} initialCode={monacoInitCode} initialLang={monacoInitLang}
+          onSendToChat={(_code, _lang) => { dispatch({ type: "NEW_CHAT" }); toast({ description: "Code sent to chat." }); void _code; void _lang; }} />
+        <IntelligenceCoreModal open={modals.intelligenceCore} onOpenChange={(v) => mDispatch({type:'SET',id:'intelligenceCore',value:v})} />
+        <ThreatGlobeModal open={modals.threatGlobe} onOpenChange={(v) => mDispatch({type:'SET',id:'threatGlobe',value:v})} />
+        <VulnGraph3DModal open={modals.vulnGraph3D} onOpenChange={(v) => mDispatch({type:'SET',id:'vulnGraph3D',value:v})} />
+        <LiveCodingModal open={modals.liveCoding} onOpenChange={(v) => mDispatch({type:'SET',id:'liveCoding',value:v})} />
+        <ExploitSandboxModal open={modals.exploitSandbox} onOpenChange={(v) => mDispatch({type:'SET',id:'exploitSandbox',value:v})} />
+        <GestureControlModal open={modals.gestureControl} onOpenChange={(v) => mDispatch({type:'SET',id:'gestureControl',value:v})} />
+        <NeuralVoiceModal open={modals.neuralVoice} onOpenChange={(v) => mDispatch({type:'SET',id:'neuralVoice',value:v})} />
+        <BlockchainAuditModal open={modals.blockchainAudit} onOpenChange={(v) => mDispatch({type:'SET',id:'blockchainAudit',value:v})} />
+        <E2ESessionModal open={modals.e2eSession} onOpenChange={(v) => mDispatch({type:'SET',id:'e2eSession',value:v})} />
+        <AutonomousRedTeamModal open={modals.autonomousRedTeam} onOpenChange={(v) => mDispatch({type:'SET',id:'autonomousRedTeam',value:v})} />
+        <CyberVisionModal open={modals.cyberVision} onOpenChange={(v) => mDispatch({type:'SET',id:'cyberVision',value:v})} />
+        <JITExploitModal open={modals.jitExploit} onOpenChange={(v) => mDispatch({type:'SET',id:'jitExploit',value:v})} />
+        <EvasionEngineModal open={modals.evasionEngine} onOpenChange={(v) => mDispatch({type:'SET',id:'evasionEngine',value:v})} />
+        <VulnTopologyModal open={modals.vulnTopology} onOpenChange={(v) => mDispatch({type:'SET',id:'vulnTopology',value:v})} />
+        <PrecisionStrikeModal open={modals.precisionStrike} onOpenChange={(v) => mDispatch({type:'SET',id:'precisionStrike',value:v})} />
+        <LiveCVEModal open={modals.liveCVE} onOpenChange={(v) => mDispatch({type:'SET',id:'liveCVE',value:v})} />
+        <BASSimulationModal open={modals.basSimulation} onOpenChange={(v) => mDispatch({type:'SET',id:'basSimulation',value:v})} />
+        <NetworkTopoModal open={modals.networkTopo} onOpenChange={(v) => mDispatch({type:'SET',id:'networkTopo',value:v})} />
+        <BinaryAnalysisModal open={modals.binaryAnalysis} onOpenChange={(v) => mDispatch({type:'SET',id:'binaryAnalysis',value:v})} />
+        <WebFuzzingModal open={modals.webFuzzing} onOpenChange={(v) => mDispatch({type:'SET',id:'webFuzzing',value:v})} />
+        <MultiAgentSOCModal open={modals.multiAgentSOC} onOpenChange={(v) => mDispatch({type:'SET',id:'multiAgentSOC',value:v})} />
+        <OrchestrationEngineModal open={modals.orchestrationEngine} onOpenChange={(v) => mDispatch({type:'SET',id:'orchestrationEngine',value:v})} />
+        <GlobalVulnHeatmapModal open={modals.globalVulnHeatmap} onOpenChange={(v) => mDispatch({type:'SET',id:'globalVulnHeatmap',value:v})} />
+        <CyberWarfareMatrixModal open={modals.cyberWarfareMatrix} onOpenChange={(v) => mDispatch({type:'SET',id:'cyberWarfareMatrix',value:v})} />
+        <SentientCyberSphereModal open={modals.sentientCyberSphere} onOpenChange={(v) => mDispatch({type:'SET',id:'sentientCyberSphere',value:v})} />
+
+        {/* Cyber Command Center 3D — full screen */}
+        {modals.cyberHub && (
+          <CyberCommandCenter3D
+            open={modals.cyberHub}
+            onClose={() => close('cyberHub')}
+            onOpenModal={(id) => { close('cyberHub'); open(id as ModalId); }}
+          />
+        )}
+      </Suspense>
 
       {godMode && (
         <div className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center">
@@ -910,113 +702,46 @@ function AppContent() {
         </div>
       )}
 
-      {/* Cyber Attack Heatmap HUD */}
+      {/* Always-on ambient layers — conditionally paused when tab hidden */}
       <CyberHeatmapHUD />
-
-      {/* System Status Widget */}
       <SystemStatusWidget />
-
-      {/* Ambient particle field */}
-      <AmbientParticleField density={0.5} />
-
-      {/* Holographic data stream on edges */}
+      <AmbientParticleField density={0.3} />
       <HoloDataStream side="both" />
-
-      {/* Cyber Widgets Dock — single 3D button opening holographic 6-panel HUD */}
       <CyberWidgetsDock />
 
+      <PipelineHUD
+        onSendToRag={handlePipeToRag} onSendToCLI={handlePipeToCLI}
+        onSendToAgent={handlePipeToAgent} onSendToIDE={handlePipeToIDE}
+      />
 
-      {/* Intelligence Core — 16 engine modal */}
-      <IntelligenceCoreModal open={intelligenceCoreOpen} onOpenChange={setIntelligenceCoreOpen} />
-      {/* Batch 10 — Futuristic 3D Features */}
-      <ThreatGlobeModal open={threatGlobeOpen} onOpenChange={setThreatGlobeOpen} />
-      <VulnGraph3DModal open={vulnGraph3DOpen} onOpenChange={setVulnGraph3DOpen} />
-      <LiveCodingModal open={liveCodingOpen} onOpenChange={setLiveCodingOpen} />
-      <ExploitSandboxModal open={exploitSandboxOpen} onOpenChange={setExploitSandboxOpen} />
-      <GestureControlModal open={gestureControlOpen} onOpenChange={setGestureControlOpen} />
-      <NeuralVoiceModal open={neuralVoiceOpen} onOpenChange={setNeuralVoiceOpen} />
-      <BlockchainAuditModal open={blockchainAuditOpen} onOpenChange={setBlockchainAuditOpen} />
-      <E2ESessionModal open={e2eSessionOpen} onOpenChange={setE2ESessionOpen} />
-      <AutonomousRedTeamModal open={autonomousRedTeamOpen} onOpenChange={setAutonomousRedTeamOpen} />
-      <CyberVisionModal open={cyberVisionOpen} onOpenChange={setCyberVisionOpen} />
-      <JITExploitModal open={jitExploitOpen} onOpenChange={setJITExploitOpen} />
-      <EvasionEngineModal open={evasionEngineOpen} onOpenChange={setEvasionEngineOpen} />
-      <VulnTopologyModal open={vulnTopologyOpen} onOpenChange={setVulnTopologyOpen} />
-      <PrecisionStrikeModal open={precisionStrikeOpen} onOpenChange={setPrecisionStrikeOpen} />
-      <LiveCVEModal open={liveCVEOpen} onOpenChange={setLiveCVEOpen} />
-      <BASSimulationModal open={basSimulationOpen} onOpenChange={setBASSimulationOpen} />
-      <NetworkTopoModal open={networkTopoOpen} onOpenChange={setNetworkTopoOpen} />
-      <BinaryAnalysisModal open={binaryAnalysisOpen} onOpenChange={setBinaryAnalysisOpen} />
-      <WebFuzzingModal open={webFuzzingOpen} onOpenChange={setWebFuzzingOpen} />
-      <MultiAgentSOCModal open={multiAgentSOCOpen} onOpenChange={setMultiAgentSOCOpen} />
-      <OrchestrationEngineModal open={orchestrationEngineOpen} onOpenChange={setOrchestrationEngineOpen} />
-      <GlobalVulnHeatmapModal open={globalVulnHeatmapOpen} onOpenChange={setGlobalVulnHeatmapOpen} />
-      <CyberWarfareMatrixModal open={cyberWarfareMatrixOpen} onOpenChange={setCyberWarfareMatrixOpen} />
-      <SentientCyberSphereModal open={sentientCyberSphereOpen} onOpenChange={setSentientCyberSphereOpen} />
-
-      {/* AI Auto-Setup 3D — تهيئة تلقائية عند الفتح */}
+      {/* AI Auto-Setup 3D */}
       <AnimatePresence>
-        {autoSetupVisible && (
-          <AIAutoSetup3D
-            key="auto-setup"
-            onComplete={() => {
-              localStorage.setItem("mr7-ai-autoinit-done", "1");
-              setAutoSetupVisible(false);
-            }}
-          />
+        {modals.autoSetup && (
+          <AIAutoSetup3D key="auto-setup" onComplete={() => { localStorage.setItem("mr7-ai-autoinit-done", "1"); close('autoSetup'); }} />
         )}
       </AnimatePresence>
 
-      {/* Performance Monitor 3D */}
-      {perfDashOpen && <PerformanceDashboard3D onClose={() => setPerfDashOpen(false)} />}
-
-      {/* Cost Intelligence 3D */}
-      {costDashOpen && <CostDashboard3D entries={costEntries} onClose={() => setCostDashOpen(false)} />}
-
-      {/* Dedup Network Visualizer 3D */}
-      {dedupVizOpen && <DedupVisualizer3D onClose={() => setDedupVizOpen(false)} />}
-
-      {/* Threat Intelligence Feed 3D — fixed bottom strip */}
-      {threatFeedOpen && <ThreatFeed3D onClose={() => setThreatFeedOpen(false)} />}
-
-      {/* Security Shield Dashboard 3D */}
-      {securityDashOpen && <SecurityDashboard3D onClose={() => setSecurityDashOpen(false)} />}
-
-      {/* Context Memory Panel 3D */}
-      {contextMemoryOpen && <ContextMemoryPanel3D onClose={() => setContextMemoryOpen(false)} />}
-
-      {/* Prefetch Intelligence 3D */}
-      {prefetchOpen && <PrefetchIntelligence3D onClose={() => setPrefetchOpen(false)} />}
-
-      {/* Anomaly Log 3D */}
-      {anomalyLogOpen && <AnomalyLog3D onClose={() => setAnomalyLogOpen(false)} />}
-
-      {/* Network Topology 3D */}
-      {net3DOpen && <NetworkTopology3D onClose={() => setNet3DOpen(false)} />}
-
-      {/* System Master HUD 3D — always-visible command center */}
-      {masterHudOpen && (
-        <SystemMasterHUD3D
-          onOpenPerf={() => setPerfDashOpen((v) => !v)}
-          onOpenCost={() => setCostDashOpen((v) => !v)}
-          onOpenDedup={() => setDedupVizOpen((v) => !v)}
-          onOpenThreat={() => setThreatFeedOpen((v) => !v)}
-          onOpenSecurity={() => setSecurityDashOpen((v) => !v)}
-          onOpenMemory={() => setContextMemoryOpen((v) => !v)}
-          onOpenPrefetch={() => setPrefetchOpen((v) => !v)}
-        />
-      )}
-
-      {/* Global HUD scan line — year 3090 effect */}
-      <div className="hud-scan-line pointer-events-none" />
-
-      {/* Global hex grid background overlay */}
-      <div className="pointer-events-none fixed inset-0 z-[-1] grid-3d opacity-100" />
+      {/* Conditional 3D overlays — only mount when open */}
+      {modals.perfDash    && <PerformanceDashboard3D onClose={() => close('perfDash')} />}
+      {modals.costDash    && <CostDashboard3D entries={costEntries} onClose={() => close('costDash')} />}
+      {modals.dedupViz    && <DedupVisualizer3D onClose={() => close('dedupViz')} />}
+      {modals.threatFeed  && <ThreatFeed3D onClose={() => close('threatFeed')} />}
+      {modals.securityDash && <SecurityDashboard3D onClose={() => close('securityDash')} />}
+      {modals.contextMemory && <ContextMemoryPanel3D onClose={() => close('contextMemory')} />}
+      {modals.prefetch    && <PrefetchIntelligence3D onClose={() => close('prefetch')} />}
+      {modals.masterHud   && <SystemMasterHUD3D
+        onOpenPerf={() => open('perfDash')}       onOpenCost={() => open('costDash')}
+        onOpenDedup={() => open('dedupViz')}      onOpenThreat={() => open('threatFeed')}
+        onOpenSecurity={() => open('securityDash')} onOpenMemory={() => open('contextMemory')}
+        onOpenPrefetch={() => open('prefetch')}   onOpenAnomalyLog={() => open('anomalyLog')}
+      />}
+      {modals.anomalyLog  && <AnomalyLog3D onClose={() => close('anomalyLog')} />}
+      {modals.net3D       && <NetworkTopology3D onClose={() => close('net3D')} />}
     </div>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <StoreProvider>
@@ -1028,5 +753,3 @@ function App() {
     </QueryClientProvider>
   );
 }
-
-export default App;

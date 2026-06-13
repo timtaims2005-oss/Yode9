@@ -2815,3 +2815,95 @@ pre::before {
 .drag-handle:active {
   cursor: grabbing;
 }
+
+/* ══════════════════════════════════════════════
+   PHASE 5 — PERFORMANCE & REPLIT OPTIMIZATIONS
+══════════════════════════════════════════════ */
+
+/* GPU-accelerated animation hints */
+canvas,
+.framer-motion-anim,
+[data-animated="true"] {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Modal container containment — limit reflow scope */
+[role="dialog"] > div,
+.modal-container {
+  contain: layout style;
+}
+
+/* Tab-hidden: pause non-critical animations */
+.tab-hidden canvas:not(.critical-canvas) {
+  animation-play-state: paused !important;
+}
+.tab-hidden .ambient-animation {
+  animation-play-state: paused !important;
+  visibility: hidden;
+}
+
+/* Reduce motion — respect OS preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  canvas {
+    display: none !important;
+  }
+}
+
+/* CSS containment on sidebar / chat list items */
+.sidebar-chat-item {
+  contain: layout style paint;
+}
+
+/* Font rendering optimization for monospace labels */
+.font-mono,
+code,
+pre {
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Overflow-anchor prevent layout thrash during streaming */
+.chat-messages-container {
+  overflow-anchor: auto;
+}
+
+/* Hardware-accelerated scrolling */
+.overflow-y-auto,
+.overflow-y-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent expensive repaints on topbar during scroll */
+.CHAT-GPT-topbar {
+  contain: layout style;
+  isolation: isolate;
+}
+
+/* Lazy-loaded modal fade-in */
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+[data-radix-dialog-content] {
+  animation: modal-in 0.18s ease-out;
+}
+
+/* Cyber Hub button pulse */
+@keyframes cyber-hub-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(226,18,39,0.2); }
+  50%       { box-shadow: 0 0 24px rgba(226,18,39,0.5), 0 0 8px rgba(0,229,255,0.3); }
+}
+button[aria-label="Cyber Command Center 3D"] {
+  animation: cyber-hub-pulse 2.8s ease-in-out infinite;
+}
+
