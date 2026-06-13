@@ -13,6 +13,7 @@ import { AITerminal } from "./components/AITerminal";
 import { StoreProvider, useStore } from "./lib/store";
 import { checkAndExpireSubscription } from "./lib/subscription";
 import { FloatingActionDock } from "./components/FloatingActionDock";
+import { QuickDock3D } from "./components/QuickDock3D";
 import { PipelineHUD } from "./components/PipelineHUD";
 import type { PipelineItem } from "./lib/pipeline";
 import { CompareView } from "./components/CompareView";
@@ -179,6 +180,8 @@ const NetworkMonitorModal   = lazy(() => import("./components/modals/NetworkMoni
 const CyberCommandCenter3D  = lazy(() => import("./components/CyberCommandCenter3D").then(m=>({default:m.CyberCommandCenter3D})));
 const CveTimeline3DModal    = lazy(() => import("./components/modals/CveTimeline3DModal").then(m=>({default:m.CveTimeline3DModal})));
 const CyberHierarchy3DModal = lazy(() => import("./components/modals/CyberHierarchy3DModal").then(m=>({default:m.CyberHierarchy3DModal})));
+const CognitiveWarfareModal = lazy(() => import("./components/modals/CognitiveWarfareModal").then(m=>({default:m.CognitiveWarfareModal})));
+const AutonomousOffensiveModal = lazy(() => import("./components/modals/AutonomousOffensiveModal").then(m=>({default:m.AutonomousOffensiveModal})));
 
 // ── MODAL STATE REDUCER ───────────────────────────────────────────────────────
 const MODAL_IDS = [
@@ -205,7 +208,7 @@ const MODAL_IDS = [
   'multiAgentSOC','orchestrationEngine','globalVulnHeatmap','cyberWarfareMatrix',
   'sentientCyberSphere','perfDash','costDash','dedupViz','threatFeed','securityDash',
   'contextMemory','prefetch','masterHud','anomalyLog','net3D','autoSetup','cyberHub','sidebar',
-  'cisaLive','cveTimeline','cyberHierarchy',
+  'cisaLive','cveTimeline','cyberHierarchy','cognitiveWarfare','autonomousOffense',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -525,6 +528,15 @@ function AppContent() {
           onOpenCveTimeline={() => toggle('cveTimeline')}
           onOpenCyberHierarchy={() => toggle('cyberHierarchy')}
         />
+        <QuickDock3D
+          onOpenArsenal={() => open('arsenal')}
+          onOpenAgent={() => open('agent')}
+          onOpenNexus={() => open('nexus')}
+          onOpenWarRoom={() => open('warRoom')}
+          onOpenCognitiveWarfare={() => open('cognitiveWarfare')}
+          onOpenAutonomousOffense={() => open('autonomousOffense')}
+          onOpenCyberHierarchy={() => toggle('cyberHierarchy')}
+        />
         <ChatView onOpenOsintDash={() => open('osintDash')} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
       </main>
@@ -753,6 +765,12 @@ function AppContent() {
 
       {/* Cyber Hierarchy 3D — هرم الخطر السيبراني */}
       <CyberHierarchy3DModal open={modals.cyberHierarchy} onOpenChange={(v) => mDispatch({type:'SET',id:'cyberHierarchy',value:v})} />
+
+      {/* Cognitive Cyber Warfare */}
+      <CognitiveWarfareModal open={modals.cognitiveWarfare} onOpenChange={(v) => mDispatch({type:'SET',id:'cognitiveWarfare',value:v})} />
+
+      {/* Autonomous Offensive Framework */}
+      <AutonomousOffensiveModal open={modals.autonomousOffense} onOpenChange={(v) => mDispatch({type:'SET',id:'autonomousOffense',value:v})} />
     </div>
   );
 }
