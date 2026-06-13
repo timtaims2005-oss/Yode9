@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import {
   X, Bot, Hexagon, Cpu, Zap, Brain, Terminal, Database,
@@ -927,7 +927,7 @@ interface ArsenalHubModalProps {
   onLaunch: (id: ArsenalModuleId) => void;
 }
 
-type Tab = "modules" | "chain" | "history" | "mission" | "intel";
+type Tab = "modules" | "chain" | "history" | "mission" | "intel" | "council";
 
 // ─── Chain Builder ────────────────────────────────────────────────────────────
 
@@ -1630,6 +1630,361 @@ function IntelFeedTab() {
   );
 }
 
+// ─── Council Streaming Panel — 105 Minds ──────────────────────────────────────
+const COUNCIL_BRAINS = Array.from({ length: 105 }, (_, i) => ({
+  id: i,
+  name: `MIND-${String(i + 1).padStart(3, "0")}`,
+  specialty: [
+    "Threat Intelligence", "Zero-Day Research", "Quantum Exploit", "AI Defense",
+    "OSINT Master", "Malware Analyst", "Red Team Operator", "Cryptographer",
+    "Network Warfare", "Social Engineering", "Forensics Expert", "Reverse Engineer",
+    "APT Hunter", "Incident Response", "Supply Chain Sec", "Firmware Hacker",
+    "Cloud Penetration", "Physical Security", "Protocol Exploit", "AI Red Team",
+  ][i % 20],
+  color: [
+    "#e21227","#ff4d4d","#f97316","#fbbf24","#00ff41","#00e5ff","#a78bfa",
+    "#ec4899","#10b981","#818cf8","#ff6b35","#0ea5e9","#8b5cf6","#22d3ee","#fb923c",
+  ][i % 15],
+}));
+
+const COUNCIL_OPENING = [
+  "تحليل التهديد المستهدف...", "فحص البنية التحتية الرقمية...", "استخراج بصمات الهجوم...",
+  "رصد نشاط APT المشتبه به...", "تحديد نقاط الضعف الحرجة...", "بناء خريطة الهجوم...",
+  "مسح قواعد بيانات CVE...", "تحليل حركة مرور الشبكة...", "اكتشاف مؤشرات الاختراق...",
+  "تقييم مستوى الخطر...", "فحص التهديدات الداخلية...", "تحليل الأنماط الهجومية...",
+  "مراقبة الشبكة المظلمة...", "تحليل الكود الخبيث...", "بناء سيناريو الهجوم...",
+  "كشف التخفي والمراوغة...", "تتبع مصدر التهديد...", "تحديد الأثر والتأثير...",
+  "فحص سلاسل التوريد...", "تحليل بروتوكولات الاتصال...",
+];
+
+function CouncilStreamingPanel() {
+  const [query, setQuery] = useState("");
+  const [running, setRunning] = useState(false);
+  const [brainOutputs, setBrainOutputs] = useState<Record<number, string>>({});
+  const [brainStatus, setBrainStatus] = useState<Record<number, "idle" | "thinking" | "done">>({});
+  const [synthesis, setSynthesis] = useState("");
+  const [synthStreaming, setSynthStreaming] = useState(false);
+  const [totalDone, setTotalDone] = useState(0);
+  const [selectedBrain, setSelectedBrain] = useState<number | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const startCouncil = useCallback(async () => {
+    if (!query.trim() || running) return;
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+
+    setRunning(true);
+    setSynthesis("");
+    setSynthStreaming(false);
+    setTotalDone(0);
+    setBrainOutputs({});
+    setBrainStatus({});
+    setSelectedBrain(null);
+
+    // Simulate 105 brains thinking in parallel with realistic delays
+    const simulate = (brainIdx: number) => {
+      const delay = Math.random() * 2000 + 500;
+      setTimeout(() => {
+        if (abortRef.current?.signal.aborted) return;
+        setBrainStatus(prev => ({ ...prev, [brainIdx]: "thinking" }));
+
+        const brain = COUNCIL_BRAINS[brainIdx];
+        const opening = COUNCIL_OPENING[brainIdx % COUNCIL_OPENING.length];
+        const responses = [
+          `${opening} تحليل متخصص من زاوية ${brain.specialty}.`,
+          `رصدت ${Math.floor(Math.random() * 8) + 2} نقطة ضعف حرجة مرتبطة بهذا السياق.`,
+          `بناءً على قواعد بيانات التهديدات، احتمالية الهجوم: ${Math.floor(Math.random() * 40) + 60}%.`,
+          `التوصية: تطبيق ${["Zero-Trust","EDR","NDR","SIEM","SOAR","MFA","PAM"][brainIdx % 7]} على الفور.`,
+          `مؤشر الخطر: ${"█".repeat(Math.floor(Math.random() * 5) + 5)}${" ".repeat(10 - Math.floor(Math.random() * 5) - 5)} CRITICAL.`,
+        ];
+
+        let text = "";
+        let lineIdx = 0;
+        const interval = setInterval(() => {
+          if (abortRef.current?.signal.aborted) { clearInterval(interval); return; }
+          if (lineIdx < responses.length) {
+            text += (lineIdx > 0 ? " " : "") + responses[lineIdx++];
+            setBrainOutputs(prev => ({ ...prev, [brainIdx]: text }));
+          } else {
+            clearInterval(interval);
+            setBrainStatus(prev => ({ ...prev, [brainIdx]: "done" }));
+            setTotalDone(prev => {
+              const next = prev + 1;
+              if (next === COUNCIL_BRAINS.length) {
+                setTimeout(() => streamSynthesis(), 400);
+              }
+              return next;
+            });
+          }
+        }, 120 + Math.random() * 80);
+      }, delay);
+    };
+
+    COUNCIL_BRAINS.forEach((_, i) => simulate(i));
+  }, [query, running]);
+
+  const streamSynthesis = () => {
+    setSynthStreaming(true);
+    setRunning(false);
+    const lines = [
+      "تحليل مجلس الـ 105 عقول مكتمل — تجميع النتائج الشاملة...",
+      "",
+      "الحكم الجماعي: التهديد المحدد يُمثّل خطراً استراتيجياً عالياً يستدعي تدخلاً فورياً.",
+      "",
+      `اتفق ${COUNCIL_BRAINS.length} عقلاً على 3 محاور رئيسية:`,
+      "1. تعزيز حماية نقاط النهاية عبر EDR متقدم مع قدرات الاستجابة الذاتية.",
+      "2. تطبيق نموذج Zero-Trust كامل مع التحقق المستمر من الهوية والجلسات.",
+      "3. نشر SIEM/SOAR مع قواعد كشف مخصصة لهذا النمط الهجومي تحديداً.",
+      "",
+      "نقاط الضعف الحرجة المكتشفة: " + (Math.floor(Math.random() * 15) + 8),
+      "مستوى الخطر الإجمالي: CRITICAL — اتخاذ إجراء فوري مطلوب.",
+      "",
+      "— مجلس KaliGPT // 105 MINDS UNIFIED VERDICT",
+    ];
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < lines.length) {
+        setSynthesis(prev => prev + lines[i++] + "\n");
+      } else {
+        clearInterval(interval);
+        setSynthStreaming(false);
+      }
+    }, 80);
+  };
+
+  const stopAll = () => {
+    abortRef.current?.abort();
+    setRunning(false);
+    setSynthStreaming(false);
+  };
+
+  const done = totalDone;
+  const thinking = Object.values(brainStatus).filter(s => s === "thinking").length;
+  const progressPct = (done / COUNCIL_BRAINS.length) * 100;
+
+  return (
+    <div className="flex flex-col h-full p-4 gap-4" style={{ minHeight: 0 }}>
+      {/* Header stats */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <motion.div animate={{ scale: running ? [1, 1.3, 1] : 1, opacity: running ? [1, 0.5, 1] : 0.4 }}
+              transition={{ duration: 0.8, repeat: running ? Infinity : 0 }}
+              className="w-2 h-2 rounded-full" style={{ background: "#e21227" }} />
+            <span className="font-mono text-xs font-black tracking-widest" style={{ color: "#e21227" }}>COUNCIL OF 105 MINDS</span>
+            <span className="font-mono text-[9px]" style={{ color: "rgba(255,255,255,0.2)" }}>// مجلس الـ 105 عقل</span>
+          </div>
+          {running && (
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                <motion.div className="h-full rounded-full" style={{ background: "linear-gradient(90deg, #e21227, #ff6b35, #fbbf24)", width: `${progressPct}%` }}
+                  transition={{ duration: 0.3 }} />
+              </div>
+              <span className="font-mono text-[9px] shrink-0" style={{ color: "rgba(255,255,255,0.3)" }}>{done}/{COUNCIL_BRAINS.length}</span>
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2 text-[9px] font-mono">
+          <div className="px-2 py-1 rounded-lg" style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)" }}>
+            <span style={{ color: "#fbbf24" }}>{thinking}</span>
+            <span style={{ color: "rgba(255,255,255,0.2)" }}> يفكر</span>
+          </div>
+          <div className="px-2 py-1 rounded-lg" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
+            <span style={{ color: "#10b981" }}>{done}</span>
+            <span style={{ color: "rgba(255,255,255,0.2)" }}> أنهى</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Query input */}
+      <div className="flex gap-2">
+        <input
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && !e.shiftKey && startCouncil()}
+          placeholder="أدخل السؤال أو التهديد للتحليل من 105 عقل متخصص..."
+          className="flex-1 rounded-xl px-4 py-2.5 text-xs outline-none font-mono"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: query ? "1px solid rgba(226,18,39,0.4)" : "1px solid rgba(255,255,255,0.07)",
+            color: "rgba(255,255,255,0.85)",
+            boxShadow: query ? "0 0 20px rgba(226,18,39,0.08)" : "none",
+          }}
+          disabled={running}
+        />
+        {running ? (
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            onClick={stopAll}
+            className="px-4 py-2 rounded-xl text-xs font-black shrink-0"
+            style={{ background: "rgba(226,18,39,0.15)", border: "1px solid rgba(226,18,39,0.4)", color: "#e21227" }}>
+            إيقاف
+          </motion.button>
+        ) : (
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            onClick={startCouncil}
+            disabled={!query.trim()}
+            className="px-4 py-2 rounded-xl text-xs font-black shrink-0 transition-all"
+            style={query.trim() ? {
+              background: "linear-gradient(135deg, rgba(226,18,39,0.3) 0%, rgba(251,191,36,0.15) 100%)",
+              border: "1px solid rgba(226,18,39,0.5)",
+              color: "#e21227",
+              boxShadow: "0 0 20px rgba(226,18,39,0.2)",
+            } : {
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              color: "rgba(255,255,255,0.15)",
+            }}>
+            تشغيل
+          </motion.button>
+        )}
+      </div>
+
+      {/* Brains grid */}
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-y-auto rounded-2xl"
+        style={{ scrollbarWidth: "none", minHeight: 0, background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.04)" }}
+      >
+        {Object.keys(brainStatus).length === 0 && !running ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: 21 }, (_, i) => (
+                <motion.div key={i}
+                  animate={{ opacity: [0.1, 0.4, 0.1], scale: [0.8, 1, 0.8] }}
+                  transition={{ duration: 1.5 + Math.random(), repeat: Infinity, delay: Math.random() * 2 }}
+                  className="w-5 h-5 rounded"
+                  style={{ background: COUNCIL_BRAINS[i * 5].color + "22", border: `1px solid ${COUNCIL_BRAINS[i * 5].color}33` }} />
+              ))}
+            </div>
+            <div className="text-center">
+              <div className="font-mono text-xs font-black tracking-widest mb-1" style={{ color: "rgba(226,18,39,0.5)" }}>105 MINDS — STANDBY</div>
+              <div className="font-mono text-[10px]" style={{ color: "rgba(255,255,255,0.15)" }}>أدخل سؤالاً لتفعيل المجلس</div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-3 grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-1.5">
+            {COUNCIL_BRAINS.map(brain => {
+              const status = brainStatus[brain.id] ?? "idle";
+              const output = brainOutputs[brain.id] ?? "";
+              const isSelected = selectedBrain === brain.id;
+              return (
+                <motion.div
+                  key={brain.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{
+                    opacity: status === "idle" ? 0.35 : 1,
+                    scale: status === "thinking" ? [1, 1.05, 1] : 1,
+                  }}
+                  transition={{
+                    scale: status === "thinking" ? { duration: 0.6, repeat: Infinity } : { duration: 0.15 },
+                  }}
+                  onClick={() => output && setSelectedBrain(isSelected ? null : brain.id)}
+                  className="relative rounded-lg p-1.5 cursor-pointer transition-all"
+                  style={{
+                    background: status === "done"
+                      ? `${brain.color}10`
+                      : status === "thinking"
+                      ? `${brain.color}1a`
+                      : "rgba(255,255,255,0.02)",
+                    border: `1px solid ${status !== "idle" ? brain.color + "44" : "rgba(255,255,255,0.05)"}`,
+                    boxShadow: status === "thinking" ? `0 0 8px ${brain.color}30` : "none",
+                  }}
+                >
+                  {/* Status indicator */}
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                      style={{
+                        background: status === "done" ? brain.color : status === "thinking" ? "#fbbf24" : "#222",
+                        boxShadow: status !== "idle" ? `0 0 4px ${status === "done" ? brain.color : "#fbbf24"}` : "none",
+                        animation: status === "thinking" ? "arsenal-glow-pulse 0.8s ease-in-out infinite" : "none",
+                      }} />
+                    <span className="font-mono text-[7px] font-black truncate" style={{ color: status !== "idle" ? brain.color : "#222" }}>
+                      {brain.id + 1}
+                    </span>
+                  </div>
+                  {/* Specialty tag */}
+                  <div className="text-[6px] font-mono truncate leading-tight" style={{ color: status !== "idle" ? "rgba(255,255,255,0.4)" : "#1a1a1a" }}>
+                    {brain.specialty.split(" ")[0]}
+                  </div>
+                  {/* Thinking animation bar */}
+                  {status === "thinking" && (
+                    <div className="mt-1 h-0.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                      <motion.div className="h-full rounded-full" style={{ background: brain.color }}
+                        animate={{ x: ["-100%", "100%"] }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} />
+                    </div>
+                  )}
+                  {/* Done check */}
+                  {status === "done" && (
+                    <div className="absolute top-1 right-1">
+                      <div className="w-2 h-2 rounded-full flex items-center justify-center" style={{ background: brain.color + "30" }}>
+                        <div className="w-1 h-1 rounded-full" style={{ background: brain.color }} />
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Selected brain output */}
+      <AnimatePresence>
+        {selectedBrain !== null && brainOutputs[selectedBrain] && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+            className="rounded-xl overflow-hidden"
+            style={{ background: "rgba(0,0,0,0.7)", border: `1px solid ${COUNCIL_BRAINS[selectedBrain].color}33` }}>
+            <div className="px-3 py-2 border-b flex items-center justify-between"
+              style={{ borderColor: COUNCIL_BRAINS[selectedBrain].color + "22" }}>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full" style={{ background: COUNCIL_BRAINS[selectedBrain].color }} />
+                <span className="font-mono text-[9px] font-black" style={{ color: COUNCIL_BRAINS[selectedBrain].color }}>
+                  {COUNCIL_BRAINS[selectedBrain].name} — {COUNCIL_BRAINS[selectedBrain].specialty}
+                </span>
+              </div>
+              <button onClick={() => setSelectedBrain(null)} className="text-[8px] font-mono" style={{ color: "rgba(255,255,255,0.2)" }}>
+                إغلاق ×
+              </button>
+            </div>
+            <div className="px-3 py-2 text-[10px] font-mono leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
+              {brainOutputs[selectedBrain]}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Synthesis output */}
+      <AnimatePresence>
+        {(synthesis || synthStreaming) && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+            className="rounded-2xl overflow-hidden shrink-0"
+            style={{ background: "linear-gradient(135deg, rgba(226,18,39,0.06) 0%, rgba(251,191,36,0.04) 100%)", border: "1px solid rgba(226,18,39,0.25)" }}>
+            <div className="px-4 py-2 border-b flex items-center gap-2" style={{ borderColor: "rgba(226,18,39,0.15)" }}>
+              <motion.div animate={{ opacity: synthStreaming ? [1, 0.3, 1] : 1 }} transition={{ duration: 0.6, repeat: synthStreaming ? Infinity : 0 }}
+                className="w-2 h-2 rounded-full" style={{ background: "#e21227", boxShadow: "0 0 6px #e21227" }} />
+              <span className="font-mono text-[9px] font-black tracking-widest" style={{ color: "#e21227" }}>
+                UNIFIED VERDICT — الحكم الجماعي
+              </span>
+              {synthStreaming && (
+                <span className="font-mono text-[8px] ml-auto" style={{ color: "rgba(255,255,255,0.25)" }}>
+                  تجميع النتائج...
+                </span>
+              )}
+            </div>
+            <div className="px-4 py-3 font-mono text-[10px] leading-relaxed whitespace-pre-wrap" style={{ color: "rgba(255,255,255,0.7)" }}>
+              {synthesis}
+              {synthStreaming && (
+                <motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.5, repeat: Infinity }}>▌</motion.span>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModalProps) {
   const [tab, setTab] = useState<Tab>("modules");
@@ -1826,6 +2181,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
               <TabBtn active={tab === "history"} onClick={() => setTab("history")} label="PIPELINE" count={history.length} countColor="#00e5cc" />
               <TabBtn active={tab === "mission"} onClick={() => setTab("mission")} label="MISSION CTRL" />
               <TabBtn active={tab === "intel"} onClick={() => setTab("intel")} label="INTEL FEED" countColor="#e21227" />
+              <TabBtn active={tab === "council"} onClick={() => setTab("council")} label="COUNCIL 105" count={105} countColor="#fbbf24" />
             </div>
 
             {/* ── SEARCH BAR (modules only) ── */}
@@ -2004,6 +2360,13 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
                 {tab === "intel" && (
                   <motion.div key="intel" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="p-4">
                     <IntelFeedTab />
+                  </motion.div>
+                )}
+
+                {/* COUNCIL 105 */}
+                {tab === "council" && (
+                  <motion.div key="council" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="flex flex-col h-full" style={{ minHeight: "500px" }}>
+                    <CouncilStreamingPanel />
                   </motion.div>
                 )}
 

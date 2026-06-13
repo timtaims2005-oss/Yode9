@@ -301,7 +301,7 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
           <button
             onClick={onOpenToolsHub}
             className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
-            style={{ color: "#10b981" }}
+            style={{ color: "#10b981", background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)" }}
             aria-label={t("top.toolsHub")}
           >
             <LayoutGrid className="w-4 h-4" />
@@ -321,7 +321,7 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
           <button
             onClick={onOpenAgent}
             className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
-            style={{ color: "#ff4d4d" }}
+            style={{ color: "#ff4d4d", background: "rgba(255,77,77,0.15)", border: "1px solid rgba(255,77,77,0.3)" }}
             aria-label="KaliAgent"
           >
             <Bot className="w-4 h-4" />
@@ -341,7 +341,7 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
           <button
             onClick={onOpenNexus}
             className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
-            style={{ color: "#fbbf24" }}
+            style={{ color: "#fbbf24", background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.3)" }}
             aria-label="NEXUS Agent"
           >
             <Hexagon className="w-4 h-4" />
@@ -361,7 +361,7 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
           <button
             onClick={onOpenArsenal}
             className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
-            style={{ color: "#e21227" }}
+            style={{ color: "#e21227", background: "rgba(226,18,39,0.15)", border: "1px solid rgba(226,18,39,0.35)" }}
             aria-label="Arsenal Hub"
           >
             <Shield className="w-4 h-4" />
@@ -383,7 +383,7 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               <button
                 onClick={onOpenWarRoom}
                 className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
-                style={{ color: "#e21227" }}
+                style={{ color: "#e21227", background: "rgba(226,18,39,0.15)", border: "1px solid rgba(226,18,39,0.35)" }}
                 aria-label="War Room"
               >
                 <Target className="w-4 h-4" />
@@ -407,7 +407,7 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               <button
                 onClick={onOpenDeepSearch}
                 className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
-                style={{ color: "#e21227" }}
+                style={{ color: "#e21227", background: "rgba(226,18,39,0.15)", border: "1px solid rgba(226,18,39,0.3)" }}
                 aria-label="Deep Search AI"
               >
                 <Search className="w-4 h-4" />
@@ -431,7 +431,7 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               <button
                 onClick={onOpenChainInvestigation}
                 className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
-                style={{ color: "#8b5cf6" }}
+                style={{ color: "#8b5cf6", background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)" }}
                 aria-label="Chain Investigation"
               >
                 <GitBranch className="w-4 h-4" />
@@ -455,7 +455,7 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               <button
                 onClick={onOpenRedTeam}
                 className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
-                style={{ color: "#e21227" }}
+                style={{ color: "#e21227", background: "rgba(226,18,39,0.15)", border: "1px solid rgba(226,18,39,0.35)" }}
                 aria-label="Red Team Dashboard"
               >
                 <Bug className="w-4 h-4" />
@@ -479,7 +479,7 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               <button
                 onClick={onOpenNeuralMatrix}
                 className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
-                style={{ color: "#e21227" }}
+                style={{ color: "#e21227", background: "rgba(226,18,39,0.15)", border: "1px solid rgba(226,18,39,0.3)" }}
                 aria-label="Neural Matrix"
               >
                 <Crosshair className="w-4 h-4" />
@@ -503,7 +503,7 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               <button
                 onClick={onOpenModelCompare}
                 className="flex-shrink-0 sm:hidden p-2 rounded-lg transition-colors"
-                style={{ color: "#818cf8" }}
+                style={{ color: "#818cf8", background: "rgba(129,140,248,0.15)", border: "1px solid rgba(129,140,248,0.3)" }}
                 aria-label="مقارنة النماذج"
               >
                 <Columns3 className="w-4 h-4" />
