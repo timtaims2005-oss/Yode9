@@ -530,7 +530,7 @@ export function ProviderHealthBadge3D() {
         onMouseLeave={() => setShowTooltip(false)}
         onFocus={() => setShowTooltip(true)}
         onBlur={() => setShowTooltip(false)}
-        className="flex items-center gap-1.5 px-2 py-1 rounded-xl cursor-pointer transition-all"
+        className="flex items-center gap-1 px-1.5 sm:gap-1.5 sm:px-2 py-1 rounded-xl cursor-pointer transition-all"
         style={{
           background: `rgba(${cr},${cg},${cb},0.05)`,
           border: `1px solid rgba(${cr},${cg},${cb},0.18)`,
@@ -542,7 +542,8 @@ export function ProviderHealthBadge3D() {
       >
         <canvas
           ref={canvasRef}
-          style={{ width: 32, height: 32, imageRendering: "crisp-edges", flexShrink: 0 }}
+          style={{ width: 26, height: 26, imageRendering: "crisp-edges", flexShrink: 0 }}
+          className="sm:!w-8 sm:!h-8"
         />
         <div className="hidden sm:flex flex-col items-start leading-none gap-0.5">
           <span style={{ fontSize: "9px", fontWeight: 800, color: "rgba(255,255,255,0.55)", letterSpacing: "0.1em", fontFamily: "monospace" }}>

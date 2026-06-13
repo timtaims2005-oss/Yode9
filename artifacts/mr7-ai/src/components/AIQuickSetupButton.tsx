@@ -228,7 +228,7 @@ function OrbitalCanvas({ phase, color }: { phase: Phase; color: string }) {
   return (
     <canvas
       ref={canvasRef}
-      className="w-[52px] h-[52px] shrink-0"
+      className="w-9 h-9 sm:w-[52px] sm:h-[52px] shrink-0"
       style={{ imageRendering: "crisp-edges" }}
     />
   );
@@ -350,13 +350,13 @@ export function AIQuickSetupButton() {
       <button
         onClick={run}
         disabled={phase === "scanning"}
-        className="relative flex items-center gap-0.5 pl-0.5 pr-2.5 py-0.5 rounded-xl transition-all active:scale-95"
+        className="relative flex items-center gap-0.5 pl-0.5 pr-1.5 sm:pr-2.5 py-0.5 rounded-xl transition-all active:scale-95"
         style={{
           background:  `linear-gradient(135deg, ${activeColor}0e 0%, ${activeColor}07 100%)`,
           border:      `1px solid ${activeColor}40`,
           boxShadow:   `0 0 14px ${activeColor}1a, 0 0 4px ${activeColor}12, inset 0 1px 0 ${activeColor}12`,
           cursor:      phase === "scanning" ? "wait" : "pointer",
-          minWidth: 72,
+          minWidth:    undefined,
         }}
         aria-label="إعداد الذكاء الاصطناعي تلقائياً"
         title="AUTO — Ctrl+Shift+A"

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Brain, Server, Bot, Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight, Wifi, Target, GitBranch, Bug, Activity, DollarSign, GitMerge, ShieldAlert, ShieldCheck, BrainCircuit, Gauge, Globe, AlertTriangle, Network } from "lucide-react";
 import { AIQuickSetupButton } from "./AIQuickSetupButton";
 import { ProviderHealthBadge3D } from "./ProviderHealthBadge3D";
+import { PersonaSwitcher3D } from "./PersonaSwitcher3D";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore, ProviderName } from "@/lib/store";
 import { useT } from "@/lib/i18n";
@@ -64,9 +65,10 @@ interface TopBarProps {
   onOpenAnomalyLog?: () => void;
   onOpenNetworkTopo?: () => void;
   onOpenCyberHub?: () => void;
+  onOpenCisaLive?: () => void;
 }
 
-export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash, onOpenContextMemory, onOpenPrefetch, onOpenMasterHud, onOpenAnomalyLog, onOpenNetworkTopo, onOpenCyberHub }: TopBarProps) {
+export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash, onOpenContextMemory, onOpenPrefetch, onOpenMasterHud, onOpenAnomalyLog, onOpenNetworkTopo, onOpenCyberHub, onOpenCisaLive }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
   const { toast } = useToast();
@@ -507,19 +509,20 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
             </>
           )}
 
-          {/* Persona Editor */}
-          <button
-            onClick={onOpenPersonaEditor}
-            className={`flex-shrink-0 p-2 rounded-lg transition-colors ${
-              state.settings.activePersonaPreset !== "default" || state.settings.customSystemPrompt
-                ? "text-primary hover:text-primary hover:bg-primary/10"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent"
-            }`}
-            aria-label="AI Persona Editor"
-            title="AI Persona / System Prompt Editor"
-          >
-            <Brain className="w-4 h-4" />
-          </button>
+          {/* Persona Switcher 3D */}
+          <PersonaSwitcher3D onOpenPersonaEditor={onOpenPersonaEditor} />
+
+          {/* CISA KEV Live Feed */}
+          {onOpenCisaLive && (
+            <button
+              onClick={onOpenCisaLive}
+              className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-[#e21227] hover:bg-[#e21227]/10 transition-colors"
+              aria-label="CISA KEV Live"
+              title="CISA Known Exploited Vulnerabilities — Live"
+            >
+              <ShieldAlert className="w-4 h-4" />
+            </button>
+          )}
 
           {/* Quick Provider Chip — clicks directly into full settings */}
           {onOpenProviderSettings && (

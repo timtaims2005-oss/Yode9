@@ -3,6 +3,7 @@ import { WebSocketServer } from "ws";
 import app from "./app";
 import { logger } from "./lib/logger";
 import { handleTerminalSocket } from "./routes/shell";
+import { registerCisaWsClient } from "./routes/cisa";
 
 const rawPort = process.env["PORT"] ?? "8080";
 
@@ -11,15 +12,24 @@ if (Number.isNaN(port) || port <= 0) throw new Error(`Invalid PORT value: "${raw
 
 const server = createServer(app);
 
-const wss = new WebSocketServer({ noServer: true });
+const wss         = new WebSocketServer({ noServer: true });
+const cisaWss     = new WebSocketServer({ noServer: true });
 
 wss.on("connection", handleTerminalSocket);
+
+cisaWss.on("connection", (ws) => {
+  registerCisaWsClient(ws);
+});
 
 server.on("upgrade", (req, socket, head) => {
   const url = req.url ?? "";
   if (url.startsWith("/api/terminal")) {
     wss.handleUpgrade(req, socket, head, (ws) => {
       wss.emit("connection", ws, req);
+    });
+  } else if (url.startsWith("/api/cisa-live")) {
+    cisaWss.handleUpgrade(req, socket, head, (ws) => {
+      cisaWss.emit("connection", ws, req);
     });
   } else {
     socket.destroy();

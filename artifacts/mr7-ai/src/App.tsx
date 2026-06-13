@@ -34,6 +34,7 @@ import { PrefetchIntelligence3D } from "./components/PrefetchIntelligence3D";
 import { SystemMasterHUD3D } from "./components/SystemMasterHUD3D";
 import { AnomalyLog3D } from "./components/AnomalyLog3D";
 import { NetworkTopology3D } from "./components/NetworkTopology3D";
+import { CisaLivePanel3D } from "./components/CisaLivePanel3D";
 import { contextMemory } from "./lib/context-memory";
 import { securityLayer } from "./lib/security-layer";
 import { prefetchEngine } from "./lib/prefetch-engine";
@@ -202,6 +203,7 @@ const MODAL_IDS = [
   'multiAgentSOC','orchestrationEngine','globalVulnHeatmap','cyberWarfareMatrix',
   'sentientCyberSphere','perfDash','costDash','dedupViz','threatFeed','securityDash',
   'contextMemory','prefetch','masterHud','anomalyLog','net3D','autoSetup','cyberHub','sidebar',
+  'cisaLive',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -517,6 +519,7 @@ function AppContent() {
           onOpenAnomalyLog={() => toggle('anomalyLog')}
           onOpenNetworkTopo={() => toggle('net3D')}
           onOpenCyberHub={() => open('cyberHub')}
+          onOpenCisaLive={() => toggle('cisaLive')}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
@@ -737,6 +740,9 @@ function AppContent() {
       />}
       {modals.anomalyLog  && <AnomalyLog3D onClose={() => close('anomalyLog')} />}
       {modals.net3D       && <NetworkTopology3D onClose={() => close('net3D')} />}
+
+      {/* CISA KEV Live Panel — WebSocket powered */}
+      <CisaLivePanel3D open={modals.cisaLive} onClose={() => close('cisaLive')} />
     </div>
   );
 }
