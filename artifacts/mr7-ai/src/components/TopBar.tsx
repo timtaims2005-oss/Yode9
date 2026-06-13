@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Brain, Server, Bot, Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight, Wifi, Target, GitBranch, Bug, Activity, DollarSign, GitMerge, ShieldAlert, ShieldCheck, BrainCircuit } from "lucide-react";
+import { Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Brain, Server, Bot, Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight, Wifi, Target, GitBranch, Bug, Activity, DollarSign, GitMerge, ShieldAlert, ShieldCheck, BrainCircuit, Gauge, Globe } from "lucide-react";
 import { AIQuickSetupButton } from "./AIQuickSetupButton";
 import { ProviderHealthBadge3D } from "./ProviderHealthBadge3D";
 import { motion, AnimatePresence } from "framer-motion";
@@ -59,9 +59,11 @@ interface TopBarProps {
   onOpenThreatFeed?: () => void;
   onOpenSecurityDash?: () => void;
   onOpenContextMemory?: () => void;
+  onOpenPrefetch?: () => void;
+  onOpenMasterHud?: () => void;
 }
 
-export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash, onOpenContextMemory }: TopBarProps) {
+export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash, onOpenContextMemory, onOpenPrefetch, onOpenMasterHud }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
   const { toast } = useToast();
@@ -664,6 +666,30 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               title="Context Memory Panel 3D"
             >
               <BrainCircuit className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Prefetch Intelligence 3D */}
+          {onOpenPrefetch && (
+            <button
+              onClick={onOpenPrefetch}
+              className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-[#fbbf24] hover:bg-[#fbbf24]/10 transition-colors"
+              aria-label="Prefetch Intelligence 3D"
+              title="AI Prefetch Intelligence 3D"
+            >
+              <Gauge className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* System Master HUD */}
+          {onOpenMasterHud && (
+            <button
+              onClick={onOpenMasterHud}
+              className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-[#22c55e] hover:bg-[#22c55e]/10 transition-colors"
+              aria-label="System Master HUD"
+              title="System Master HUD 3D"
+            >
+              <Globe className="w-4 h-4" />
             </button>
           )}
 

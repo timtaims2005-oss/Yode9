@@ -173,8 +173,11 @@ import { DedupVisualizer3D } from "./components/DedupVisualizer3D";
 import { ThreatFeed3D } from "./components/ThreatFeed3D";
 import { SecurityDashboard3D } from "./components/SecurityDashboard3D";
 import { ContextMemoryPanel3D } from "./components/ContextMemoryPanel3D";
+import { PrefetchIntelligence3D } from "./components/PrefetchIntelligence3D";
+import { SystemMasterHUD3D } from "./components/SystemMasterHUD3D";
 import { contextMemory } from "./lib/context-memory";
 import { securityLayer } from "./lib/security-layer";
+import { prefetchEngine } from "./lib/prefetch-engine";
 
 const queryClient = new QueryClient();
 
@@ -472,16 +475,24 @@ function AppContent() {
   const [threatFeedOpen, setThreatFeedOpen] = useState(false);
   const [securityDashOpen, setSecurityDashOpen] = useState(false);
   const [contextMemoryOpen, setContextMemoryOpen] = useState(false);
+  const [prefetchOpen, setPrefetchOpen] = useState(false);
+  const [masterHudOpen, setMasterHudOpen] = useState(true);
   const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
 
-  // Non-invasive context memory tracking — listen to chat messages
+  // Non-invasive context memory tracking + prefetch analysis
   useEffect(() => {
     const chat = state.chats.find((c) => c.id === state.activeChatId);
     if (!chat) return;
     const msgs = chat.messages;
     if (msgs.length === 0) return;
     const last = msgs[msgs.length - 1];
-    if (last) contextMemory.addMessage(last.role as "user" | "assistant", last.content);
+    if (!last) return;
+    contextMemory.addMessage(last.role as "user" | "assistant", last.content);
+    if (msgs.length >= 2 && last.role === "assistant") {
+      const prev = msgs[msgs.length - 2];
+      if (prev) prefetchEngine.analyze(prev.content, last.content);
+    }
+    if (last.role === "user") prefetchEngine.recordHit(last.content);
   }, [state.chats, state.activeChatId]);
 
   // Non-invasive security audit on session start
@@ -718,6 +729,8 @@ function AppContent() {
           onOpenThreatFeed={() => setThreatFeedOpen((v) => !v)}
           onOpenSecurityDash={() => setSecurityDashOpen((v) => !v)}
           onOpenContextMemory={() => setContextMemoryOpen((v) => !v)}
+          onOpenPrefetch={() => setPrefetchOpen((v) => !v)}
+          onOpenMasterHud={() => setMasterHudOpen((v) => !v)}
         />
         <ChatView onOpenOsintDash={() => setOsintDashOpen(true)} />
         {compareOpen && <CompareView onClose={() => setCompareOpen(false)} />}
@@ -965,6 +978,22 @@ function AppContent() {
 
       {/* Context Memory Panel 3D */}
       {contextMemoryOpen && <ContextMemoryPanel3D onClose={() => setContextMemoryOpen(false)} />}
+
+      {/* Prefetch Intelligence 3D */}
+      {prefetchOpen && <PrefetchIntelligence3D onClose={() => setPrefetchOpen(false)} />}
+
+      {/* System Master HUD 3D — always-visible command center */}
+      {masterHudOpen && (
+        <SystemMasterHUD3D
+          onOpenPerf={() => setPerfDashOpen((v) => !v)}
+          onOpenCost={() => setCostDashOpen((v) => !v)}
+          onOpenDedup={() => setDedupVizOpen((v) => !v)}
+          onOpenThreat={() => setThreatFeedOpen((v) => !v)}
+          onOpenSecurity={() => setSecurityDashOpen((v) => !v)}
+          onOpenMemory={() => setContextMemoryOpen((v) => !v)}
+          onOpenPrefetch={() => setPrefetchOpen((v) => !v)}
+        />
+      )}
 
       {/* Global HUD scan line — year 3090 effect */}
       <div className="hud-scan-line pointer-events-none" />
