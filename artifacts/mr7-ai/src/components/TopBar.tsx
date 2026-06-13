@@ -66,9 +66,10 @@ interface TopBarProps {
   onOpenNetworkTopo?: () => void;
   onOpenCyberHub?: () => void;
   onOpenCisaLive?: () => void;
+  onOpenCveTimeline?: () => void;
 }
 
-export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash, onOpenContextMemory, onOpenPrefetch, onOpenMasterHud, onOpenAnomalyLog, onOpenNetworkTopo, onOpenCyberHub, onOpenCisaLive }: TopBarProps) {
+export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash, onOpenContextMemory, onOpenPrefetch, onOpenMasterHud, onOpenAnomalyLog, onOpenNetworkTopo, onOpenCyberHub, onOpenCisaLive, onOpenCveTimeline }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
   const { toast } = useToast();
@@ -521,6 +522,18 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               title="CISA Known Exploited Vulnerabilities — Live"
             >
               <ShieldAlert className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* CVE Timeline 3D */}
+          {onOpenCveTimeline && (
+            <button
+              onClick={onOpenCveTimeline}
+              className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-[#f97316] hover:bg-[#f97316]/10 transition-colors"
+              aria-label="CVE Timeline 3D"
+              title="CVE Timeline — CISA KEV 3D Visualization"
+            >
+              <BarChart2 className="w-4 h-4" />
             </button>
           )}
 
