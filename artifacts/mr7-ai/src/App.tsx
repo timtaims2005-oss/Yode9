@@ -178,6 +178,7 @@ const SecurityKanbanModal   = lazy(() => import("./components/modals/SecurityKan
 const NetworkMonitorModal   = lazy(() => import("./components/modals/NetworkMonitorModal").then(m=>({default:m.NetworkMonitorModal})));
 const CyberCommandCenter3D  = lazy(() => import("./components/CyberCommandCenter3D").then(m=>({default:m.CyberCommandCenter3D})));
 const CveTimeline3DModal    = lazy(() => import("./components/modals/CveTimeline3DModal").then(m=>({default:m.CveTimeline3DModal})));
+const CyberHierarchy3DModal = lazy(() => import("./components/modals/CyberHierarchy3DModal").then(m=>({default:m.CyberHierarchy3DModal})));
 
 // ── MODAL STATE REDUCER ───────────────────────────────────────────────────────
 const MODAL_IDS = [
@@ -204,7 +205,7 @@ const MODAL_IDS = [
   'multiAgentSOC','orchestrationEngine','globalVulnHeatmap','cyberWarfareMatrix',
   'sentientCyberSphere','perfDash','costDash','dedupViz','threatFeed','securityDash',
   'contextMemory','prefetch','masterHud','anomalyLog','net3D','autoSetup','cyberHub','sidebar',
-  'cisaLive','cveTimeline',
+  'cisaLive','cveTimeline','cyberHierarchy',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -522,6 +523,7 @@ function AppContent() {
           onOpenCyberHub={() => open('cyberHub')}
           onOpenCisaLive={() => toggle('cisaLive')}
           onOpenCveTimeline={() => toggle('cveTimeline')}
+          onOpenCyberHierarchy={() => toggle('cyberHierarchy')}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
@@ -748,6 +750,9 @@ function AppContent() {
 
       {/* CVE Timeline 3D */}
       <CveTimeline3DModal open={modals.cveTimeline} onOpenChange={(v) => mDispatch({type:'SET',id:'cveTimeline',value:v})} />
+
+      {/* Cyber Hierarchy 3D — هرم الخطر السيبراني */}
+      <CyberHierarchy3DModal open={modals.cyberHierarchy} onOpenChange={(v) => mDispatch({type:'SET',id:'cyberHierarchy',value:v})} />
     </div>
   );
 }

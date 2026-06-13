@@ -53,6 +53,8 @@ const DOMAINS = [
     modules: [
       { id: "threatGlobe",          label: "Threat Globe" },
       { id: "liveCVE",              label: "Live CVE" },
+      { id: "cveTimeline",          label: "CVE Timeline 3D" },
+      { id: "cyberHierarchy",       label: "Cyber Hierarchy" },
       { id: "threatIntel",          label: "Threat Intel" },
       { id: "deepSearch",           label: "Dark Web Search" },
       { id: "chainInvestigation",   label: "Chain Investigate" },
@@ -175,9 +177,11 @@ export function CyberCommandCenter3D({ open, onClose, onOpenModal }: CyberComman
     cameraRef.current = camera;
 
     // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
     renderer.setSize(W, H);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio * 2, 4));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.3;
     renderer.shadowMap.enabled = false;
     mount.appendChild(renderer.domElement);
     rendererRef.current = renderer;

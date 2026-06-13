@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Brain, Server, Bot, Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight, Wifi, Target, GitBranch, Bug, Activity, DollarSign, GitMerge, ShieldAlert, ShieldCheck, BrainCircuit, Gauge, Globe, AlertTriangle, Network } from "lucide-react";
+import { Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Brain, Server, Bot, Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight, Wifi, Target, GitBranch, Bug, Activity, DollarSign, GitMerge, ShieldAlert, ShieldCheck, BrainCircuit, Gauge, Globe, AlertTriangle, Network, Cpu } from "lucide-react";
 import { AIQuickSetupButton } from "./AIQuickSetupButton";
 import { ProviderHealthBadge3D } from "./ProviderHealthBadge3D";
 import { PersonaSwitcher3D } from "./PersonaSwitcher3D";
@@ -67,9 +67,10 @@ interface TopBarProps {
   onOpenCyberHub?: () => void;
   onOpenCisaLive?: () => void;
   onOpenCveTimeline?: () => void;
+  onOpenCyberHierarchy?: () => void;
 }
 
-export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash, onOpenContextMemory, onOpenPrefetch, onOpenMasterHud, onOpenAnomalyLog, onOpenNetworkTopo, onOpenCyberHub, onOpenCisaLive, onOpenCveTimeline }: TopBarProps) {
+export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings, onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom, onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash, onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash, onOpenContextMemory, onOpenPrefetch, onOpenMasterHud, onOpenAnomalyLog, onOpenNetworkTopo, onOpenCyberHub, onOpenCisaLive, onOpenCveTimeline, onOpenCyberHierarchy }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
   const { toast } = useToast();
@@ -534,6 +535,18 @@ export function TopBar({ onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp,
               title="CVE Timeline — CISA KEV 3D Visualization"
             >
               <BarChart2 className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Cyber Hierarchy 3D — هرم الخطر السيبراني */}
+          {onOpenCyberHierarchy && (
+            <button
+              onClick={onOpenCyberHierarchy}
+              className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-[#00ff41] hover:bg-[#00ff41]/10 transition-colors"
+              aria-label="Cyber Hierarchy 3D"
+              title="هرم الخطر السيبراني — Cyber Danger Pyramid"
+            >
+              <Cpu className="w-4 h-4" />
             </button>
           )}
 
