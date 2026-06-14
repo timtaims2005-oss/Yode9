@@ -16,6 +16,7 @@ import {
   Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight,
   Target, GitBranch, Bug, Activity, DollarSign, GitMerge, ShieldAlert, ShieldCheck,
   BrainCircuit, Gauge, Globe, AlertTriangle, Network, Cpu, Lock,
+  Flame, Share2,
 } from "lucide-react";
 
 // ── TopBar props ──────────────────────────────────────────────────────────────
@@ -52,6 +53,9 @@ interface TopBarProps {
   onOpenCisaLive?: () => void;
   onOpenCveTimeline?: () => void;
   onOpenCyberHierarchy?: () => void;
+  onOpenCognitiveWarfare?: () => void;
+  onOpenAutonomousOffense?: () => void;
+  onOpenAttackGraph?: () => void;
 }
 
 // ── 3D animated HUD background ────────────────────────────────────────────────
@@ -448,7 +452,7 @@ export function TopBar({
   onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash,
   onOpenContextMemory, onOpenPrefetch, onOpenMasterHud, onOpenAnomalyLog,
   onOpenNetworkTopo, onOpenCyberHub, onOpenWidgetsDock, onOpenCisaLive, onOpenCveTimeline,
-  onOpenCyberHierarchy,
+  onOpenCyberHierarchy, onOpenCognitiveWarfare, onOpenAutonomousOffense, onOpenAttackGraph,
 }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -566,11 +570,14 @@ export function TopBar({
           <VDivider />
 
           {/* ── GROUP 2 — Ops ───────────────────────────────────────────── */}
-          {onOpenWarRoom            && <HUDBtn icon={Target}    label="War Room"    color="#e21227" onClick={onOpenWarRoom} />}
-          {onOpenDeepSearch         && <HUDBtn icon={Search}    label="Deep Search" color="#f97316" onClick={onOpenDeepSearch} />}
-          {onOpenChainInvestigation && <HUDBtn icon={GitBranch} label="Chain Intel" color="#8b5cf6" onClick={onOpenChainInvestigation} />}
-          {onOpenRedTeam            && <HUDBtn icon={Bug}       label="Red Team"    color="#e21227" onClick={onOpenRedTeam} badge="!" />}
-          {(onOpenWarRoom || onOpenDeepSearch || onOpenChainInvestigation || onOpenRedTeam) && <VDivider />}
+          {onOpenWarRoom              && <HUDBtn icon={Target}      label="War Room"     color="#e21227" onClick={onOpenWarRoom} />}
+          {onOpenDeepSearch           && <HUDBtn icon={Search}      label="Deep Search"  color="#f97316" onClick={onOpenDeepSearch} />}
+          {onOpenChainInvestigation   && <HUDBtn icon={GitBranch}   label="Chain Intel"  color="#8b5cf6" onClick={onOpenChainInvestigation} />}
+          {onOpenRedTeam              && <HUDBtn icon={Bug}         label="Red Team"     color="#e21227" onClick={onOpenRedTeam} badge="!" />}
+          {onOpenCognitiveWarfare     && <HUDBtn icon={BrainCircuit}label="Cog. Warfare" color="#8b5cf6" onClick={onOpenCognitiveWarfare} />}
+          {onOpenAutonomousOffense    && <HUDBtn icon={Flame}       label="Offense"      color="#f97316" onClick={onOpenAutonomousOffense} />}
+          {onOpenAttackGraph          && <HUDBtn icon={Share2}      label="Atk. Graph"   color="#10b981" onClick={onOpenAttackGraph} />}
+          {(onOpenWarRoom || onOpenDeepSearch || onOpenChainInvestigation || onOpenRedTeam || onOpenCognitiveWarfare || onOpenAutonomousOffense || onOpenAttackGraph) && <VDivider />}
 
           {/* ── GROUP 3 — Analytics & Intelligence ─────────────────────── */}
           {onOpenNeuralMatrix && <HUDBtn icon={Crosshair}   label="Neural Matrix" color="#e21227"  onClick={onOpenNeuralMatrix} />}

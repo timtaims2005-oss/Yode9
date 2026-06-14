@@ -13,7 +13,6 @@ import { AITerminal } from "./components/AITerminal";
 import { StoreProvider, useStore } from "./lib/store";
 import { checkAndExpireSubscription } from "./lib/subscription";
 import { FloatingActionDock } from "./components/FloatingActionDock";
-import { QuickDock3D } from "./components/QuickDock3D";
 import { PipelineHUD } from "./components/PipelineHUD";
 import type { PipelineItem } from "./lib/pipeline";
 import { CompareView } from "./components/CompareView";
@@ -529,15 +528,8 @@ function AppContent() {
           onOpenCisaLive={() => toggle('cisaLive')}
           onOpenCveTimeline={() => toggle('cveTimeline')}
           onOpenCyberHierarchy={() => toggle('cyberHierarchy')}
-        />
-        <QuickDock3D
-          onOpenArsenal={() => open('arsenal')}
-          onOpenAgent={() => open('agent')}
-          onOpenNexus={() => open('nexus')}
-          onOpenWarRoom={() => open('warRoom')}
           onOpenCognitiveWarfare={() => open('cognitiveWarfare')}
           onOpenAutonomousOffense={() => open('autonomousOffense')}
-          onOpenCyberHierarchy={() => toggle('cyberHierarchy')}
           onOpenAttackGraph={() => open('attackGraph')}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} />
