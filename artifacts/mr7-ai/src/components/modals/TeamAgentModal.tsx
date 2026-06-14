@@ -193,7 +193,7 @@ Your job: synthesize all perspectives into one unified, structured threat intell
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-w-3xl max-h-[88dvh] flex flex-col rounded-2xl overflow-hidden"
             style={{ background: "#07070d", border: "1px solid rgba(249,115,22,0.25)", boxShadow: "0 0 60px rgba(249,115,22,0.1)" }}
           >
             {/* Header */}

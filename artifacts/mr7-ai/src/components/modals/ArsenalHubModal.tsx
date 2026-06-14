@@ -2064,7 +2064,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
             animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
             exit={{ opacity: 0, scale: 0.91, y: 40 }}
             transition={{ duration: 0.3, type: "spring", stiffness: 180, damping: 26 }}
-            className="w-full max-w-5xl max-h-[94vh] flex flex-col rounded-2xl overflow-hidden relative"
+            className="w-full max-w-4xl max-h-[94vh] flex flex-col rounded-2xl overflow-hidden relative"
             style={{
               background: "linear-gradient(160deg, #050508 0%, #020204 50%, #04040a 100%)",
               border: "1px solid rgba(226,18,39,0.22)",

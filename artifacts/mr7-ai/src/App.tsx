@@ -754,7 +754,6 @@ function AppContent() {
           </motion.div>
         )}
       </AnimatePresence>
-      <NeuralParticleBackground />
       <div className="hidden md:block"><AmbientParticleField density={0.15} /></div>
       <div className="hidden md:block"><HoloDataStream side="both" /></div>
       {/* CyberWidgetsDock removed — accessible via TopBar "HUD" button */}

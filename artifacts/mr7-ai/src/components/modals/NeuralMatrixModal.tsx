@@ -448,7 +448,7 @@ export function NeuralMatrixModal({ open, onOpenChange }: NeuralMatrixModalProps
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="w-full max-w-4xl max-h-[94vh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-w-3xl max-h-[94vh] flex flex-col rounded-2xl overflow-hidden"
             style={{
               background: "linear-gradient(160deg, #050818 0%, #080810 100%)",
               border: "1px solid rgba(226,18,39,0.25)",

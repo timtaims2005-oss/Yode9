@@ -948,7 +948,7 @@ export function ClaudeCodeModal({ open, onOpenChange }: ClaudeCodeModalProps) {
           style={{ background:"rgba(0,0,0,0.88)", backdropFilter:"blur(6px)" }}
           onClick={e=>{ if(e.target===e.currentTarget) onOpenChange(false); }}>
           <motion.div initial={{scale:0.96,y:16}} animate={{scale:1,y:0}} exit={{scale:0.96,y:16}} transition={{duration:0.18}}
-            className="w-full max-w-5xl flex flex-col rounded-xl overflow-hidden shadow-2xl"
+            className="w-full max-w-4xl flex flex-col rounded-xl overflow-hidden shadow-2xl"
             style={{ background:"#0c0c10", border:"1px solid rgba(6,182,212,0.25)", boxShadow:"0 0 80px rgba(6,182,212,0.2),0 30px 60px rgba(0,0,0,0.9)", height:"min(90vh,800px)" }}>
 
             {/* ── Title bar ── */}

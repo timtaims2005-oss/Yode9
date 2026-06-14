@@ -146,7 +146,7 @@ Output:
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.92)" }}>
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-4xl h-[90vh] flex flex-col rounded-xl border overflow-hidden"
+        className="w-full max-w-3xl h-[90vh] flex flex-col rounded-xl border overflow-hidden"
         style={{ background: "#0a0a0a", borderColor: "#00e5ff30" }}>
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b shrink-0" style={{ borderColor: "#00e5ff20", background: "#00e5ff08" }}>

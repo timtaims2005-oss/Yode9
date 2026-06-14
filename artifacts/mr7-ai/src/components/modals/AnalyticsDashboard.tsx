@@ -188,7 +188,7 @@ export function AnalyticsDashboard({ open, onClose }: Props) {
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={onClose} />
           <motion.div
-            className="relative w-full max-w-4xl max-h-[95vh] flex flex-col rounded-2xl border border-[#1f1f1f] overflow-hidden"
+            className="relative w-full max-w-3xl max-h-[90dvh] flex flex-col rounded-2xl border border-[#1f1f1f] overflow-hidden"
             style={{ background: "#050510" }}
             initial={{ scale: 0.92, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}

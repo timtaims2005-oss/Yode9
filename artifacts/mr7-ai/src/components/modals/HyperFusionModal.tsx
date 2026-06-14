@@ -221,7 +221,7 @@ export function HyperFusionModal({ open, onClose, initialQuery = "", chatHistory
 
           <motion.div initial={{ scale: 0.93, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.93, opacity: 0, y: 10 }} transition={{ duration: 0.22 }}
-            className="relative w-full max-w-4xl max-h-[94vh] flex flex-col rounded-2xl border overflow-hidden"
+            className="relative w-full max-w-3xl max-h-[94vh] flex flex-col rounded-2xl border overflow-hidden"
             style={{ background: "#080808", borderColor: "rgba(167,139,250,0.45)", boxShadow: "0 0 80px rgba(167,139,250,0.18), 0 25px 60px rgba(0,0,0,0.9)" }}>
 
             {/* Header */}

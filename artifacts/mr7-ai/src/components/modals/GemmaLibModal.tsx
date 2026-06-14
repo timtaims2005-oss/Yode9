@@ -63,7 +63,7 @@ Provide accurate, detailed technical guidance. Include JAX/Python code examples 
           style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}
           onClick={e => e.target === e.currentTarget && onOpenChange(false)}>
           <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-            className="w-full max-w-4xl rounded-2xl border overflow-hidden flex flex-col"
+            className="w-full max-w-3xl rounded-2xl border overflow-hidden flex flex-col"
             style={{ background: "#080808", borderColor: "rgba(66,133,244,0.25)", maxHeight: "90vh" }}>
 
             {/* Header */}

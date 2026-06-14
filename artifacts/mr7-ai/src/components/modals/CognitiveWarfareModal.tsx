@@ -224,7 +224,7 @@ export function CognitiveWarfareModal({ open, onOpenChange }: Props) {
         onClick={(e) => { if (e.target === e.currentTarget) onOpenChange(false); }}
       >
         <motion.div
-          className="relative w-full max-w-5xl rounded-2xl overflow-hidden flex flex-col"
+          className="relative w-full max-w-4xl rounded-2xl overflow-hidden flex flex-col"
           initial={{ scale: 0.92, y: 30 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.92, y: 30 }}

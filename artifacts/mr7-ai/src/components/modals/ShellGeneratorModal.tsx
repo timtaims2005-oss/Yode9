@@ -218,7 +218,7 @@ export function ShellGeneratorModal({ open, onOpenChange, onInjectToChat }: Prop
         >
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => onOpenChange(false)} />
           <motion.div
-            className="relative w-full max-w-4xl max-h-[96vh] bg-[#060606] border border-[#e21227]/30 rounded-2xl overflow-hidden flex flex-col shadow-[0_0_60px_rgba(226,18,39,0.15)]"
+            className="relative w-full max-w-3xl max-h-[96vh] bg-[#060606] border border-[#e21227]/30 rounded-2xl overflow-hidden flex flex-col shadow-[0_0_60px_rgba(226,18,39,0.15)]"
             initial={{ scale: 0.93, opacity: 0, y: 30 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.93, opacity: 0, y: 30 }}

@@ -524,7 +524,7 @@ export function WormGPTModal({ open, onOpenChange }: { open: boolean; onOpenChan
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.96 }}
-        className="relative w-full max-w-5xl h-[94vh] flex flex-col rounded-lg overflow-hidden"
+        className="relative w-full max-w-4xl h-[94vh] flex flex-col rounded-lg overflow-hidden"
         style={{ background: "#080808", border: `1px solid ${R}`, boxShadow: `0 0 60px ${Rg(0.25)}, 0 0 120px ${Rg(0.1)}` }}
       >
         <AnimatePresence>

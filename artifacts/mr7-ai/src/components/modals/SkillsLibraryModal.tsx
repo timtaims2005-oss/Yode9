@@ -109,7 +109,7 @@ export function SkillsLibraryModal({ open, onOpenChange, onInject }: SkillsLibra
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.18 }}
-            className="w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-w-3xl max-h-[88dvh] flex flex-col rounded-2xl overflow-hidden"
             style={{ background: "#070f0a", border: "1px solid rgba(16,185,129,0.25)", boxShadow: "0 0 60px rgba(16,185,129,0.1)" }}
           >
             {/* Header */}

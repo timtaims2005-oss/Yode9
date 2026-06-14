@@ -191,7 +191,7 @@ Include specific command examples, flags, and real-world usage scenarios.`;
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-4xl rounded-2xl overflow-hidden flex flex-col"
+        className="w-full max-w-3xl rounded-2xl overflow-hidden flex flex-col"
         style={{ background: "#0a0a0a", border: `1px solid ${Rg(0.25)}`, maxHeight: "90vh" }}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0" style={{ borderColor: Rg(0.12) }}>

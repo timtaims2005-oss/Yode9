@@ -1,5 +1,7 @@
 export type PerfSnapshot = {
   fps: number;
+  frameTimeMs: number;    /* actual ms per frame — precise on high-Hz displays */
+  fpsDrop: boolean;       /* true when fps < 80% of target */
   memoryMB: number;
   memoryPct: number;
   avgLatencyMs: number;
@@ -19,7 +21,10 @@ class PerfMonitor {
   private frameCount = 0;
   private lastFpsTime = performance.now();
   private fps = 60;
+  private frameTimeMs = 16.67;
   private rafId = 0;
+  /* Moving window — last 60 frame timestamps for rolling average */
+  private frameTimes: number[] = [];
 
   private latencies: number[] = [];
   private tpsWindow: { ts: number; tokens: number }[] = [];
@@ -45,15 +50,28 @@ class PerfMonitor {
     cancelAnimationFrame(this.rafId);
   }
 
-  private tick = () => {
+  private tick = (ts: number) => {
     this.frameCount++;
-    const now = performance.now();
-    const elapsed = now - this.lastFpsTime;
-    if (elapsed >= 500) {
-      this.fps = Math.round((this.frameCount * 1000) / elapsed);
-      this.frameCount = 0;
-      this.lastFpsTime = now;
+    const now = ts;
+
+    /* Track frame delta using moving window (last 60 frames) */
+    if (this.frameTimes.length > 0) {
+      const delta = now - this.frameTimes[this.frameTimes.length - 1];
+      if (delta > 0 && delta < 250) this.frameTimeMs = delta;
     }
+    this.frameTimes.push(now);
+    if (this.frameTimes.length > 60) this.frameTimes.shift();
+
+    /* Rolling FPS from actual timestamps — accurate on 120/144/240Hz */
+    if (this.frameTimes.length >= 2) {
+      const span = now - this.frameTimes[0];
+      this.fps = Math.round(((this.frameTimes.length - 1) * 1000) / span);
+    }
+
+    /* Fallback legacy counter */
+    const elapsed = now - this.lastFpsTime;
+    if (elapsed >= 500) { this.frameCount = 0; this.lastFpsTime = now; }
+
     if (this.running) this.rafId = requestAnimationFrame(this.tick);
   };
 
@@ -101,8 +119,15 @@ class PerfMonitor {
       memoryPct = mem.usedJSHeapSize / mem.jsHeapSizeLimit;
     }
 
+    /* Import here to avoid circular dep at module level */
+    const { getDetectedRefreshRate } = await import("./adaptive-quality").catch(() => ({ getDetectedRefreshRate: () => 60 }));
+    const targetFps = getDetectedRefreshRate();
+    const fpsDrop = this.fps < targetFps * 0.8;
+
     return {
       fps: this.fps,
+      frameTimeMs: this.frameTimeMs,
+      fpsDrop,
       memoryMB,
       memoryPct,
       avgLatencyMs: avg,

@@ -207,7 +207,7 @@ export function AgentModal({ open, onOpenChange, pipelineTask }: AgentModalProps
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
-            className="w-full max-w-2xl max-h-[92vh] flex flex-col rounded-2xl border overflow-hidden shadow-2xl"
+            className="w-full max-w-2xl max-h-[88dvh] flex flex-col rounded-2xl border overflow-hidden shadow-2xl"
             style={{
               background: "#090909",
               borderColor: "rgba(255,77,77,0.25)",

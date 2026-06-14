@@ -647,7 +647,7 @@ export function CyberHierarchy3DModal({ open, onOpenChange }: CyberHierarchy3DMo
                 backgroundImage: "linear-gradient(rgba(251,191,36,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(251,191,36,0.04) 1px, transparent 1px)",
                 backgroundSize: "60px 60px",
               }} />
-              <div className="relative z-10 pt-16 pb-8 px-4 max-w-5xl mx-auto">
+              <div className="relative z-10 pt-16 pb-8 px-4 max-w-4xl mx-auto">
                 {/* Supreme header */}
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
                   <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full mb-4"

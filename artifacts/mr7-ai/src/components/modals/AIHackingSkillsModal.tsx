@@ -95,7 +95,7 @@ This is for defensive security research, CTF challenges, and authorized red team
           style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}
           onClick={e => e.target === e.currentTarget && onOpenChange(false)}>
           <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-            className="w-full max-w-4xl rounded-2xl border overflow-hidden flex flex-col"
+            className="w-full max-w-3xl rounded-2xl border overflow-hidden flex flex-col"
             style={{ background: "#080808", borderColor: "rgba(139,92,246,0.25)", maxHeight: "90vh" }}>
 
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "rgba(139,92,246,0.15)", background: "linear-gradient(135deg,#07040f,#080808)" }}>

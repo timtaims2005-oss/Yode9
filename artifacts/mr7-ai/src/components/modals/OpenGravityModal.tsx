@@ -150,7 +150,7 @@ export function OpenGravityModal({ open, onOpenChange, pipelineCode }: OpenGravi
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
-            className="w-full max-w-4xl max-h-[94vh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-w-3xl max-h-[94vh] flex flex-col rounded-2xl overflow-hidden"
             style={{
               background: "#070b12",
               border: "1px solid rgba(167,139,250,0.25)",

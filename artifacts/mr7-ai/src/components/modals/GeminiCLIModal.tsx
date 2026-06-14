@@ -284,7 +284,7 @@ export function GeminiCLIModal({ open, onOpenChange, pipelineContext }: GeminiCL
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
-            className="w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-w-3xl max-h-[88dvh] flex flex-col rounded-2xl overflow-hidden"
             style={{
               background: "#020206",
               border: "1px solid rgba(129,140,248,0.3)",

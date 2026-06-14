@@ -2297,7 +2297,7 @@ export function PersonaEditorModal({ open, onOpenChange }: PersonaEditorModalPro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContentTop
-        className="bg-card border-border w-[98vw] max-w-4xl max-h-[92dvh] overflow-hidden flex flex-col p-0"
+        className="bg-card border-border w-[98vw] max-w-3xl max-h-[92dvh] overflow-hidden flex flex-col p-0"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader className="px-5 pt-4 pb-3 border-b border-border flex-shrink-0">

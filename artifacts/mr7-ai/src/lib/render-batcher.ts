@@ -1,25 +1,37 @@
+import { getDetectedRefreshRate } from "./adaptive-quality";
+
 /**
- * RAF-based render batcher — batches rapid state updates to one per animation frame.
- * Non-invasive: wraps any callback, no React changes needed.
+ * RAF-based render batcher with delta-time tracking.
+ * Batches rapid state updates to one per animation frame.
+ * Exposes lastDeltaMs for consumers that need smooth animation.
  */
 export function createRAFBatcher<T>(
-  onFlush: (latest: T) => void,
-): { push: (val: T) => void; flush: (latest: T) => void; cancel: () => void } {
+  onFlush: (latest: T, deltaMs: number) => void,
+): { push: (val: T) => void; flush: (latest: T) => void; cancel: () => void; lastDeltaMs: number } {
   let rafId: number | null = null;
   let pending: T | null = null;
+  let lastFrameTime = 0;
+  let lastDeltaMs = 16.67;
 
   function flush(latest: T) {
     if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
     pending = null;
-    onFlush(latest);
+    onFlush(latest, lastDeltaMs);
   }
 
   function push(val: T) {
     pending = val;
     if (rafId !== null) return;
-    rafId = requestAnimationFrame(() => {
+    rafId = requestAnimationFrame((ts: number) => {
       rafId = null;
-      if (pending !== null) { const p = pending; pending = null; onFlush(p); }
+      const now = ts;
+      if (lastFrameTime > 0) {
+        const raw = now - lastFrameTime;
+        /* Clamp to [1ms, 100ms] to avoid spikes on tab-wake */
+        lastDeltaMs = Math.max(1, Math.min(100, raw));
+      }
+      lastFrameTime = now;
+      if (pending !== null) { const p = pending; pending = null; onFlush(p, lastDeltaMs); }
     });
   }
 
@@ -28,7 +40,18 @@ export function createRAFBatcher<T>(
     pending = null;
   }
 
-  return { push, flush, cancel };
+  const batcher = { push, flush, cancel, lastDeltaMs };
+  return batcher;
+}
+
+/**
+ * Delta-time normalised callback runner.
+ * Ensures visual speed is identical at 60, 120, 144, 240 fps.
+ * normFactor = (actualDeltaMs / targetFrameMs) — multiply velocity values by this.
+ */
+export function getDeltaNorm(deltaMs: number): number {
+  const targetMs = 1000 / getDetectedRefreshRate();
+  return Math.max(0.05, Math.min(4, deltaMs / targetMs));
 }
 
 /**
