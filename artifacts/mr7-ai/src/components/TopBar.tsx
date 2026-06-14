@@ -48,6 +48,7 @@ interface TopBarProps {
   onOpenAnomalyLog?: () => void;
   onOpenNetworkTopo?: () => void;
   onOpenCyberHub?: () => void;
+  onOpenWidgetsDock?: () => void;
   onOpenCisaLive?: () => void;
   onOpenCveTimeline?: () => void;
   onOpenCyberHierarchy?: () => void;
@@ -446,7 +447,7 @@ export function TopBar({
   onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash,
   onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash,
   onOpenContextMemory, onOpenPrefetch, onOpenMasterHud, onOpenAnomalyLog,
-  onOpenNetworkTopo, onOpenCyberHub, onOpenCisaLive, onOpenCveTimeline,
+  onOpenNetworkTopo, onOpenCyberHub, onOpenWidgetsDock, onOpenCisaLive, onOpenCveTimeline,
   onOpenCyberHierarchy,
 }: TopBarProps) {
   const { state, dispatch } = useStore();
@@ -592,6 +593,7 @@ export function TopBar({
           {onOpenPrefetch       && <HUDBtn icon={Gauge}        label="Prefetch"     color="#fbbf24" onClick={onOpenPrefetch} />}
           {onOpenMasterHud      && <HUDBtn icon={Globe}        label="HUD"          color="#22c55e" onClick={onOpenMasterHud} />}
           {onOpenCyberHub       && <HUDBtn icon={Zap}          label="Cyber Hub"    color="#e21227" onClick={onOpenCyberHub} badge="3D" />}
+          {onOpenWidgetsDock    && <HUDBtn icon={Gauge}        label="Widgets HUD"  color="#06b6d4" onClick={onOpenWidgetsDock} badge="6P" />}
           {(onOpenCisaLive || onOpenCveTimeline || onOpenCyberHierarchy || onOpenThreatFeed) && <VDivider />}
 
           {/* ── GROUP 5 — System ────────────────────────────────────────── */}

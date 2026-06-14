@@ -21,7 +21,7 @@ import { ArsenalFullPage } from "./components/ArsenalFullPage";
 import { QRSyncModal, useQRSyncImport } from "./components/modals/QRSyncModal";
 import { AmbientParticleField } from "./components/AmbientParticleField";
 import { HoloDataStream } from "./components/HoloDataStream";
-import { CyberWidgetsDock } from "./components/CyberWidgetsDock";
+import { CyberHUDOverlay } from "./components/CyberWidgetsDock";
 import { SystemStatusWidget } from "./components/SystemStatusWidget";
 import { CyberHeatmapHUD } from "./components/CyberHeatmapHUD";
 import { AIAutoSetup3D } from "./components/AIAutoSetup3D";
@@ -208,7 +208,7 @@ const MODAL_IDS = [
   'precisionStrike','liveCVE','basSimulation','networkTopo','binaryAnalysis','webFuzzing',
   'multiAgentSOC','orchestrationEngine','globalVulnHeatmap','cyberWarfareMatrix',
   'sentientCyberSphere','perfDash','costDash','dedupViz','threatFeed','securityDash',
-  'contextMemory','prefetch','masterHud','anomalyLog','net3D','autoSetup','cyberHub','sidebar',
+  'contextMemory','prefetch','masterHud','anomalyLog','net3D','autoSetup','cyberHub','sidebar','widgetsDock',
   'cisaLive','cveTimeline','cyberHierarchy','cognitiveWarfare','autonomousOffense','attackGraph',
 ] as const;
 
@@ -525,6 +525,7 @@ function AppContent() {
           onOpenAnomalyLog={() => toggle('anomalyLog')}
           onOpenNetworkTopo={() => toggle('net3D')}
           onOpenCyberHub={() => open('cyberHub')}
+          onOpenWidgetsDock={() => open('widgetsDock')}
           onOpenCisaLive={() => toggle('cisaLive')}
           onOpenCveTimeline={() => toggle('cveTimeline')}
           onOpenCyberHierarchy={() => toggle('cyberHierarchy')}
@@ -728,7 +729,10 @@ function AppContent() {
       <SystemStatusWidget />
       <AmbientParticleField density={0.3} />
       <HoloDataStream side="both" />
-      <CyberWidgetsDock />
+      {/* CyberWidgetsDock removed — accessible via TopBar "HUD" button */}
+      <AnimatePresence>
+        {modals.widgetsDock && <CyberHUDOverlay key="widgets-dock" onClose={() => close('widgetsDock')} />}
+      </AnimatePresence>
 
       <PipelineHUD
         onSendToRag={handlePipeToRag} onSendToCLI={handlePipeToCLI}

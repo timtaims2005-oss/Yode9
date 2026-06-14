@@ -2605,7 +2605,7 @@ function HUDMiniBar({ color }: { color: string }) {
    270px · spring(24,210) · tilt±14 · perspective700
    + 3D holographic interior: canvas bg, arc meters, neural list
 ══════════════════════════════════════════════════════════════════ */
-function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
+export function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
   const [focusedPanel,    setFocusedPanel]    = useState<string | null>(null);
   const [showNetActivity, setShowNetActivity] = useState(false);
   const [tilt,  setTilt]  = useState({ x: 0, y: 0 });
