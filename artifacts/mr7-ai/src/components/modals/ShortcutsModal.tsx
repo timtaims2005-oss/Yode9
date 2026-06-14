@@ -68,7 +68,7 @@ const GROUPS: ShortcutGroup[] = [
 export function ShortcutsModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border w-[98vw] max-w-2xl max-h-[80vh] flex flex-col p-0 gap-0">
+      <DialogContent className="bg-card border-border w-[98vw] max-w-2xl max-h-[92dvh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-5 pt-5 pb-3 border-b border-border shrink-0">
           <DialogTitle className="flex items-center gap-2 text-[13px] font-black font-mono uppercase tracking-wider">
             <Keyboard className="w-4 h-4 text-primary" />

@@ -253,7 +253,7 @@ export function UtilityToolModal({
   const meta = tool ? META[tool] : null;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContentTop className="bg-card border-border w-[98vw] max-w-lg max-h-[80vh] overflow-y-auto"
+      <DialogContentTop className="bg-card border-border w-[98vw] max-w-lg max-h-[92dvh] overflow-y-auto"
         onOpenAutoFocus={(e) => e.preventDefault()}>
         {tool && meta && (
           <>

@@ -59,7 +59,7 @@ export function CodexBarModal({ open, onOpenChange }: CodexBarModalProps) {
         >
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => onOpenChange(false)} />
           <motion.div
-            className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl flex flex-col"
+            className="relative w-full max-w-2xl max-h-[92dvh] overflow-hidden rounded-2xl flex flex-col"
             style={{ background: "#0d0d0d", border: "1px solid rgba(16,185,129,0.25)" }}
             initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}
           >

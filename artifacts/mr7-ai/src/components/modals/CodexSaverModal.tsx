@@ -73,7 +73,7 @@ export function CodexSaverModal({ open, onOpenChange }: CodexSaverModalProps) {
         <motion.div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => onOpenChange(false)} />
-          <motion.div className="relative w-full max-w-xl max-h-[85vh] overflow-hidden rounded-2xl flex flex-col"
+          <motion.div className="relative w-full max-w-xl max-h-[92dvh] overflow-hidden rounded-2xl flex flex-col"
             style={{ background: "#0d0d0d", border: "1px solid rgba(34,211,238,0.25)" }}
             initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}>
 

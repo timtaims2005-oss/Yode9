@@ -88,7 +88,7 @@ export function NanoBotModal({ open, onOpenChange }: NanoBotModalProps) {
           className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
           style={{ backdropFilter: "blur(8px)", background: "rgba(0,0,0,0.85)" }}>
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-lg max-h-[85vh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-w-lg max-h-[92dvh] flex flex-col rounded-2xl overflow-hidden"
             style={{ background: "#080808", border: "1px solid rgba(0,229,204,0.25)", boxShadow: "0 0 50px rgba(0,229,204,0.1)" }}>
             <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "rgba(0,229,204,0.2)", background: "rgba(0,229,204,0.04)" }}>
               <div className="flex items-center gap-2.5">

@@ -100,7 +100,7 @@ export function ChangelogModal({ open, onOpenChange }: { open: boolean; onOpenCh
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContentTop
-        className="bg-card border-border w-[98vw] max-w-2xl max-h-[82vh] flex flex-col p-0 gap-0"
+        className="bg-card border-border w-[98vw] max-w-2xl max-h-[92dvh] flex flex-col p-0 gap-0"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader className="px-5 pt-5 pb-3 border-b border-border shrink-0">
