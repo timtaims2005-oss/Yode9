@@ -3,7 +3,7 @@ import {
   BarChart3, Megaphone, Target, Calculator, ListTodo, Feather, Image as ImageIcon,
   Zap, Brain, Briefcase, Heart, Scale, Palette, Coins, Lightbulb, Search as SearchIcon,
   Newspaper, FunctionSquare, Skull, Cpu, Globe, FlaskConical, Bot, Shield,
-  Atom, Layers, Network, Database, Flame, Crosshair, Dna, Infinity,
+  Atom, Layers, Network, Database, Flame, Crosshair, Dna, Infinity, Activity,
   type LucideIcon,
 } from "lucide-react";
 
@@ -165,6 +165,17 @@ export const PERSONAS: Persona[] = [
   { id: "security",     label: "Security Expert",       desc: "تدقيق أمني، CVE، حماية، تهديدات",         icon: Shield,       color: "text-red-400",    prefix: "[Security] " },
   { id: "devops",       label: "DevOps Engineer",       desc: "CI/CD، Kubernetes، Infrastructure كود",   icon: Layers,       color: "text-indigo-400", prefix: "[DevOps] " },
   { id: "datascientist",label: "Data Scientist",        desc: "ML، نماذج إحصائية، تصور بيانات",          icon: Database,     color: "text-teal-400",   prefix: "[DataSci] " },
+  { id: "malware",      label: "Malware Analyst",       desc: "تشريح الثنائيات، تحليل السلوك، مكافحة الهندسة العكسية", icon: Skull, color: "text-red-500",   prefix: "[Malware] " },
+  { id: "soc",          label: "SOC Analyst",           desc: "SIEM، الحوادث، قواعد الكشف، الاستجابة",  icon: Shield,       color: "text-cyan-400",   prefix: "[SOC] " },
+  { id: "threathunter", label: "Threat Hunter",         desc: "بحث استباقي، APT، IOCs، إطار MITRE ATT&CK", icon: Crosshair,  color: "text-red-400",    prefix: "[Hunter] " },
+  { id: "blockchain",   label: "Blockchain Dev",        desc: "Solidity، DeFi، تدقيق العقود الذكية",      icon: Network,      color: "text-yellow-400", prefix: "[Chain] " },
+  { id: "cloud",        label: "Cloud Architect",       desc: "AWS/GCP/Azure، IaC، Serverless، أمن السحابة", icon: Layers,    color: "text-sky-400",    prefix: "[Cloud] " },
+  { id: "iotsec",       label: "IoT Security",          desc: "أمن الأجهزة المدمجة، بروتوكولات IoT، تحليل الثابت", icon: Cpu, color: "text-orange-400", prefix: "[IoT] " },
+  { id: "osint",        label: "OSINT Specialist",      desc: "تجميع معلومات مفتوحة المصدر، الصور الرقمية، GEOINT", icon: SearchIcon, color: "text-blue-400", prefix: "[OSINT] " },
+  { id: "incident",     label: "Incident Responder",    desc: "احتواء الحوادث، الطب الشرعي، استعادة الأنظمة", icon: Activity, color: "text-amber-400",  prefix: "[IR] " },
+  { id: "cryptographer",label: "Cryptographer",         desc: "تصميم بروتوكولات التشفير، تحليل خوارزميات، PKI", icon: Atom, color: "text-violet-400", prefix: "[Crypto] " },
+  { id: "redteam",      label: "Red Team Lead",         desc: "محاكاة APT، ممرات هجوم متقدمة، سيناريوهات واقعية", icon: Flame, color: "text-red-600", prefix: "[RedTeam-L] " },
+  { id: "mlsec",        label: "AI/ML Security",        desc: "هجمات خصومة، تسميم النماذج، تفسير الذكاء الاصطناعي", icon: Brain, color: "text-fuchsia-400", prefix: "[MLSec] " },
 ];
 
 export function getModel(id: string): AIModel {

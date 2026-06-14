@@ -13,6 +13,95 @@ import { DarkWebMonitor } from "./DarkWebMonitor";
 
 import type { UtilityTool } from "./modals/UtilityToolModal";
 
+// ── 3D Neural Network Canvas Background ──────────────────────────────────────
+function NeuralCanvasBG() {
+  const cvRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef(0);
+  const tRef = useRef(0);
+
+  useEffect(() => {
+    const cv = cvRef.current;
+    if (!cv) return;
+    const ctx = cv.getContext("2d")!;
+    const W = 280, H = 500;
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = W * DPR; cv.height = H * DPR;
+    cv.style.width = W + "px"; cv.style.height = H + "px";
+    ctx.scale(DPR, DPR);
+
+    const N = 22;
+    type Node = { x: number; y: number; vx: number; vy: number; r: number };
+    const nodes: Node[] = Array.from({ length: N }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.22, vy: (Math.random() - 0.5) * 0.18,
+      r: 1.2 + Math.random() * 1.8,
+    }));
+    const edges: [number, number][] = [];
+    for (let i = 0; i < N; i++) {
+      for (let j = i + 1; j < N; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        if (Math.sqrt(dx * dx + dy * dy) < 95) edges.push([i, j]);
+      }
+    }
+
+    function draw() {
+      rafRef.current = requestAnimationFrame(draw);
+      tRef.current += 0.008;
+      const t = tRef.current;
+      ctx.clearRect(0, 0, W, H);
+
+      // Move nodes
+      nodes.forEach(n => {
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < 0 || n.x > W) n.vx *= -1;
+        if (n.y < 0 || n.y > H) n.vy *= -1;
+      });
+
+      // Draw edges
+      edges.forEach(([a, b]) => {
+        const na = nodes[a], nb = nodes[b];
+        const dx = na.x - nb.x, dy = na.y - nb.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const alpha = Math.max(0, 1 - dist / 95) * 0.08;
+        ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y);
+        ctx.strokeStyle = `rgba(226,18,39,${alpha})`;
+        ctx.lineWidth = 0.6; ctx.stroke();
+
+        // Data flow particle
+        const phase = (t * 0.5 + a * 0.3) % 1;
+        const px = na.x + (nb.x - na.x) * phase;
+        const py = na.y + (nb.y - na.y) * phase;
+        ctx.beginPath(); ctx.arc(px, py, 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(226,18,39,${alpha * 2.5})`; ctx.fill();
+      });
+
+      // Draw nodes
+      nodes.forEach((n, i) => {
+        const pulse = 0.4 + 0.6 * Math.abs(Math.sin(t * 1.5 + i * 0.7));
+        const rg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 3);
+        rg.addColorStop(0, `rgba(226,18,39,${0.32 * pulse})`);
+        rg.addColorStop(1, "rgba(226,18,39,0)");
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r * 3, 0, Math.PI * 2);
+        ctx.fillStyle = rg; ctx.fill();
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(226,18,39,${0.22 * pulse})`; ctx.fill();
+      });
+    }
+    draw();
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
+  return (
+    <canvas ref={cvRef}
+      className="pointer-events-none select-none"
+      style={{
+        position: "absolute", left: 0, top: 0, width: 280, height: "100%",
+        opacity: 0.28, zIndex: 0, display: "block",
+      }} />
+  );
+}
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -536,6 +625,9 @@ export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool,
             ))}
           </div>
         )}
+
+        {/* ── 3D Neural Network Canvas Background ────────────────────────── */}
+        <NeuralCanvasBG />
 
         {/* Your Chats */}
         <div className="space-y-1.5">

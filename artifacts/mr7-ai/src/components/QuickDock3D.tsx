@@ -14,32 +14,60 @@ interface DockItem {
 function drawAtomOrbit(ctx: CanvasRenderingContext2D, t: number, w: number, h: number, color: string) {
   ctx.clearRect(0, 0, w, h);
   const cx = w / 2, cy = h / 2;
-  // Outer glow
-  const og = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.5);
-  og.addColorStop(0, color + "22"); og.addColorStop(1, color + "00");
-  ctx.beginPath(); ctx.arc(cx, cy, w * 0.5, 0, Math.PI * 2);
-  ctx.fillStyle = og; ctx.fill();
-  // Core nucleus
-  const ng = ctx.createRadialGradient(cx, cy, 0, cx, cy, 6);
-  ng.addColorStop(0, "#ffffffff"); ng.addColorStop(0.3, color + "ff"); ng.addColorStop(1, color + "33");
-  ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2);
-  ctx.fillStyle = ng; ctx.fill();
-  // 3 orbital ellipses
-  [[0, 1], [Math.PI / 3, 0.9], [Math.PI * 2 / 3, 0.75]].forEach(([baseAngle, opacity], oi) => {
-    const rx = w * 0.40, ry = h * 0.16;
+
+  // Deep space background
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.6);
+  bg.addColorStop(0, color + "15"); bg.addColorStop(1, color + "00");
+  ctx.beginPath(); ctx.arc(cx, cy, w * 0.6, 0, Math.PI * 2);
+  ctx.fillStyle = bg; ctx.fill();
+
+  // Nucleus with chromatic glow
+  for (let gr = 14; gr >= 0; gr -= 2) {
+    const a = (1 - gr / 14) * 0.18;
+    ctx.beginPath(); ctx.arc(cx, cy, gr, 0, Math.PI * 2);
+    ctx.fillStyle = gr < 5 ? "#ffffff" : color + Math.round(a * 255).toString(16).padStart(2, "0");
+    ctx.fill();
+  }
+
+  // 3 tilted orbital ellipses with different speeds + sizes
+  [[0, 1, 1.5], [Math.PI / 3, 0.85, 2.1], [Math.PI * 2 / 3, 0.7, 1.0]].forEach(([angle, opacity, speed], oi) => {
+    const rx = w * (0.30 + oi * 0.05), ry = h * (0.10 + oi * 0.03);
     ctx.save();
-    ctx.translate(cx, cy); ctx.rotate(baseAngle + oi * 0.3);
+    ctx.translate(cx, cy);
+    ctx.rotate(angle as number + t * 0.12);
     ctx.globalAlpha = opacity as number;
+    // Orbit ring with gradient stroke
+    const orbitGrad = ctx.createLinearGradient(-rx, 0, rx, 0);
+    orbitGrad.addColorStop(0, color + "00");
+    orbitGrad.addColorStop(0.4, color + "99");
+    orbitGrad.addColorStop(1, color + "00");
     ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-    ctx.strokeStyle = color + "88"; ctx.lineWidth = 1; ctx.stroke();
-    const angle = t * (1.6 + oi * 0.4);
-    const ex = Math.cos(angle) * rx, ey = Math.sin(angle) * ry;
+    ctx.strokeStyle = orbitGrad; ctx.lineWidth = 0.8; ctx.stroke();
+    // Electron with speed-based trail
+    const ea = t * (speed as number);
+    const ex = Math.cos(ea) * rx, ey = Math.sin(ea) * ry;
+    // Trail
+    for (let tr = 0; tr < 5; tr++) {
+      const ta = ea - tr * 0.18;
+      const tx2 = Math.cos(ta) * rx, ty = Math.sin(ta) * ry;
+      ctx.beginPath(); ctx.arc(tx2, ty, 2.5 - tr * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = color + Math.round((0.6 - tr * 0.12) * 255).toString(16).padStart(2, "0");
+      ctx.fill();
+    }
+    // Main electron
     const eg = ctx.createRadialGradient(ex, ey, 0, ex, ey, 5);
-    eg.addColorStop(0, "#ffffff"); eg.addColorStop(0.4, color + "ff"); eg.addColorStop(1, color + "00");
+    eg.addColorStop(0, "#ffffff"); eg.addColorStop(0.35, color + "ff"); eg.addColorStop(1, color + "00");
     ctx.beginPath(); ctx.arc(ex, ey, 5, 0, Math.PI * 2);
     ctx.fillStyle = eg; ctx.fill();
     ctx.restore();
   });
+
+  // Inner quantum ring (spinning fast)
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(t * 2.4);
+  ctx.globalAlpha = 0.22;
+  ctx.beginPath(); ctx.ellipse(0, 0, w * 0.12, h * 0.05, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 0.6; ctx.stroke();
+  ctx.restore();
 }
 
 function drawNeuralPulse(ctx: CanvasRenderingContext2D, t: number, w: number, h: number, color: string) {
@@ -74,28 +102,35 @@ function drawNeuralPulse(ctx: CanvasRenderingContext2D, t: number, w: number, h:
 function drawHolographicGlobe(ctx: CanvasRenderingContext2D, t: number, w: number, h: number, color: string) {
   ctx.clearRect(0, 0, w, h);
   const cx = w / 2, cy = h / 2;
-  const r = Math.min(w, h) * 0.37;
-  // Outer atmosphere glow
-  const og = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 1.5);
-  og.addColorStop(0, color + "28"); og.addColorStop(1, color + "00");
-  ctx.beginPath(); ctx.arc(cx, cy, r * 1.5, 0, Math.PI * 2);
-  ctx.fillStyle = og; ctx.fill();
-  // Globe fill
-  const sf = ctx.createRadialGradient(cx - r*0.25, cy - r*0.3, 0, cx, cy, r);
-  sf.addColorStop(0, color + "44"); sf.addColorStop(0.4, color + "22"); sf.addColorStop(1, color + "0a");
+  const r = Math.min(w, h) * 0.36;
+
+  // Outer atmosphere multi-layer glow
+  for (let gr = 3; gr >= 0; gr--) {
+    const gog = ctx.createRadialGradient(cx, cy, r * 0.8, cx, cy, r * (1.3 + gr * 0.2));
+    gog.addColorStop(0, color + "18"); gog.addColorStop(1, color + "00");
+    ctx.beginPath(); ctx.arc(cx, cy, r * (1.3 + gr * 0.2), 0, Math.PI * 2);
+    ctx.fillStyle = gog; ctx.fill();
+  }
+
+  // Clip to globe sphere
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+
+  // Globe fill gradient (specular highlight)
+  const sf = ctx.createRadialGradient(cx - r*0.3, cy - r*0.35, 0, cx, cy, r);
+  sf.addColorStop(0, color + "66"); sf.addColorStop(0.45, color + "28"); sf.addColorStop(1, color + "08");
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = sf; ctx.fill();
-  // Latitude rings (3)
-  [-0.5, 0, 0.5].forEach((frac, i) => {
-    const ly = cy + frac * r * 0.88;
+
+  // Grid lines inside clip
+  // Rotating latitude lines
+  for (let lat = -2; lat <= 2; lat++) {
+    const ly = cy + lat * r * 0.42;
     const hw = Math.sqrt(Math.max(0, r * r - (ly - cy) ** 2));
-    ctx.save(); ctx.beginPath();
-    ctx.ellipse(cx, ly, hw, hw * 0.22, 0, 0, Math.PI * 2);
-    ctx.strokeStyle = color + (i === 1 ? "77" : "44");
-    ctx.lineWidth = 0.8; ctx.stroke(); ctx.restore();
-  });
-  // Rotating longitude lines (3)
-  for (let i = 0; i < 3; i++) {
-    const ang = (i / 3) * Math.PI + t * 0.45;
+    ctx.beginPath(); ctx.ellipse(cx, ly, hw, hw * 0.2, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = color + (lat === 0 ? "60" : "30"); ctx.lineWidth = 0.6; ctx.stroke();
+  }
+  // Rotating longitude
+  for (let i = 0; i < 4; i++) {
+    const ang = (i / 4) * Math.PI + t * 0.4;
     const cosA = Math.abs(Math.cos(ang));
     ctx.save(); ctx.translate(cx, cy);
     ctx.beginPath(); ctx.ellipse(0, 0, r * cosA, r, 0, 0, Math.PI * 2);

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 import {
@@ -397,6 +397,19 @@ export function AutonomousOffensiveModal({ open, onOpenChange }: Props) {
   const { lines, status, connect, send, clear } = useWSTerminal();
   useGlobe(canvasRef as React.RefObject<HTMLCanvasElement>, activePhase);
 
+  // ── Real-time terminal node parser ────────────────────────────────────────
+  const parsedArtifacts = useMemo(() => {
+    const text = lines.map(l => l.text).join("\n");
+    const ips   = [...new Set([...text.matchAll(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g)].map(m => m[0]).filter(ip => {
+      const parts = ip.split(".").map(Number);
+      return parts.every(n => n >= 0 && n <= 255);
+    }))].slice(0, 12);
+    const cves  = [...new Set([...text.matchAll(/CVE-\d{4}-\d{4,7}/gi)].map(m => m[0].toUpperCase()))].slice(0, 8);
+    const ports = [...new Set([...text.matchAll(/(?:port\s*:?\s*|:)(\d{2,5})\b/gi)].map(m => m[1]).filter(p => Number(p) <= 65535))].slice(0, 10);
+    const users = [...new Set([...text.matchAll(/(?:user|username|login)[:\s]+([a-zA-Z0-9_\-.]{3,20})/gi)].map(m => m[1]))].slice(0, 6);
+    return { ips, cves, ports, users };
+  }, [lines]);
+
   // Auto-scroll terminal
   useEffect(() => {
     if (termRef.current) termRef.current.scrollTop = termRef.current.scrollHeight;
@@ -771,6 +784,82 @@ export function AutonomousOffensiveModal({ open, onOpenChange }: Props) {
             {/* ── Right: Modules ─────────────────────────────────────────── */}
             <div className="flex-shrink-0 border-l overflow-y-auto flex flex-col"
               style={{ width: "200px", borderColor: "rgba(226,18,39,0.1)", background: "rgba(0,0,0,0.4)" }}>
+
+              {/* ── Parsed Artifacts Panel ─────────────────────────────── */}
+              {(parsedArtifacts.ips.length > 0 || parsedArtifacts.cves.length > 0 || parsedArtifacts.ports.length > 0) && (
+                <div className="px-2.5 py-2 border-b flex-shrink-0"
+                  style={{ borderColor: "rgba(226,18,39,0.12)", background: "rgba(226,18,39,0.04)" }}>
+                  <div className="text-[7px] font-bold uppercase tracking-widest mb-2"
+                    style={{ color: "rgba(226,18,39,0.6)" }}>نتائج محللة</div>
+
+                  {parsedArtifacts.ips.length > 0 && (
+                    <div className="mb-1.5">
+                      <div className="text-[6.5px] font-bold uppercase tracking-wider mb-1"
+                        style={{ color: "rgba(59,130,246,0.7)" }}>IPs ({parsedArtifacts.ips.length})</div>
+                      <div className="flex flex-wrap gap-0.5">
+                        {parsedArtifacts.ips.map((ip, i) => (
+                          <span key={i} onClick={() => navigator.clipboard?.writeText(ip)}
+                            className="px-1 py-0.5 rounded text-[6.5px] font-mono cursor-pointer hover:opacity-90 transition-opacity"
+                            title="انقر للنسخ"
+                            style={{ background: "rgba(59,130,246,0.15)", color: "#3b82f6", border: "1px solid rgba(59,130,246,0.25)" }}>
+                            {ip}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {parsedArtifacts.cves.length > 0 && (
+                    <div className="mb-1.5">
+                      <div className="text-[6.5px] font-bold uppercase tracking-wider mb-1"
+                        style={{ color: "rgba(226,18,39,0.7)" }}>CVEs ({parsedArtifacts.cves.length})</div>
+                      <div className="flex flex-wrap gap-0.5">
+                        {parsedArtifacts.cves.map((cve, i) => (
+                          <span key={i} onClick={() => window.open(`https://nvd.nist.gov/vuln/detail/${cve}`, "_blank")}
+                            className="px-1 py-0.5 rounded text-[6.5px] font-mono cursor-pointer hover:opacity-90 transition-opacity"
+                            title="فتح في NVD"
+                            style={{ background: "rgba(226,18,39,0.15)", color: "#e21227", border: "1px solid rgba(226,18,39,0.3)" }}>
+                            {cve}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {parsedArtifacts.ports.length > 0 && (
+                    <div className="mb-1">
+                      <div className="text-[6.5px] font-bold uppercase tracking-wider mb-1"
+                        style={{ color: "rgba(245,158,11,0.7)" }}>Ports ({parsedArtifacts.ports.length})</div>
+                      <div className="flex flex-wrap gap-0.5">
+                        {parsedArtifacts.ports.map((port, i) => (
+                          <span key={i}
+                            className="px-1 py-0.5 rounded text-[6.5px] font-mono"
+                            style={{ background: "rgba(245,158,11,0.12)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.22)" }}>
+                            :{port}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {parsedArtifacts.users.length > 0 && (
+                    <div>
+                      <div className="text-[6.5px] font-bold uppercase tracking-wider mb-1"
+                        style={{ color: "rgba(16,185,129,0.7)" }}>Users ({parsedArtifacts.users.length})</div>
+                      <div className="flex flex-wrap gap-0.5">
+                        {parsedArtifacts.users.map((u, i) => (
+                          <span key={i}
+                            className="px-1 py-0.5 rounded text-[6.5px] font-mono"
+                            style={{ background: "rgba(16,185,129,0.12)", color: "#10b981", border: "1px solid rgba(16,185,129,0.22)" }}>
+                            {u}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="px-3 py-2 border-b flex-shrink-0"
                 style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                 <div className="text-[8px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>

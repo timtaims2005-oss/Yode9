@@ -443,6 +443,175 @@ function ModelSelector3D({
   );
 }
 
+// ── Pinned Shortcuts Bar ──────────────────────────────────────────────────────
+const SHORTCUT_DEFS = [
+  { id: "new-chat",  label: "New Chat",  color: "#e21227", icon: "+" },
+  { id: "arsenal",   label: "Arsenal",   color: "#e21227", icon: "A" },
+  { id: "agent",     label: "Agent",     color: "#ff6644", icon: "G" },
+  { id: "cisa",      label: "CISA KEV",  color: "#10b981", icon: "K" },
+  { id: "warroom",   label: "War Room",  color: "#00e5ff", icon: "W" },
+  { id: "nexus",     label: "NEXUS",     color: "#a78bfa", icon: "N" },
+  { id: "offense",   label: "Offense",   color: "#f97316", icon: "O" },
+  { id: "hierarchy", label: "Hierarchy", color: "#fbbf24", icon: "H" },
+  { id: "cogwar",    label: "Cog War",   color: "#8b5cf6", icon: "C" },
+  { id: "graph",     label: "Atk Graph", color: "#10b981", icon: "Gr" },
+] as const;
+
+type ShortcutId = typeof SHORTCUT_DEFS[number]["id"];
+const LS_KEY = "mr7-pinned-shortcuts";
+const DEFAULT_PINNED: ShortcutId[] = ["new-chat","arsenal","agent","cisa","warroom","nexus"];
+
+interface PinnedShortcutsBarProps {
+  onOpenArsenal: () => void;
+  onOpenAgent: () => void;
+  onOpenNexus: () => void;
+  onOpenWarRoom: () => void;
+  onOpenCisaLive: () => void;
+  onOpenCyberHierarchy: () => void;
+  onOpenCognitiveWarfare: () => void;
+  onOpenAutonomousOffense: () => void;
+  onOpenAttackGraph: () => void;
+}
+
+function PinnedShortcutsBar({
+  onOpenArsenal, onOpenAgent, onOpenNexus, onOpenWarRoom, onOpenCisaLive,
+  onOpenCyberHierarchy, onOpenCognitiveWarfare, onOpenAutonomousOffense,
+  onOpenAttackGraph,
+}: PinnedShortcutsBarProps) {
+  const { dispatch } = useStore();
+  const [pinned, setPinned] = useState<ShortcutId[]>(() => {
+    try {
+      const s = localStorage.getItem(LS_KEY);
+      return s ? (JSON.parse(s) as ShortcutId[]) : DEFAULT_PINNED;
+    } catch { return DEFAULT_PINNED; }
+  });
+  const [addOpen, setAddOpen] = useState(false);
+
+  const savePinned = (next: ShortcutId[]) => {
+    setPinned(next);
+    localStorage.setItem(LS_KEY, JSON.stringify(next));
+  };
+
+  const actionMap: Record<ShortcutId, () => void> = {
+    "new-chat":  () => dispatch({ type: "NEW_CHAT" }),
+    "arsenal":   onOpenArsenal,
+    "agent":     onOpenAgent,
+    "cisa":      onOpenCisaLive,
+    "warroom":   onOpenWarRoom,
+    "nexus":     onOpenNexus,
+    "offense":   onOpenAutonomousOffense,
+    "hierarchy": onOpenCyberHierarchy,
+    "cogwar":    onOpenCognitiveWarfare,
+    "graph":     onOpenAttackGraph,
+  };
+
+  return (
+    <div className="relative flex items-center gap-1 px-2 overflow-x-auto"
+      style={{
+        height: 28,
+        background: "rgba(4,3,9,0.98)",
+        borderTop: "1px solid rgba(255,255,255,0.03)",
+        scrollbarWidth: "none",
+      }}>
+      {/* Left scan glow */}
+      <div className="absolute inset-y-0 left-0 w-3 pointer-events-none z-10"
+        style={{ background: "linear-gradient(90deg,rgba(226,18,39,0.12),transparent)" }} />
+
+      {pinned.map(id => {
+        const def = SHORTCUT_DEFS.find(d => d.id === id);
+        if (!def) return null;
+        return (
+          <motion.button
+            key={id}
+            onClick={actionMap[id]}
+            onContextMenu={e => { e.preventDefault(); savePinned(pinned.filter(p => p !== id)); }}
+            className="flex-shrink-0 flex items-center gap-1 px-2 rounded text-[7.5px] font-bold tracking-wide whitespace-nowrap"
+            style={{
+              height: 18,
+              color: def.color,
+              background: def.color + "14",
+              border: `1px solid ${def.color}28`,
+            }}
+            whileHover={{ background: def.color + "26", scale: 1.04 }}
+            whileTap={{ scale: 0.94 }}
+            title={`${def.label} (右键取消固定)`}
+          >
+            <span className="font-black" style={{ fontSize: 7, opacity: 0.8 }}>{def.icon}</span>
+            {def.label}
+          </motion.button>
+        );
+      })}
+
+      {/* Add button */}
+      <div className="relative flex-shrink-0">
+        <motion.button
+          onClick={() => setAddOpen(o => !o)}
+          className="flex items-center justify-center rounded"
+          style={{
+            width: 18, height: 18,
+            color: "rgba(255,255,255,0.3)",
+            border: "1px dashed rgba(255,255,255,0.12)",
+            fontSize: 10,
+          }}
+          whileHover={{ color: "#e21227", borderColor: "rgba(226,18,39,0.4)", background: "rgba(226,18,39,0.08)" }}
+          whileTap={{ scale: 0.92 }}
+          title="إضافة اختصار مثبّت"
+        >+</motion.button>
+        <AnimatePresence>
+          {addOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -4, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -4, scale: 0.95 }}
+              className="absolute top-6 left-0 z-50 rounded-xl overflow-hidden"
+              style={{
+                width: 160,
+                background: "rgba(10,8,20,0.98)",
+                border: "1px solid rgba(226,18,39,0.25)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.8), 0 0 16px rgba(226,18,39,0.08)",
+              }}
+            >
+              <div className="px-3 py-1.5 text-[7px] font-bold tracking-widest uppercase"
+                style={{ color: "rgba(255,255,255,0.28)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                اختصارات مثبّتة
+              </div>
+              {SHORTCUT_DEFS.map(def => {
+                const isPinned = pinned.includes(def.id);
+                return (
+                  <button key={def.id}
+                    onClick={() => {
+                      const next = isPinned
+                        ? pinned.filter(p => p !== def.id)
+                        : [...pinned, def.id];
+                      savePinned(next);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[9px] font-bold text-left transition-all"
+                    style={{
+                      color: isPinned ? def.color : "rgba(255,255,255,0.5)",
+                      background: isPinned ? def.color + "10" : "transparent",
+                    }}
+                  >
+                    <span className="w-3.5 h-3.5 flex items-center justify-center rounded text-[7px] font-black flex-shrink-0"
+                      style={{ background: def.color + "20", color: def.color }}>
+                      {def.icon}
+                    </span>
+                    {def.label}
+                    {isPinned && <span className="ml-auto text-[7px]" style={{ color: def.color }}>✓</span>}
+                  </button>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Right fade */}
+      <div className="absolute inset-y-0 right-0 w-4 pointer-events-none z-10"
+        style={{ background: "linear-gradient(270deg,rgba(4,3,9,1),transparent)" }} />
+    </div>
+  );
+}
+
 // ── Main TopBar ───────────────────────────────────────────────────────────────
 export function TopBar({
   onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor,
@@ -485,7 +654,7 @@ export function TopBar({
 
   return (
     <motion.header
-      className="CHAT-GPT-topbar h-14 flex items-center justify-between px-2 sm:px-3 sticky top-0 z-30 relative overflow-hidden"
+      className="CHAT-GPT-topbar sticky top-0 z-30 flex flex-col"
       style={{
         background: "linear-gradient(180deg, rgba(8,6,14,0.99) 0%, rgba(6,4,10,0.98) 100%)",
         borderBottom: `1px solid rgba(226,18,39,${powerOn ? 0.5 : 0.18})`,
@@ -496,6 +665,9 @@ export function TopBar({
         transition: "box-shadow 0.4s, border-color 0.4s",
       }}
     >
+      {/* ── Main row (h-14) ─────────────────────────────────────────── */}
+      <div className="h-14 flex items-center justify-between px-2 sm:px-3 relative overflow-hidden">
+
       {/* 3D HUD canvas background */}
       <TopBarHUDCanvas powerOn={powerOn} />
 
@@ -747,6 +919,20 @@ export function TopBar({
           )}
         </AnimatePresence>
       </div>
+      </div>{/* end h-14 main row */}
+
+      {/* ── Pinned shortcuts row ──────────────────────────────────────── */}
+      <PinnedShortcutsBar
+        onOpenArsenal={onOpenArsenal}
+        onOpenAgent={onOpenAgent}
+        onOpenNexus={onOpenNexus ?? (() => {})}
+        onOpenWarRoom={onOpenWarRoom ?? (() => {})}
+        onOpenCisaLive={onOpenCisaLive ?? (() => {})}
+        onOpenCyberHierarchy={onOpenCyberHierarchy ?? (() => {})}
+        onOpenCognitiveWarfare={onOpenCognitiveWarfare ?? (() => {})}
+        onOpenAutonomousOffense={onOpenAutonomousOffense ?? (() => {})}
+        onOpenAttackGraph={onOpenAttackGraph ?? (() => {})}
+      />
     </motion.header>
   );
 }

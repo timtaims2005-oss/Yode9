@@ -490,7 +490,7 @@ function QuantumPlanet3D({ health, latency, open }: { health: Health; latency: n
   );
 }
 
-// ── Animated sparkline ────────────────────────────────────────────────────────
+// ── Ultra 3D Live Latency Waveform Chart ─────────────────────────────────────
 function Sparkline({ data, color }: { data: number[]; color: string }) {
   const ref  = useRef<HTMLCanvasElement>(null);
   const raf  = useRef(0);
@@ -500,63 +500,202 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
     const cv = ref.current;
     if (!cv || data.length < 2) return;
     const ctx = cv.getContext("2d")!;
-    const W = 218, H = 52;
-    const DPR = window.devicePixelRatio || 1;
-    cv.width = W * DPR; cv.height = H * DPR;
+    const W = 286, H = 88;
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width  = W * DPR;
+    cv.height = H * DPR;
+    cv.style.width  = W + "px";
+    cv.style.height = H + "px";
     ctx.scale(DPR, DPR);
+
+    const PAD = { l: 6, r: 6, t: 14, b: 18 };
+    const cw = W - PAD.l - PAD.r;
+    const ch = H - PAD.t - PAD.b;
+
+    const minV = Math.max(0, Math.min(...data) * 0.78);
+    const maxV = Math.max(...data) * 1.18 || 200;
+
+    function yOf(v: number) { return PAD.t + ch - ((v - minV) / (maxV - minV)) * ch; }
+    function pts() {
+      return data.map((v, i) => ({
+        x: PAD.l + (i / (data.length - 1)) * cw,
+        y: yOf(v),
+        v,
+      }));
+    }
 
     function draw() {
       raf.current = requestAnimationFrame(draw);
-      tRef.current += 0.04;
+      tRef.current += 0.022;
       const t = tRef.current;
       ctx.clearRect(0, 0, W, H);
 
-      for (let gx = 0; gx < W; gx += 22) {
-        ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H);
-        ctx.strokeStyle = "rgba(139,92,246,0.07)"; ctx.lineWidth = 0.5; ctx.stroke();
+      // ── Dark glass background ────────────────────────────────────────────
+      const bg = ctx.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, "rgba(8,4,20,0.96)");
+      bg.addColorStop(1, "rgba(4,2,12,0.98)");
+      ctx.fillStyle = bg;
+      ctx.roundRect(0, 0, W, H, 8);
+      ctx.fill();
+
+      // ── 3D perspective grid (vanishing-point style) ──────────────────────
+      const VP = { x: W / 2, y: PAD.t + ch * 0.5 }; // vanishing point
+      const gridAlpha = 0.055;
+      // Horizontal scan lines
+      for (let gy = 0; gy <= 4; gy++) {
+        const y = PAD.t + (gy / 4) * ch;
+        const persp = 0.7 + 0.3 * (gy / 4);
+        ctx.beginPath();
+        ctx.moveTo(PAD.l + (W * 0.5 - PAD.l) * (1 - persp), y);
+        ctx.lineTo(PAD.l + (W * 0.5 - PAD.l) * (1 - persp) + cw * persp, y);
+        ctx.strokeStyle = `rgba(139,92,246,${gridAlpha + 0.02 * (gy / 4)})`;
+        ctx.lineWidth = 0.5; ctx.stroke();
       }
-      for (let gy = 0; gy < H; gy += 13) {
-        ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy);
-        ctx.strokeStyle = "rgba(139,92,246,0.05)"; ctx.lineWidth = 0.5; ctx.stroke();
+      void VP;
+      // Vertical grid lines
+      for (let gx = 0; gx <= 5; gx++) {
+        const x = PAD.l + (gx / 5) * cw;
+        ctx.beginPath(); ctx.moveTo(x, PAD.t); ctx.lineTo(x, PAD.t + ch);
+        ctx.strokeStyle = `rgba(139,92,246,${gridAlpha})`;
+        ctx.lineWidth = 0.5; ctx.stroke();
       }
 
-      const minV = Math.min(...data) * 0.85;
-      const maxV = Math.max(...data) * 1.12 || 1;
-      const pts  = data.map((v, i) => ({
-        x: 8 + (i / (data.length - 1)) * (W - 16),
-        y: H - 10 - ((v - minV) / (maxV - minV)) * (H - 20),
-      }));
+      // ── Zone bands (colored ms zones) ───────────────────────────────────
+      const fastY  = yOf(500);
+      const slowY  = yOf(1200);
+      // Green zone (<500ms)
+      if (fastY > PAD.t) {
+        ctx.fillStyle = "rgba(34,197,94,0.04)";
+        ctx.fillRect(PAD.l, fastY, cw, PAD.t + ch - fastY);
+      }
+      // Yellow zone (500-1200ms)
+      if (slowY > PAD.t && slowY < PAD.t + ch) {
+        ctx.fillStyle = "rgba(245,158,11,0.04)";
+        ctx.fillRect(PAD.l, Math.max(PAD.t, slowY), cw, fastY - Math.max(PAD.t, slowY));
+      }
+      // Red zone (>1200ms)
+      if (slowY > PAD.t) {
+        ctx.fillStyle = "rgba(226,18,39,0.04)";
+        ctx.fillRect(PAD.l, PAD.t, cw, Math.min(slowY - PAD.t, ch));
+      }
 
-      const g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, `${color}35`); g.addColorStop(1, `${color}00`);
-      ctx.beginPath(); ctx.moveTo(pts[0].x, H);
-      pts.forEach(p => ctx.lineTo(p.x, p.y));
-      ctx.lineTo(pts[pts.length - 1].x, H);
-      ctx.closePath(); ctx.fillStyle = g; ctx.fill();
-
+      // ── Ping oscillation underlay wave ───────────────────────────────────
+      const lastMs = data[data.length - 1] ?? 200;
+      const pingFreq = 3.2 + lastMs * 0.001;
       ctx.beginPath();
-      pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
-      ctx.strokeStyle = `${color}f0`; ctx.lineWidth = 1.8; ctx.lineJoin = "round"; ctx.stroke();
+      for (let px = 0; px <= cw; px += 1) {
+        const pingY = PAD.t + ch * 0.5 + Math.sin(px * 0.12 + t * pingFreq) * (ch * 0.08) + Math.sin(px * 0.04 - t * 2.1) * (ch * 0.04);
+        if (px === 0) ctx.moveTo(PAD.l + px, pingY);
+        else ctx.lineTo(PAD.l + px, pingY);
+      }
+      ctx.strokeStyle = `rgba(167,139,250,0.14)`;
+      ctx.lineWidth = 0.8; ctx.stroke();
 
-      pts.forEach((p, i) => {
-        const isLast = i === pts.length - 1;
-        const pulse  = isLast ? (Math.sin(t * 4) + 1) / 2 : 0;
-        if (isLast) {
-          ctx.beginPath(); ctx.arc(p.x, p.y, 5 + pulse * 5, 0, Math.PI * 2);
-          ctx.fillStyle = `${color}${Math.round((0.12 * (1 - pulse)) * 255).toString(16).padStart(2, "0")}`; ctx.fill();
-        }
-        ctx.beginPath(); ctx.arc(p.x, p.y, isLast ? 3 + pulse * 1.2 : 2, 0, Math.PI * 2);
-        ctx.fillStyle = isLast ? "rgba(255,255,255,0.95)" : `${color}aa`; ctx.fill();
+      // ── Main latency line (filled) ───────────────────────────────────────
+      const p = pts();
+
+      // Shadow fill under curve
+      const shadowG = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + ch);
+      const lastV = data[data.length - 1] ?? 300;
+      const lc = lastV < 500 ? "34,197,94" : lastV < 1200 ? "245,158,11" : "226,18,39";
+      shadowG.addColorStop(0, `rgba(${lc},0.22)`);
+      shadowG.addColorStop(0.6, `rgba(${lc},0.06)`);
+      shadowG.addColorStop(1, `rgba(${lc},0.0)`);
+      ctx.beginPath();
+      ctx.moveTo(p[0].x, PAD.t + ch);
+      p.forEach(pt => ctx.lineTo(pt.x, pt.y));
+      ctx.lineTo(p[p.length - 1].x, PAD.t + ch);
+      ctx.closePath();
+      ctx.fillStyle = shadowG;
+      ctx.fill();
+
+      // Chromatic aberration: 3 offset lines (R/G/B split)
+      [
+        ["rgba(226,18,39,0.35)",   -0.8, 0.7],
+        [`rgba(${lc},0.90)`,        0.0, 2.0],
+        ["rgba(139,92,246,0.30)",   0.7, 0.7],
+      ].forEach(([stroke, xOff, lw]) => {
+        ctx.beginPath();
+        p.forEach((pt, i) => {
+          const nx = pt.x + (xOff as number);
+          i === 0 ? ctx.moveTo(nx, pt.y) : ctx.lineTo(nx, pt.y);
+        });
+        ctx.strokeStyle = stroke as string;
+        ctx.lineWidth = lw as number;
+        ctx.lineJoin = "round";
+        ctx.lineCap  = "round";
+        ctx.stroke();
       });
 
-      ctx.font = "bold 9px monospace"; ctx.fillStyle = `${color}ee`; ctx.textAlign = "right";
-      ctx.fillText(`${data[data.length - 1]}ms`, W - 3, pts[pts.length - 1].y - 5);
+      // ── Data point dots ──────────────────────────────────────────────────
+      p.forEach((pt, i) => {
+        const isLast = i === p.length - 1;
+        const pulse = isLast ? 0.5 + Math.sin(t * 5.5) * 0.5 : 0;
+        if (isLast) {
+          // Outer pulse ring
+          ctx.beginPath(); ctx.arc(pt.x, pt.y, 6 + pulse * 5, 0, Math.PI * 2);
+          const pr = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, 11 + pulse * 5);
+          pr.addColorStop(0, `rgba(${lc},${0.28 * (1 - pulse)})`);
+          pr.addColorStop(1, `rgba(${lc},0)`);
+          ctx.fillStyle = pr; ctx.fill();
+        }
+        const r = isLast ? 3.0 + pulse * 0.8 : 1.8;
+        const dg = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, r * 2.2);
+        dg.addColorStop(0, "rgba(255,255,255,0.98)");
+        dg.addColorStop(0.4, `rgba(${lc},0.9)`);
+        dg.addColorStop(1, `rgba(${lc},0)`);
+        ctx.beginPath(); ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = dg; ctx.fill();
+      });
+
+      // ── Animated scan line ───────────────────────────────────────────────
+      const scanX = PAD.l + ((t * 0.28) % 1) * cw;
+      const sg = ctx.createLinearGradient(scanX - 18, 0, scanX + 6, 0);
+      sg.addColorStop(0, "rgba(139,92,246,0)");
+      sg.addColorStop(0.7, "rgba(139,92,246,0.28)");
+      sg.addColorStop(1, "rgba(167,139,250,0.08)");
+      ctx.beginPath();
+      ctx.moveTo(scanX - 18, PAD.t); ctx.lineTo(scanX + 6, PAD.t);
+      ctx.lineTo(scanX + 6, PAD.t + ch); ctx.lineTo(scanX - 18, PAD.t + ch);
+      ctx.closePath(); ctx.fillStyle = sg; ctx.fill();
+
+      // ── Bottom labels ────────────────────────────────────────────────────
+      ctx.font = "bold 8px monospace"; ctx.fillStyle = `rgba(${lc},0.85)`;
+      ctx.textAlign = "right";
+      ctx.fillText(`${lastMs}ms`, W - 4, H - 5);
+
+      const avgMs = Math.round(data.reduce((a, b) => a + b, 0) / data.length);
+      ctx.fillStyle = "rgba(167,139,250,0.55)"; ctx.textAlign = "left";
+      ctx.fillText(`avg ${avgMs}ms`, PAD.l, H - 5);
+
+      // ── "LIVE" badge top-right ───────────────────────────────────────────
+      const livePulse = 0.6 + Math.sin(t * 4.5) * 0.4;
+      ctx.beginPath(); ctx.arc(W - 15, PAD.t * 0.5, 2.8, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(34,197,94,${livePulse})`; ctx.fill();
+      ctx.font = "bold 7px monospace"; ctx.fillStyle = "rgba(34,197,94,0.7)";
+      ctx.textAlign = "left";
+      ctx.fillText("LIVE", W - 10, PAD.t * 0.5 + 2.5);
+
+      // ── Y-axis ms labels ─────────────────────────────────────────────────
+      ctx.font = "7px monospace"; ctx.fillStyle = "rgba(167,139,250,0.32)";
+      ctx.textAlign = "right";
+      [500, 1000, 2000].forEach(v => {
+        if (v > minV && v < maxV) {
+          const y = yOf(v);
+          ctx.fillText(`${v >= 1000 ? v / 1000 + "s" : v + "ms"}`, PAD.l - 1, y + 3);
+        }
+      });
     }
+
     draw();
     return () => cancelAnimationFrame(raf.current);
-  }, [data, color]);
+  }, [data, color]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <canvas ref={ref} style={{ width: 218, height: 52 }} />;
+  void color;
+  return (
+    <canvas ref={ref}
+      style={{ width: 286, height: 88, display: "block" }} />
+  );
 }
 
 // ── Provider health row ───────────────────────────────────────────────────────

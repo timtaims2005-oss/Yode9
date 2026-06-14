@@ -659,6 +659,7 @@ export function AIQuickSetupButton() {
   const [scanMsg, setScanMsg]     = useState("");
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>({});
   const [keys, setKeys]           = useState<Record<string, string>>({});
+  const [providerSearch, setProviderSearch] = useState("");
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Load saved keys on open
@@ -915,12 +916,44 @@ export function AIQuickSetupButton() {
                 </motion.button>
               </div>
 
+              {/* Search bar */}
+              <div className="px-4 pb-2">
+                <div className="relative">
+                  <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none"
+                    style={{ color: "rgba(0,255,136,0.45)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                  </svg>
+                  <input
+                    type="text"
+                    value={providerSearch}
+                    onChange={e => setProviderSearch(e.target.value)}
+                    placeholder="بحث عن مزوّد..."
+                    className="w-full pl-7 pr-2 py-1.5 text-[9px] font-mono rounded-lg outline-none"
+                    style={{
+                      background: "rgba(0,0,0,0.35)",
+                      border: `1px solid rgba(0,255,136,${providerSearch ? 0.38 : 0.15})`,
+                      color: "rgba(255,255,255,0.8)",
+                    }}
+                    dir="rtl"
+                  />
+                  {providerSearch && (
+                    <button onClick={() => setProviderSearch("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px]"
+                      style={{ color: "rgba(255,255,255,0.35)" }}>✕</button>
+                  )}
+                </div>
+              </div>
+
               {/* Provider list */}
               <div className="px-4 pb-3 space-y-1.5 max-h-[380px] overflow-y-auto"
                 style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(0,255,136,0.18) transparent" }}>
                 <div className="text-[7px] font-bold tracking-[0.22em] uppercase mb-2 pt-1"
-                  style={{ color: "rgba(0,255,136,0.38)" }}>المزوّدون المتاحون</div>
-                {ALL_PROVIDERS.map(p => (
+                  style={{ color: "rgba(0,255,136,0.38)" }}>
+                  {providerSearch
+                    ? `${ALL_PROVIDERS.filter(p => p.name.toLowerCase().includes(providerSearch.toLowerCase())).length} نتيجة`
+                    : "المزوّدون المتاحون"}
+                </div>
+                {ALL_PROVIDERS.filter(p => !providerSearch || p.name.toLowerCase().includes(providerSearch.toLowerCase())).map(p => (
                   <ProviderCard key={p.id} prov={p}
                     isActive={state.activeProvider === p.providerName && state.activeProviderModel === (selectedModels[p.id] || p.models[0].id)}
                     configuredKey={keys[p.id] ?? ""}

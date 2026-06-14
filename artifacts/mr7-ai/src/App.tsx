@@ -434,6 +434,7 @@ function AppContent() {
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "l") { e.preventDefault(); toggle('changelog'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "u") { e.preventDefault(); toggle('useCaseLib'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "i") { e.preventDefault(); toggle('intelligenceCore'); }
+      if (!inField && (e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "h") { e.preventDefault(); toggle('widgetsDock'); }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
