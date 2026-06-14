@@ -140,7 +140,7 @@ export function VisionCaptureModal({ open, onOpenChange, defaultSource = "screen
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[96vw] max-w-2xl bg-card border-border">
+      <DialogContent className="w-[98vw] max-w-2xl bg-card border-border">
         <DialogTitle className="text-base flex items-center gap-2">
           {isAr ? "تحليل بالرؤية الذكية" : "Vision Capture"}
           {cyberMode && (

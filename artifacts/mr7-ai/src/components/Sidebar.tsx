@@ -96,7 +96,7 @@ function NeuralCanvasBG() {
     <canvas ref={cvRef}
       className="pointer-events-none select-none"
       style={{
-        position: "absolute", left: 0, top: 0, width: 280, height: "100%",
+        position: "absolute", left: 0, top: 0, width: "100%", height: "100%",
         opacity: 0.28, zIndex: 0, display: "block",
       }} />
   );
@@ -312,7 +312,7 @@ export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool,
   };
 
   const content = (
-    <div className="CHAT-GPT-sidebar flex flex-col h-full w-[280px] text-sm overflow-hidden flex-shrink-0 relative"
+    <div className="CHAT-GPT-sidebar flex flex-col h-full w-[min(280px,100vw)] text-sm overflow-hidden flex-shrink-0 relative"
       style={{ background: "linear-gradient(180deg, rgba(10,10,16,0.99) 0%, rgba(6,6,10,1) 100%)", borderRight: "1px solid rgba(226,18,39,0.15)" }}>
       {/* Sidebar right edge glow */}
       <div className="absolute top-0 bottom-0 right-0 w-px pointer-events-none"
@@ -934,7 +934,7 @@ export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool,
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="md:hidden fixed inset-y-0 left-0 z-50 flex"
+              className="md:hidden fixed inset-y-0 left-0 z-50 flex w-full"
             >
               {content}
             </motion.div>

@@ -17,7 +17,7 @@ export function ShareModal({
   const link = `https://CHAT-GPT.ai/c/${chatId.slice(-8)}-${Math.random().toString(36).slice(2, 8)}`;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border w-[96vw] max-w-md">
+      <DialogContent className="bg-card border-border w-[98vw] max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="w-5 h-5 text-primary" />

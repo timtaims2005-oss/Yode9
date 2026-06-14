@@ -12,7 +12,7 @@ export function ApiAccessModal({ open, onOpenChange }: { open: boolean; onOpenCh
   const masked = FAKE_KEY.slice(0, 12) + "•".repeat(20) + FAKE_KEY.slice(-4);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border w-[96vw] max-w-lg">
+      <DialogContent className="bg-card border-border w-[98vw] max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <KeyRound className="w-5 h-5 text-emerald-400" />

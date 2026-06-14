@@ -189,7 +189,7 @@ export function VoiceChatModal({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[96vw] max-w-lg bg-card border-border">
+      <DialogContent className="w-[98vw] max-w-lg bg-card border-border">
         <DialogTitle className="text-base">
           {isAr ? "محادثة صوتية" : "Voice Chat"}
         </DialogTitle>

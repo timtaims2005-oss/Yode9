@@ -46,7 +46,7 @@ export function ActivateModal({ open, onOpenChange }: ActivateModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContentTop className="bg-card border border-border w-[96vw] max-w-sm">
+      <DialogContentTop className="bg-card border border-border w-[98vw] max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Key className="w-5 h-5 text-primary" /> Activate Plan

@@ -116,7 +116,7 @@ Text to convert: ${input}`;
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-w-3xl max-h-[92dvh] flex flex-col rounded-2xl overflow-hidden"
             style={{ background: "#080808", border: "1px solid rgba(167,139,250,0.25)", boxShadow: "0 0 60px rgba(167,139,250,0.1)" }}
           >
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "rgba(167,139,250,0.2)", background: "rgba(167,139,250,0.04)" }}>

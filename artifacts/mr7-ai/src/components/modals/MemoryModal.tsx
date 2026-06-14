@@ -34,7 +34,7 @@ export function MemoryModal({ open, onOpenChange }: { open: boolean; onOpenChang
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContentTop className="bg-card border-border w-[96vw] max-w-2xl max-h-[82vh] overflow-y-auto"
+      <DialogContentTop className="bg-card border-border w-[98vw] max-w-2xl max-h-[82vh] overflow-y-auto"
         onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">

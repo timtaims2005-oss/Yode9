@@ -32,7 +32,7 @@ export function ToolModal({ open, onOpenChange }: { open: boolean; onOpenChange:
   }, [open]);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border w-[96vw] max-w-2xl">
+      <DialogContent className="bg-card border-border w-[98vw] max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TerminalSquare className="w-5 h-5 text-emerald-400" />

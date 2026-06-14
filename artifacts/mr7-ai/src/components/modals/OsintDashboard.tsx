@@ -625,7 +625,7 @@ export function OsintDashboard({ open, onOpenChange }: { open: boolean; onOpenCh
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContentTop
-        className="bg-[#080808] border-[#1f1f1f] w-[97vw] max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden"
+        className="bg-[#080808] border-[#1f1f1f] w-[98vw] max-w-5xl max-h-[92dvh] flex flex-col p-0 gap-0 overflow-hidden"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {/* Header */}

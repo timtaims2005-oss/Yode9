@@ -42,7 +42,7 @@ export function PaymentModal({ open, onOpenChange, plan, yearly, onActivate }: P
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContentTop className="bg-[#0d0d0d] border border-[#1f1f1f] w-[96vw] max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContentTop className="bg-[#0d0d0d] border border-[#1f1f1f] w-[98vw] max-w-lg max-h-[92dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-base">
             {step === "payment" ? (

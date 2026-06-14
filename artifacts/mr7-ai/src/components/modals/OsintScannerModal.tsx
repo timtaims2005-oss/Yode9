@@ -135,7 +135,7 @@ Make findings realistic and specific to the target type (${scanType}). Include a
           className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
           style={{ backdropFilter: "blur(10px)", background: "rgba(0,0,0,0.88)" }}>
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-w-3xl max-h-[92dvh] flex flex-col rounded-2xl overflow-hidden"
             style={{ background: "#080808", border: "1px solid rgba(226,18,39,0.3)", boxShadow: "0 0 80px rgba(226,18,39,0.15)" }}>
 
             {/* Header */}

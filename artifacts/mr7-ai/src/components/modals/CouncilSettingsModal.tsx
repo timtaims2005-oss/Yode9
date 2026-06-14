@@ -129,7 +129,7 @@ export function CouncilSettingsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-3xl max-h-[88vh] flex flex-col bg-card border border-border rounded-2xl shadow-2xl"
+        className="w-full max-w-3xl max-h-[92dvh] flex flex-col bg-card border border-border rounded-2xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">

@@ -611,7 +611,7 @@ export function ToolsHubModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContentTop
-        className="bg-card border-border w-[96vw] max-w-3xl max-h-[88vh] overflow-hidden flex flex-col"
+        className="bg-card border-border w-[98vw] max-w-3xl max-h-[92dvh] overflow-hidden flex flex-col"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
@@ -643,7 +643,7 @@ export function ToolsHubModal({
         </div>
 
         {/* Hub Tabs */}
-        <div className="flex gap-1 flex-wrap mt-1">
+        <div className="flex gap-1 mt-1 overflow-x-auto flex-nowrap pb-1" style={{ scrollbarWidth: "none" } as React.CSSProperties}>
           {([
             { id: "tools", label: "Tools", icon: Sparkles },
             { id: "cvefeed", label: "CVE Feed", icon: Shield },

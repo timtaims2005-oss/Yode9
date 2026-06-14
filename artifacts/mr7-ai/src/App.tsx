@@ -34,7 +34,7 @@ import { PrefetchIntelligence3D } from "./components/PrefetchIntelligence3D";
 import { SystemMasterHUD3D } from "./components/SystemMasterHUD3D";
 import { AnomalyLog3D } from "./components/AnomalyLog3D";
 import { NetworkTopology3D } from "./components/NetworkTopology3D";
-import { CisaLivePanel3D } from "./components/CisaLivePanel3D";
+import { CisaLivePanel3D, CisaKevAlertToaster } from "./components/CisaLivePanel3D";
 import { contextMemory } from "./lib/context-memory";
 import { securityLayer } from "./lib/security-layer";
 import { prefetchEngine } from "./lib/prefetch-engine";
@@ -718,8 +718,8 @@ function AppContent() {
       )}
 
       {/* Always-on ambient layers — conditionally paused when tab hidden */}
-      <CyberHeatmapHUD />
-      <SystemStatusWidget />
+      <div className="hidden md:block"><CyberHeatmapHUD /></div>
+      <div className="hidden md:block"><SystemStatusWidget /></div>
       <AmbientParticleField density={0.3} />
       <HoloDataStream side="both" />
       {/* CyberWidgetsDock removed — accessible via TopBar "HUD" button */}
@@ -758,6 +758,9 @@ function AppContent() {
 
       {/* CISA KEV Live Panel — WebSocket powered */}
       <CisaLivePanel3D open={modals.cisaLive} onClose={() => close('cisaLive')} />
+
+      {/* CISA KEV Global Alert Toaster — always-on 3D popup notifications */}
+      <CisaKevAlertToaster />
 
       {/* CVE Timeline 3D */}
       <CveTimeline3DModal open={modals.cveTimeline} onOpenChange={(v) => mDispatch({type:'SET',id:'cveTimeline',value:v})} />

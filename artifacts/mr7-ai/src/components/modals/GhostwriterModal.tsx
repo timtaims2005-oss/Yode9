@@ -139,7 +139,7 @@ Use professional pentest report language. Be thorough and technical.`;
         <motion.div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => onOpenChange(false)} />
-          <motion.div className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl flex flex-col"
+          <motion.div className="relative w-full max-w-2xl max-h-[92dvh] overflow-hidden rounded-2xl flex flex-col"
             style={{ background: "#0a0a0a", border: "1px solid rgba(226,18,39,0.3)" }}
             initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}>
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldAlert, X, Wifi, WifiOff, Zap, AlertTriangle, Clock, Activity } from "lucide-react";
+import { ShieldAlert, X, Wifi, WifiOff, Zap, AlertTriangle, Clock, Activity, Radio } from "lucide-react";
 
 interface KevVuln {
   cveID: string;
@@ -563,5 +563,243 @@ export function CisaLivePanel3D({ open, onClose }: CisaLivePanel3DProps) {
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+// ── 3D Threat Radar Canvas inside notification card ────────────────────────────
+const ThreatRadarMini = memo(function ThreatRadarMini() {
+  const ref    = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef(0);
+  useEffect(() => {
+    const cv = ref.current; if (!cv) return;
+    const ctx = cv.getContext("2d")!;
+    const W = 64, H = 64, DPR = window.devicePixelRatio || 1;
+    cv.width = W * DPR; cv.height = H * DPR;
+    ctx.scale(DPR, DPR);
+    const cx = W / 2, cy = H / 2, R = 26;
+    let angle = 0;
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      // Concentric rings
+      [1, 0.66, 0.33].forEach(f => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, R * f, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(226,18,39,${0.12 + f * 0.08})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      });
+      // Cross-hairs
+      ctx.strokeStyle = "rgba(226,18,39,0.1)";
+      ctx.lineWidth = 0.5;
+      ctx.beginPath(); ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
+      // Sweep gradient
+      const grd = ctx.createLinearGradient(
+        cx + R * Math.cos(angle), cy + R * Math.sin(angle),
+        cx + R * Math.cos(angle + Math.PI), cy + R * Math.sin(angle + Math.PI)
+      );
+      grd.addColorStop(0, "rgba(226,18,39,0.55)");
+      grd.addColorStop(1, "rgba(226,18,39,0)");
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, R, angle, angle + 1.1);
+      ctx.closePath();
+      ctx.fillStyle = grd;
+      ctx.fill();
+      // Blip dots
+      [[0.7, -0.4], [-0.5, 0.6], [0.2, 0.85]].forEach(([fx, fy], i) => {
+        const bx = cx + fx * R, by = cy + fy * R;
+        const pulse = 0.5 + 0.5 * Math.abs(Math.sin(Date.now() / 700 + i * 2.1));
+        ctx.beginPath(); ctx.arc(bx, by, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(226,18,39,${pulse})`;
+        ctx.fill();
+        ctx.beginPath(); ctx.arc(bx, by, 5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(226,18,39,${pulse * 0.15})`;
+        ctx.fill();
+      });
+      angle += 0.04;
+      rafRef.current = requestAnimationFrame(draw);
+    }
+    draw();
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+  return <canvas ref={ref} style={{ width: 64, height: 64, display: "block" }} />;
+});
+
+// ── Single KEV notification card ───────────────────────────────────────────────
+interface KevNotifCardProps {
+  vuln: KevVuln;
+  index: number;
+  onDismiss: () => void;
+}
+function KevNotifCard({ vuln, index, onDismiss }: KevNotifCardProps) {
+  useEffect(() => {
+    const t = setTimeout(onDismiss, 9000);
+    return () => clearTimeout(t);
+  }, [onDismiss]);
+
+  const isRansomware = vuln.knownRansomwareCampaignUse === "Known";
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: 360, scale: 0.88, rotateY: -18 }}
+      animate={{ opacity: 1, x: 0, scale: 1, rotateY: 0 }}
+      exit={{ opacity: 0, x: 360, scale: 0.9 }}
+      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1], delay: index * 0.06 }}
+      style={{
+        background: "rgba(5,5,10,0.97)",
+        border: `1px solid ${isRansomware ? "rgba(226,18,39,0.5)" : "rgba(226,18,39,0.28)"}`,
+        borderRadius: 14,
+        boxShadow: isRansomware
+          ? "0 0 40px rgba(226,18,39,0.18), 0 0 18px rgba(226,18,39,0.1), 0 16px 40px rgba(0,0,0,0.9)"
+          : "0 0 20px rgba(226,18,39,0.08), 0 16px 40px rgba(0,0,0,0.85)",
+        backdropFilter: "blur(24px)",
+        overflow: "hidden",
+        position: "relative",
+        width: 320,
+      }}
+    >
+      {/* Top scan line */}
+      <div style={{ height: 2, background: `linear-gradient(90deg, transparent, ${isRansomware ? "#e21227" : "rgba(226,18,39,0.6)"}, transparent)`, opacity: 0.9 }} />
+
+      {/* Ambient glow corner */}
+      <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: "radial-gradient(circle, rgba(226,18,39,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+
+      <div style={{ padding: "10px 12px 12px 12px", display: "flex", gap: 10 }}>
+        {/* Radar canvas */}
+        <div style={{ flexShrink: 0, borderRadius: 10, overflow: "hidden", background: "rgba(226,18,39,0.04)", border: "1px solid rgba(226,18,39,0.12)" }}>
+          <ThreatRadarMini />
+        </div>
+
+        {/* Text content */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Header row */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <motion.div animate={{ scale: [1, 1.25, 1] }} transition={{ duration: 1.2, repeat: 3 }}>
+                <Radio style={{ width: 11, height: 11, color: "#e21227" }} />
+              </motion.div>
+              <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.25em", color: "rgba(226,18,39,0.8)", textTransform: "uppercase" }}>
+                CISA KEV — NEW THREAT
+              </span>
+            </div>
+            <button
+              onClick={onDismiss}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.25)", padding: 2, borderRadius: 4, lineHeight: 1, display: "flex" }}
+            >
+              <X style={{ width: 12, height: 12 }} />
+            </button>
+          </div>
+
+          {/* CVE ID */}
+          <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", letterSpacing: "0.04em", marginBottom: 2, fontFamily: "monospace" }}>
+            {vuln.cveID}
+          </div>
+
+          {/* Vendor + Product */}
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>
+            <span style={{ color: "rgba(226,18,39,0.75)", fontWeight: 700 }}>{vuln.vendorProject}</span>
+            {" · "}{vuln.product}
+          </div>
+
+          {/* Description snippet */}
+          <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.35)", lineHeight: 1.4, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+            {vuln.shortDescription}
+          </div>
+
+          {/* Bottom badges */}
+          <div style={{ display: "flex", gap: 5, marginTop: 7, alignItems: "center" }}>
+            {isRansomware && (
+              <span style={{ fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 5, background: "rgba(226,18,39,0.18)", border: "1px solid rgba(226,18,39,0.4)", color: "#e21227", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                ⚠ RANSOMWARE
+              </span>
+            )}
+            <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.25)", fontFamily: "monospace" }}>
+              {new Date(vuln.dateAdded).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            </span>
+            <span style={{ marginLeft: "auto", fontSize: 8, color: "rgba(255,255,255,0.2)", fontFamily: "monospace" }}>KEV ↗</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Always-on WebSocket KEV alert toaster ──────────────────────────────────────
+interface NotifItem { id: string; vuln: KevVuln }
+
+export function CisaKevAlertToaster() {
+  const [notifs, setNotifs] = useState<NotifItem[]>([]);
+  const wsRef        = useRef<WebSocket | null>(null);
+  const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isFirst      = useRef(true);
+
+  const connect = useCallback(() => {
+    if (wsRef.current) { wsRef.current.onclose = null; wsRef.current.close(); }
+    const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const ws    = new WebSocket(`${proto}//${window.location.host}/api/cisa-live`);
+    wsRef.current = ws;
+    ws.onclose = () => { reconnectRef.current = setTimeout(connect, 8000); };
+    ws.onerror = () => ws.close();
+    ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data as string) as WsMessage;
+        if (msg.type === "snapshot") {
+          isFirst.current = false;
+          return;
+        }
+        if (msg.type === "new_entries" && !isFirst.current) {
+          const toShow = msg.items.slice(0, 3);
+          setNotifs(prev => {
+            const next = [
+              ...toShow.map(v => ({ id: `${v.cveID}-${Date.now()}-${Math.random()}`, vuln: v })),
+              ...prev,
+            ].slice(0, 4);
+            return next;
+          });
+        }
+        isFirst.current = false;
+      } catch { /* ignore */ }
+    };
+  }, []);
+
+  useEffect(() => {
+    connect();
+    return () => {
+      if (wsRef.current) { wsRef.current.onclose = null; wsRef.current.close(); }
+      if (reconnectRef.current) clearTimeout(reconnectRef.current);
+    };
+  }, [connect]);
+
+  const dismiss = useCallback((id: string) => {
+    setNotifs(prev => prev.filter(n => n.id !== id));
+  }, []);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: 24,
+        right: 16,
+        zIndex: 9999,
+        display: "flex",
+        flexDirection: "column-reverse",
+        gap: 10,
+        pointerEvents: "none",
+      }}
+    >
+      <AnimatePresence mode="popLayout">
+        {notifs.map((n, i) => (
+          <div key={n.id} style={{ pointerEvents: "auto" }}>
+            <KevNotifCard
+              vuln={n.vuln}
+              index={i}
+              onDismiss={() => dismiss(n.id)}
+            />
+          </div>
+        ))}
+      </AnimatePresence>
+    </div>
   );
 }

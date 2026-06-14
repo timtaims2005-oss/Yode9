@@ -146,7 +146,7 @@ Language: ${lang === "ar" ? "Arabic" : "English"}`;
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.18 }}
-            className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-w-2xl max-h-[92dvh] flex flex-col rounded-2xl overflow-hidden"
             style={{ background: "#040812", border: "1px solid rgba(59,130,246,0.25)", boxShadow: "0 0 60px rgba(59,130,246,0.1)" }}
           >
             {/* Header */}

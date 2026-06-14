@@ -168,7 +168,7 @@ export function WhatsNewModal({ open, onClose }: WhatsNewModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 16 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-2xl max-h-[88vh] flex flex-col rounded-2xl overflow-hidden"
+            className="relative w-full max-w-2xl max-h-[92dvh] flex flex-col rounded-2xl overflow-hidden"
             style={{
               background: "linear-gradient(160deg, #111111 0%, #0a0a0a 100%)",
               border: "1px solid #1f1f1f",
