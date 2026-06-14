@@ -1,5 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+
+*, *::before, *::after { box-sizing: border-box; }
+body { overflow-x: hidden; }
+@media (max-width: 767px) {
+  .CHAT-GPT-sidebar { width: min(280px, 100vw) !important; }
+}
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));

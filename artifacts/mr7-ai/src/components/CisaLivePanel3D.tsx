@@ -726,6 +726,64 @@ function KevNotifCard({ vuln, index, onDismiss }: KevNotifCardProps) {
   );
 }
 
+// ── Web Audio API — futuristic threat alert sounds ─────────────────────────────
+function playKevAlert(isRansomware: boolean) {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+
+    if (isRansomware) {
+      // Ransomware: urgent tri-pulse sweep — 3 sharp descending beeps
+      [0, 0.14, 0.28].forEach((delay, i) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filt = ctx.createBiquadFilter();
+        filt.type = "bandpass"; filt.frequency.value = 2200; filt.Q.value = 6;
+        osc.connect(filt); filt.connect(gain); gain.connect(ctx.destination);
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(1100 - i * 140, ctx.currentTime + delay);
+        osc.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + delay + 0.11);
+        gain.gain.setValueAtTime(0, ctx.currentTime + delay);
+        gain.gain.linearRampToValueAtTime(0.38, ctx.currentTime + delay + 0.018);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.12);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + 0.14);
+      });
+      // Sub rumble
+      const sub = ctx.createOscillator();
+      const subG = ctx.createGain();
+      sub.connect(subG); subG.connect(ctx.destination);
+      sub.type = "sine"; sub.frequency.value = 55;
+      subG.gain.setValueAtTime(0.22, ctx.currentTime);
+      subG.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.48);
+      sub.start(ctx.currentTime); sub.stop(ctx.currentTime + 0.5);
+    } else {
+      // Regular KEV: single smooth cyber-chime — ascending then fade
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const rev  = ctx.createConvolver();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.22);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.28, ctx.currentTime + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.6);
+      // Harmonic overtone
+      const ov  = ctx.createOscillator();
+      const ovG = ctx.createGain();
+      ov.connect(ovG); ovG.connect(ctx.destination);
+      ov.type = "sine"; ov.frequency.value = 1320;
+      ovG.gain.setValueAtTime(0.08, ctx.currentTime + 0.02);
+      ovG.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      ov.start(ctx.currentTime + 0.02); ov.stop(ctx.currentTime + 0.45);
+      void rev; // unused but keep reference pattern clean
+    }
+    setTimeout(() => { try { ctx.close(); } catch { /* ignore */ } }, 1200);
+  } catch { /* browser may block audio without gesture */ }
+}
+
 // ── Always-on WebSocket KEV alert toaster ──────────────────────────────────────
 interface NotifItem { id: string; vuln: KevVuln }
 
@@ -734,6 +792,20 @@ export function CisaKevAlertToaster() {
   const wsRef        = useRef<WebSocket | null>(null);
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirst      = useRef(true);
+  const audioUnlocked = useRef(false);
+
+  // Unlock audio context on first user gesture
+  useEffect(() => {
+    const unlock = () => { audioUnlocked.current = true; };
+    window.addEventListener("click", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
+    window.addEventListener("touchstart", unlock, { once: true });
+    return () => {
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("keydown", unlock);
+      window.removeEventListener("touchstart", unlock);
+    };
+  }, []);
 
   const connect = useCallback(() => {
     if (wsRef.current) { wsRef.current.onclose = null; wsRef.current.close(); }
@@ -745,19 +817,18 @@ export function CisaKevAlertToaster() {
     ws.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data as string) as WsMessage;
-        if (msg.type === "snapshot") {
-          isFirst.current = false;
-          return;
-        }
+        if (msg.type === "snapshot") { isFirst.current = false; return; }
         if (msg.type === "new_entries" && !isFirst.current) {
           const toShow = msg.items.slice(0, 3);
-          setNotifs(prev => {
-            const next = [
-              ...toShow.map(v => ({ id: `${v.cveID}-${Date.now()}-${Math.random()}`, vuln: v })),
-              ...prev,
-            ].slice(0, 4);
-            return next;
-          });
+          // Sound alert — ransomware gets urgent alarm, others get chime
+          if (audioUnlocked.current) {
+            const hasRansomware = toShow.some(v => v.knownRansomwareCampaignUse === "Known");
+            playKevAlert(hasRansomware);
+          }
+          setNotifs(prev => [
+            ...toShow.map(v => ({ id: `${v.cveID}-${Date.now()}-${Math.random()}`, vuln: v })),
+            ...prev,
+          ].slice(0, 4));
         }
         isFirst.current = false;
       } catch { /* ignore */ }
@@ -780,13 +851,14 @@ export function CisaKevAlertToaster() {
     <div
       style={{
         position: "fixed",
-        bottom: 24,
-        right: 16,
+        bottom: "env(safe-area-inset-bottom, 16px)",
+        right: 12,
         zIndex: 9999,
         display: "flex",
         flexDirection: "column-reverse",
         gap: 10,
         pointerEvents: "none",
+        maxWidth: "calc(100vw - 24px)",
       }}
     >
       <AnimatePresence mode="popLayout">

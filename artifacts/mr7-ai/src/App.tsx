@@ -720,17 +720,19 @@ function AppContent() {
       {/* Always-on ambient layers — conditionally paused when tab hidden */}
       <div className="hidden md:block"><CyberHeatmapHUD /></div>
       <div className="hidden md:block"><SystemStatusWidget /></div>
-      <AmbientParticleField density={0.3} />
-      <HoloDataStream side="both" />
+      <div className="hidden md:block"><AmbientParticleField density={0.3} /></div>
+      <div className="hidden md:block"><HoloDataStream side="both" /></div>
       {/* CyberWidgetsDock removed — accessible via TopBar "HUD" button */}
       <AnimatePresence>
         {modals.widgetsDock && <CyberHUDOverlay key="widgets-dock" onClose={() => close('widgetsDock')} />}
       </AnimatePresence>
 
-      <PipelineHUD
-        onSendToRag={handlePipeToRag} onSendToCLI={handlePipeToCLI}
-        onSendToAgent={handlePipeToAgent} onSendToIDE={handlePipeToIDE}
-      />
+      <div className="hidden md:block">
+        <PipelineHUD
+          onSendToRag={handlePipeToRag} onSendToCLI={handlePipeToCLI}
+          onSendToAgent={handlePipeToAgent} onSendToIDE={handlePipeToIDE}
+        />
+      </div>
 
       {/* AI Auto-Setup 3D */}
       <AnimatePresence>

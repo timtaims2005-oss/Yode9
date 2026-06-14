@@ -922,20 +922,46 @@ export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool,
       <AnimatePresence>
         {isOpen && (
           <>
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
               onClick={onClose}
-              className="md:hidden fixed inset-0 bg-black/85 backdrop-blur-md z-40"
+              className="md:hidden fixed inset-0 z-[199]"
+              style={{
+                background: "rgba(0,0,0,0.88)",
+                backdropFilter: "blur(18px)",
+                WebkitBackdropFilter: "blur(18px)",
+              }}
             />
+            {/* Drawer — z above ALL fixed HUD elements (z-85, z-90, etc.) */}
             <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="md:hidden fixed inset-y-0 left-0 z-50 flex w-full"
+              initial={{ x: "-100%", rotateY: -8, opacity: 0.6 }}
+              animate={{ x: 0, rotateY: 0, opacity: 1 }}
+              exit={{ x: "-100%", rotateY: -12, opacity: 0 }}
+              transition={{ type: "spring", damping: 28, stiffness: 260, mass: 0.8 }}
+              className="md:hidden fixed inset-y-0 left-0 z-[200] flex"
+              style={{ perspective: "1200px", transformStyle: "preserve-3d", willChange: "transform" }}
             >
+              {/* Neon edge glow on the right side of drawer */}
+              <div style={{
+                position: "absolute", right: -1, top: 0, bottom: 0, width: 2, zIndex: 1, pointerEvents: "none",
+                background: "linear-gradient(180deg, transparent 0%, rgba(226,18,39,0.9) 20%, rgba(255,60,80,1) 50%, rgba(226,18,39,0.9) 80%, transparent 100%)",
+                boxShadow: "0 0 24px rgba(226,18,39,0.7), 0 0 8px rgba(226,18,39,0.4)",
+                filter: "blur(0.5px)",
+              }} />
+              {/* Scanline sweep across drawer */}
+              <motion.div
+                initial={{ y: "-100%" }}
+                animate={{ y: "100%" }}
+                transition={{ duration: 1.8, ease: "linear", delay: 0.1, repeat: Infinity, repeatDelay: 3 }}
+                style={{
+                  position: "absolute", left: 0, right: 0, height: 80, zIndex: 2, pointerEvents: "none",
+                  background: "linear-gradient(180deg, transparent 0%, rgba(226,18,39,0.06) 50%, transparent 100%)",
+                }}
+              />
               {content}
             </motion.div>
           </>
