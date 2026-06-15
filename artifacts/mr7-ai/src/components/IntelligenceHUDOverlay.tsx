@@ -152,7 +152,7 @@ function BrainOrbCanvas({ threatLevel, scores, size = 72 }: {
 
 function ScoreBar({ label, value, color, icon: Icon }: {
   label: string; value: number; color: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>;
 }) {
   return (
     <div className="flex items-center gap-1.5">

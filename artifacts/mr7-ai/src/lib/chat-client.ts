@@ -512,7 +512,7 @@ export type GodmodeEvent =
 export type GodmodeRequest = {
   messages: ChatMessage[];
   language: "en" | "ar";
-  mode: "classic" | "ultraplinian" | "reason" | "hunter" | "agent" | "extended" | "maxoverdrive" | "unbound" | "jioreason" | "mythos" | "ultimate" | "think" | "max" | "abliterated";
+  mode: "classic" | "ultraplinian" | "reason" | "hunter" | "agent" | "extended" | "maxoverdrive" | "unbound" | "jioreason" | "mythos" | "ultimate" | "think" | "max" | "abliterated" | "omega" | "neural" | "quantum" | "swarm" | "matrix" | "genesis" | "shadow" | "titan" | "oracle" | "phantom";
   tier?: "bronze" | "silver" | "gold" | "platinum" | "diamond";
   apiKey?: string;
   apiBaseURL?: string;

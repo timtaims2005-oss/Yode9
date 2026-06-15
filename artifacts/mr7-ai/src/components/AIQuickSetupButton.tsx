@@ -140,28 +140,31 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    const SIZE = 46;
+    const SIZE = 60;
     const DPR  = Math.min(window.devicePixelRatio * 2, 4);
     cv.width   = SIZE * DPR;
     cv.height  = SIZE * DPR;
     ctx.scale(DPR, DPR);
     const [cx, cy] = [SIZE / 2, SIZE / 2];
-    const FOV = 165;
+    const FOV = 190;
 
     // 4 rings — rainbow spectrum, hOff staggers hue 90° per ring
     type Ring = { r: number; tX: number; tY: number; speed: number; hOff: number; eCount: number };
     const RINGS: Ring[] = [
-      { r:  7, tX:  0.22, tY:  0.10, speed:  0.030, hOff:   0, eCount: 7  },
-      { r: 10, tX:  0.40, tY:  0.20, speed:  0.020, hOff:  60, eCount: 9  },
-      { r: 14, tX: -0.55, tY:  0.50, speed: -0.014, hOff: 120, eCount: 11 },
-      { r: 18, tX:  0.75, tY: -0.58, speed:  0.009, hOff: 180, eCount: 13 },
-      { r: 22, tX: -0.38, tY:  0.32, speed: -0.007, hOff: 240, eCount: 10 },
-      { r: 26, tX:  0.52, tY: -0.45, speed:  0.005, hOff: 300, eCount: 8  },
+      { r:  7, tX:  0.22, tY:  0.10, speed:  0.030, hOff:   0, eCount: 8  },
+      { r: 11, tX:  0.40, tY:  0.20, speed:  0.020, hOff:  40, eCount: 10 },
+      { r: 15, tX: -0.55, tY:  0.50, speed: -0.014, hOff:  80, eCount: 12 },
+      { r: 19, tX:  0.75, tY: -0.58, speed:  0.009, hOff: 120, eCount: 14 },
+      { r: 24, tX: -0.38, tY:  0.32, speed: -0.007, hOff: 160, eCount: 11 },
+      { r: 28, tX:  0.52, tY: -0.45, speed:  0.005, hOff: 200, eCount: 9  },
+      { r: 32, tX: -0.28, tY:  0.62, speed: -0.004, hOff: 240, eCount: 8  },
+      { r: 36, tX:  0.68, tY:  0.18, speed:  0.003, hOff: 280, eCount: 7  },
+      { r: 40, tX: -0.52, tY: -0.35, speed: -0.002, hOff: 320, eCount: 5  },
     ];
 
     // Quantum foam — micro background dots
     type Foam = { x: number; y: number; r: number; a: number; va: number };
-    const foam: Foam[] = Array.from({ length: 28 }, () => ({
+    const foam: Foam[] = Array.from({ length: 55 }, () => ({
       x: Math.random() * SIZE, y: Math.random() * SIZE,
       r: 0.3 + Math.random() * 0.5,
       a: 0.02 + Math.random() * 0.06,
@@ -341,6 +344,68 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
         ctx.setLineDash([]);
       });
 
+      // ── Dark energy tendrils from nucleus ──────────────────────────────
+      for (let di = 0; di < 10; di++) {
+        const da = (di / 10) * Math.PI * 2 + t * 0.022;
+        const dr1 = 4.5 + Math.sin(t * 0.8 + di) * 1.2;
+        const dr2 = 28 + Math.cos(t * 0.6 + di * 1.4) * 7;
+        const dx1 = cx + Math.cos(da) * dr1;
+        const dy1 = cy + Math.sin(da) * dr1;
+        const dx2 = cx + Math.cos(da + Math.sin(t * 0.3 + di) * 0.4) * dr2;
+        const dy2 = cy + Math.sin(da + Math.cos(t * 0.35 + di) * 0.4) * dr2;
+        const dmx = (dx1 + dx2) / 2 + Math.sin(t * 1.2 + di) * 4;
+        const dmy = (dy1 + dy2) / 2 + Math.cos(t * 1.4 + di) * 4;
+        const dAlpha = 0.03 + Math.abs(Math.sin(t * 2.0 + di)) * 0.04;
+        ctx.beginPath();
+        ctx.moveTo(dx1, dy1);
+        ctx.quadraticCurveTo(dmx, dmy, dx2, dy2);
+        ctx.strokeStyle = `rgba(${hsl(hue + di * 36 + 180)},${dAlpha})`;
+        ctx.lineWidth = 0.28 + Math.sin(t * 2.5 + di) * 0.14;
+        ctx.stroke();
+      }
+
+      // ── Plasma neural inter-ring connections ────────────────────────────
+      if (isO || ph === "scanning" || isH) {
+        const pAlpha = ph === "scanning" ? 0.12 : 0.06;
+        for (let ni = 0; ni < RINGS.length; ni += 2) {
+          for (let nj = ni + 3; nj < RINGS.length; nj += 2) {
+            const a1 = t * RINGS[ni].speed * 10 + ni * 0.85;
+            const a2 = t * RINGS[nj].speed * 10 + nj * 0.85;
+            const r1 = xf(RINGS[ni].r * Math.cos(a1), RINGS[ni].r * Math.sin(a1), RINGS[ni], gRX, gRY, gRZ);
+            const r2 = xf(RINGS[nj].r * Math.cos(a2), RINGS[nj].r * Math.sin(a2), RINGS[nj], gRX, gRY, gRZ);
+            const mx = (r1.px + r2.px) / 2 + Math.sin(t * 0.07 + ni + nj) * 3;
+            const my = (r1.py + r2.py) / 2 + Math.cos(t * 0.08 + ni * nj) * 3;
+            ctx.beginPath();
+            ctx.moveTo(r1.px, r1.py);
+            ctx.quadraticCurveTo(mx, my, r2.px, r2.py);
+            ctx.strokeStyle = `rgba(${hsl(hue + ni * 45)},${pAlpha})`;
+            ctx.lineWidth = 0.35; ctx.stroke();
+          }
+        }
+      }
+
+      // ── Holographic hex grid overlay ────────────────────────────────────
+      if (isH) {
+        const hexR = 4.5;
+        const hexA = isH ? 0.04 : 0.015;
+        ctx.strokeStyle = `rgba(${hsl(hue + 120)},${hexA})`;
+        ctx.lineWidth = 0.25;
+        for (let hxi = -3; hxi <= 3; hxi++) {
+          for (let hyi = -3; hyi <= 3; hyi++) {
+            const hx = cx + hxi * hexR * 1.73;
+            const hy = cy + hyi * hexR * 2 + (hxi % 2) * hexR;
+            ctx.beginPath();
+            for (let hk = 0; hk < 6; hk++) {
+              const hka = (hk / 6) * Math.PI * 2 + t * 0.015;
+              const hpx = hx + Math.cos(hka) * hexR;
+              const hpy = hy + Math.sin(hka) * hexR;
+              hk === 0 ? ctx.moveTo(hpx, hpy) : ctx.lineTo(hpx, hpy);
+            }
+            ctx.closePath(); ctx.stroke();
+          }
+        }
+      }
+
       // ── Project + advance particles ────────────────────────────────────
       const spd = ph === "scanning" ? 3.2 : isO ? 1.55 : isH ? 2.6 : 1.05;
       type PP = { px: number; py: number; sc: number; zd: number; p: P };
@@ -515,15 +580,15 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
 
   return (
     <canvas ref={canvasRef}
-      width={38} height={38}
-      style={{ width: 38, height: 38, display: "block", flexShrink: 0, imageRendering: "auto", cursor: "crosshair" }}
+      width={52} height={52}
+      style={{ width: 52, height: 52, display: "block", flexShrink: 0, imageRendering: "auto", cursor: "crosshair" }}
       onMouseEnter={() => { hoverRef.current = true; burstRef.current = tRef.current; }}
       onMouseLeave={() => { hoverRef.current = false; mouseRef.current = { x: -1, y: -1 }; }}
       onMouseMove={(e) => {
         const rect = (e.target as HTMLCanvasElement).getBoundingClientRect();
         mouseRef.current = {
-          x: (e.clientX - rect.left) * (38 / rect.width),
-          y: (e.clientY - rect.top)  * (38 / rect.height),
+          x: (e.clientX - rect.left) * (52 / rect.width),
+          y: (e.clientY - rect.top)  * (52 / rect.height),
         };
       }}
     />

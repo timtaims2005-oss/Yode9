@@ -41,7 +41,7 @@ app.use(
 
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
+  max: 2000,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: { error: "Too many requests — slow down." },
@@ -50,18 +50,18 @@ const globalLimiter = rateLimit({
 
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 30,
+  max: 120,
   standardHeaders: "draft-7",
   legacyHeaders: false,
-  message: { error: "AI rate limit — max 30 requests/min." },
+  message: { error: "AI rate limit — max 120 requests/min." },
 });
 
 const shellLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 10,
+  max: 30,
   standardHeaders: "draft-7",
   legacyHeaders: false,
-  message: { error: "Shell rate limit — max 10 commands/min." },
+  message: { error: "Shell rate limit — max 30 commands/min." },
 });
 
 app.use(globalLimiter);

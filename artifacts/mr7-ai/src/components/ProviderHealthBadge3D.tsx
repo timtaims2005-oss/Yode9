@@ -54,14 +54,14 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    const SIZE = 44;
+    const SIZE = 60;
     const DPR  = Math.min(window.devicePixelRatio * 2, 4);
     cv.width   = SIZE * DPR;
     cv.height  = SIZE * DPR;
     ctx.scale(DPR, DPR);
     const [cx, cy] = [SIZE / 2, SIZE / 2];
-    const R   = 12;
-    const FOV = 185;
+    const R   = 17;
+    const FOV = 230;
 
     // ── 3D math ──────────────────────────────────────────────────────────
     function rotX(x: number, y: number, z: number, a: number): [number,number,number] {
@@ -84,16 +84,19 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
     // 4 orbital rings — rainbow spectrum, hOff staggers hue 90° per ring
     type OrbRing = { r: number; tX: number; tY: number; speed: number; hOff: number; moonR: number };
     const ORB_RINGS: OrbRing[] = [
-      { r: 16, tX:  0.42, tY:  0.20, speed:  0.026, hOff:   0, moonR: 1.5 },
-      { r: 20, tX: -0.58, tY:  0.50, speed: -0.017, hOff:  60, moonR: 1.2 },
-      { r: 24, tX:  0.78, tY: -0.60, speed:  0.012, hOff: 120, moonR: 1.0 },
-      { r: 28, tX: -0.30, tY:  0.35, speed: -0.009, hOff: 180, moonR: 0.85},
-      { r: 32, tX:  0.62, tY:  0.28, speed:  0.007, hOff: 240, moonR: 0.7 },
-      { r: 36, tX: -0.45, tY: -0.42, speed: -0.005, hOff: 300, moonR: 0.55},
+      { r: 18, tX:  0.42, tY:  0.20, speed:  0.026, hOff:   0, moonR: 1.8 },
+      { r: 22, tX: -0.58, tY:  0.50, speed: -0.017, hOff:  40, moonR: 1.5 },
+      { r: 27, tX:  0.78, tY: -0.60, speed:  0.012, hOff:  80, moonR: 1.2 },
+      { r: 31, tX: -0.30, tY:  0.35, speed: -0.009, hOff: 120, moonR: 1.0 },
+      { r: 36, tX:  0.62, tY:  0.28, speed:  0.007, hOff: 160, moonR: 0.85},
+      { r: 40, tX: -0.45, tY: -0.42, speed: -0.005, hOff: 200, moonR: 0.70},
+      { r: 44, tX:  0.35, tY:  0.55, speed:  0.004, hOff: 240, moonR: 0.55},
+      { r: 48, tX: -0.60, tY:  0.25, speed: -0.003, hOff: 280, moonR: 0.42},
+      { r: 52, tX:  0.48, tY: -0.38, speed:  0.002, hOff: 320, moonR: 0.30},
     ];
 
-    // Saturn-like flat planetary ring (scaled to SIZE 40)
-    const RING_DISC = { rInner: 15, rOuter: 22, tX: 0.55, tY: 0.10 };
+    // Saturn-like flat planetary ring (scaled to SIZE 60)
+    const RING_DISC = { rInner: 20, rOuter: 32, tX: 0.55, tY: 0.10 };
 
     type P = { ring: number; angle: number; trail: Array<{ x: number; y: number }> };
     const particles: P[] = ORB_RINGS.flatMap((_, ri) =>
@@ -117,18 +120,18 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
 
     // Deep-field background stars
     type Star = { x: number; y: number; r: number; a: number; va: number };
-    const stars: Star[] = Array.from({ length: 35 }, () => ({
+    const stars: Star[] = Array.from({ length: 70 }, () => ({
       x: Math.random() * SIZE, y: Math.random() * SIZE,
-      r: 0.25 + Math.random() * 0.45,
-      a: 0.15 + Math.random() * 0.55,
-      va: 0.012 + Math.random() * 0.028,
+      r: 0.20 + Math.random() * 0.55,
+      a: 0.12 + Math.random() * 0.65,
+      va: 0.010 + Math.random() * 0.030,
     }));
 
     // Nebula cloud particles
     type NebP = { x: number; y: number; vx: number; vy: number; r: number; a: number };
-    const nebula: NebP[] = Array.from({ length: 22 }, () => ({
-      x: cx + (Math.random() - 0.5) * 34,
-      y: cy + (Math.random() - 0.5) * 34,
+    const nebula: NebP[] = Array.from({ length: 45 }, () => ({
+      x: cx + (Math.random() - 0.5) * 50,
+      y: cy + (Math.random() - 0.5) * 50,
       vx: (Math.random() - 0.5) * 0.08,
       vy: (Math.random() - 0.5) * 0.08,
       r: 1.5 + Math.random() * 3.0,
@@ -272,6 +275,56 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
 
       // ── Back half of ring disc ──────────────────────────────────────────
       drawRingDisc(false);
+
+      // ── Dark matter filaments ─────────────────────────────────────────────
+      for (let fi = 0; fi < 14; fi++) {
+        const fa = (fi / 14) * Math.PI * 2 + t * 0.03;
+        const fr1 = R + 2 + Math.sin(t * 0.7 + fi) * 2;
+        const fr2 = R + 36 + Math.cos(t * 0.55 + fi * 1.2) * 10;
+        const fa2 = fa + Math.sin(t * 0.4 + fi) * 0.45;
+        const fx1 = cx + Math.cos(fa) * fr1;
+        const fy1 = cy + Math.sin(fa) * fr1;
+        const fx2 = cx + Math.cos(fa2) * fr2;
+        const fy2 = cy + Math.sin(fa2) * fr2;
+        const fmx = (fx1 + fx2) / 2 + Math.sin(t * 1.1 + fi * 0.9) * 6;
+        const fmy = (fy1 + fy2) / 2 + Math.cos(t * 1.3 + fi * 1.1) * 6;
+        const fAlpha = 0.035 + Math.abs(Math.sin(t * 1.8 + fi)) * 0.055;
+        ctx.beginPath();
+        ctx.moveTo(fx1, fy1);
+        ctx.quadraticCurveTo(fmx, fmy, fx2, fy2);
+        ctx.strokeStyle = `rgba(${hsl(hue + fi * 26)},${fAlpha})`;
+        ctx.lineWidth = 0.30 + Math.sin(t * 2.2 + fi) * 0.15;
+        ctx.stroke();
+      }
+
+      // ── Quantum wormhole lensing rings ────────────────────────────────────
+      for (let wi = 0; wi < 5; wi++) {
+        const wR = R * (0.52 + wi * 0.11) + Math.sin(t * 0.9 + wi) * 1.8;
+        const wScaleX = 0.92 + Math.sin(t * 0.6 + wi * 0.8) * 0.10;
+        const wAlpha = 0.05 - wi * 0.007;
+        if (wAlpha <= 0) continue;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, wR * wScaleX, wR * 0.42, Math.PI * 0.10 + t * 0.018, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${hsl(hue + 180 + wi * 40)},${wAlpha})`;
+        ctx.lineWidth = 0.45; ctx.stroke();
+      }
+
+      // ── Plasma micro-sparks ───────────────────────────────────────────────
+      const burstAge = t - burstRef.current;
+      if (isH && burstAge < 2.5) {
+        const sparks = 16;
+        for (let si = 0; si < sparks; si++) {
+          const sa = (si / sparks) * Math.PI * 2;
+          const sr = burstAge * (18 + si * 0.8);
+          const sx = cx + Math.cos(sa) * sr;
+          const sy = cy + Math.sin(sa) * sr;
+          const sAlpha = Math.max(0, 0.55 - burstAge * 0.22);
+          ctx.beginPath();
+          ctx.arc(sx, sy, 0.5 + burstAge * 0.3, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${hsl(hue + si * 22)},${sAlpha})`;
+          ctx.fill();
+        }
+      }
 
       // ── Orbit ring paths ────────────────────────────────────────────────
       ORB_RINGS.forEach((ring, ri) => {
@@ -516,8 +569,8 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
 
   return (
     <canvas ref={canvasRef}
-      width={34} height={34}
-      style={{ width: 34, height: 34, display: "block", flexShrink: 0, imageRendering: "auto", cursor: "crosshair" }}
+      width={50} height={50}
+      style={{ width: 50, height: 50, display: "block", flexShrink: 0, imageRendering: "auto", cursor: "crosshair" }}
       onMouseEnter={() => { hoverRef.current = true; burstRef.current = tRef.current; }}
       onMouseLeave={() => { hoverRef.current = false; }}
     />

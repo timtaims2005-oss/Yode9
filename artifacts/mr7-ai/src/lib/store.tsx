@@ -44,7 +44,7 @@ export type GodmodeScoreEntry = {
 };
 
 export type GodmodePayload = {
-  mode: "classic" | "ultraplinian" | "reason" | "hunter" | "agent" | "extended" | "maxoverdrive" | "unbound" | "jioreason" | "mythos" | "ultimate" | "think" | "max" | "abliterated";
+  mode: "classic" | "ultraplinian" | "reason" | "hunter" | "agent" | "extended" | "maxoverdrive" | "unbound" | "jioreason" | "mythos" | "ultimate" | "think" | "max" | "abliterated" | "omega" | "neural" | "quantum" | "swarm" | "matrix" | "genesis" | "shadow" | "titan" | "oracle" | "phantom";
   tier: string | null;
   champions: GodmodeChampState[];
   phase: "convening" | "racing" | "judging" | "done" | "error";

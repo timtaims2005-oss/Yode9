@@ -113,9 +113,7 @@ function BrainCanvas3D({ scores, threat, size }: {
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(t * 0.9);
-      const sweep = ctx.createConicalGradient
-        ? ctx.createLinearGradient(-size * 0.44, 0, size * 0.44, 0)
-        : ctx.createLinearGradient(-size * 0.44, 0, size * 0.44, 0);
+      const sweep = ctx.createLinearGradient(-size * 0.44, 0, size * 0.44, 0);
       sweep.addColorStop(0, "transparent");
       sweep.addColorStop(0.8, col + "22");
       sweep.addColorStop(1,   col + "77");
@@ -505,7 +503,7 @@ function TrendChart({ data, color, label }: {
 
 function Gauge({ value, color, label, icon: Icon }: {
   value: number; color: string; label: string;
-  icon: React.ComponentType<{ size?: number }>;
+  icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>;
 }) {
   return (
     <div className="flex flex-col items-center gap-1">
@@ -535,7 +533,7 @@ function Gauge({ value, color, label, icon: Icon }: {
 
 function SimButton({ label, description, color, icon: Icon, active, onStart, onStop }: {
   label: string; description: string; color: string;
-  icon: React.ComponentType<{ size?: number }>;
+  icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>;
   active: boolean; onStart: () => void; onStop?: () => void;
 }) {
   return (
@@ -1169,7 +1167,7 @@ export function CyberIntelCenter({ open, onClose }: CyberIntelCenterProps) {
                         { icon: Zap, color: "#f59e0b", text: `Response pipeline optimized for ${profileSummary.currentType} behavior pattern` },
                         { icon: Brain, color: "#00e5ff", text: `Prediction accuracy adapts over ${profileSummary.totalSessions} recorded sessions` },
                       ].filter(Boolean).map((item, i) => {
-                        const { icon: Icon, color, text } = item as { icon: React.ComponentType<{size?: number}>, color: string, text: string };
+                        const { icon: Icon, color, text } = item as { icon: React.ComponentType<{size?: number; style?: React.CSSProperties; className?: string}>, color: string, text: string };
                         return (
                           <div key={i} className="flex items-start gap-3 py-2.5 border-b border-white/[0.04]">
                             <Icon size={13} style={{ color }} className="mt-0.5 shrink-0" />
