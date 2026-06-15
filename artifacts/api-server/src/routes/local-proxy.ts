@@ -71,8 +71,12 @@ router.post("/local-proxy/chat", async (req, res) => {
 
     if (!upstream.ok || !upstream.body) {
       const txt = await upstream.text().catch(() => "");
-      logger.warn({ status: upstream.status, txt }, "local-proxy upstream error");
-      return res.status(upstream.status).json({ error: `Upstream error ${upstream.status}: ${txt.slice(0, 200)}` });
+      logger.warn({ status: upstream.status }, "local-proxy upstream error");
+      const isHtml = txt.includes("<!DOCTYPE") || txt.includes("<html");
+      const cleanMsg = isHtml
+        ? `Local model server at ${base} returned error ${upstream.status}. Is Ollama/LM Studio running?`
+        : `Upstream error ${upstream.status}: ${txt.slice(0, 200)}`;
+      return res.status(502).json({ error: cleanMsg });
     }
 
     res.setHeader("Content-Type", "text/event-stream");

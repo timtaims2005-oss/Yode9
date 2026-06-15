@@ -25,15 +25,15 @@ interface ProviderHealth {
 
 const PROVIDER_DEFS = [
   { id: "personal",   name: "Personal API", color: "#e21227", baseURL: "" },
-  { id: "openai",     name: "OpenAI",        color: "#10b981", baseURL: "https://api.openai.com/v1" },
-  { id: "anthropic",  name: "Anthropic",     color: "#f97316", baseURL: "https://api.anthropic.com/v1" },
-  { id: "groq",       name: "Groq",          color: "#f59e0b", baseURL: "https://api.groq.com/openai/v1" },
-  { id: "gemini",     name: "Gemini",        color: "#3b82f6", baseURL: "https://generativelanguage.googleapis.com/v1beta" },
-  { id: "openrouter", name: "OpenRouter",    color: "#8b5cf6", baseURL: "https://openrouter.ai/api/v1" },
-  { id: "deepseek",   name: "DeepSeek",      color: "#06b6d4", baseURL: "https://api.deepseek.com/v1" },
-  { id: "xai",        name: "xAI Grok",      color: "#6b7280", baseURL: "https://api.x.ai/v1" },
-  { id: "mistral",    name: "Mistral",       color: "#ec4899", baseURL: "https://api.mistral.ai/v1" },
-  { id: "perplexity", name: "Perplexity",    color: "#22d3ee", baseURL: "https://api.perplexity.ai" },
+  { id: "openai",     name: "OpenAI",        color: "#00ff41", baseURL: "https://api.openai.com/v1" },
+  { id: "anthropic",  name: "Anthropic",     color: "#00e5ff", baseURL: "https://api.anthropic.com/v1" },
+  { id: "groq",       name: "Groq",          color: "#ff6600", baseURL: "https://api.groq.com/openai/v1" },
+  { id: "gemini",     name: "Gemini",        color: "#00bfff", baseURL: "https://generativelanguage.googleapis.com/v1beta" },
+  { id: "openrouter", name: "OpenRouter",    color: "#ff0080", baseURL: "https://openrouter.ai/api/v1" },
+  { id: "deepseek",   name: "DeepSeek",      color: "#00ffcc", baseURL: "https://api.deepseek.com/v1" },
+  { id: "xai",        name: "xAI Grok",      color: "#ff3333", baseURL: "https://api.x.ai/v1" },
+  { id: "mistral",    name: "Mistral",       color: "#ffcc00", baseURL: "https://api.mistral.ai/v1" },
+  { id: "perplexity", name: "Perplexity",    color: "#00ff99", baseURL: "https://api.perplexity.ai" },
 ];
 
 // ── Mini sparkline canvas ─────────────────────────────────────────────────────

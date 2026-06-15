@@ -29,6 +29,95 @@ const ITEM_COLORS: Record<string, string> = {
   help:      "#06b6d4",
 };
 
+const ITEM_META: Record<string, { desc: string; shortcut?: string }> = {
+  new:       { desc: "محادثة جديدة",     shortcut: "Ctrl+N" },
+  agent:     { desc: "KaliAgent المستقل", shortcut: undefined },
+  search:    { desc: "بحث في المحادثات",  shortcut: "Ctrl+F" },
+  memory:    { desc: "ذاكرة الذكاء",      shortcut: "Ctrl+Shift+M" },
+  bookmarks: { desc: "المفضلة",           shortcut: "Ctrl+Shift+B" },
+  compare:   { desc: "مقارنة النماذج",    shortcut: "Ctrl+Shift+C" },
+  tools:     { desc: "مركز الأدوات",      shortcut: "Ctrl+Shift+T" },
+  settings:  { desc: "الإعدادات",         shortcut: undefined },
+  help:      { desc: "اختصارات لوحة المفاتيح", shortcut: "?" },
+};
+
+function DockTooltip3D({ label, desc, shortcut, color, side }: {
+  label: string; desc: string; shortcut?: string; color: string; side: "left" | "right";
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: side === "left" ? 8 : -8, scale: 0.92 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: side === "left" ? 8 : -8, scale: 0.88 }}
+      transition={{ duration: 0.13 }}
+      style={{
+        position: "absolute",
+        [side]: "calc(100% + 8px)",
+        top: "50%",
+        transform: "translateY(-50%)",
+        zIndex: 999,
+        pointerEvents: "none",
+        minWidth: 130,
+      }}
+    >
+      {/* Glassmorphism card */}
+      <div style={{
+        background: "linear-gradient(135deg, rgba(8,8,16,0.97) 0%, rgba(14,14,24,0.97) 100%)",
+        border: `1px solid ${color}35`,
+        borderRadius: 10,
+        padding: "7px 10px",
+        backdropFilter: "blur(24px)",
+        boxShadow: `0 8px 32px rgba(0,0,0,0.7), 0 0 20px ${color}18, inset 0 1px 0 rgba(255,255,255,0.05)`,
+        position: "relative",
+        overflow: "hidden",
+      }}>
+        {/* top glow line */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: "1px",
+          background: `linear-gradient(90deg, transparent, ${color}60, transparent)`,
+        }} />
+        {/* dot indicator */}
+        <div style={{
+          position: "absolute", top: 6, right: 6,
+          width: 5, height: 5, borderRadius: "50%",
+          background: color,
+          boxShadow: `0 0 6px ${color}`,
+          animation: "none",
+        }} />
+        <div style={{ color: "rgba(255,255,255,0.9)", fontSize: 11, fontWeight: 800, marginBottom: 2, letterSpacing: "0.03em" }}>
+          {label}
+        </div>
+        <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, lineHeight: 1.4 }}>{desc}</div>
+        {shortcut && (
+          <div style={{
+            marginTop: 5, display: "inline-flex", alignItems: "center", gap: 3,
+            background: `${color}12`, border: `1px solid ${color}25`,
+            borderRadius: 5, padding: "2px 6px",
+          }}>
+            <span style={{ color, fontSize: 8, fontFamily: "monospace", fontWeight: 700 }}>{shortcut}</span>
+          </div>
+        )}
+        {/* corner accent */}
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0, height: "1px",
+          background: `linear-gradient(90deg, transparent, ${color}25, transparent)`,
+        }} />
+      </div>
+      {/* Pointer arrow */}
+      <div style={{
+        position: "absolute",
+        top: "50%",
+        [side === "left" ? "right" : "left"]: -5,
+        transform: "translateY(-50%)",
+        width: 0, height: 0,
+        borderTop: "5px solid transparent",
+        borderBottom: "5px solid transparent",
+        [side === "left" ? "borderLeft" : "borderRight"]: `5px solid ${color}35`,
+      }} />
+    </motion.div>
+  );
+}
+
 export function FloatingActionDock(props: DockHandlers) {
   const { state, dispatch } = useStore();
   const { t, rtl } = useT();
@@ -165,48 +254,63 @@ export function FloatingActionDock(props: DockHandlers) {
               const Icon = it.icon;
               const color = ITEM_COLORS[it.key] ?? "rgba(255,255,255,0.3)";
               const isHovered = hovered === it.key;
+              const meta = ITEM_META[it.key];
+              const label = it.key === "agent" ? "KaliAgent" : t(it.labelKey);
+              const tooltipSide = rtl ? "right" : "left";
 
               return (
-                <motion.button
-                  key={it.key}
-                  onClick={it.onClick}
-                  onMouseEnter={() => setHovered(it.key)}
-                  onMouseLeave={() => setHovered(null)}
-                  title={it.key === "agent" ? "KaliAgent — Autonomous AI" : t(it.labelKey)}
-                  aria-label={it.key === "agent" ? "KaliAgent" : t(it.labelKey)}
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.92 }}
-                  style={{
-                    width: "36px", height: "36px", borderRadius: "11px",
-                    border: isHovered ? `1px solid ${color}35` : "1px solid transparent",
-                    background: isHovered
-                      ? `linear-gradient(135deg, ${color}14, ${color}08)`
-                      : "rgba(255,255,255,0.02)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    cursor: "pointer",
-                    color: isHovered ? color : "rgba(255,255,255,0.3)",
-                    boxShadow: isHovered ? `0 0 16px ${color}25, inset 0 1px 0 rgba(255,255,255,0.06)` : "none",
-                    transition: "color 0.2s ease, background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease",
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
-                >
-                  {/* Shimmer on hover */}
-                  {isHovered && (
-                    <motion.div
-                      initial={{ x: "-100%", opacity: 0 }}
-                      animate={{ x: "200%", opacity: [0, 0.3, 0] }}
-                      transition={{ duration: 0.6, ease: "easeOut" }}
-                      style={{
-                        position: "absolute", top: 0, left: 0,
-                        width: "50%", height: "100%",
-                        background: `linear-gradient(90deg, transparent, ${color}20, transparent)`,
-                        pointerEvents: "none",
-                      }}
-                    />
-                  )}
-                  <Icon style={{ width: "16px", height: "16px" }} />
-                </motion.button>
+                <div key={it.key} style={{ position: "relative" }}>
+                  <motion.button
+                    onClick={it.onClick}
+                    onMouseEnter={() => setHovered(it.key)}
+                    onMouseLeave={() => setHovered(null)}
+                    aria-label={label}
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.92 }}
+                    style={{
+                      width: "36px", height: "36px", borderRadius: "11px",
+                      border: isHovered ? `1px solid ${color}35` : "1px solid transparent",
+                      background: isHovered
+                        ? `linear-gradient(135deg, ${color}14, ${color}08)`
+                        : "rgba(255,255,255,0.02)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer",
+                      color: isHovered ? color : "rgba(255,255,255,0.3)",
+                      boxShadow: isHovered ? `0 0 16px ${color}25, inset 0 1px 0 rgba(255,255,255,0.06)` : "none",
+                      transition: "color 0.2s ease, background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease",
+                      position: "relative",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {/* Shimmer on hover */}
+                    {isHovered && (
+                      <motion.div
+                        initial={{ x: "-100%", opacity: 0 }}
+                        animate={{ x: "200%", opacity: [0, 0.3, 0] }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        style={{
+                          position: "absolute", top: 0, left: 0,
+                          width: "50%", height: "100%",
+                          background: `linear-gradient(90deg, transparent, ${color}20, transparent)`,
+                          pointerEvents: "none",
+                        }}
+                      />
+                    )}
+                    <Icon style={{ width: "16px", height: "16px" }} />
+                  </motion.button>
+                  {/* 3D Glassmorphism Tooltip */}
+                  <AnimatePresence>
+                    {isHovered && meta && (
+                      <DockTooltip3D
+                        label={label}
+                        desc={meta.desc}
+                        shortcut={meta.shortcut}
+                        color={color}
+                        side={tooltipSide}
+                      />
+                    )}
+                  </AnimatePresence>
+                </div>
               );
             })}
 

@@ -1188,6 +1188,315 @@ function generateVirtualCatalog(): WorldModel[] {
     });
   });
 
+  // ── Falcon series (TII) ──────────────────────────────────────────────────────
+  const falconVariants: [string, WorldModel["category"], WorldModel["cost"]][] = [
+    ["1B","small","free"],["3B","general","free"],["7B","general","free"],["11B","general","free"],
+    ["40B","general","$"],["180B","general","$$"],["7B-Instruct","general","free"],
+    ["40B-Instruct","general","$"],["180B-Chat","general","$$"],
+    ["1B-Code","code","free"],["7B-Code","code","free"],["Mamba-7B","general","free"],
+    ["RW-1B","small","free"],["RW-7B","general","free"],
+  ];
+  falconVariants.forEach(([v, cat, cost]) => {
+    models.push({ id: `tiiuae/falcon-${v.toLowerCase()}-hf-v`, label: `Falcon ${v}`, provider: "Hugging Face", providerKey: "huggingface", ctx: "8K", speed: parseInt(v) >= 40 ? "slow" : parseInt(v) >= 11 ? "medium" : "fast", category: cat, cost, baseURL: HF, virtual: true });
+  });
+
+  // ── Yi series (01.ai) ─────────────────────────────────────────────────────────
+  const yiVariants = [
+    ["1.5","6B","general","fast"],["1.5","9B","general","fast"],["1.5","34B","general","medium"],
+    ["1","6B","general","fast"],["1","9B","general","fast"],["1","34B","general","medium"],
+    ["1","34B-200K","general","slow"],["1.5","9B-Chat","general","fast"],["1.5","34B-Chat","general","medium"],
+    ["Coder","6B","code","fast"],["Coder","9B","code","fast"],["Coder","33B","code","medium"],
+    ["VL","6B","vision","fast"],["VL","34B","vision","medium"],["Lightning","6B","general","fast"],
+  ];
+  yiVariants.forEach(([series, sz, cat, spd]) => {
+    models.push({ id: `01-ai/yi-${series}-${sz.toLowerCase()}-hf-v`, label: `Yi ${series} ${sz}`, provider: "Hugging Face", providerKey: "huggingface", ctx: sz.includes("200K") ? "200K" : "32K", speed: spd as "fast"|"medium"|"slow", category: cat as WorldModel["category"], cost: parseInt(sz) >= 34 ? "$" : "free", baseURL: HF, virtual: true });
+  });
+
+  // ── InternLM series (Shanghai AI Lab) ────────────────────────────────────────
+  const internVariants = [
+    ["2","1.8B","general"],["2","7B","general"],["2","20B","general"],
+    ["2.5","1.8B","general"],["2.5","7B","general"],["2.5","20B","general"],
+    ["3","1B","small"],["3","8B","general"],["2.5-Math","7B","math"],
+    ["2.5-Math","20B","math"],["XComposer2","7B","vision"],["XComposer2-4KHD","7B","vision"],
+    ["2-Code","7B","code"],["2-Code","20B","code"],
+  ];
+  internVariants.forEach(([v, sz, cat]) => {
+    models.push({ id: `internlm/internlm${v}-${sz.toLowerCase()}-chat-hf-v`, label: `InternLM${v} ${sz} Chat`, provider: "Hugging Face", providerKey: "huggingface", ctx: "32K", speed: parseInt(sz) >= 20 ? "medium" : "fast", category: cat as WorldModel["category"], cost: "free", baseURL: HF, virtual: true });
+  });
+
+  // ── Baichuan / Tongyi series ──────────────────────────────────────────────────
+  const baichuanVariants = [
+    ["Baichuan2","7B","general"],["Baichuan2","13B","general"],["Baichuan2-Chat","7B","general"],
+    ["Baichuan2-Chat","13B","general"],["Tongyi-Qianwen","7B","general"],["Tongyi-Qianwen","14B","general"],
+    ["ChatGLM3","6B","general"],["ChatGLM4","9B","general"],["GLM-4V","9B","vision"],
+    ["CogVLM2","19B","vision"],["CogAgent","18B","vision"],
+  ];
+  baichuanVariants.forEach(([name, sz, cat]) => {
+    const id = name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+    models.push({ id: `${id}-${sz.toLowerCase()}-hf-v`, label: `${name} ${sz}`, provider: "Hugging Face", providerKey: "huggingface", ctx: "8K", speed: parseInt(sz) >= 19 ? "medium" : "fast", category: cat as WorldModel["category"], cost: "free", baseURL: HF, virtual: true });
+  });
+
+  // ── Code specialists on HuggingFace ──────────────────────────────────────────
+  const codeModels = [
+    ["codellama/CodeLlama-7b-Instruct-hf","CodeLlama 7B Instruct","7B"],
+    ["codellama/CodeLlama-13b-Instruct-hf","CodeLlama 13B Instruct","13B"],
+    ["codellama/CodeLlama-34b-Instruct-hf","CodeLlama 34B Instruct","34B"],
+    ["codellama/CodeLlama-70b-Instruct-hf","CodeLlama 70B Instruct","70B"],
+    ["Salesforce/codegen2-7B","CodeGen2 7B","7B"],
+    ["Salesforce/codegen2-16B","CodeGen2 16B","16B"],
+    ["Salesforce/codet5p-6b","CodeT5+ 6B","6B"],
+    ["Salesforce/codet5p-16b","CodeT5+ 16B","16B"],
+    ["bigcode/santacoder","SantaCoder 1.1B","1B"],
+    ["bigcode/starcoder","StarCoder 15B","15B"],
+    ["bigcode/starcoder2-3b","StarCoder2 3B","3B"],
+    ["bigcode/starcoder2-7b","StarCoder2 7B","7B"],
+    ["replit/replit-code-v1_5-3b","Replit Code 3B","3B"],
+    ["WizardLM/WizardCoder-15B-V1.0","WizardCoder 15B","15B"],
+    ["WizardLM/WizardCoder-Python-34B-V1.0","WizardCoder Python 34B","34B"],
+    ["WizardLM/WizardCoder-Python-7B-V1.0","WizardCoder Python 7B","7B"],
+    ["m-a-p/OpenCodeInterpreter-DS-33B","OpenCodeInterpreter 33B","33B"],
+    ["m-a-p/OpenCodeInterpreter-DS-6.7B","OpenCodeInterpreter 6.7B","6B"],
+    ["ise-uiuc/Magicoder-CL-7B","Magicoder CL 7B","7B"],
+    ["ise-uiuc/Magicoder-S-DS-6.7B","Magicoder S-DS 6.7B","6B"],
+    ["Artigenz/Artigenz-Coder-DS-6.7B","Artigenz Coder 6.7B","6B"],
+    ["Nondzu/Mistral-7B-code-16k-qlora","Mistral Code 16K 7B","7B"],
+    ["TokenBender/code_bagel_hermes_2.5_Mistral_7B","Code Bagel Hermes 7B","7B"],
+    ["deepseek-ai/deepseek-coder-6.7b-instruct","DeepSeek Coder 6.7B Instruct","6B"],
+  ];
+  codeModels.forEach(([id, label, sz]) => {
+    const numSz = parseInt(sz);
+    models.push({ id: `${id}-hf-cv`, label, provider: "Hugging Face", providerKey: "huggingface", ctx: numSz >= 34 ? "32K" : "16K", speed: numSz >= 34 ? "medium" : "fast", category: "code", cost: numSz >= 34 ? "$" : "free", baseURL: HF, virtual: true });
+  });
+
+  // ── Groq hosted models ────────────────────────────────────────────────────────
+  const groqModels = [
+    ["llama-3.1-8b-instant","Llama 3.1 8B Instant","128K","general","fast","free"],
+    ["llama-3.1-70b-versatile","Llama 3.1 70B Versatile","128K","general","medium","$"],
+    ["llama-3.1-405b-reasoning","Llama 3.1 405B Reasoning","128K","reasoning","slow","$$"],
+    ["llama-3.2-1b-preview","Llama 3.2 1B Preview","128K","small","fast","free"],
+    ["llama-3.2-3b-preview","Llama 3.2 3B Preview","128K","general","fast","free"],
+    ["llama-3.2-11b-vision-preview","Llama 3.2 11B Vision","128K","vision","fast","$"],
+    ["llama-3.2-90b-vision-preview","Llama 3.2 90B Vision","128K","vision","medium","$$"],
+    ["llama-3.3-70b-versatile","Llama 3.3 70B Versatile","128K","general","medium","$"],
+    ["llama-3.3-70b-specdec","Llama 3.3 70B SpecDec","128K","general","fast","$"],
+    ["llama-3.3-8b-instant","Llama 3.3 8B Instant","128K","general","fast","free"],
+    ["llama-4-scout-17b-16e-instruct","Llama 4 Scout 17B","128K","general","fast","$"],
+    ["llama-4-maverick-17b-128e-instruct","Llama 4 Maverick 17B","128K","reasoning","medium","$$"],
+    ["mixtral-8x7b-32768","Mixtral 8x7B","32K","general","medium","$"],
+    ["gemma2-9b-it","Gemma2 9B IT","8K","general","fast","free"],
+    ["gemma-7b-it","Gemma 7B IT","8K","general","fast","free"],
+    ["gemma2-27b-it","Gemma2 27B IT","8K","general","medium","$"],
+    ["deepseek-r1-distill-llama-70b","DeepSeek R1 Distill Llama 70B","128K","reasoning","slow","$$"],
+    ["deepseek-r1-distill-qwen-32b","DeepSeek R1 Distill Qwen 32B","128K","reasoning","medium","$"],
+    ["qwen-2.5-72b-instruct","Qwen2.5 72B Instruct","128K","general","medium","$"],
+    ["qwen-2.5-coder-32b-instruct","Qwen2.5 Coder 32B","128K","code","medium","$"],
+    ["qwq-32b","QwQ 32B","128K","reasoning","medium","$"],
+    ["compound-beta","Compound Beta","128K","agent","medium","$$"],
+    ["compound-beta-mini","Compound Beta Mini","128K","agent","fast","$"],
+  ];
+  groqModels.forEach(([id, label, ctx, cat, spd, cost]) => {
+    models.push({ id: `groq/${id}-gqv`, label, provider: "Groq", providerKey: "groq", ctx, speed: spd as "fast"|"medium"|"slow", category: cat as WorldModel["category"], cost: cost as WorldModel["cost"], baseURL: "https://api.groq.com/openai/v1", virtual: true });
+  });
+
+  // ── Perplexity AI models ───────────────────────────────────────────────────────
+  const perplexityModels = [
+    ["sonar","8K","general","fast","$"],["sonar-pro","200K","general","medium","$$"],
+    ["sonar-reasoning","128K","reasoning","medium","$$"],["sonar-reasoning-pro","128K","reasoning","slow","$$$"],
+    ["sonar-turbo","8K","general","fast","free"],["sonar-online","8K","general","fast","$$"],
+    ["llama-3.1-sonar-small-128k-online","8K","general","fast","$"],
+    ["llama-3.1-sonar-large-128k-online","128K","general","medium","$$"],
+    ["llama-3.1-sonar-huge-128k-online","128K","general","slow","$$$"],
+    ["r1-1776","128K","reasoning","slow","$$$"],
+    ["sonar-deep-research","200K","agent","slow","$$$"],
+  ];
+  perplexityModels.forEach(([id, ctx, cat, spd, cost]) => {
+    models.push({ id: `perplexity/${id}-ppv`, label: `Perplexity ${id.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ")}`, provider: "OpenRouter", providerKey: "openrouter", ctx, speed: spd as "fast"|"medium"|"slow", category: cat as WorldModel["category"], cost: cost as WorldModel["cost"], baseURL: OR, virtual: true });
+  });
+
+  // ── Together AI models ─────────────────────────────────────────────────────────
+  const togetherModels = [
+    ["meta-llama/Llama-3-8b-chat-hf","Llama 3 8B Chat","8K","general","fast","free"],
+    ["meta-llama/Llama-3-70b-chat-hf","Llama 3 70B Chat","8K","general","medium","$"],
+    ["mistralai/Mistral-7B-Instruct-v0.3","Mistral 7B v0.3","32K","general","fast","free"],
+    ["mistralai/Mixtral-8x7B-Instruct-v0.1","Mixtral 8x7B","32K","general","medium","$"],
+    ["mistralai/Mixtral-8x22B-Instruct-v0.1","Mixtral 8x22B","65K","general","slow","$$"],
+    ["Qwen/Qwen2-72B-Instruct","Qwen2 72B Instruct","128K","general","medium","$"],
+    ["databricks/dbrx-instruct","DBRX Instruct","32K","general","medium","$"],
+    ["NousResearch/Nous-Hermes-2-Yi-34B","Nous Hermes Yi 34B","200K","general","medium","$"],
+    ["togethercomputer/llama-2-7b-chat","Llama 2 7B Chat","4K","general","fast","free"],
+    ["togethercomputer/llama-2-13b-chat","Llama 2 13B Chat","4K","general","fast","free"],
+    ["togethercomputer/llama-2-70b-chat","Llama 2 70B Chat","4K","general","medium","$"],
+    ["togethercomputer/falcon-7b-instruct","Falcon 7B Instruct","2K","general","fast","free"],
+    ["togethercomputer/alpaca-7b","Alpaca 7B","2K","general","fast","free"],
+    ["OpenAssistant/oasst-sft-4-pythia-12b-epoch-3.5","OpenAssistant 12B","2K","general","fast","free"],
+    ["stabilityai/stablelm-zephyr-3b","StableLM Zephyr 3B","4K","small","fast","free"],
+    ["berkeley-nest/Starling-LM-7B-alpha","Starling 7B Alpha","8K","general","fast","free"],
+    ["codellama/CodeLlama-34b-Instruct-hf","CodeLlama 34B Together","100K","code","medium","$"],
+    ["WizardLM/WizardCoder-Python-34B-V1.0","WizardCoder 34B Together","16K","code","medium","$"],
+    ["snorkelai/Snorkel-Mistral-PairRM-DPO","Snorkel Mistral DPO","32K","general","fast","free"],
+    ["teknium/OpenHermes-2-Mistral-7B","OpenHermes 2 Mistral 7B","8K","general","fast","free"],
+  ];
+  togetherModels.forEach(([id, label, ctx, cat, spd, cost]) => {
+    models.push({ id: `together/${id.split("/")[1]}-tgv`, label, provider: "OpenRouter", providerKey: "openrouter", ctx, speed: spd as "fast"|"medium"|"slow", category: cat as WorldModel["category"], cost: cost as WorldModel["cost"], baseURL: OR, virtual: true });
+  });
+
+  // ── FireworksAI models ─────────────────────────────────────────────────────────
+  const fireworksModels = [
+    ["llama-v3p1-8b-instruct","Llama 3.1 8B (Fireworks)","128K","general","fast","free"],
+    ["llama-v3p1-70b-instruct","Llama 3.1 70B (Fireworks)","128K","general","medium","$"],
+    ["llama-v3p1-405b-instruct","Llama 3.1 405B (Fireworks)","128K","general","slow","$$"],
+    ["llama-v3p2-3b-instruct","Llama 3.2 3B (Fireworks)","128K","small","fast","free"],
+    ["llama-v3p2-11b-vision-instruct","Llama 3.2 11B Vision (Fireworks)","128K","vision","fast","$"],
+    ["mixtral-8x7b-instruct","Mixtral 8x7B (Fireworks)","32K","general","medium","$"],
+    ["mixtral-8x22b-instruct","Mixtral 8x22B (Fireworks)","65K","general","slow","$$"],
+    ["qwen2p5-72b-instruct","Qwen2.5 72B (Fireworks)","128K","general","medium","$"],
+    ["deepseek-v3","DeepSeek V3 (Fireworks)","128K","general","slow","$$"],
+    ["gemma2-9b-it","Gemma2 9B (Fireworks)","8K","general","fast","free"],
+    ["phi-3-vision-128k-instruct","Phi-3 Vision 128K (Fireworks)","128K","vision","medium","$"],
+    ["firefunction-v2","FireFunction v2","8K","tools","fast","$"],
+    ["yi-large","Yi Large (Fireworks)","32K","general","medium","$"],
+  ];
+  fireworksModels.forEach(([id, label, ctx, cat, spd, cost]) => {
+    models.push({ id: `fireworks/${id}-fwv`, label, provider: "OpenRouter", providerKey: "openrouter", ctx, speed: spd as "fast"|"medium"|"slow", category: cat as WorldModel["category"], cost: cost as WorldModel["cost"], baseURL: OR, virtual: true });
+  });
+
+  // ── Cerebras models ────────────────────────────────────────────────────────────
+  const cerebrasModels = [
+    ["llama3.1-8b","Llama 3.1 8B (Cerebras)","8K","general","fast","free"],
+    ["llama3.1-70b","Llama 3.1 70B (Cerebras)","8K","general","fast","$"],
+    ["llama3.3-70b","Llama 3.3 70B (Cerebras)","8K","general","fast","$"],
+    ["qwen-3-32b","Qwen3 32B (Cerebras)","32K","general","fast","$"],
+    ["deepseek-r1","DeepSeek R1 (Cerebras)","128K","reasoning","fast","$$"],
+    ["llama-3.5-70b","Llama 3.5 70B (Cerebras)","128K","general","fast","$"],
+    ["llama-4-scout","Llama 4 Scout (Cerebras)","128K","general","fast","$"],
+    ["llama-4-maverick","Llama 4 Maverick (Cerebras)","128K","general","fast","$$"],
+  ];
+  cerebrasModels.forEach(([id, label, ctx, cat, spd, cost]) => {
+    models.push({ id: `cerebras/${id}-cbv`, label, provider: "OpenRouter", providerKey: "openrouter", ctx, speed: spd as "fast"|"medium"|"slow", category: cat as WorldModel["category"], cost: cost as WorldModel["cost"], baseURL: OR, virtual: true });
+  });
+
+  // ── SambaNova models ────────────────────────────────────────────────────────────
+  const sambaModels = [
+    ["Meta-Llama-3.1-8B-Instruct","Llama 3.1 8B (SambaNova)","16K","general","fast","free"],
+    ["Meta-Llama-3.1-70B-Instruct","Llama 3.1 70B (SambaNova)","16K","general","fast","$"],
+    ["Meta-Llama-3.1-405B-Instruct","Llama 3.1 405B (SambaNova)","16K","general","medium","$$"],
+    ["Meta-Llama-3.3-70B-Instruct","Llama 3.3 70B (SambaNova)","16K","general","fast","$"],
+    ["DeepSeek-R1","DeepSeek R1 (SambaNova)","32K","reasoning","fast","$$"],
+    ["DeepSeek-V3-0324","DeepSeek V3 (SambaNova)","32K","general","fast","$$"],
+    ["Llama-4-Scout-17B-16E","Llama 4 Scout (SambaNova)","128K","general","fast","$"],
+    ["Llama-4-Maverick-17B-128E","Llama 4 Maverick (SambaNova)","128K","general","fast","$$"],
+    ["Qwen2.5-72B-Instruct","Qwen2.5 72B (SambaNova)","8K","general","fast","$"],
+    ["Qwen3-32B","Qwen3 32B (SambaNova)","32K","reasoning","fast","$"],
+  ];
+  sambaModels.forEach(([id, label, ctx, cat, spd, cost]) => {
+    models.push({ id: `samba/${id}-sbv`, label, provider: "OpenRouter", providerKey: "openrouter", ctx, speed: spd as "fast"|"medium"|"slow", category: cat as WorldModel["category"], cost: cost as WorldModel["cost"], baseURL: OR, virtual: true });
+  });
+
+  // ── Embedding models ───────────────────────────────────────────────────────────
+  const embeddingModels = [
+    ["openai/text-embedding-3-small","text-embedding-3-small","OpenAI","$"],
+    ["openai/text-embedding-3-large","text-embedding-3-large","OpenAI","$$"],
+    ["openai/text-embedding-ada-002","text-embedding-ada-002","OpenAI","$"],
+    ["BAAI/bge-large-en-v1.5","BGE Large v1.5","Hugging Face","free"],
+    ["BAAI/bge-base-en-v1.5","BGE Base v1.5","Hugging Face","free"],
+    ["BAAI/bge-small-en-v1.5","BGE Small v1.5","Hugging Face","free"],
+    ["BAAI/bge-m3","BGE M3 Multilingual","Hugging Face","free"],
+    ["sentence-transformers/all-MiniLM-L6-v2","MiniLM-L6 v2","Hugging Face","free"],
+    ["sentence-transformers/all-mpnet-base-v2","MPNet Base v2","Hugging Face","free"],
+    ["sentence-transformers/paraphrase-multilingual-mpnet-base-v2","Multilingual MPNet","Hugging Face","free"],
+    ["intfloat/multilingual-e5-large","Multilingual E5 Large","Hugging Face","free"],
+    ["intfloat/e5-large-v2","E5 Large v2","Hugging Face","free"],
+    ["thenlper/gte-large","GTE Large","Hugging Face","free"],
+    ["Alibaba-NLP/gte-Qwen2-7B-instruct","GTE Qwen2 7B","Hugging Face","free"],
+    ["cohere/embed-v4.0","Cohere Embed v4.0","OpenRouter","$$"],
+    ["cohere/embed-english-v3.0","Cohere Embed English v3","OpenRouter","$"],
+    ["cohere/embed-multilingual-v3.0","Cohere Embed Multilingual v3","OpenRouter","$"],
+    ["voyage/voyage-3","Voyage 3 (Voyage AI)","OpenRouter","$"],
+    ["voyage/voyage-3-lite","Voyage 3 Lite","OpenRouter","free"],
+    ["voyage/voyage-code-3","Voyage Code 3","OpenRouter","$"],
+  ];
+  embeddingModels.forEach(([id, label, prov, cost]) => {
+    const pk = prov === "OpenAI" ? "openai" : prov === "OpenRouter" ? "openrouter" : "huggingface";
+    models.push({ id: `${id}-emb-v`, label: `${label} (Embed)`, provider: prov, providerKey: pk, ctx: "8K", speed: "fast", category: "embedding", cost: cost as WorldModel["cost"], baseURL: prov === "OpenAI" ? "https://api.openai.com/v1" : prov === "OpenRouter" ? OR : HF, virtual: true });
+  });
+
+  // ── Extra OpenRouter community models ─────────────────────────────────────────
+  const orExtra: [string, string, string, WorldModel["category"], WorldModel["cost"]][] = [
+    ["moonshotai/moonshot-v1-8k","Moonshot v1 8K","8K","general","$"],
+    ["moonshotai/moonshot-v1-32k","Moonshot v1 32K","32K","general","$$"],
+    ["moonshotai/moonshot-v1-128k","Moonshot v1 128K","128K","general","$$$"],
+    ["moonshotai/kimi-vl-a3b-thinking","Kimi VL A3B Thinking","128K","vision","$"],
+    ["thudm/glm-4-9b-chat","GLM-4 9B Chat","128K","general","free"],
+    ["thudm/glm-z1-32b","GLM Z1 32B","128K","reasoning","$"],
+    ["thudm/glm-4-32b-0520","GLM-4 32B","128K","general","$"],
+    ["nousresearch/hermes-3-llama-3.1-405b","Hermes 3 Llama 3.1 405B","128K","general","$$"],
+    ["nousresearch/hermes-3-llama-3.1-70b","Hermes 3 Llama 3.1 70B","128K","general","$"],
+    ["nousresearch/hermes-3-llama-3.2-3b","Hermes 3 Llama 3.2 3B","128K","small","free"],
+    ["nousresearch/deephermes-3-mistral-24b-preview","DeepHermes 3 Mistral 24B","32K","general","$"],
+    ["nousresearch/deephermes-3-llama-3-8b-preview:free","DeepHermes 3 Llama 3 8B (Free)","128K","general","free"],
+    ["sao10k/l3-euryale-70b","L3 Euryale 70B","8K","creative","$$"],
+    ["sao10k/l3.1-euryale-70b","L3.1 Euryale 70B","128K","creative","$$"],
+    ["sao10k/l3.3-euryale-70b","L3.3 Euryale 70B","128K","creative","$$"],
+    ["sao10k/l3-lunaris-8b","L3 Lunaris 8B","8K","creative","free"],
+    ["sao10k/l3.1-70b-hanami-x1","L3.1 70B Hanami X1","128K","creative","$$"],
+    ["cognitivecomputations/dolphin3.0-r1-mistral-24b","Dolphin 3 R1 Mistral 24B","128K","uncensored","$"],
+    ["cognitivecomputations/dolphin3.0-llama3.1-8b","Dolphin 3 Llama 3.1 8B","128K","uncensored","free"],
+    ["cognitivecomputations/dolphin-llama-3-70b","Dolphin Llama 3 70B","8K","uncensored","$$"],
+    ["alpindale/goliath-120b","Goliath 120B","6K","general","$$"],
+    ["alpindale/magnum-72b","Magnum 72B","16K","creative","$$"],
+    ["sophosympatheia/rogue-rose-103b-v0.2","Rogue Rose 103B","4K","creative","$$"],
+    ["thedrummer/rocinante-12b","Rocinante 12B","32K","general","free"],
+    ["thedrummer/unslopnemo-12b","UnslopNemo 12B","32K","creative","free"],
+    ["raifle/sorcererlm-8x22b","SorcererLM 8x22B","64K","creative","$$"],
+    ["x-ai/grok-2-mini-1212","Grok 2 Mini","128K","general","$"],
+    ["x-ai/grok-2-1212","Grok 2","128K","general","$$"],
+    ["x-ai/grok-3-mini-beta","Grok 3 Mini Beta","131K","reasoning","$"],
+    ["x-ai/grok-3-beta","Grok 3 Beta","131K","general","$$"],
+    ["x-ai/grok-vision-beta","Grok Vision Beta","8K","vision","$$"],
+    ["minimax/minimax-01","MiniMax 01","1M","general","$$"],
+    ["microsoft/mai-ds-r1:free","MAI DS R1 (Free)","128K","reasoning","free"],
+    ["openai/o1","OpenAI o1","200K","reasoning","$$$"],
+    ["openai/o1-mini","OpenAI o1 Mini","128K","reasoning","$$"],
+    ["openai/o3","OpenAI o3","200K","reasoning","$$$"],
+    ["openai/o4-mini","OpenAI o4 Mini","200K","reasoning","$$"],
+    ["openai/o4-mini-high","OpenAI o4 Mini High","200K","reasoning","$$"],
+    ["openai/gpt-4.1-nano","GPT-4.1 Nano","1M","general","free"],
+    ["openai/gpt-4.1-mini","GPT-4.1 Mini","1M","general","$"],
+    ["anthropic/claude-opus-4-5","Claude Opus 4.5","200K","general","$$$"],
+    ["anthropic/claude-sonnet-4-5","Claude Sonnet 4.5","200K","general","$$"],
+    ["anthropic/claude-haiku-3-5","Claude Haiku 3.5","200K","general","$"],
+    ["google/gemini-2.5-pro-preview","Gemini 2.5 Pro Preview","1M","multimodal","$$"],
+    ["google/gemini-2.5-flash-preview","Gemini 2.5 Flash Preview","1M","multimodal","$"],
+    ["google/gemini-2.5-flash-preview:thinking","Gemini 2.5 Flash Thinking","1M","reasoning","$$"],
+    ["google/gemini-2.0-flash-001","Gemini 2.0 Flash 001","1M","multimodal","$"],
+    ["google/gemini-2.0-flash-lite-001","Gemini 2.0 Flash Lite","1M","multimodal","free"],
+    ["google/gemini-2.0-flash-thinking-exp","Gemini 2.0 Flash Thinking","1M","reasoning","$"],
+    ["google/gemini-2.0-pro-exp-02-05","Gemini 2.0 Pro Exp","2M","multimodal","$$"],
+    ["google/gemma-3-4b-it:free","Gemma 3 4B IT (Free)","128K","general","free"],
+    ["google/gemma-3-12b-it:free","Gemma 3 12B IT (Free)","128K","general","free"],
+    ["google/gemma-3-27b-it:free","Gemma 3 27B IT (Free)","128K","general","free"],
+    ["mistralai/mistral-small-3.1-24b-instruct","Mistral Small 3.1 24B","128K","general","$"],
+    ["mistralai/mistral-medium-3","Mistral Medium 3","128K","general","$$"],
+    ["mistralai/magistral-small-2506","Magistral Small","128K","reasoning","$"],
+    ["mistralai/magistral-medium-2506","Magistral Medium","128K","reasoning","$$"],
+    ["deepseek/deepseek-r1-0528","DeepSeek R1 0528","128K","reasoning","$$"],
+    ["deepseek/deepseek-r1-0528:free","DeepSeek R1 0528 (Free)","128K","reasoning","free"],
+    ["deepseek/deepseek-prover-v2","DeepSeek Prover V2","128K","math","$$"],
+    ["qwen/qwen3-235b-a22b","Qwen3 235B A22B","128K","reasoning","$$"],
+    ["qwen/qwen3-32b","Qwen3 32B","128K","reasoning","$"],
+    ["qwen/qwen3-14b","Qwen3 14B","128K","general","$"],
+    ["qwen/qwen3-8b","Qwen3 8B","128K","general","free"],
+    ["qwen/qwq-32b","QwQ 32B","128K","reasoning","$"],
+    ["qwen/qvq-72b-preview","QVQ 72B Preview","128K","vision","$$"],
+    ["meta-llama/llama-4-scout:free","Llama 4 Scout (Free)","10M","general","free"],
+    ["meta-llama/llama-4-maverick:free","Llama 4 Maverick (Free)","1M","general","free"],
+    ["meta-llama/llama-guard-4-12b","Llama Guard 4 12B","128K","security","$"],
+  ];
+  orExtra.forEach(([id, label, ctx, cat, cost]) => {
+    const numCtx = parseInt(ctx.replace("K","000").replace("M","000000").replace("K","")) || 8000;
+    models.push({ id: `${id}-orx-v`, label, provider: "OpenRouter", providerKey: "openrouter", ctx, speed: numCtx >= 500000 ? "medium" : numCtx >= 128000 ? "medium" : "fast", category: cat, cost, baseURL: OR, virtual: true });
+  });
+
   return models;
 }
 

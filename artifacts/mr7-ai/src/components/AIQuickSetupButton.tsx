@@ -140,7 +140,7 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    const SIZE = 60;
+    const SIZE = 46;
     const DPR  = Math.min(window.devicePixelRatio * 2, 4);
     cv.width   = SIZE * DPR;
     cv.height  = SIZE * DPR;
@@ -151,15 +151,15 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
     // 4 rings — rainbow spectrum, hOff staggers hue 90° per ring
     type Ring = { r: number; tX: number; tY: number; speed: number; hOff: number; eCount: number };
     const RINGS: Ring[] = [
-      { r:  7, tX:  0.22, tY:  0.10, speed:  0.030, hOff:   0, eCount: 8  },
-      { r: 11, tX:  0.40, tY:  0.20, speed:  0.020, hOff:  40, eCount: 10 },
-      { r: 15, tX: -0.55, tY:  0.50, speed: -0.014, hOff:  80, eCount: 12 },
-      { r: 19, tX:  0.75, tY: -0.58, speed:  0.009, hOff: 120, eCount: 14 },
-      { r: 24, tX: -0.38, tY:  0.32, speed: -0.007, hOff: 160, eCount: 11 },
-      { r: 28, tX:  0.52, tY: -0.45, speed:  0.005, hOff: 200, eCount: 9  },
-      { r: 32, tX: -0.28, tY:  0.62, speed: -0.004, hOff: 240, eCount: 8  },
-      { r: 36, tX:  0.68, tY:  0.18, speed:  0.003, hOff: 280, eCount: 7  },
-      { r: 40, tX: -0.52, tY: -0.35, speed: -0.002, hOff: 320, eCount: 5  },
+      { r:  6, tX:  0.22, tY:  0.10, speed:  0.030, hOff:   0, eCount: 8  },
+      { r:  9, tX:  0.40, tY:  0.20, speed:  0.020, hOff:  40, eCount: 10 },
+      { r: 12, tX: -0.55, tY:  0.50, speed: -0.014, hOff:  80, eCount: 12 },
+      { r: 15, tX:  0.75, tY: -0.58, speed:  0.009, hOff: 120, eCount: 14 },
+      { r: 18, tX: -0.38, tY:  0.32, speed: -0.007, hOff: 160, eCount: 11 },
+      { r: 21, tX:  0.52, tY: -0.45, speed:  0.005, hOff: 200, eCount: 9  },
+      { r: 24, tX: -0.28, tY:  0.62, speed: -0.004, hOff: 240, eCount: 8  },
+      { r: 27, tX:  0.68, tY:  0.18, speed:  0.003, hOff: 280, eCount: 7  },
+      { r: 30, tX: -0.52, tY: -0.35, speed: -0.002, hOff: 320, eCount: 5  },
     ];
 
     // Quantum foam — micro background dots
@@ -347,8 +347,8 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
       // ── Dark energy tendrils from nucleus ──────────────────────────────
       for (let di = 0; di < 10; di++) {
         const da = (di / 10) * Math.PI * 2 + t * 0.022;
-        const dr1 = 4.5 + Math.sin(t * 0.8 + di) * 1.2;
-        const dr2 = 28 + Math.cos(t * 0.6 + di * 1.4) * 7;
+        const dr1 = 3.5 + Math.sin(t * 0.8 + di) * 1.0;
+        const dr2 = 18 + Math.cos(t * 0.6 + di * 1.4) * 5;
         const dx1 = cx + Math.cos(da) * dr1;
         const dy1 = cy + Math.sin(da) * dr1;
         const dx2 = cx + Math.cos(da + Math.sin(t * 0.3 + di) * 0.4) * dr2;
@@ -580,15 +580,15 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
 
   return (
     <canvas ref={canvasRef}
-      width={52} height={52}
-      style={{ width: 52, height: 52, display: "block", flexShrink: 0, imageRendering: "auto", cursor: "crosshair" }}
+      width={38} height={38}
+      style={{ width: 38, height: 38, display: "block", flexShrink: 0, imageRendering: "auto", cursor: "crosshair" }}
       onMouseEnter={() => { hoverRef.current = true; burstRef.current = tRef.current; }}
       onMouseLeave={() => { hoverRef.current = false; mouseRef.current = { x: -1, y: -1 }; }}
       onMouseMove={(e) => {
         const rect = (e.target as HTMLCanvasElement).getBoundingClientRect();
         mouseRef.current = {
-          x: (e.clientX - rect.left) * (52 / rect.width),
-          y: (e.clientY - rect.top)  * (52 / rect.height),
+          x: (e.clientX - rect.left) * (38 / rect.width),
+          y: (e.clientY - rect.top)  * (38 / rect.height),
         };
       }}
     />

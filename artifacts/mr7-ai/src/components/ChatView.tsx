@@ -304,7 +304,13 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
           await streamLocalChatViaProxy(localEndpoint, localModel, history, localSysPrompt, onChunk, abortRef.current.signal);
         } catch (localErr) {
           if ((localErr as { name?: string })?.name === "AbortError") throw localErr;
-          const isNetworkErr = localErr instanceof TypeError || (localErr instanceof Error && (localErr.message.includes("fetch") || localErr.message.includes("Failed") || localErr.message.includes("NetworkError") || localErr.message.includes("refused")));
+          const isNetworkErr = localErr instanceof TypeError || (localErr instanceof Error && (
+            localErr.message.includes("fetch") || localErr.message.includes("Failed") ||
+            localErr.message.includes("NetworkError") || localErr.message.includes("refused") ||
+            localErr.message.includes("404") || localErr.message.includes("503") ||
+            localErr.message.includes("502") || localErr.message.includes("DOCTYPE") ||
+            localErr.message.includes("proxy") || localErr.message.includes("unreachable") ||
+            localErr.message.includes("ECONNREFUSED") || localErr.message.includes("timeout")));
           if (isNetworkErr) {
             dispatch({ type: "SET_SETTINGS", patch: { useLocalModel: false } });
             acc = "";

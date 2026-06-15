@@ -1,6 +1,119 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Zap, Flame, RotateCcw, Brain, Target, Bot, Layers, Cpu, Shield, Maximize2, Skull, Star, Atom, AlertTriangle, Network, Globe, Crosshair, Activity, Dna, FlaskConical, Eye, Infinity as InfinityIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+function GodmodeNeural3D({ champCount, color, glow }: { champCount: number; color: string; glow: string }) {
+  const cvRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef(0);
+  const tRef = useRef(0);
+  const fireRef = useRef<number[]>([]);
+
+  useEffect(() => {
+    const cv = cvRef.current; if (!cv) return;
+    const ctx = cv.getContext("2d")!;
+    const W = cv.width, H = cv.height;
+    const cx = W / 2, cy = H / 2;
+    const n = Math.min(champCount, 24);
+    const R = Math.min(50, (Math.min(W, H) / 2) - 14);
+    const hexToRgb = (h: string) => {
+      const r = parseInt(h.slice(1,3),16), g = parseInt(h.slice(3,5),16), b = parseInt(h.slice(5,7),16);
+      return `${r},${g},${b}`;
+    };
+    const rgb = hexToRgb(color);
+
+    // fire random nodes periodically
+    const fireTimer = setInterval(() => {
+      if (n > 0) fireRef.current = [Math.floor(Math.random() * n)];
+    }, 600);
+
+    function draw(t: number) {
+      ctx.clearRect(0, 0, W, H);
+      // background
+      const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R + 15);
+      bg.addColorStop(0, `rgba(${rgb},0.04)`);
+      bg.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+      const nodes = Array.from({ length: n }, (_, i) => ({
+        x: cx + Math.cos((i / n) * Math.PI * 2 - Math.PI / 2) * R,
+        y: cy + Math.sin((i / n) * Math.PI * 2 - Math.PI / 2) * R * 0.55,
+        a: (i / n) * Math.PI * 2,
+      }));
+
+      // draw outer ring
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, R, R * 0.55, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${rgb},0.12)`; ctx.lineWidth = 0.5; ctx.stroke();
+
+      // connections
+      nodes.forEach((n1, i) => {
+        const n2 = nodes[(i + 1) % nodes.length];
+        const n3 = nodes[(i + Math.floor(nodes.length / 2)) % nodes.length];
+        [n2, n3].forEach(target => {
+          const pulse = Math.sin(t * 2 + i * 0.5) * 0.5 + 0.5;
+          ctx.beginPath(); ctx.moveTo(n1.x, n1.y); ctx.lineTo(target.x, target.y);
+          ctx.strokeStyle = `rgba(${rgb},${0.03 + pulse * 0.05})`; ctx.lineWidth = 0.5; ctx.stroke();
+        });
+      });
+
+      // flowing particles on ring
+      for (let p = 0; p < 6; p++) {
+        const a = ((t * 0.5 + p / 6) % 1) * Math.PI * 2 - Math.PI / 2;
+        const px = cx + Math.cos(a) * R;
+        const py = cy + Math.sin(a) * R * 0.55;
+        const pulse = 0.4 + Math.sin(t * 4 + p) * 0.4;
+        ctx.beginPath(); ctx.arc(px, py, 1.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${rgb},${pulse})`; ctx.fill();
+      }
+
+      // firing effect
+      nodes.forEach((node, i) => {
+        const isFiring = fireRef.current.includes(i);
+        const baseR = 3.5;
+        const radius = baseR + (isFiring ? Math.sin(t * 12) * 2 : Math.sin(t * 2 + i) * 0.5);
+        const alpha = isFiring ? 1.0 : 0.55 + Math.sin(t * 1.8 + i * 0.7) * 0.25;
+        // glow ring
+        if (isFiring) {
+          ctx.beginPath(); ctx.arc(node.x, node.y, radius + 5, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${rgb},0.3)`; ctx.lineWidth = 1; ctx.stroke();
+          ctx.beginPath(); ctx.arc(node.x, node.y, radius + 10, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${rgb},0.1)`; ctx.lineWidth = 1; ctx.stroke();
+        }
+        ctx.beginPath(); ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${rgb},${alpha})`; ctx.fill();
+        // node number
+        if (n <= 12) {
+          ctx.font = `bold 5px monospace`;
+          ctx.fillStyle = `rgba(${rgb},0.6)`;
+          ctx.textAlign = "center"; ctx.textBaseline = "middle";
+          ctx.fillText(String(i + 1), node.x, node.y - radius - 3);
+        }
+      });
+
+      // center score display
+      ctx.font = "bold 8px monospace";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = `rgba(${rgb},0.15)`;
+      ctx.fillText("COMPOSITE", cx, cy - 5);
+      ctx.font = "bold 10px monospace";
+      ctx.fillStyle = `rgba(${rgb},0.35)`;
+      ctx.fillText("100pt", cx, cy + 6);
+    }
+
+    function loop() {
+      tRef.current += 0.016;
+      draw(tRef.current);
+      rafRef.current = requestAnimationFrame(loop);
+    }
+    rafRef.current = requestAnimationFrame(loop);
+    return () => { cancelAnimationFrame(rafRef.current); clearInterval(fireTimer); };
+  }, [champCount, color]);
+
+  return (
+    <canvas ref={cvRef} width={280} height={90}
+      style={{ width: 280, height: 90, display: "block", imageRendering: "auto" }} />
+  );
+}
 
 export type GodmodeConfig = {
   mode: "classic" | "ultraplinian" | "reason" | "hunter" | "agent" | "extended" | "maxoverdrive" | "unbound" | "jioreason" | "mythos" | "ultimate" | "think" | "max" | "abliterated" | "omega" | "neural" | "quantum" | "swarm" | "matrix" | "genesis" | "shadow" | "titan" | "oracle" | "phantom";
@@ -452,15 +565,25 @@ export function GodmodeSettingsModal({
               </div>
 
               {/* Active Mode Details */}
-              <div className="rounded-xl p-3 border"
-                style={{ background: `${activeMode.color}06`, borderColor: `${activeMode.color}20` }}>
-                <div className="flex items-center gap-2 mb-1.5">
+              <div className="rounded-xl border overflow-hidden"
+                style={{ borderColor: `${activeMode.color}20` }}>
+                <div className="px-3 pt-3 pb-2 flex items-center gap-2 mb-0"
+                  style={{ background: `${activeMode.color}06` }}>
                   <activeMode.icon className="w-4 h-4" style={{ color: activeMode.color }} />
                   <span className="text-[12px] font-black" style={{ color: activeMode.color }}>{activeMode.label}</span>
+                  <span className="ml-auto text-[9px] font-mono px-1.5 py-0.5 rounded-full border"
+                    style={{ borderColor: `${activeMode.color}30`, color: activeMode.color, background: `${activeMode.color}10` }}>
+                    {champCount} CHAMPS
+                  </span>
                 </div>
-                <div className="text-[11px] text-muted-foreground leading-relaxed mb-2">{activeMode.desc}</div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="text-[9px] font-mono px-2 py-0.5 rounded-full border"
+                {/* 3D Neural Champion Panel */}
+                <div className="flex items-center justify-center py-1"
+                  style={{ background: `rgba(0,0,0,0.5)`, borderTop: `1px solid ${activeMode.color}12`, borderBottom: `1px solid ${activeMode.color}12` }}>
+                  <GodmodeNeural3D champCount={champCount} color={activeMode.color} glow={activeMode.glow} />
+                </div>
+                <div className="px-3 pb-3 pt-2" style={{ background: `${activeMode.color}03` }}>
+                  <div className="text-[11px] text-muted-foreground leading-relaxed mb-2">{activeMode.desc}</div>
+                  <div className="text-[9px] font-mono px-2 py-0.5 rounded-full border inline-block"
                     style={{ borderColor: `${activeMode.color}30`, color: activeMode.color, background: `${activeMode.color}10` }}>
                     {activeMode.strategy}
                   </div>

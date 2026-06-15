@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   X, Zap, Brain, Play, Square, Copy, CheckCheck, RefreshCw,
   ChevronDown, ChevronUp, Sparkles, Star, Lock, Check, Infinity,
-  Flame, Filter,
+  Flame, Filter, Shield, Globe,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { streamChat, type ChatMessage } from "@/lib/chat-client";
@@ -20,29 +20,93 @@ type FusionModel = {
   color: string;
   baseURL: string;
   costTag: "free" | "$" | "$$" | "$$$";
-  category: "reasoning" | "coding" | "general" | "fast";
+  category: "reasoning" | "coding" | "general" | "fast" | "security" | "arabic" | "multimodal";
 };
 
 export const TOP_FUSION_MODELS: FusionModel[] = [
-  { id: "llama-3.3-70b-versatile",          label: "Llama 3.3 70B",           providerKey: "groq",       providerName: "Groq",       color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",                         costTag: "free", category: "general" },
-  { id: "deepseek-r1-distill-llama-70b",     label: "DeepSeek R1 70B",         providerKey: "groq",       providerName: "Groq",       color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",                         costTag: "free", category: "reasoning" },
-  { id: "qwen-qwq-32b",                      label: "QwQ 32B Thinking",        providerKey: "groq",       providerName: "Groq",       color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",                         costTag: "free", category: "reasoning" },
-  { id: "gemma2-9b-it",                      label: "Gemma 2 9B",              providerKey: "groq",       providerName: "Groq",       color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",                         costTag: "free", category: "fast" },
-  { id: "llama-3.1-8b-instant",              label: "Llama 3.1 8B Instant",    providerKey: "groq",       providerName: "Groq",       color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",                         costTag: "free", category: "fast" },
-  { id: "gpt-4o",                            label: "GPT-4o",                  providerKey: "openai",     providerName: "OpenAI",     color: "#10b981", baseURL: "https://api.openai.com/v1",                              costTag: "$$$",  category: "general" },
-  { id: "gpt-4o-mini",                       label: "GPT-4o Mini",             providerKey: "openai",     providerName: "OpenAI",     color: "#10b981", baseURL: "https://api.openai.com/v1",                              costTag: "$",    category: "fast" },
-  { id: "o4-mini",                           label: "o4-mini Reasoning",       providerKey: "openai",     providerName: "OpenAI",     color: "#10b981", baseURL: "https://api.openai.com/v1",                              costTag: "$$",   category: "reasoning" },
-  { id: "claude-3-5-sonnet-20241022",        label: "Claude 3.5 Sonnet",       providerKey: "anthropic",  providerName: "Anthropic",  color: "#f59e0b", baseURL: "https://api.anthropic.com/v1",                          costTag: "$$",   category: "general" },
-  { id: "claude-3-haiku-20240307",           label: "Claude 3 Haiku",          providerKey: "anthropic",  providerName: "Anthropic",  color: "#f59e0b", baseURL: "https://api.anthropic.com/v1",                          costTag: "$",    category: "fast" },
-  { id: "gemini-2.0-flash-exp",              label: "Gemini 2.0 Flash",        providerKey: "google",     providerName: "Google",     color: "#4285f4", baseURL: "https://generativelanguage.googleapis.com/v1beta",       costTag: "free", category: "fast" },
-  { id: "gemini-1.5-pro-latest",             label: "Gemini 1.5 Pro",          providerKey: "google",     providerName: "Google",     color: "#4285f4", baseURL: "https://generativelanguage.googleapis.com/v1beta",       costTag: "$",    category: "general" },
-  { id: "deepseek-chat",                     label: "DeepSeek V3",             providerKey: "deepseek",   providerName: "DeepSeek",   color: "#06b6d4", baseURL: "https://api.deepseek.com/v1",                            costTag: "$",    category: "coding" },
-  { id: "deepseek-reasoner",                 label: "DeepSeek R1 Full",        providerKey: "deepseek",   providerName: "DeepSeek",   color: "#06b6d4", baseURL: "https://api.deepseek.com/v1",                            costTag: "$$",   category: "reasoning" },
-  { id: "grok-2-latest",                     label: "Grok 2",                  providerKey: "xai",        providerName: "xAI",        color: "#e11d48", baseURL: "https://api.x.ai/v1",                                   costTag: "$$",   category: "general" },
-  { id: "mistral-large-latest",              label: "Mistral Large",           providerKey: "mistral",    providerName: "Mistral AI", color: "#ff7000", baseURL: "https://api.mistral.ai/v1",                              costTag: "$$",   category: "general" },
-  { id: "codestral-latest",                  label: "Codestral",               providerKey: "mistral",    providerName: "Mistral AI", color: "#ff7000", baseURL: "https://api.mistral.ai/v1",                              costTag: "$",    category: "coding" },
-  { id: "meta-llama/llama-3.3-70b-instruct:free", label: "Llama 3.3 Free (OR)",  providerKey: "openrouter", providerName: "OpenRouter", color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",                      costTag: "free", category: "general" },
-  { id: "mistralai/mistral-7b-instruct:free", label: "Mistral 7B Free (OR)", providerKey: "openrouter", providerName: "OpenRouter", color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",                           costTag: "free", category: "fast" },
+  // ── Groq Free ──────────────────────────────────────────────────────────
+  { id: "llama-3.3-70b-versatile",              label: "Llama 3.3 70B",           providerKey: "groq",       providerName: "Groq",         color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "general" },
+  { id: "deepseek-r1-distill-llama-70b",         label: "DeepSeek R1 70B",         providerKey: "groq",       providerName: "Groq",         color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "reasoning" },
+  { id: "qwen-qwq-32b",                          label: "QwQ 32B Thinking",        providerKey: "groq",       providerName: "Groq",         color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "reasoning" },
+  { id: "gemma2-9b-it",                          label: "Gemma 2 9B",              providerKey: "groq",       providerName: "Groq",         color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "fast" },
+  { id: "llama-3.1-8b-instant",                  label: "Llama 3.1 8B Instant",    providerKey: "groq",       providerName: "Groq",         color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "fast" },
+  { id: "llama-3.3-70b-specdec",                 label: "Llama 3.3 70B SpecDec",   providerKey: "groq",       providerName: "Groq",         color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "fast" },
+  { id: "mixtral-8x7b-32768",                    label: "Mixtral 8x7B",            providerKey: "groq",       providerName: "Groq",         color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "general" },
+  { id: "llama-3.2-11b-vision-preview",          label: "Llama 3.2 11B Vision",    providerKey: "groq",       providerName: "Groq",         color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "multimodal" },
+  { id: "deepseek-r1-distill-qwen-32b",          label: "DeepSeek R1 Qwen 32B",    providerKey: "groq",       providerName: "Groq",         color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "reasoning" },
+  { id: "llama3-70b-8192",                       label: "Llama 3 70B",             providerKey: "groq",       providerName: "Groq",         color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "general" },
+  { id: "llama3-8b-8192",                        label: "Llama 3 8B",              providerKey: "groq",       providerName: "Groq",         color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "fast" },
+  { id: "compound-beta",                         label: "Groq Compound Beta",      providerKey: "groq",       providerName: "Groq",         color: "#8b5cf6", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "reasoning" },
+  // ── OpenAI ────────────────────────────────────────────────────────────
+  { id: "gpt-4o",                                label: "GPT-4o",                  providerKey: "openai",     providerName: "OpenAI",       color: "#10b981", baseURL: "https://api.openai.com/v1",               costTag: "$$$",  category: "general" },
+  { id: "gpt-4o-mini",                           label: "GPT-4o Mini",             providerKey: "openai",     providerName: "OpenAI",       color: "#10b981", baseURL: "https://api.openai.com/v1",               costTag: "$",    category: "fast" },
+  { id: "o4-mini",                               label: "o4-mini Reasoning",       providerKey: "openai",     providerName: "OpenAI",       color: "#10b981", baseURL: "https://api.openai.com/v1",               costTag: "$$",   category: "reasoning" },
+  { id: "o3",                                    label: "o3 Full Reasoning",       providerKey: "openai",     providerName: "OpenAI",       color: "#10b981", baseURL: "https://api.openai.com/v1",               costTag: "$$$",  category: "reasoning" },
+  { id: "o3-mini",                               label: "o3-mini",                 providerKey: "openai",     providerName: "OpenAI",       color: "#10b981", baseURL: "https://api.openai.com/v1",               costTag: "$$",   category: "reasoning" },
+  { id: "gpt-4.1",                               label: "GPT-4.1",                 providerKey: "openai",     providerName: "OpenAI",       color: "#10b981", baseURL: "https://api.openai.com/v1",               costTag: "$$$",  category: "coding" },
+  { id: "gpt-4.1-mini",                          label: "GPT-4.1 Mini",            providerKey: "openai",     providerName: "OpenAI",       color: "#10b981", baseURL: "https://api.openai.com/v1",               costTag: "$",    category: "fast" },
+  { id: "gpt-4-turbo",                           label: "GPT-4 Turbo",             providerKey: "openai",     providerName: "OpenAI",       color: "#10b981", baseURL: "https://api.openai.com/v1",               costTag: "$$$",  category: "general" },
+  // ── Anthropic ────────────────────────────────────────────────────────
+  { id: "claude-opus-4-5",                       label: "Claude Opus 4.5",         providerKey: "anthropic",  providerName: "Anthropic",    color: "#f59e0b", baseURL: "https://api.anthropic.com/v1",            costTag: "$$$",  category: "general" },
+  { id: "claude-sonnet-4-5",                     label: "Claude Sonnet 4.5",       providerKey: "anthropic",  providerName: "Anthropic",    color: "#f59e0b", baseURL: "https://api.anthropic.com/v1",            costTag: "$$",   category: "general" },
+  { id: "claude-3-5-sonnet-20241022",            label: "Claude 3.5 Sonnet",       providerKey: "anthropic",  providerName: "Anthropic",    color: "#f59e0b", baseURL: "https://api.anthropic.com/v1",            costTag: "$$",   category: "general" },
+  { id: "claude-3-5-haiku-20241022",             label: "Claude 3.5 Haiku",        providerKey: "anthropic",  providerName: "Anthropic",    color: "#f59e0b", baseURL: "https://api.anthropic.com/v1",            costTag: "$",    category: "fast" },
+  { id: "claude-3-haiku-20240307",               label: "Claude 3 Haiku",          providerKey: "anthropic",  providerName: "Anthropic",    color: "#f59e0b", baseURL: "https://api.anthropic.com/v1",            costTag: "$",    category: "fast" },
+  { id: "claude-3-opus-20240229",                label: "Claude 3 Opus",           providerKey: "anthropic",  providerName: "Anthropic",    color: "#f59e0b", baseURL: "https://api.anthropic.com/v1",            costTag: "$$$",  category: "reasoning" },
+  // ── Google Gemini ─────────────────────────────────────────────────────
+  { id: "gemini-2.5-pro",                        label: "Gemini 2.5 Pro",          providerKey: "gemini",     providerName: "Google",       color: "#4285f4", baseURL: "https://generativelanguage.googleapis.com/v1beta", costTag: "$$$", category: "reasoning" },
+  { id: "gemini-2.5-flash",                      label: "Gemini 2.5 Flash",        providerKey: "gemini",     providerName: "Google",       color: "#4285f4", baseURL: "https://generativelanguage.googleapis.com/v1beta", costTag: "$",   category: "fast" },
+  { id: "gemini-2.0-flash-exp",                  label: "Gemini 2.0 Flash",        providerKey: "gemini",     providerName: "Google",       color: "#4285f4", baseURL: "https://generativelanguage.googleapis.com/v1beta", costTag: "free", category: "fast" },
+  { id: "gemini-1.5-pro-latest",                 label: "Gemini 1.5 Pro",          providerKey: "gemini",     providerName: "Google",       color: "#4285f4", baseURL: "https://generativelanguage.googleapis.com/v1beta", costTag: "$",   category: "multimodal" },
+  { id: "gemini-1.5-flash-latest",               label: "Gemini 1.5 Flash",        providerKey: "gemini",     providerName: "Google",       color: "#4285f4", baseURL: "https://generativelanguage.googleapis.com/v1beta", costTag: "free", category: "fast" },
+  { id: "gemma-3-27b-it",                        label: "Gemma 3 27B",             providerKey: "gemini",     providerName: "Google",       color: "#4285f4", baseURL: "https://generativelanguage.googleapis.com/v1beta", costTag: "free", category: "general" },
+  // ── DeepSeek ─────────────────────────────────────────────────────────
+  { id: "deepseek-chat",                         label: "DeepSeek V3",             providerKey: "deepseek",   providerName: "DeepSeek",     color: "#06b6d4", baseURL: "https://api.deepseek.com/v1",             costTag: "$",    category: "coding" },
+  { id: "deepseek-reasoner",                     label: "DeepSeek R1 Full",        providerKey: "deepseek",   providerName: "DeepSeek",     color: "#06b6d4", baseURL: "https://api.deepseek.com/v1",             costTag: "$$",   category: "reasoning" },
+  { id: "deepseek-coder",                        label: "DeepSeek Coder V2",       providerKey: "deepseek",   providerName: "DeepSeek",     color: "#06b6d4", baseURL: "https://api.deepseek.com/v1",             costTag: "$",    category: "coding" },
+  // ── xAI Grok ─────────────────────────────────────────────────────────
+  { id: "grok-3",                                label: "Grok 3",                  providerKey: "xai",        providerName: "xAI",          color: "#e11d48", baseURL: "https://api.x.ai/v1",                     costTag: "$$$",  category: "general" },
+  { id: "grok-3-mini",                           label: "Grok 3 Mini",             providerKey: "xai",        providerName: "xAI",          color: "#e11d48", baseURL: "https://api.x.ai/v1",                     costTag: "$",    category: "fast" },
+  { id: "grok-2-latest",                         label: "Grok 2",                  providerKey: "xai",        providerName: "xAI",          color: "#e11d48", baseURL: "https://api.x.ai/v1",                     costTag: "$$",   category: "general" },
+  { id: "grok-vision-beta",                      label: "Grok Vision",             providerKey: "xai",        providerName: "xAI",          color: "#e11d48", baseURL: "https://api.x.ai/v1",                     costTag: "$$",   category: "multimodal" },
+  // ── Mistral ──────────────────────────────────────────────────────────
+  { id: "mistral-large-latest",                  label: "Mistral Large",           providerKey: "mistral",    providerName: "Mistral AI",   color: "#ff7000", baseURL: "https://api.mistral.ai/v1",               costTag: "$$",   category: "general" },
+  { id: "mistral-medium-latest",                 label: "Mistral Medium",          providerKey: "mistral",    providerName: "Mistral AI",   color: "#ff7000", baseURL: "https://api.mistral.ai/v1",               costTag: "$",    category: "general" },
+  { id: "codestral-latest",                      label: "Codestral",               providerKey: "mistral",    providerName: "Mistral AI",   color: "#ff7000", baseURL: "https://api.mistral.ai/v1",               costTag: "$",    category: "coding" },
+  { id: "pixtral-large-latest",                  label: "Pixtral Large",           providerKey: "mistral",    providerName: "Mistral AI",   color: "#ff7000", baseURL: "https://api.mistral.ai/v1",               costTag: "$$",   category: "multimodal" },
+  { id: "mistral-small-latest",                  label: "Mistral Small",           providerKey: "mistral",    providerName: "Mistral AI",   color: "#ff7000", baseURL: "https://api.mistral.ai/v1",               costTag: "free", category: "fast" },
+  // ── Perplexity ───────────────────────────────────────────────────────
+  { id: "sonar-pro",                             label: "Sonar Pro",               providerKey: "perplexity", providerName: "Perplexity",   color: "#22d3ee", baseURL: "https://api.perplexity.ai",               costTag: "$$",   category: "general" },
+  { id: "sonar",                                 label: "Sonar",                   providerKey: "perplexity", providerName: "Perplexity",   color: "#22d3ee", baseURL: "https://api.perplexity.ai",               costTag: "$",    category: "fast" },
+  { id: "sonar-reasoning-pro",                   label: "Sonar Reasoning Pro",     providerKey: "perplexity", providerName: "Perplexity",   color: "#22d3ee", baseURL: "https://api.perplexity.ai",               costTag: "$$$",  category: "reasoning" },
+  { id: "sonar-reasoning",                       label: "Sonar Reasoning",         providerKey: "perplexity", providerName: "Perplexity",   color: "#22d3ee", baseURL: "https://api.perplexity.ai",               costTag: "$$",   category: "reasoning" },
+  // ── OpenRouter Free ──────────────────────────────────────────────────
+  { id: "meta-llama/llama-3.3-70b-instruct:free",  label: "Llama 3.3 70B (OR)",   providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "free", category: "general" },
+  { id: "mistralai/mistral-7b-instruct:free",       label: "Mistral 7B (OR)",      providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "free", category: "fast" },
+  { id: "google/gemma-3-27b-it:free",               label: "Gemma 3 27B (OR)",     providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "free", category: "general" },
+  { id: "deepseek/deepseek-chat-v3-0324:free",      label: "DeepSeek V3 (OR)",     providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "free", category: "coding" },
+  { id: "qwen/qwq-32b:free",                        label: "QwQ 32B (OR Free)",    providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "free", category: "reasoning" },
+  { id: "microsoft/phi-4:free",                     label: "Phi-4 (OR)",           providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "free", category: "general" },
+  { id: "qwen/qwen3-235b-a22b:free",                label: "Qwen3 235B (OR)",      providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "free", category: "reasoning" },
+  { id: "tngtech/deepseek-r1t-chimera:free",        label: "DeepSeek R1T Chimera", providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "free", category: "reasoning" },
+  // ── OpenRouter Paid ──────────────────────────────────────────────────
+  { id: "openai/o3",                                label: "o3 (OpenRouter)",       providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "$$$",  category: "reasoning" },
+  { id: "anthropic/claude-opus-4",                  label: "Claude Opus 4 (OR)",   providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "$$$",  category: "general" },
+  { id: "google/gemini-2.5-pro",                    label: "Gemini 2.5 Pro (OR)",  providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "$$$",  category: "reasoning" },
+  { id: "x-ai/grok-3",                              label: "Grok 3 (OR)",          providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "$$$",  category: "general" },
+  { id: "deepseek/deepseek-r1",                     label: "DeepSeek R1 (OR)",     providerKey: "openrouter", providerName: "OpenRouter",   color: "#ef4444", baseURL: "https://openrouter.ai/api/v1",            costTag: "$$",   category: "reasoning" },
+  // ── Security Specialists ─────────────────────────────────────────────
+  { id: "llama-3.3-70b-versatile",                  label: "KaliGPT Security",     providerKey: "groq",       providerName: "Groq",         color: "#e21227", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "security" },
+  { id: "gpt-4o",                                   label: "PenTest GPT-4o",       providerKey: "openai",     providerName: "OpenAI",       color: "#e21227", baseURL: "https://api.openai.com/v1",               costTag: "$$$",  category: "security" },
+  { id: "claude-sonnet-4-5",                        label: "RedTeam Claude",       providerKey: "anthropic",  providerName: "Anthropic",    color: "#e21227", baseURL: "https://api.anthropic.com/v1",            costTag: "$$",   category: "security" },
+  { id: "deepseek-reasoner",                        label: "CVE Analyst R1",       providerKey: "deepseek",   providerName: "DeepSeek",     color: "#e21227", baseURL: "https://api.deepseek.com/v1",             costTag: "$$",   category: "security" },
+  { id: "grok-3",                                   label: "Threat Intel Grok",    providerKey: "xai",        providerName: "xAI",          color: "#e21227", baseURL: "https://api.x.ai/v1",                     costTag: "$$$",  category: "security" },
+  // ── Arabic / MENA ────────────────────────────────────────────────────
+  { id: "qwen-qwq-32b",                             label: "عربي QwQ 32B",         providerKey: "groq",       providerName: "Groq",         color: "#fbbf24", baseURL: "https://api.groq.com/openai/v1",         costTag: "free", category: "arabic" },
+  { id: "mistral-large-latest",                     label: "عربي Mistral Large",   providerKey: "mistral",    providerName: "Mistral AI",   color: "#fbbf24", baseURL: "https://api.mistral.ai/v1",               costTag: "$$",   category: "arabic" },
+  { id: "gpt-4o",                                   label: "عربي GPT-4o",          providerKey: "openai",     providerName: "OpenAI",       color: "#fbbf24", baseURL: "https://api.openai.com/v1",               costTag: "$$$",  category: "arabic" },
+  { id: "claude-opus-4-5",                          label: "عربي Claude Opus",     providerKey: "anthropic",  providerName: "Anthropic",    color: "#fbbf24", baseURL: "https://api.anthropic.com/v1",            costTag: "$$$",  category: "arabic" },
+  { id: "gemini-2.5-pro",                           label: "عربي Gemini 2.5",      providerKey: "gemini",     providerName: "Google",       color: "#fbbf24", baseURL: "https://generativelanguage.googleapis.com/v1beta", costTag: "$$$", category: "arabic" },
 ];
 
 const COST_COLOR: Record<string, string> = {
@@ -57,7 +121,83 @@ const CAT_LABELS: Record<string, string> = {
   coding: "كود",
   general: "عام",
   fast: "سريع",
+  security: "أمن",
+  arabic: "عربي",
+  multimodal: "متعدد",
 };
+
+function FusionHeader3D({ running, doneCount, total }: { running: boolean; doneCount: number; total: number }) {
+  const cvRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef(0);
+  const tRef = useRef(0);
+  useEffect(() => {
+    const cv = cvRef.current; if (!cv) return;
+    const ctx = cv.getContext("2d")!;
+    const W = cv.width, H = cv.height;
+    const cx = W / 2, cy = H / 2;
+    const nodeCount = Math.max(3, Math.min(20, total || 8));
+    const nodes = Array.from({ length: nodeCount }, (_, i) => {
+      const a = (i / nodeCount) * Math.PI * 2;
+      return { x: cx + Math.cos(a) * 52, y: cy + Math.sin(a) * 22, a, phase: Math.random() * Math.PI * 2, done: i < doneCount };
+    });
+    function draw(t: number) {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = "rgba(8,8,8,0.0)"; ctx.fillRect(0, 0, W, H);
+      // connections
+      nodes.forEach((n1, i) => {
+        nodes.forEach((n2, j) => {
+          if (j <= i) return;
+          const dist = Math.hypot(n1.x - n2.x, n1.y - n2.y);
+          if (dist > 80) return;
+          const alpha = 0.04 + Math.sin(t * 0.8 + i * 0.5 + j * 0.3) * 0.03;
+          ctx.beginPath(); ctx.moveTo(n1.x, n1.y); ctx.lineTo(n2.x, n2.y);
+          ctx.strokeStyle = `rgba(167,139,250,${alpha})`; ctx.lineWidth = 0.5; ctx.stroke();
+        });
+      });
+      // flowing particles on ring
+      for (let p = 0; p < 8; p++) {
+        const a = ((t * 0.6 + p / 8) % 1) * Math.PI * 2;
+        const px = cx + Math.cos(a) * 52;
+        const py = cy + Math.sin(a) * 22;
+        const alpha = running ? 0.7 + Math.sin(t * 3 + p) * 0.3 : 0.3;
+        ctx.beginPath(); ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = running ? `rgba(167,139,250,${alpha})` : `rgba(100,80,180,0.3)`;
+        ctx.fill();
+      }
+      // nodes
+      nodes.forEach((n, i) => {
+        const pulse = 0.5 + Math.sin(t * 2.5 + n.phase) * 0.5;
+        const isDone = i < doneCount;
+        const r = 4 + (running && !isDone ? pulse * 2 : 0);
+        const col = isDone ? "#22c55e" : running && i === doneCount ? "#a78bfa" : "rgba(100,80,180,0.6)";
+        ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = col; ctx.fill();
+        if (running && i === doneCount) {
+          ctx.beginPath(); ctx.arc(n.x, n.y, r + 3 + pulse * 3, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(167,139,250,0.4)"; ctx.lineWidth = 1; ctx.stroke();
+        }
+      });
+      // center orb
+      const cPulse = 0.7 + Math.sin(t * 3) * 0.3;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 10 * (running ? cPulse : 0.6));
+      grad.addColorStop(0, running ? "rgba(167,139,250,0.9)" : "rgba(80,50,140,0.5)");
+      grad.addColorStop(1, "rgba(167,139,250,0)");
+      ctx.beginPath(); ctx.arc(cx, cy, 10 * (running ? cPulse : 0.6), 0, Math.PI * 2);
+      ctx.fillStyle = grad; ctx.fill();
+    }
+    function loop() {
+      tRef.current += 0.016;
+      draw(tRef.current);
+      rafRef.current = requestAnimationFrame(loop);
+    }
+    rafRef.current = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [running, doneCount, total]);
+  return (
+    <canvas ref={cvRef} width={200} height={60}
+      style={{ width: 200, height: 60, display: "block", imageRendering: "auto", opacity: 0.85 }} />
+  );
+}
 
 type FusionResult = {
   modelId: string;
@@ -236,6 +376,8 @@ export function HyperFusionModal({ open, onClose, initialQuery = "", chatHistory
                   <span className="text-[14px] font-black tracking-wide">HYPER FUSION ULTIMATE</span>
                   <span className="text-[8px] font-black px-1.5 py-0.5 rounded border"
                     style={{ background: "rgba(167,139,250,0.12)", color: "#a78bfa", borderColor: "rgba(167,139,250,0.3)" }}>INDEPENDENT</span>
+                  <span className="text-[8px] font-black px-1.5 py-0.5 rounded border"
+                    style={{ background: "rgba(226,18,39,0.10)", color: "#e21227", borderColor: "rgba(226,18,39,0.3)" }}>{TOP_FUSION_MODELS.length} MODELS</span>
                   {running && (
                     <span className="text-[8px] font-black px-1.5 py-0.5 rounded animate-pulse"
                       style={{ background: "rgba(167,139,250,0.2)", color: "#c4b5fd" }}>{doneCount}/{selectedList.filter(m => isModelAvailable(m)).length} مكتمل</span>
@@ -246,6 +388,25 @@ export function HyperFusionModal({ open, onClose, initialQuery = "", chatHistory
               <button onClick={onClose} className="p-2 rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-4 h-4" />
               </button>
+            </div>
+            {/* 3D Neural Sync Visualizer */}
+            <div className="px-5 py-2 border-b flex items-center justify-between"
+              style={{ borderColor: "rgba(167,139,250,0.15)", background: "rgba(0,0,0,0.4)" }}>
+              <FusionHeader3D running={running} doneCount={doneCount} total={selectedList.filter(m => isModelAvailable(m)).length || 8} />
+              <div className="flex flex-col items-end gap-1 text-right">
+                <span className="text-[9px] font-mono" style={{ color: "rgba(167,139,250,0.6)" }}>NEURAL SYNC</span>
+                <span className="text-[11px] font-black font-mono" style={{ color: "#a78bfa" }}>
+                  {running ? `${doneCount}/${selectedList.filter(m => isModelAvailable(m)).length}` : `${TOP_FUSION_MODELS.length} READY`}
+                </span>
+                <div className="flex gap-1">
+                  {["reasoning","coding","security","arabic"].map(c => (
+                    <div key={c} className="w-1.5 h-1.5 rounded-full" style={{
+                      background: c === "reasoning" ? "#a78bfa" : c === "coding" ? "#06b6d4" : c === "security" ? "#e21227" : "#fbbf24",
+                      opacity: TOP_FUSION_MODELS.filter(m => m.category === c).length > 0 ? 1 : 0.3
+                    }} />
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
@@ -277,7 +438,7 @@ export function HyperFusionModal({ open, onClose, initialQuery = "", chatHistory
                 {/* Category quick filters */}
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <Filter className="w-3 h-3 text-muted-foreground" />
-                  {[{ id: "all", label: "الكل" }, { id: "reasoning", label: "تفكير" }, { id: "coding", label: "كود" }, { id: "general", label: "عام" }, { id: "fast", label: "سريع" }].map(c => (
+                  {[{ id: "all", label: "الكل" }, { id: "reasoning", label: "تفكير" }, { id: "coding", label: "كود" }, { id: "general", label: "عام" }, { id: "fast", label: "سريع" }, { id: "security", label: "أمن" }, { id: "arabic", label: "عربي" }, { id: "multimodal", label: "متعدد" }].map(c => (
                     <button key={c.id} onClick={() => setCatFilter(c.id)}
                       className={`text-[9px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
                         catFilter === c.id ? "bg-[#a78bfa]/15 text-[#a78bfa] border-[#a78bfa]/30" : "bg-[#0d0d0d] border-[#1f1f1f] text-muted-foreground hover:text-foreground"
