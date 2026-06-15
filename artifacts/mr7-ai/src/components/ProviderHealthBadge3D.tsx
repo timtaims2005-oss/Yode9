@@ -907,22 +907,40 @@ export function ProviderHealthBadge3D() {
       </motion.button>
 
       {/* ── POPUP PANEL ── */}
+      {open && (
+        <div
+          className="fixed inset-0 z-[9990]"
+          style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(2px)" }}
+          onClick={() => setOpen(false)}
+        />
+      )}
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 12, scale: 0.95, rotateX: -6 }}
-            animate={{ opacity: 1, y: 0,  scale: 1,    rotateX: -1.5 }}
-            exit   ={{ opacity: 0, y: 8,  scale: 0.96, rotateX: -6 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute top-full mt-2.5 right-0 z-[9999]"
-            style={{ width: 318, perspective: "1200px", transformStyle: "preserve-3d", transformOrigin: "top center" }}
+            initial={{ opacity: 0, x: 32, scale: 0.93 }}
+            animate={{ opacity: 1, x: 0,  scale: 1    }}
+            exit   ={{ opacity: 0, x: 32, scale: 0.94 }}
+            transition={{ duration: 0.30, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              position: "fixed",
+              right: "16px",
+              top: "5vh",
+              zIndex: 9999,
+              width: "clamp(340px, 44vw, 560px)",
+              maxHeight: "90vh",
+              perspective: "1400px",
+              transformStyle: "preserve-3d",
+              pointerEvents: "auto",
+            }}
           >
-            <div className="rounded-2xl overflow-hidden"
+            <div className="rounded-2xl flex flex-col"
               style={{
-                background: "rgba(4,2,14,0.98)",
-                border: "1px solid rgba(139,92,246,0.26)",
-                boxShadow: "0 0 64px rgba(139,92,246,0.16), 0 24px 64px rgba(0,0,0,0.92), inset 0 1px 0 rgba(167,139,250,0.1)",
-                backdropFilter: "blur(24px)",
+                background: "linear-gradient(160deg, rgba(6,2,20,0.99) 0%, rgba(4,2,14,0.99) 60%, rgba(8,2,18,0.99) 100%)",
+                border: "1px solid rgba(139,92,246,0.35)",
+                boxShadow: "0 0 100px rgba(139,92,246,0.20), 0 0 40px rgba(139,92,246,0.08), 0 32px 80px rgba(0,0,0,0.96), inset 0 1px 0 rgba(167,139,250,0.14), inset 0 0 60px rgba(139,92,246,0.03)",
+                backdropFilter: "blur(36px)",
+                maxHeight: "90vh",
+                overflow: "hidden",
               }}>
               <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,#8b5cf6,#c084fc,transparent)" }} />
 
@@ -1035,7 +1053,7 @@ export function ProviderHealthBadge3D() {
 
               {/* MATRIX tab */}
               {activeTab === "matrix" && (
-                <div className="p-3 space-y-2 max-h-[420px] overflow-y-auto"
+                <div className="p-3 space-y-2 max-h-[calc(88vh-220px)] overflow-y-auto"
                   style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(139,92,246,0.18) transparent" }}>
                   <div className="text-[7px] font-bold tracking-widest uppercase mb-2" style={{ color: "rgba(167,139,250,0.42)" }}>مقارنة المزوّدين — استجابة مباشرة</div>
                   {MONITOR_PROVIDERS.map(p => {
@@ -1072,7 +1090,7 @@ export function ProviderHealthBadge3D() {
 
               {/* SHIELD tab */}
               {activeTab === "shield" && (
-                <div className="p-3 space-y-2 max-h-[420px] overflow-y-auto"
+                <div className="p-3 space-y-2 max-h-[calc(88vh-220px)] overflow-y-auto"
                   style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(139,92,246,0.18) transparent" }}>
                   <div className="text-[7px] font-bold tracking-widest uppercase mb-2" style={{ color: "rgba(167,139,250,0.42)" }}>فحوصات الأمان</div>
                   {[
@@ -1101,7 +1119,7 @@ export function ProviderHealthBadge3D() {
 
               {/* NET tab */}
               {activeTab === "net" && (
-                <div className="p-3 space-y-2 max-h-[420px] overflow-y-auto"
+                <div className="p-3 space-y-2 max-h-[calc(88vh-220px)] overflow-y-auto"
                   style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(139,92,246,0.18) transparent" }}>
                   <div className="text-[7px] font-bold tracking-widest uppercase mb-2" style={{ color: "rgba(167,139,250,0.42)" }}>مقاييس الشبكة</div>
                   {[

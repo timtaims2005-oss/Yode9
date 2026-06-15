@@ -881,22 +881,40 @@ export function AIQuickSetupButton() {
       </motion.button>
 
       {/* ── POPUP PANEL ── */}
+      {open && (
+        <div
+          className="fixed inset-0 z-[9990]"
+          style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(2px)" }}
+          onClick={() => setOpen(false)}
+        />
+      )}
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 12, scale: 0.95, rotateX: -6 }}
-            animate={{ opacity: 1, y: 0,  scale: 1,    rotateX: -1.5 }}
-            exit   ={{ opacity: 0, y: 8,  scale: 0.96, rotateX: -6 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute top-full mt-2.5 left-0 z-[9999]"
-            style={{ width: 380, perspective: "1200px", transformStyle: "preserve-3d", transformOrigin: "top center" }}
+            initial={{ opacity: 0, x: -32, scale: 0.93 }}
+            animate={{ opacity: 1, x: 0,   scale: 1    }}
+            exit   ={{ opacity: 0, x: -32, scale: 0.94 }}
+            transition={{ duration: 0.30, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              position: "fixed",
+              left: "16px",
+              top: "5vh",
+              zIndex: 9999,
+              width: "clamp(340px, 44vw, 560px)",
+              maxHeight: "90vh",
+              perspective: "1400px",
+              transformStyle: "preserve-3d",
+              pointerEvents: "auto",
+            }}
           >
-            <div className="rounded-2xl overflow-hidden"
+            <div className="rounded-2xl flex flex-col"
               style={{
-                background: "rgba(4,7,10,0.98)",
-                border: "1px solid rgba(0,255,136,0.22)",
-                boxShadow: "0 0 60px rgba(0,255,136,0.12), 0 24px 64px rgba(0,0,0,0.92), inset 0 1px 0 rgba(0,255,136,0.1)",
-                backdropFilter: "blur(24px)",
+                background: "linear-gradient(160deg, rgba(0,12,8,0.99) 0%, rgba(2,8,6,0.99) 60%, rgba(0,10,6,0.99) 100%)",
+                border: "1px solid rgba(0,255,136,0.30)",
+                boxShadow: "0 0 100px rgba(0,255,136,0.14), 0 0 40px rgba(0,229,255,0.06), 0 32px 80px rgba(0,0,0,0.96), inset 0 1px 0 rgba(0,255,136,0.14), inset 0 0 60px rgba(0,255,136,0.02)",
+                backdropFilter: "blur(36px)",
+                maxHeight: "90vh",
+                overflow: "hidden",
               }}>
               <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(0,255,136,0.85),rgba(0,229,255,0.5),transparent)" }} />
 
@@ -1001,7 +1019,7 @@ export function AIQuickSetupButton() {
                     )}
                   </div>
                 </div>
-                <div className="px-4 pb-3 space-y-1.5 max-h-[340px] overflow-y-auto"
+                <div className="px-4 pb-3 space-y-1.5 max-h-[calc(88vh-220px)] overflow-y-auto"
                   style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(0,255,136,0.18) transparent" }}>
                   <div className="text-[7px] font-bold tracking-[0.22em] uppercase mb-2 pt-1"
                     style={{ color: "rgba(0,255,136,0.38)" }}>
@@ -1021,7 +1039,7 @@ export function AIQuickSetupButton() {
 
               {/* METRICS tab */}
               {activeTab === "metrics" && (
-                <div className="px-4 py-3 space-y-3 max-h-[440px] overflow-y-auto"
+                <div className="px-4 py-3 space-y-3 max-h-[calc(88vh-220px)] overflow-y-auto"
                   style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(0,255,136,0.18) transparent" }}>
                   <div className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(0,255,136,0.38)" }}>تصنيف سرعة النماذج</div>
                   {ALL_PROVIDERS.slice(0, 8).map((p, i) => {
@@ -1058,7 +1076,7 @@ export function AIQuickSetupButton() {
 
               {/* ARSENAL tab */}
               {activeTab === "arsenal" && (
-                <div className="px-4 py-3 space-y-3 max-h-[440px] overflow-y-auto"
+                <div className="px-4 py-3 space-y-3 max-h-[calc(88vh-220px)] overflow-y-auto"
                   style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(0,255,136,0.18) transparent" }}>
                   <div className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(0,255,136,0.38)" }}>اختصارات لوحة المفاتيح</div>
                   {[

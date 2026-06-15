@@ -16,6 +16,8 @@ import { ModelBenchmarkPanel }    from "./ModelBenchmarkPanel";
 import { SysMonitorWidget }       from "./SysMonitorWidget";
 import { IdleWidget }             from "./IdleWidget";
 import { NetworkActivityPage }    from "./NetworkActivityPage";
+import { IntelligenceHUDOverlay } from "./IntelligenceHUDOverlay";
+import { SystemStatusWidget }     from "./SystemStatusWidget";
 import { trafficBus }             from "@/lib/trafficBus";
 import type { TrafficEvent }      from "@/lib/trafficBus";
 import { sessionRecorder }        from "@/lib/sessionRecorder";
@@ -1641,11 +1643,15 @@ function DockButton({
   keyGlow,
   showSatellites,
   stats,
+  onOpenAiIntel,
+  onOpenSys,
 }: {
   onClick: () => void;
   keyGlow: boolean;
   showSatellites: boolean;
   stats: { cpu: number; mem: number; api: number; thr: number };
+  onOpenAiIntel: () => void;
+  onOpenSys: () => void;
 }) {
   const [pos,      setPos]      = useState(getInitialPos);
   const [hovered,          setHovered]          = useState(false);
@@ -1759,6 +1765,66 @@ function DockButton({
               onExpandRec={() => setShowFullRec(v => !v)}
               onExpandPacket={() => setShowPacketInsp(v => !v)}
             />
+            {/* AI INTEL satellite action button */}
+            <motion.button
+              initial={{ opacity: 0, scale: 0, y: 6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0, y: 6 }}
+              transition={{ delay: 0.10, type: "spring", stiffness: 300, damping: 22 }}
+              onClick={(e) => { e.stopPropagation(); onOpenAiIntel(); }}
+              style={{
+                position: "absolute",
+                bottom: "86px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                padding: "5px 12px",
+                borderRadius: "10px",
+                background: "linear-gradient(135deg, rgba(139,92,246,0.22) 0%, rgba(109,40,217,0.14) 100%)",
+                border: "1px solid rgba(139,92,246,0.55)",
+                color: "#c4b5fd",
+                fontSize: "7.5px",
+                fontFamily: "monospace",
+                fontWeight: 900,
+                letterSpacing: "2px",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                boxShadow: "0 0 22px rgba(139,92,246,0.40), inset 0 1px 0 rgba(196,181,253,0.12)",
+                backdropFilter: "blur(12px)",
+                zIndex: 10,
+              }}
+            >
+              AI INTEL
+            </motion.button>
+            {/* SYS satellite action button */}
+            <motion.button
+              initial={{ opacity: 0, scale: 0, y: 6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0, y: 6 }}
+              transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 22 }}
+              onClick={(e) => { e.stopPropagation(); onOpenSys(); }}
+              style={{
+                position: "absolute",
+                bottom: "116px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                padding: "5px 12px",
+                borderRadius: "10px",
+                background: "linear-gradient(135deg, rgba(16,185,129,0.22) 0%, rgba(5,150,105,0.14) 100%)",
+                border: "1px solid rgba(16,185,129,0.55)",
+                color: "#6ee7b7",
+                fontSize: "7.5px",
+                fontFamily: "monospace",
+                fontWeight: 900,
+                letterSpacing: "2px",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                boxShadow: "0 0 22px rgba(16,185,129,0.40), inset 0 1px 0 rgba(110,231,183,0.12)",
+                backdropFilter: "blur(12px)",
+                zIndex: 10,
+              }}
+            >
+              SYS
+            </motion.button>
           </>
         )}
       </AnimatePresence>
@@ -2904,10 +2970,12 @@ export function CyberHUDOverlay({ onClose }: { onClose: () => void }) {
    PUBLIC EXPORT
 ══════════════════════════════════════════════════════════════════ */
 export function CyberWidgetsDock() {
-  const [open,          setOpen]          = useState(false);
-  const [keyGlow,       setKeyGlow]       = useState(false);
+  const [open,           setOpen]           = useState(false);
+  const [keyGlow,        setKeyGlow]        = useState(false);
   const [showSatellites, setShowSatellites] = useState(false);
-  const [threatFlash,   setThreatFlash]   = useState(false);
+  const [threatFlash,    setThreatFlash]    = useState(false);
+  const [showAiIntel,    setShowAiIntel]    = useState(false);
+  const [showSys,        setShowSys]        = useState(false);
   const stats = useLiveStats();
 
   /* Threat spike flash */
@@ -2922,7 +2990,6 @@ export function CyberWidgetsDock() {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "h") {
         e.preventDefault();
-        /* Keyboard glow flash */
         setKeyGlow(true);
         setShowSatellites(true);
         setTimeout(() => setKeyGlow(false), 750);
@@ -2943,9 +3010,41 @@ export function CyberWidgetsDock() {
         keyGlow={keyGlow}
         showSatellites={showSatellites}
         stats={stats}
+        onOpenAiIntel={() => setShowAiIntel(v => !v)}
+        onOpenSys={() => setShowSys(v => !v)}
       />
       <AnimatePresence>
         {open && <CyberHUDOverlay onClose={() => setOpen(false)} />}
+      </AnimatePresence>
+
+      {/* AI INTEL overlay — toggled from satellite button on DockButton hover */}
+      <AnimatePresence>
+        {showAiIntel && (
+          <motion.div
+            key="ai-intel-hud"
+            initial={{ opacity: 0, scale: 0.85, y: 30 }}
+            animate={{ opacity: 1, scale: 1,    y: 0  }}
+            exit={{    opacity: 0, scale: 0.85, y: 30 }}
+            transition={{ type: "spring", stiffness: 320, damping: 28 }}
+          >
+            <IntelligenceHUDOverlay onOpenCommandCenter={() => {}} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* SYS overlay — toggled from satellite button on DockButton hover */}
+      <AnimatePresence>
+        {showSys && (
+          <motion.div
+            key="sys-widget"
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0  }}
+            exit={{    opacity: 0, x: 60 }}
+            transition={{ type: "spring", stiffness: 320, damping: 28, delay: 0.04 }}
+          >
+            <SystemStatusWidget />
+          </motion.div>
+        )}
       </AnimatePresence>
     </>
   );

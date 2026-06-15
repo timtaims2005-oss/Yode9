@@ -762,37 +762,11 @@ function AppContent() {
         </div>
       )}
 
-      {/* ── Cyber Intelligence Layer — NET·HUD button toggles both floating panels ── */}
-      <AnimatePresence>
-        {hudsVisible && (
-          <motion.div
-            key="ai-intel-hud"
-            initial={{ opacity: 0, scale: 0.82, y: 40 }}
-            animate={{ opacity: 1, scale: 1,    y: 0  }}
-            exit={{    opacity: 0, scale: 0.82, y: 40 }}
-            transition={{ type: "spring", stiffness: 320, damping: 30 }}
-          >
-            <IntelligenceHUDOverlay onOpenCommandCenter={() => open('cyberIntel')} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── Cyber Intelligence Layer — accessible via NET circular button in DockButton ── */}
       <CyberIntelCenter open={modals.cyberIntel} onClose={() => close('cyberIntel')} />
 
       {/* Always-on ambient layers — conditionally paused when tab hidden */}
       <CyberHeatmapHUD />
-      <AnimatePresence>
-        {hudsVisible && (
-          <motion.div
-            key="sys-widget"
-            initial={{ opacity: 0, x: 80 }}
-            animate={{ opacity: 1, x: 0  }}
-            exit={{    opacity: 0, x: 80 }}
-            transition={{ type: "spring", stiffness: 320, damping: 30, delay: 0.06 }}
-          >
-            <SystemStatusWidget />
-          </motion.div>
-        )}
-      </AnimatePresence>
       <div className="hidden md:block"><AmbientParticleField density={0.15} /></div>
       <div className="hidden md:block"><HoloDataStream side="both" /></div>
       {/* CyberWidgetsDock removed — accessible via TopBar "HUD" button */}
