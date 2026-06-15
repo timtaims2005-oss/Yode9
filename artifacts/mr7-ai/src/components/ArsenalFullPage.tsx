@@ -142,6 +142,10 @@ import { CausalReasoningModal } from "./modals/CausalReasoningModal";
 import { FullSpectrumAIModal } from "./modals/FullSpectrumAIModal";
 import { AutonomousOversightModal } from "./modals/AutonomousOversightModal";
 import { LargeScaleAnomalyModal } from "./modals/LargeScaleAnomalyModal";
+// ARTP Suite — Enterprise Red Team Platform, PentestLab Pro, SOC Command Center
+import { ARTPlatformModal } from "./modals/ARTPlatformModal";
+import { PentestLabProModal } from "./modals/PentestLabProModal";
+import { SOCCommandModal } from "./modals/SOCCommandModal";
 
 interface Props {
   moduleId: ArsenalModuleId;
@@ -456,6 +460,9 @@ export function ArsenalFullPage({ moduleId, onBack }: Props) {
       case "fullspectrum":        return <FullSpectrumAIModal open={open} onOpenChange={v => !v && onBack()} />;
       case "autonomousoversight": return <AutonomousOversightModal open={open} onOpenChange={v => !v && onBack()} />;
       case "largescaleanomaly":   return <LargeScaleAnomalyModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "artpplatform":    return <ARTPlatformModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "pentestlabpro":   return <PentestLabProModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "soccommand":      return <SOCCommandModal open={open} onOpenChange={v => !v && onBack()} />;
       default:                return null;
     }
   })();
