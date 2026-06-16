@@ -39,6 +39,7 @@ import { tierAtLeast } from "@/lib/subscription";
 import { HyperFusionModal } from "./modals/HyperFusionModal";
 import { NeuralPulseBackground } from "./NeuralPulseBackground";
 import { FuturisticBackground3D } from "./FuturisticBackground3D";
+import { QuantumVoidBackground3D } from "./QuantumVoidBackground3D";
 import { ChatEmptyState } from "./ChatEmptyState";
 import { TokenCounter3D } from "./TokenCounter3D";
 import { NeuralStreamHUD } from "./NeuralStreamHUD";
@@ -1038,9 +1039,10 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
     <div className="flex-1 flex flex-col h-full relative overflow-hidden">
       {/* Floating network intrusion log + 3D monitor button */}
       <FloatingNetworkPanel />
-      {/* 3D futuristic background — layered: depth grid + hex nodes + scan line */}
-      <FuturisticBackground3D opacity={0.55} />
-      {/* Legacy neural pulse overlay at very low opacity for extra depth */}
+      {/* QUANTUM VOID — maximum 3D quality background: starfield + neural net + cyberspace grid */}
+      <QuantumVoidBackground3D opacity={0.62} accentColor="#e21227" />
+      {/* Legacy depth layers (low opacity — add depth to quantum void) */}
+      <FuturisticBackground3D opacity={0.18} />
       <NeuralPulseBackground />
       {chat && (
         <div className="h-10 flex items-center justify-between px-4 relative"

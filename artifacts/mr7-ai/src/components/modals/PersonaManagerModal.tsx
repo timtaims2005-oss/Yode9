@@ -274,8 +274,9 @@ function PersonaCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const Icon = "icon" in persona ? persona.icon : Brain;
-  const catColor = CATEGORY_META[persona.category]?.color ?? "#6366f1";
-  const catMeta = CATEGORY_META[persona.category];
+  const pCat = "category" in persona ? (persona as { category: string }).category : "mastero";
+  const catColor = CATEGORY_META[pCat]?.color ?? "#6366f1";
+  const catMeta = CATEGORY_META[pCat];
 
   return (
     <motion.div
@@ -733,7 +734,8 @@ export function PersonaManagerModal({ open, onClose }: { open: boolean; onClose:
                         </div>
                         <div className="flex gap-1.5 flex-wrap">
                           {recentPresets.slice(0, 5).map(p => {
-                            const catColor2 = CATEGORY_META[p.category]?.color ?? "#6366f1";
+                            const pCat2r = "category" in p ? (p as { category: string }).category : "mastero";
+                            const catColor2 = CATEGORY_META[pCat2r]?.color ?? "#6366f1";
                             return (
                               <button key={p.id} onClick={() => activate(p.id)}
                                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-bold border transition-all"
@@ -1125,7 +1127,8 @@ export function PersonaManagerModal({ open, onClose }: { open: boolean; onClose:
                         {[...favorites].map(id => {
                           const p = [...allPresets, ...MASTERO_PERSONAS].find(x => x.id === id);
                           if (!p) return null;
-                          const catColor2 = CATEGORY_META[p.category]?.color ?? "#6366f1";
+                          const pCat2f = "category" in p ? (p as { category: string }).category : "mastero";
+                          const catColor2 = CATEGORY_META[pCat2f]?.color ?? "#6366f1";
                           return (
                             <div key={id} className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[9px] font-bold border"
                               style={{ background: `${catColor2}10`, borderColor: `${catColor2}30`, color: catColor2 }}>
