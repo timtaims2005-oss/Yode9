@@ -139,7 +139,7 @@ export function listProviders(): ProviderInfo[] {
       } else if (id === "custom") {
         available = !!(process.env.CUSTOM_API_KEY || process.env.CUSTOM_API_BASE_URL);
       } else if (id === "openai") {
-        available = !!process.env.OPENAI_API_KEY;
+        available = !!(process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY);
       } else if (id === "anthropic") {
         available = !!(process.env.ANTHROPIC_API_KEY || process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY);
       } else {
@@ -169,8 +169,8 @@ export function getOpenAICompatibleClient(provider: ProviderName): OpenAI | null
     apiKey = getPersonalKey() || undefined;
     baseURL = getPersonalBase() || undefined;
   } else if (provider === "openai") {
-    apiKey = process.env.OPENAI_API_KEY || undefined;
-    baseURL = cfg.baseURL;
+    apiKey = process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY || undefined;
+    baseURL = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || cfg.baseURL;
   } else {
     apiKey = process.env[cfg.envKey];
   }
