@@ -61,6 +61,7 @@ const MemoryModal           = lazy(() => import("./components/modals/MemoryModal
 const BookmarksModal        = lazy(() => import("./components/modals/BookmarksModal").then(m=>({default:m.BookmarksModal})));
 const SearchModal           = lazy(() => import("./components/modals/SearchModal").then(m=>({default:m.SearchModal})));
 const PersonaEditorModal    = lazy(() => import("./components/modals/PersonaEditorModal").then(m=>({default:m.PersonaEditorModal})));
+const PersonaManagerModal   = lazy(() => import("./components/modals/PersonaManagerModal").then(m=>({default:m.PersonaManagerModal})));
 const LocalModelModal       = lazy(() => import("./components/modals/LocalModelModal").then(m=>({default:m.LocalModelModal})));
 const ProviderSettingsModal = lazy(() => import("./components/modals/ProviderSettingsModal").then(m=>({default:m.ProviderSettingsModal})));
 const OsintDashboard        = lazy(() => import("./components/modals/OsintDashboard").then(m=>({default:m.OsintDashboard})));
@@ -195,7 +196,7 @@ const SOCCommandModal    = lazy(() => import("./components/modals/SOCCommandModa
 
 // ── MODAL STATE REDUCER ───────────────────────────────────────────────────────
 const MODAL_IDS = [
-  'personaEditor','localModel','providerSettings','pricing','api','settings','account',
+  'personaEditor','personaManager','localModel','providerSettings','pricing','api','settings','account',
   'tool','shortcuts','palette','toolsHub','memory','bookmarks','search','compare',
   'osintDash','admin','activate','agent','nexus','arsenal','jarvis','parseltongue',
   'rag','teamAgent','skills','openGravity','agentOS','geminiCLI','hermes','graphify',
@@ -550,6 +551,7 @@ function AppContent() {
           onOpenToolsHub={() => open('toolsHub')}
           onOpenHelp={() => open('shortcuts')}
           onOpenPersonaEditor={() => open('personaEditor')}
+          onOpenPersonaManager={() => open('personaManager')}
           onOpenLocalModel={() => open('localModel')}
           onOpenAgent={() => open('agent')}
           onOpenNexus={() => open('nexus')}
@@ -623,6 +625,7 @@ function AppContent() {
         <BookmarksModal open={modals.bookmarks} onOpenChange={(v) => mDispatch({type:'SET',id:'bookmarks',value:v})} />
         <SearchModal open={modals.search} onOpenChange={(v) => mDispatch({type:'SET',id:'search',value:v})} />
         <PersonaEditorModal open={modals.personaEditor} onOpenChange={(v) => mDispatch({type:'SET',id:'personaEditor',value:v})} />
+        <PersonaManagerModal open={modals.personaManager} onClose={() => close('personaManager')} />
         <LocalModelModal open={modals.localModel} onOpenChange={(v) => mDispatch({type:'SET',id:'localModel',value:v})} />
         <ProviderSettingsModal open={modals.providerSettings} onClose={() => close('providerSettings')} />
         <OsintDashboard open={modals.osintDash} onOpenChange={(v) => mDispatch({type:'SET',id:'osintDash',value:v})} />

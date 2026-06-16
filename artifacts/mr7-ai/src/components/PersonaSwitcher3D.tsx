@@ -106,9 +106,10 @@ function PersonaOrb({ color, pulse }: { color: [number, number, number]; pulse: 
 
 interface PersonaSwitcher3DProps {
   onOpenPersonaEditor: () => void;
+  onOpenPersonaManager?: () => void;
 }
 
-export function PersonaSwitcher3D({ onOpenPersonaEditor }: PersonaSwitcher3DProps) {
+export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }: PersonaSwitcher3DProps) {
   const { state } = useStore();
   const [showPanel, setShowPanel] = useState(false);
   const [hoverPreset, setHoverPreset] = useState<string | null>(null);
@@ -281,25 +282,44 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor }: PersonaSwitcher3DProp
               </div>
             </div>
 
-            {/* Open full editor */}
-            <div className="mx-3 mb-3">
+            {/* Open full editor / manager */}
+            <div className="mx-3 mb-3 flex flex-col gap-1.5">
+              {onOpenPersonaManager && (
+                <motion.button
+                  onClick={() => { setShowPanel(false); onOpenPersonaManager(); }}
+                  className="w-full rounded-xl py-2 text-[11px] font-black tracking-wider flex items-center justify-center gap-2"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(226,18,39,0.18), rgba(226,18,39,0.08))",
+                    border: "1px solid rgba(226,18,39,0.35)",
+                    color: "#e21227",
+                    boxShadow: "0 0 16px rgba(226,18,39,0.12)",
+                  }}
+                  whileHover={{ scale: 1.02, boxShadow: "0 0 24px rgba(226,18,39,0.25)" }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                  </svg>
+                  مدير الشخصيات الكامل
+                </motion.button>
+              )}
               <motion.button
                 onClick={() => { setShowPanel(false); onOpenPersonaEditor(); }}
-                className="w-full rounded-xl py-2 text-[11px] font-black tracking-wider flex items-center justify-center gap-2"
+                className="w-full rounded-xl py-1.5 text-[10px] font-black tracking-wider flex items-center justify-center gap-2"
                 style={{
-                  background: `linear-gradient(135deg, rgba(${cr},${cg},${cb},0.18), rgba(${cr},${cg},${cb},0.08))`,
-                  border: `1px solid rgba(${cr},${cg},${cb},0.35)`,
-                  color: `rgba(${cr},${cg},${cb},0.95)`,
-                  boxShadow: `0 0 16px rgba(${cr},${cg},${cb},0.12)`,
+                  background: `rgba(${cr},${cg},${cb},0.08)`,
+                  border: `1px solid rgba(${cr},${cg},${cb},0.22)`,
+                  color: `rgba(${cr},${cg},${cb},0.8)`,
                 }}
-                whileHover={{ scale: 1.02, boxShadow: `0 0 24px rgba(${cr},${cg},${cb},0.25)` }}
+                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
                   <circle cx="12" cy="12" r="10" /><circle cx="12" cy="10" r="3" />
                   <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
                 </svg>
-                فتح محرر الشخصيات الكامل
+                محرر الشخصيات
               </motion.button>
             </div>
 

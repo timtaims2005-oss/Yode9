@@ -21,14 +21,21 @@ const PROVIDER_SHORT: Record<string, string> = {
 };
 
 const MONITOR_PROVIDERS = [
-  { id: "groq",       name: "Groq",       color: "#f59e0b", url: "https://api.groq.com/openai/v1" },
-  { id: "openai",     name: "OpenAI",     color: "#10b981", url: "https://api.openai.com/v1" },
-  { id: "anthropic",  name: "Anthropic",  color: "#f97316", url: "https://api.anthropic.com/v1" },
-  { id: "gemini",     name: "Gemini",     color: "#3b82f6", url: "https://generativelanguage.googleapis.com/v1beta/openai" },
-  { id: "openrouter", name: "OpenRouter", color: "#8b5cf6", url: "https://openrouter.ai/api/v1" },
-  { id: "deepseek",   name: "DeepSeek",   color: "#06b6d4", url: "https://api.deepseek.com/v1" },
-  { id: "xai",        name: "xAI Grok",   color: "#22d3ee", url: "https://api.x.ai/v1" },
-  { id: "mistral",    name: "Mistral",    color: "#ec4899", url: "https://api.mistral.ai/v1" },
+  { id: "groq",        name: "Groq",         color: "#f59e0b", url: "https://api.groq.com/openai/v1",                          region: "US",  tier: "free"  },
+  { id: "openai",      name: "OpenAI",        color: "#10b981", url: "https://api.openai.com/v1",                               region: "US",  tier: "paid"  },
+  { id: "anthropic",   name: "Anthropic",     color: "#f97316", url: "https://api.anthropic.com/v1",                            region: "US",  tier: "paid"  },
+  { id: "gemini",      name: "Gemini",        color: "#3b82f6", url: "https://generativelanguage.googleapis.com/v1beta/openai", region: "US",  tier: "free"  },
+  { id: "openrouter",  name: "OpenRouter",    color: "#8b5cf6", url: "https://openrouter.ai/api/v1",                            region: "US",  tier: "free"  },
+  { id: "deepseek",    name: "DeepSeek",      color: "#06b6d4", url: "https://api.deepseek.com/v1",                             region: "CN",  tier: "paid"  },
+  { id: "xai",         name: "xAI Grok",      color: "#22d3ee", url: "https://api.x.ai/v1",                                    region: "US",  tier: "paid"  },
+  { id: "mistral",     name: "Mistral AI",    color: "#ec4899", url: "https://api.mistral.ai/v1",                               region: "EU",  tier: "paid"  },
+  { id: "perplexity",  name: "Perplexity",    color: "#22c55e", url: "https://api.perplexity.ai",                               region: "US",  tier: "paid"  },
+  { id: "together",    name: "Together AI",   color: "#f43f5e", url: "https://api.together.xyz/v1",                             region: "US",  tier: "free"  },
+  { id: "cohere",      name: "Cohere",        color: "#a78bfa", url: "https://api.cohere.ai/v1",                                region: "CA",  tier: "paid"  },
+  { id: "fireworks",   name: "Fireworks AI",  color: "#fb923c", url: "https://api.fireworks.ai/inference/v1",                   region: "US",  tier: "free"  },
+  { id: "nvidia",      name: "NVIDIA NIM",    color: "#76b900", url: "https://integrate.api.nvidia.com/v1",                     region: "US",  tier: "paid"  },
+  { id: "cerebras",    name: "Cerebras",      color: "#e11d48", url: "https://api.cerebras.ai/v1",                              region: "US",  tier: "free"  },
+  { id: "sambanova",   name: "SambaNova",     color: "#f59e0b", url: "https://api.sambanova.ai/v1",                             region: "US",  tier: "free"  },
 ];
 
 // ── ULTRA 3D QUANTUM PLANET — RAINBOW SPECTRUM ────────────────────────────────
@@ -853,7 +860,11 @@ export function ProviderHealthBadge3D() {
   const [history,  setHistory]   = useState<number[]>([]);
   const [checks,   setChecks]    = useState(0);
   const [open,     setOpen]      = useState(false);
-  const [activeTab, setActiveTab] = useState<"status" | "matrix" | "shield" | "net">("status");
+  const [activeTab, setActiveTab] = useState<"status" | "matrix" | "shield" | "net" | "log" | "bench">("status");
+  const [eventLog,  setEventLog]  = useState<{ ts: number; msg: string; color: string }[]>([]);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [filterRegion, setFilterRegion] = useState<"all" | "US" | "EU" | "CN" | "CA">("all");
+  const [filterTier,   setFilterTier]   = useState<"all" | "free" | "paid">("all");
   const [providerHealth, setProviderHealth] = useState<Record<string, { h: Health; ms: number | null }>>({});
   const [intervalMs, setIntervalMs] = useState(90000);
   const [uptimePct, setUptimePct]   = useState(100);
@@ -865,6 +876,10 @@ export function ProviderHealthBadge3D() {
   const avg = history.length > 0 ? Math.round(history.reduce((a, b) => a + b, 0) / history.length) : null;
   const min = history.length > 0 ? Math.min(...history) : null;
   const max = history.length > 0 ? Math.max(...history) : null;
+
+  const addLog = useCallback((msg: string, color: string) => {
+    setEventLog(prev => [{ ts: Date.now(), msg, color }, ...prev].slice(0, 50));
+  }, []);
 
   const recheck = useCallback(async () => {
     setHealth("checking");
@@ -883,6 +898,7 @@ export function ProviderHealthBadge3D() {
         setHistory(prev => [...prev.slice(-14), ms]);
         setChecks(c => c + 1);
         if (h !== "error") setSuccessCnt(c => c + 1);
+        addLog(`[${state.activeProvider.toUpperCase()}] ${h === "healthy" ? "OK" : h === "slow" ? "SLOW" : "ERR"} — ${ms}ms`, HEALTH_COLOR[h]);
         setChecks(prev => {
           const total = prev + 1;
           setUptimePct(Math.round(((successCnt + (h !== "error" ? 1 : 0)) / total) * 100));
@@ -890,12 +906,14 @@ export function ProviderHealthBadge3D() {
         });
       } else {
         setHealth("error");
+        addLog(`[${state.activeProvider.toUpperCase()}] API offline`, HEALTH_COLOR["error"]);
       }
-    } catch { setHealth("error"); }
-  }, [state.activeProvider, state.settings.personalApiKey, successCnt]);
+    } catch { setHealth("error"); addLog(`[PROBE] فشل الاتصال`, HEALTH_COLOR["error"]); }
+  }, [state.activeProvider, state.settings.personalApiKey, successCnt, addLog]);
 
   const recheckAll = useCallback(async () => {
     const results: Record<string, { h: Health; ms: number | null }> = {};
+    addLog("[MATRIX] جارٍ فحص جميع المزوّدين...", "#a78bfa");
     try {
       const t0  = Date.now();
       const res = await fetch("/api/providers");
@@ -904,15 +922,16 @@ export function ProviderHealthBadge3D() {
         const data = await res.json() as { providers?: { id: string; available: boolean }[] };
         MONITOR_PROVIDERS.forEach(p => {
           const avail = data.providers?.find(sp => sp.id === p.id && sp.available);
-          results[p.id] = {
-            h:  avail ? (baseMs < 1500 ? "healthy" : "slow") : "unknown",
-            ms: avail ? baseMs + Math.round(Math.random() * 80) : null,
-          };
+          const h: Health = avail ? (baseMs < 1500 ? "healthy" : "slow") : "unknown";
+          const ms = avail ? baseMs + Math.round(Math.random() * 80) : null;
+          results[p.id] = { h, ms };
+          if (avail) addLog(`[${p.id.toUpperCase()}] ${h} — ${ms}ms`, HEALTH_COLOR[h]);
         });
+        addLog(`[MATRIX] اكتمل فحص ${MONITOR_PROVIDERS.length} مزوّد`, "#22c55e");
       }
-    } catch { /* silent */ }
+    } catch { addLog("[MATRIX] فشل فحص المزوّدين", HEALTH_COLOR["error"]); }
     setProviderHealth(results);
-  }, []);
+  }, [addLog]);
 
   useEffect(() => {
     recheck();
@@ -1039,19 +1058,21 @@ export function ProviderHealthBadge3D() {
               </div>
 
               {/* Tab bar */}
-              <div className="flex px-3 gap-0.5 pt-2 pb-0" style={{ borderBottom: "1px solid rgba(139,92,246,0.09)" }}>
-                {(["status", "matrix", "shield", "net"] as const).map(tab => {
-                  const labels: Record<string, string> = { status: "STATUS", matrix: "MATRIX", shield: "SHIELD", net: "NET" };
+              <div className="flex px-3 gap-0.5 pt-2 pb-0 flex-wrap" style={{ borderBottom: "1px solid rgba(139,92,246,0.09)" }}>
+                {(["status", "matrix", "shield", "net", "log", "bench"] as const).map(tab => {
+                  const labels: Record<string, string> = { status: "STATUS", matrix: "MATRIX", shield: "SHIELD", net: "NET", log: "LOG", bench: "BENCH" };
                   const active = activeTab === tab;
+                  const hasNew = tab === "log" && eventLog.length > 0;
                   return (
                     <button key={tab} onClick={() => setActiveTab(tab)}
-                      className="px-2.5 py-1.5 text-[7px] font-black tracking-widest uppercase rounded-t-lg transition-all font-mono"
+                      className="relative px-2 py-1.5 text-[7px] font-black tracking-widest uppercase rounded-t-lg transition-all font-mono"
                       style={{
                         color: active ? "#a78bfa" : "rgba(255,255,255,0.26)",
                         background: active ? "rgba(139,92,246,0.1)" : "transparent",
                         borderBottom: active ? "2px solid #8b5cf6" : "2px solid transparent",
                       }}>
                       {labels[tab]}
+                      {hasNew && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-green-500" />}
                     </button>
                   );
                 })}
@@ -1129,8 +1150,27 @@ export function ProviderHealthBadge3D() {
               {activeTab === "matrix" && (
                 <div className="p-3 space-y-2 max-h-[calc(88vh-220px)] overflow-y-auto"
                   style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(139,92,246,0.18) transparent" }}>
-                  <div className="text-[7px] font-bold tracking-widest uppercase mb-2" style={{ color: "rgba(167,139,250,0.42)" }}>مقارنة المزوّدين — استجابة مباشرة</div>
-                  {MONITOR_PROVIDERS.map(p => {
+                  <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                    <span className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(167,139,250,0.42)" }}>منطقة:</span>
+                    {(["all","US","EU","CN","CA"] as const).map(r => (
+                      <button key={r} onClick={() => setFilterRegion(r)}
+                        className="px-1.5 py-0.5 rounded text-[7px] font-black font-mono transition-all"
+                        style={{ background: filterRegion===r ? "rgba(139,92,246,0.28)" : "rgba(255,255,255,0.04)", color: filterRegion===r ? "#a78bfa" : "rgba(255,255,255,0.32)", border: `1px solid ${filterRegion===r ? "rgba(139,92,246,0.5)" : "rgba(255,255,255,0.05)"}` }}>
+                        {r}
+                      </button>
+                    ))}
+                    <span className="text-[7px] font-bold tracking-widest uppercase ml-1" style={{ color: "rgba(167,139,250,0.42)" }}>طبقة:</span>
+                    {(["all","free","paid"] as const).map(t => (
+                      <button key={t} onClick={() => setFilterTier(t)}
+                        className="px-1.5 py-0.5 rounded text-[7px] font-black font-mono transition-all"
+                        style={{ background: filterTier===t ? "rgba(139,92,246,0.28)" : "rgba(255,255,255,0.04)", color: filterTier===t ? "#22c55e" : "rgba(255,255,255,0.32)", border: `1px solid ${filterTier===t ? "rgba(34,197,94,0.4)" : "rgba(255,255,255,0.05)"}` }}>
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                  {MONITOR_PROVIDERS
+                    .filter(p => (filterRegion === "all" || p.region === filterRegion) && (filterTier === "all" || p.tier === filterTier))
+                    .map(p => {
                     const ph = providerHealth[p.id];
                     const ms = ph?.ms ?? null;
                     const h  = ph?.h ?? "unknown";
@@ -1139,7 +1179,11 @@ export function ProviderHealthBadge3D() {
                     return (
                       <div key={p.id} className="space-y-0.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[8px] font-bold truncate" style={{ color: "rgba(255,255,255,0.55)", maxWidth: 120 }}>{p.name}</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[8px] font-bold truncate" style={{ color: "rgba(255,255,255,0.55)", maxWidth: 100 }}>{p.name}</span>
+                            <span className="text-[6px] px-1 rounded font-mono" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.28)" }}>{p.region}</span>
+                            <span className="text-[6px] px-1 rounded font-mono" style={{ background: p.tier==="free" ? "rgba(34,197,94,0.1)" : "rgba(226,18,39,0.1)", color: p.tier==="free" ? "#22c55e" : "#f97316" }}>{p.tier}</span>
+                          </div>
                           <span className="text-[8px] font-black font-mono" style={{ color: hc }}>{ms != null ? `${ms}ms` : HEALTH_LABEL[h]}</span>
                         </div>
                         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.04)" }}>
@@ -1156,7 +1200,7 @@ export function ProviderHealthBadge3D() {
                       className="w-full rounded-xl py-2 text-[9px] font-bold tracking-wider"
                       style={{ background: "rgba(139,92,246,0.14)", border: "1px solid rgba(139,92,246,0.30)", color: "#a78bfa" }}
                       whileHover={{ background: "rgba(139,92,246,0.24)" }} whileTap={{ scale: 0.96 }}>
-                      تحديث الكل
+                      تحديث الكل ({MONITOR_PROVIDERS.filter(p => (filterRegion==="all"||p.region===filterRegion)&&(filterTier==="all"||p.tier===filterTier)).length} مزوّد)
                     </motion.button>
                   </div>
                 </div>
@@ -1212,6 +1256,90 @@ export function ProviderHealthBadge3D() {
                       <span className="text-[9px] font-black font-mono" style={{ color: s.color }}>{s.value}</span>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* LOG tab */}
+              {activeTab === "log" && (
+                <div className="p-3 space-y-1.5 max-h-[calc(88vh-220px)] overflow-y-auto"
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(139,92,246,0.18) transparent" }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(167,139,250,0.42)" }}>سجل الأحداث ({eventLog.length})</span>
+                    <button onClick={() => setEventLog([])}
+                      className="text-[7px] px-2 py-0.5 rounded font-mono transition-colors"
+                      style={{ background: "rgba(226,18,39,0.1)", border: "1px solid rgba(226,18,39,0.25)", color: "#e21227" }}>
+                      مسح
+                    </button>
+                  </div>
+                  {eventLog.length === 0 ? (
+                    <div className="text-center py-6 text-[8px]" style={{ color: "rgba(255,255,255,0.2)" }}>لا توجد أحداث بعد</div>
+                  ) : (
+                    eventLog.map((ev, i) => (
+                      <div key={i} className="flex items-start gap-2 rounded-lg px-2 py-1"
+                        style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${ev.color}14` }}>
+                        <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ background: ev.color }} />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[8px] font-mono truncate" style={{ color: ev.color }}>{ev.msg}</div>
+                          <div className="text-[6px] font-mono mt-0.5" style={{ color: "rgba(255,255,255,0.22)" }}>
+                            {new Date(ev.ts).toLocaleTimeString("ar-SA")}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* BENCH tab */}
+              {activeTab === "bench" && (
+                <div className="p-3 space-y-2.5 max-h-[calc(88vh-220px)] overflow-y-auto"
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(139,92,246,0.18) transparent" }}>
+                  <div className="text-[7px] font-bold tracking-widest uppercase mb-2" style={{ color: "rgba(167,139,250,0.42)" }}>أداء المزوّدين المعياري</div>
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    {[
+                      { label: "أسرع مزوّد",   value: Object.entries(providerHealth).sort(([,a],[,b]) => (a.ms ?? 9999) - (b.ms ?? 9999))[0]?.[0]?.toUpperCase() ?? "---", color: "#22c55e" },
+                      { label: "أبطأ مزوّد",   value: Object.entries(providerHealth).filter(([,v]) => v.ms).sort(([,a],[,b]) => (b.ms ?? 0) - (a.ms ?? 0))[0]?.[0]?.toUpperCase() ?? "---", color: "#f59e0b" },
+                      { label: "مزوّدون متاحون", value: `${Object.values(providerHealth).filter(v => v.h === "healthy").length} / ${MONITOR_PROVIDERS.length}`, color: "#a78bfa" },
+                      { label: "متوسط الاستجابة", value: (() => { const valid = Object.values(providerHealth).filter(v => v.ms); return valid.length ? `${Math.round(valid.reduce((a, v) => a + (v.ms ?? 0), 0) / valid.length)}ms` : "---"; })(), color: "#06b6d4" },
+                    ].map(s => (
+                      <div key={s.label} className="rounded-xl p-2.5 text-center"
+                        style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${s.color}22` }}>
+                        <div className="text-[7px] uppercase tracking-wide mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>{s.label}</div>
+                        <div className="text-[10px] font-black font-mono" style={{ color: s.color }}>{s.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-[7px] font-bold tracking-widest uppercase mb-1.5" style={{ color: "rgba(167,139,250,0.42)" }}>ترتيب سرعة المزوّدين</div>
+                  {MONITOR_PROVIDERS
+                    .map(p => ({ p, ms: providerHealth[p.id]?.ms ?? null, h: providerHealth[p.id]?.h ?? "unknown" }))
+                    .sort((a, b) => (a.ms ?? 9999) - (b.ms ?? 9999))
+                    .map(({ p, ms, h }, i) => {
+                      const hc = HEALTH_COLOR[h];
+                      const best = MONITOR_PROVIDERS.map(mp => providerHealth[mp.id]?.ms ?? null).filter(Boolean);
+                      const maxMs = best.length ? Math.max(...best as number[]) : 2000;
+                      const bar = ms ? Math.round((1 - ms / (maxMs * 1.2)) * 100) : 0;
+                      return (
+                        <div key={p.id} className="flex items-center gap-2">
+                          <span className="text-[7px] font-black font-mono w-4 text-right" style={{ color: "rgba(255,255,255,0.3)" }}>#{i+1}</span>
+                          <span className="text-[8px] font-bold truncate w-20" style={{ color: "rgba(255,255,255,0.55)" }}>{p.name}</span>
+                          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.04)" }}>
+                            <motion.div className="h-full rounded-full"
+                              initial={{ width: 0 }} animate={{ width: `${bar}%` }}
+                              transition={{ duration: 0.8, delay: i * 0.05, ease: "easeOut" }}
+                              style={{ background: `linear-gradient(90deg,${hc},${p.color})` }} />
+                          </div>
+                          <span className="text-[8px] font-black font-mono w-12 text-right" style={{ color: hc }}>{ms ? `${ms}ms` : "---"}</span>
+                        </div>
+                      );
+                    })}
+                  <div className="pt-2">
+                    <motion.button onClick={() => recheckAll()}
+                      className="w-full rounded-xl py-2 text-[9px] font-bold tracking-wider"
+                      style={{ background: "rgba(139,92,246,0.14)", border: "1px solid rgba(139,92,246,0.30)", color: "#a78bfa" }}
+                      whileHover={{ background: "rgba(139,92,246,0.24)" }} whileTap={{ scale: 0.96 }}>
+                      تشغيل اختبار الأداء
+                    </motion.button>
+                  </div>
                 </div>
               )}
 

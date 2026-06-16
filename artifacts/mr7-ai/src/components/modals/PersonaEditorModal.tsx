@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContentTop, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   Brain, Shield, Zap, Code2, Lock, Skull, User, Check, RotateCcw, FlaskConical,

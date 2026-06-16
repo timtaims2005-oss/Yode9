@@ -114,6 +114,72 @@ const ALL_PROVIDERS: ProviderDef[] = [
     category: "محلي", requiresKey: false, badge: "LOCAL",
     models: [{ id: "local-model", label: "النموذج المحلي", tag: "LOCAL" }],
   },
+  {
+    id: "together", name: "Together AI", shortName: "TG", color: "#f43f5e",
+    baseURL: "https://api.together.xyz/v1", providerName: "custom",
+    category: "مجاني", requiresKey: true, badge: "FREE",
+    models: [
+      { id: "meta-llama/Llama-3.3-70B-Instruct-Turbo",      label: "Llama 3.3 70B Turbo",  tag: "FAST" },
+      { id: "deepseek-ai/DeepSeek-R1",                        label: "DeepSeek R1",           tag: "THINK"},
+      { id: "mistralai/Mixtral-8x22B-Instruct-v0.1",          label: "Mixtral 8×22B",         tag: "BIG"  },
+    ],
+  },
+  {
+    id: "cohere", name: "Cohere", shortName: "COH", color: "#a78bfa",
+    baseURL: "https://api.cohere.ai/compatibility/v1", providerName: "custom",
+    category: "استدلال عميق", requiresKey: true,
+    models: [
+      { id: "command-r-plus-08-2024", label: "Command R+ 08-2024", tag: "BEST" },
+      { id: "command-r-08-2024",      label: "Command R 08-2024",  tag: "FAST" },
+    ],
+  },
+  {
+    id: "fireworks", name: "Fireworks AI", shortName: "FW", color: "#fb923c",
+    baseURL: "https://api.fireworks.ai/inference/v1", providerName: "custom",
+    category: "سرعة فائقة", requiresKey: true, badge: "FAST",
+    models: [
+      { id: "accounts/fireworks/models/llama-v3p3-70b-instruct",  label: "Llama 3.3 70B",    tag: "BEST" },
+      { id: "accounts/fireworks/models/deepseek-r1",               label: "DeepSeek R1",       tag: "THINK"},
+      { id: "accounts/fireworks/models/mixtral-8x22b-instruct",    label: "Mixtral 8×22B",    tag: "BIG"  },
+    ],
+  },
+  {
+    id: "nvidia", name: "NVIDIA NIM", shortName: "NIM", color: "#76b900",
+    baseURL: "https://integrate.api.nvidia.com/v1", providerName: "custom",
+    category: "GPU محلي", requiresKey: true, badge: "GPU",
+    models: [
+      { id: "meta/llama-3.3-70b-instruct",  label: "Llama 3.3 70B",   tag: "BEST" },
+      { id: "deepseek-ai/deepseek-r1",       label: "DeepSeek R1",      tag: "THINK"},
+      { id: "nvidia/nemotron-4-340b-instruct", label: "Nemotron 340B", tag: "HUGE" },
+    ],
+  },
+  {
+    id: "cerebras", name: "Cerebras", shortName: "CBS", color: "#e11d48",
+    baseURL: "https://api.cerebras.ai/v1", providerName: "custom",
+    category: "سرعة قياسية", requiresKey: true, badge: "1600 t/s",
+    models: [
+      { id: "llama3.3-70b",  label: "Llama 3.3 70B",  tag: "FAST" },
+      { id: "llama3.1-8b",   label: "Llama 3.1 8B",   tag: "TURBO"},
+    ],
+  },
+  {
+    id: "sambanova", name: "SambaNova", shortName: "SNV", color: "#f59e0b",
+    baseURL: "https://api.sambanova.ai/v1", providerName: "custom",
+    category: "سرعة", requiresKey: true,
+    models: [
+      { id: "Meta-Llama-3.3-70B-Instruct", label: "Llama 3.3 70B",  tag: "BEST" },
+      { id: "DeepSeek-R1-Distill-Llama-70B", label: "DeepSeek R1 70B", tag: "THINK"},
+    ],
+  },
+  {
+    id: "hyperbolic", name: "Hyperbolic", shortName: "HYP", color: "#818cf8",
+    baseURL: "https://api.hyperbolic.xyz/v1", providerName: "custom",
+    category: "مفتوح المصدر", requiresKey: true,
+    models: [
+      { id: "meta-llama/Llama-3.3-70B-Instruct", label: "Llama 3.3 70B",  tag: "BEST" },
+      { id: "deepseek-ai/DeepSeek-R1",             label: "DeepSeek R1",    tag: "THINK"},
+    ],
+  },
 ];
 
 type Phase = "idle" | "scanning" | "done" | "fail";

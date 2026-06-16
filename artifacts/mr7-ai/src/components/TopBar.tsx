@@ -26,6 +26,7 @@ interface TopBarProps {
   onOpenToolsHub: () => void;
   onOpenHelp: () => void;
   onOpenPersonaEditor: () => void;
+  onOpenPersonaManager?: () => void;
   onOpenLocalModel: () => void;
   onOpenAgent: () => void;
   onOpenNexus: () => void;
@@ -620,7 +621,7 @@ function PinnedShortcutsBar({
 
 // ── Main TopBar ───────────────────────────────────────────────────────────────
 export function TopBar({
-  onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor,
+  onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenPersonaManager,
   onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings,
   onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom,
   onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash,
@@ -788,7 +789,7 @@ export function TopBar({
 
           {/* ── GROUP 5 — System ────────────────────────────────────────── */}
           {/* Persona Switcher */}
-          <PersonaSwitcher3D onOpenPersonaEditor={onOpenPersonaEditor} />
+          <PersonaSwitcher3D onOpenPersonaEditor={onOpenPersonaEditor} onOpenPersonaManager={onOpenPersonaManager} />
 
           {/* Provider chip */}
           {onOpenProviderSettings && (
