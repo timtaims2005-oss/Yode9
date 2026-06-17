@@ -28,6 +28,7 @@ import { CouncilCard } from "./CouncilCard";
 import { GodmodeCard } from "./GodmodeCard";
 import { CouncilSettingsModal, DEFAULT_COUNCIL_CONFIG, FUSION_COUNCIL_CONFIG, DEBATE_COUNCIL_CONFIG, HYDRA_COUNCIL_CONFIG, type CouncilConfig } from "./modals/CouncilSettingsModal";
 import { CodeTemplatesPanel } from "./CodeTemplatesPanel";
+import { ChatInputParticles } from "./ChatInputParticles";
 import { GodmodeSettingsModal, DEFAULT_GODMODE_CONFIG, GODMODE_MODES, godmodeLabel, godmodeChampCount, type GodmodeConfig } from "./modals/GodmodeSettingsModal";
 import { OnboardingTourModal, useTourShouldShow } from "./modals/OnboardingTourModal";
 import { WhatsNewModal, useWhatsNewShouldShow } from "./modals/WhatsNewModal";
@@ -115,6 +116,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const inputContainerRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const recogRef = useRef<unknown>(null);
 
@@ -2506,10 +2508,11 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
             </AnimatePresence>
 
             {/* Futuristic 3D input container */}
-            <div className={`relative rounded-2xl transition-all duration-300 holo-input ${
+            <div ref={inputContainerRef} className={`relative rounded-2xl transition-all duration-300 holo-input ${
               streaming ? "border-primary/40 shadow-[0_0_30px_rgba(226,18,39,0.15)]" :
               editingId ? "border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.1)]" : ""
             }`}>
+              <ChatInputParticles value={input} containerRef={inputContainerRef} />
               {/* Corner brackets */}
               <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-primary/40 rounded-tl-lg pointer-events-none" />
               <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-primary/20 rounded-tr-lg pointer-events-none" />

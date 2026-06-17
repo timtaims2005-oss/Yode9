@@ -29,12 +29,12 @@ const CHAT_PHASES = [
 
 /* ── Channel config ─────────────────────────────── */
 const CH = [
-  { name: "CORTEX", color: "#e21227", cy: 14,  particleCount: 55, spread: 11 },
-  { name: "MEMORY", color: "#00e5ff", cy: 38,  particleCount: 42, spread: 9  },
-  { name: "OUTPUT", color: "#22c55e", cy: 62,  particleCount: 48, spread: 11 },
+  { name: "CORTEX", color: "#e21227", cy: 15,  particleCount: 80, spread: 13 },
+  { name: "MEMORY", color: "#00e5ff", cy: 42,  particleCount: 66, spread: 11 },
+  { name: "OUTPUT", color: "#22c55e", cy: 69,  particleCount: 72, spread: 13 },
 ];
-const BAR_W = 280;
-const BAR_H = 76;
+const BAR_W = 300;
+const BAR_H = 84;
 
 /* particle state per channel */
 type Pt = { x: number; y: number; vy: number; size: number; alpha: number; phase: number };
@@ -133,14 +133,28 @@ function NeuralBarCanvas({ phaseColor, active }: { phaseColor: string; active: b
           const px = p.x * BAR_W;
           const py = cy + p.y;
           const pulse = 0.5 + 0.5 * Math.sin(t * 0.06 + p.phase);
+          const sz = p.size * (0.85 + 0.15 * pulse);
+          /* outer glow halo */
           ctx.beginPath();
-          ctx.arc(px, py, p.size * (0.85 + 0.15 * pulse), 0, Math.PI * 2);
+          ctx.arc(px, py, sz * 3.5, 0, Math.PI * 2);
+          ctx.fillStyle   = ch.color;
+          ctx.globalAlpha = p.alpha * 0.06 * (active ? 1 : 0.3);
+          ctx.fill();
+          /* core particle */
+          ctx.beginPath();
+          ctx.arc(px, py, sz, 0, Math.PI * 2);
           ctx.fillStyle   = ch.color;
           ctx.globalAlpha = p.alpha * (active ? 1 : 0.45);
           ctx.shadowColor = ch.color;
-          ctx.shadowBlur  = 16;
+          ctx.shadowBlur  = active ? 22 : 6;
           ctx.fill();
           ctx.shadowBlur  = 0;
+          /* bright core */
+          ctx.beginPath();
+          ctx.arc(px, py, sz * 0.35, 0, Math.PI * 2);
+          ctx.fillStyle   = "rgba(255,255,255,0.9)";
+          ctx.globalAlpha = p.alpha * 0.5;
+          ctx.fill();
         });
         ctx.globalAlpha = 1;
 
@@ -202,9 +216,9 @@ function NeuralSphereCanvas({ col }: { col: string }) {
   useEffect(() => {
     const canvas = ref.current; if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
-    const SZ = 46; const R = 18; const CX = 23; const CY = 23;
+    const SZ = 58; const R = 22; const CX = 29; const CY = 29;
     let raf = 0; let t = 0;
-    const N = 22;
+    const N = 30;
     const baseNodes: [number, number, number][] = Array.from({ length: N }, (_, i) => {
       const y = 1 - (i / (N - 1)) * 2;
       const r = Math.sqrt(Math.max(0, 1 - y * y));
@@ -225,8 +239,8 @@ function NeuralSphereCanvas({ col }: { col: string }) {
       proj.forEach((p1, i) => proj.forEach((p2, j) => {
         if (j <= i) return;
         const d = Math.hypot(p1.px - p2.px, p1.py - p2.py);
-        if (d > R * 0.9) return;
-        const a = (1 - d / (R * 0.9)) * ((p1.z + p2.z) / 2 + 1) * 0.28;
+        if (d > R * 0.95) return;
+        const a = (1 - d / (R * 0.95)) * ((p1.z + p2.z) / 2 + 1) * 0.38;
         ctx.beginPath(); ctx.moveTo(p1.px, p1.py); ctx.lineTo(p2.px, p2.py);
         ctx.strokeStyle = col + Math.floor(Math.min(255, a * 255)).toString(16).padStart(2, "0");
         ctx.lineWidth = 0.7; ctx.stroke();
@@ -241,7 +255,7 @@ function NeuralSphereCanvas({ col }: { col: string }) {
     }
     draw(); return () => cancelAnimationFrame(raf);
   }, [col]);
-  return <canvas ref={ref} width={46} height={46} style={{ display: "block", borderRadius: "50%" }} />;
+  return <canvas ref={ref} width={58} height={58} style={{ display: "block", borderRadius: "50%", width: 58, height: 58 }} />;
 }
 
 /* ── Main component ─────────────────────────────────────────────────── */

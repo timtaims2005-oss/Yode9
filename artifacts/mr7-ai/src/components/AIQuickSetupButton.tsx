@@ -363,12 +363,30 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
 
       // ── Hover energy burst rings ───────────────────────────────────────
       if (isH) {
-        for (let bi = 0; bi < 5; bi++) {
-          const bp = ((t * 1.1 + bi * 25) % 125) / 125;
-          const bRad = 4 + bp * 22;
+        /* outer mega-glow */
+        const megaG = ctx.createRadialGradient(cx, cy, 0, cx, cy, SIZE / 2);
+        megaG.addColorStop(0, `rgba(${hsl(hue)},0)`);
+        megaG.addColorStop(0.55, `rgba(${hsl(hue)},0.06)`);
+        megaG.addColorStop(0.85, `rgba(${hsl(hue + 120)},0.09)`);
+        megaG.addColorStop(1,   `rgba(${hsl(hue + 240)},0.14)`);
+        ctx.beginPath(); ctx.arc(cx, cy, SIZE / 2, 0, Math.PI * 2);
+        ctx.fillStyle = megaG; ctx.fill();
+
+        for (let bi = 0; bi < 9; bi++) {
+          const bp = ((t * 1.25 + bi * 18) % 162) / 162;
+          const bRad = 3 + bp * 24;
           ctx.beginPath(); ctx.arc(cx, cy, bRad, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(${hsl(hue + bi * 72)},${(1 - bp) * 0.38})`;
-          ctx.lineWidth = 1.8 * (1 - bp); ctx.stroke();
+          ctx.strokeStyle = `rgba(${hsl(hue + bi * 40)},${(1 - bp) * 0.52})`;
+          ctx.lineWidth = 2.2 * (1 - bp); ctx.stroke();
+        }
+        /* chromatic cross-hairs */
+        for (let ch = 0; ch < 3; ch++) {
+          const ca = t * 0.025 + ch * (Math.PI * 2 / 3);
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(ca) * 2, cy + Math.sin(ca) * 2);
+          ctx.lineTo(cx + Math.cos(ca) * 22, cy + Math.sin(ca) * 22);
+          ctx.strokeStyle = `rgba(${hsl(hue + ch * 120)},0.18)`;
+          ctx.lineWidth = 0.6; ctx.stroke();
         }
       }
 
@@ -797,7 +815,7 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
   return (
     <canvas ref={canvasRef}
       width={16} height={16}
-      style={{ width: 16, height: 16, display: "block", flexShrink: 0, imageRendering: "auto", cursor: "crosshair" }}
+      style={{ width: 32, height: 32, display: "block", flexShrink: 0, imageRendering: "auto", cursor: "crosshair" }}
       onMouseEnter={() => { hoverRef.current = true; burstRef.current = tRef.current; }}
       onMouseLeave={() => { hoverRef.current = false; mouseRef.current = { x: -1, y: -1 }; }}
       onMouseMove={(e) => {
@@ -979,7 +997,7 @@ export function AIQuickSetupButton() {
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>({});
   const [keys, setKeys]           = useState<Record<string, string>>({});
   const [providerSearch, setProviderSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"nexus" | "metrics" | "arsenal">("nexus");
+  const [activeTab, setActiveTab] = useState<"nexus" | "metrics" | "arsenal" | "intel">("nexus");
   const [atomHover, setAtomHover] = useState(false);
   const [magPos,    setMagPos]    = useState({ x: 0, y: 0 });
   const panelRef = useRef<HTMLDivElement>(null);
@@ -1233,8 +1251,8 @@ export function AIQuickSetupButton() {
 
               {/* Tab bar */}
               <div className="flex px-4 gap-1 pt-2 pb-0" style={{ borderBottom: "1px solid rgba(0,255,136,0.08)" }}>
-                {(["nexus", "metrics", "arsenal"] as const).map(tab => {
-                  const labels: Record<string, string> = { nexus: "NEXUS", metrics: "METRICS", arsenal: "ARSENAL" };
+                {(["nexus", "metrics", "arsenal", "intel"] as const).map(tab => {
+                  const labels: Record<string, string> = { nexus: "NEXUS", metrics: "METRICS", arsenal: "ARSENAL", intel: "INTEL" };
                   const active = activeTab === tab;
                   return (
                     <button key={tab} onClick={() => setActiveTab(tab)}
@@ -1406,6 +1424,95 @@ export function AIQuickSetupButton() {
                       </div>
                     </motion.button>
                   ))}
+                </div>
+              )}
+
+              {/* INTEL tab */}
+              {activeTab === "intel" && (
+                <div className="px-4 py-3 space-y-3 max-h-[calc(88vh-220px)] overflow-y-auto"
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(0,255,136,0.18) transparent" }}>
+                  <div className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(0,255,136,0.38)" }}>قدرات نموذج الذكاء</div>
+
+                  {/* Capability radar chart (CSS-based) */}
+                  <div className="rounded-xl p-3" style={{ background: "rgba(0,255,136,0.03)", border: "1px solid rgba(0,255,136,0.08)" }}>
+                    {[
+                      { label: "استدلال",    pct: 92, color: "#00e5ff" },
+                      { label: "كود",         pct: 88, color: "#22c55e" },
+                      { label: "إبداع",       pct: 75, color: "#a78bfa" },
+                      { label: "أمن إلكتروني", pct: 95, color: "#e21227" },
+                      { label: "تحليل OSINT", pct: 84, color: "#f59e0b" },
+                      { label: "لغات",        pct: 78, color: "#06b6d4" },
+                    ].map(cap => (
+                      <div key={cap.label} className="mb-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[8px] font-mono" style={{ color: "rgba(255,255,255,0.5)" }}>{cap.label}</span>
+                          <span className="text-[8px] font-black font-mono" style={{ color: cap.color }}>{cap.pct}%</span>
+                        </div>
+                        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.04)" }}>
+                          <div className="h-full rounded-full transition-all duration-700"
+                            style={{ width: `${cap.pct}%`, background: `linear-gradient(90deg,${cap.color}66,${cap.color})`, boxShadow: `0 0 8px ${cap.color}55` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Context / Speed stats */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: "نافذة السياق", value: "128K", sub: "رمز", color: "#00e5ff" },
+                      { label: "سرعة التوليد", value: "~95", sub: "TPS", color: "#22c55e" },
+                      { label: "دقة الكود",    value: "88%",  sub: "HumanEval", color: "#a78bfa" },
+                      { label: "المعرفة حتى",  value: "2024", sub: "Q4", color: "#f59e0b" },
+                    ].map(s => (
+                      <div key={s.label} className="rounded-xl p-2.5"
+                        style={{ background: "rgba(0,255,136,0.03)", border: `1px solid ${s.color}18` }}>
+                        <div className="text-[6px] uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>{s.label}</div>
+                        <div className="text-[13px] font-black font-mono" style={{ color: s.color }}>{s.value}</div>
+                        <div className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.22)" }}>{s.sub}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Model comparison table */}
+                  <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(0,255,136,0.08)" }}>
+                    <div className="px-2.5 py-1.5" style={{ background: "rgba(0,255,136,0.06)" }}>
+                      <span className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(0,255,136,0.5)" }}>مقارنة النماذج</span>
+                    </div>
+                    {[
+                      { name: "GPT-4o",         speed: 88, quality: 96, cost: "عالي",    color: "#22c55e" },
+                      { name: "Claude 3.5",      speed: 82, quality: 97, cost: "عالي",    color: "#f59e0b" },
+                      { name: "Gemini 1.5 Pro",  speed: 91, quality: 92, cost: "متوسط",   color: "#3b82f6" },
+                      { name: "DeepSeek R1",     speed: 76, quality: 94, cost: "منخفض",   color: "#a78bfa" },
+                      { name: "Llama 3.3 70B",   speed: 95, quality: 88, cost: "مجاني",   color: "#e21227" },
+                    ].map(m => (
+                      <div key={m.name} className="flex items-center gap-2 px-2.5 py-1.5"
+                        style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: m.color }} />
+                        <span className="text-[8px] font-bold w-24 truncate" style={{ color: "rgba(255,255,255,0.55)" }}>{m.name}</span>
+                        <div className="flex-1 flex gap-1 items-center">
+                          <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.04)" }}>
+                            <div className="h-full rounded-full" style={{ width: `${m.quality}%`, background: m.color }} />
+                          </div>
+                        </div>
+                        <span className="text-[7px] font-mono w-10 text-right" style={{ color: "rgba(255,255,255,0.3)" }}>{m.cost}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Security specialties */}
+                  <div className="rounded-xl p-2.5 space-y-1.5" style={{ background: "rgba(226,18,39,0.04)", border: "1px solid rgba(226,18,39,0.10)" }}>
+                    <div className="text-[7px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(226,18,39,0.5)" }}>تخصصات الأمن الإلكتروني</div>
+                    {[
+                      "اختبار الاختراق (Pentesting)", "تحليل البرمجيات الخبيثة",
+                      "OSINT & Reconnaissance", "تحليل CTF & Reverse Engineering",
+                      "Red Team Operations", "Blue Team Defense & SOC",
+                    ].map(spec => (
+                      <div key={spec} className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: "#e21227" }} />
+                        <span className="text-[7px]" style={{ color: "rgba(255,255,255,0.45)" }}>{spec}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 

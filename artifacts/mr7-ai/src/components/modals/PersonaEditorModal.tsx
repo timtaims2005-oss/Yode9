@@ -21,7 +21,7 @@ function QuantumDNA3D() {
   useEffect(() => {
     const cv = cvRef.current; if (!cv) return;
     const ctx = cv.getContext("2d")!;
-    const W = 560, H = 52;
+    const W = 280, H = 26;
     const DPR = Math.min(window.devicePixelRatio * 1.5, 3);
     cv.width = W * DPR; cv.height = H * DPR;
     cv.style.width = W + "px"; cv.style.height = H + "px";
@@ -119,7 +119,7 @@ function QuantumDNA3D() {
 
   return (
     <canvas ref={cvRef}
-      style={{ width: "100%", height: 52, display: "block", imageRendering: "auto", borderRadius: "0 0 8px 8px" }} />
+      style={{ width: "100%", height: 26, display: "block", imageRendering: "auto", borderRadius: "0 0 8px 8px" }} />
   );
 }
 

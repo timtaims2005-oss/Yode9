@@ -624,6 +624,34 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
         ctx.fillStyle = "rgba(255,255,255,0.97)"; ctx.fill();
       });
 
+      // ── Hover mega-glow corona ─────────────────────────────────────────
+      if (isH) {
+        const megaG = ctx.createRadialGradient(cx, cy, R * 0.5, cx, cy, SIZE / 2);
+        megaG.addColorStop(0,   `rgba(${hr},${hg},${hb},0)`);
+        megaG.addColorStop(0.4, `rgba(${br},${bg},${bb},0.07)`);
+        megaG.addColorStop(0.75,`rgba(${hsl(hue + 60)},0.10)`);
+        megaG.addColorStop(1,   `rgba(${hsl(hue + 120)},0.17)`);
+        ctx.beginPath(); ctx.arc(cx, cy, SIZE / 2, 0, Math.PI * 2);
+        ctx.fillStyle = megaG; ctx.fill();
+
+        for (let bi = 0; bi < 8; bi++) {
+          const bp = ((t * 0.9 + bi * 20) % 160) / 160;
+          const bRad = R * 0.8 + bp * (SIZE * 0.48 - R * 0.8);
+          ctx.beginPath(); ctx.arc(cx, cy, bRad, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${hsl(hue + bi * 45)},${(1 - bp) * 0.44})`;
+          ctx.lineWidth = 1.9 * (1 - bp); ctx.stroke();
+        }
+        /* star-cross rays */
+        for (let rc = 0; rc < 4; rc++) {
+          const ra = t * 0.020 + rc * (Math.PI / 4);
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(ra) * R, cy + Math.sin(ra) * R);
+          ctx.lineTo(cx + Math.cos(ra) * (SIZE * 0.47), cy + Math.sin(ra) * (SIZE * 0.47));
+          ctx.strokeStyle = `rgba(${hsl(hue + rc * 90)},0.15)`;
+          ctx.lineWidth = 0.55; ctx.stroke();
+        }
+      }
+
       // ── Lens flare effect (hover only) ──────────────────────────────────
       if (isH) {
         const lfX = cx - R * 0.40, lfY = cy - R * 0.42;
@@ -736,7 +764,7 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
   return (
     <canvas ref={canvasRef}
       width={14} height={14}
-      style={{ width: 14, height: 14, display: "block", flexShrink: 0, imageRendering: "auto", cursor: dragRef.current.dragging ? "grabbing" : "grab" }}
+      style={{ width: 28, height: 28, display: "block", flexShrink: 0, imageRendering: "auto", cursor: dragRef.current.dragging ? "grabbing" : "grab" }}
       onMouseEnter={() => { hoverRef.current = true; burstRef.current = tRef.current; }}
       onMouseLeave={() => {
         hoverRef.current = false;
@@ -1017,7 +1045,7 @@ export function ProviderHealthBadge3D() {
   const [history,  setHistory]   = useState<number[]>([]);
   const [checks,   setChecks]    = useState(0);
   const [open,     setOpen]      = useState(false);
-  const [activeTab, setActiveTab] = useState<"status" | "matrix" | "shield" | "net" | "log" | "bench">("status");
+  const [activeTab, setActiveTab] = useState<"status" | "matrix" | "shield" | "net" | "log" | "bench" | "pulse">("status");
   const [eventLog,  setEventLog]  = useState<{ ts: number; msg: string; color: string }[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [filterRegion, setFilterRegion] = useState<"all" | "US" | "EU" | "CN" | "CA">("all");
@@ -1216,8 +1244,8 @@ export function ProviderHealthBadge3D() {
 
               {/* Tab bar */}
               <div className="flex px-3 gap-0.5 pt-2 pb-0 flex-wrap" style={{ borderBottom: "1px solid rgba(139,92,246,0.09)" }}>
-                {(["status", "matrix", "shield", "net", "log", "bench"] as const).map(tab => {
-                  const labels: Record<string, string> = { status: "STATUS", matrix: "MATRIX", shield: "SHIELD", net: "NET", log: "LOG", bench: "BENCH" };
+                {(["status", "matrix", "shield", "net", "log", "bench", "pulse"] as const).map(tab => {
+                  const labels: Record<string, string> = { status: "STATUS", matrix: "MATRIX", shield: "SHIELD", net: "NET", log: "LOG", bench: "BENCH", pulse: "PULSE" };
                   const active = activeTab === tab;
                   const hasNew = tab === "log" && eventLog.length > 0;
                   return (
@@ -1496,6 +1524,81 @@ export function ProviderHealthBadge3D() {
                       whileHover={{ background: "rgba(139,92,246,0.24)" }} whileTap={{ scale: 0.96 }}>
                       تشغيل اختبار الأداء
                     </motion.button>
+                  </div>
+                </div>
+              )}
+
+              {/* PULSE tab */}
+              {activeTab === "pulse" && (
+                <div className="p-3 space-y-3 max-h-[calc(88vh-220px)] overflow-y-auto"
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(139,92,246,0.18) transparent" }}>
+                  <div className="text-[7px] font-bold tracking-widest uppercase mb-2" style={{ color: "rgba(167,139,250,0.42)" }}>نبض الشبكة الحي</div>
+                  {/* Live pulse ring */}
+                  <div className="flex justify-center items-center py-4">
+                    <div className="relative w-28 h-28 flex items-center justify-center">
+                      {[0,1,2].map(i => (
+                        <motion.div key={i} className="absolute inset-0 rounded-full border"
+                          style={{ borderColor: hColor, opacity: 0.15 }}
+                          animate={{ scale: [1, 1.6 + i * 0.3], opacity: [0.5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, delay: i * 0.55, ease: "easeOut" }} />
+                      ))}
+                      <div className="w-20 h-20 rounded-full flex flex-col items-center justify-center"
+                        style={{ background: `radial-gradient(circle,${hColor}22,${hColor}06)`, border: `1px solid ${hColor}44` }}>
+                        <div className="text-[18px] font-black font-mono" style={{ color: hColor }}>
+                          {latency != null ? latency : "—"}
+                        </div>
+                        <div className="text-[7px] tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.3)" }}>ms</div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Signal quality bars */}
+                  <div className="rounded-xl p-2.5 space-y-2" style={{ background: "rgba(139,92,246,0.04)", border: "1px solid rgba(139,92,246,0.10)" }}>
+                    <div className="text-[7px] font-bold uppercase tracking-widest" style={{ color: "rgba(167,139,250,0.42)" }}>جودة الإشارة</div>
+                    {[
+                      { label: "استقرار الاتصال", pct: Math.max(0, 100 - (latency ?? 500) / 10), color: "#22c55e" },
+                      { label: "تزامن البيانات",  pct: uptimePct, color: "#a78bfa" },
+                      { label: "موثوقية الاستجابة", pct: successCnt > 0 ? Math.round((successCnt / Math.max(checks, 1)) * 100) : 0, color: "#06b6d4" },
+                      { label: "نقاء الإشارة",   pct: health === "healthy" ? 95 : health === "degraded" ? 58 : 12, color: hColor },
+                    ].map(bar => (
+                      <div key={bar.label}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.42)" }}>{bar.label}</span>
+                          <span className="text-[7px] font-black font-mono" style={{ color: bar.color }}>{bar.pct}%</span>
+                        </div>
+                        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.04)" }}>
+                          <motion.div className="h-full rounded-full"
+                            initial={{ width: 0 }} animate={{ width: `${bar.pct}%` }}
+                            transition={{ duration: 1, ease: "easeOut" }}
+                            style={{ background: `linear-gradient(90deg,${bar.color}88,${bar.color})`, boxShadow: `0 0 8px ${bar.color}55` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Heartbeat mini chart */}
+                  {history.length >= 2 && (
+                    <div className="rounded-xl overflow-hidden" style={{ background: "rgba(139,92,246,0.04)", border: "1px solid rgba(139,92,246,0.10)" }}>
+                      <div className="px-3 pt-2 pb-0.5">
+                        <span className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(167,139,250,0.55)" }}>مخطط نبضات آخر {history.length} فحص</span>
+                      </div>
+                      <Sparkline data={history} color={hColor} />
+                    </div>
+                  )}
+                  {/* Network stats grid */}
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { label: "الحالي",  value: latency != null ? `${latency}ms` : "—",  color: hColor },
+                      { label: "أدنى",    value: min != null ? `${min}ms` : "—",           color: "#22c55e" },
+                      { label: "أعلى",    value: max != null ? `${max}ms` : "—",           color: "#f59e0b" },
+                      { label: "متوسط",   value: avg != null ? `${avg}ms` : "—",           color: "#a78bfa" },
+                      { label: "فحوصات", value: String(checks),                            color: "#06b6d4" },
+                      { label: "uptime",  value: `${uptimePct}%`,                          color: "#22c55e" },
+                    ].map(s => (
+                      <div key={s.label} className="rounded-lg p-2 text-center"
+                        style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${s.color}18` }}>
+                        <div className="text-[6px] uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.3)" }}>{s.label}</div>
+                        <div className="text-[9px] font-black font-mono mt-0.5" style={{ color: s.color }}>{s.value}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
