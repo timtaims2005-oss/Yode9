@@ -796,8 +796,8 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
 
   return (
     <canvas ref={canvasRef}
-      width={38} height={38}
-      style={{ width: 38, height: 38, display: "block", flexShrink: 0, imageRendering: "auto", cursor: "crosshair" }}
+      width={16} height={16}
+      style={{ width: 16, height: 16, display: "block", flexShrink: 0, imageRendering: "auto", cursor: "crosshair" }}
       onMouseEnter={() => { hoverRef.current = true; burstRef.current = tRef.current; }}
       onMouseLeave={() => { hoverRef.current = false; mouseRef.current = { x: -1, y: -1 }; }}
       onMouseMove={(e) => {
@@ -1183,8 +1183,8 @@ export function AIQuickSetupButton() {
               left: "16px",
               top: "5vh",
               zIndex: 9999,
-              width: "clamp(340px, 44vw, 560px)",
-              maxHeight: "90vh",
+              width: "clamp(220px, 28vw, 340px)",
+              maxHeight: "78vh",
               perspective: "1400px",
               transformStyle: "preserve-3d",
               pointerEvents: "auto",
@@ -1196,7 +1196,7 @@ export function AIQuickSetupButton() {
                 border: "1px solid rgba(0,255,136,0.30)",
                 boxShadow: "0 0 100px rgba(0,255,136,0.14), 0 0 40px rgba(0,229,255,0.06), 0 32px 80px rgba(0,0,0,0.96), inset 0 1px 0 rgba(0,255,136,0.14), inset 0 0 60px rgba(0,255,136,0.02)",
                 backdropFilter: "blur(36px)",
-                maxHeight: "90vh",
+                maxHeight: "78vh",
                 overflow: "hidden",
               }}>
               <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(0,255,136,0.85),rgba(0,229,255,0.5),transparent)" }} />

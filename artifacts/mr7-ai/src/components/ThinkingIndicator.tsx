@@ -29,9 +29,9 @@ const CHAT_PHASES = [
 
 /* ── Channel config ─────────────────────────────── */
 const CH = [
-  { name: "CORTEX", color: "#e21227", cy: 14,  particleCount: 28, spread: 7  },
-  { name: "MEMORY", color: "#00e5ff", cy: 38,  particleCount: 20, spread: 6  },
-  { name: "OUTPUT", color: "#22c55e", cy: 62,  particleCount: 22, spread: 7  },
+  { name: "CORTEX", color: "#e21227", cy: 14,  particleCount: 55, spread: 11 },
+  { name: "MEMORY", color: "#00e5ff", cy: 38,  particleCount: 42, spread: 9  },
+  { name: "OUTPUT", color: "#22c55e", cy: 62,  particleCount: 48, spread: 11 },
 ];
 const BAR_W = 280;
 const BAR_H = 76;
@@ -116,7 +116,7 @@ function NeuralBarCanvas({ phaseColor, active }: { phaseColor: string; active: b
         ctx.strokeStyle = grd;
         ctx.lineWidth   = active ? 1.8 : 1.2;
         ctx.shadowColor = ch.color;
-        ctx.shadowBlur  = active ? 5 : 2;
+        ctx.shadowBlur  = active ? 14 : 4;
         ctx.stroke();
         ctx.shadowBlur  = 0;
 
@@ -136,9 +136,9 @@ function NeuralBarCanvas({ phaseColor, active }: { phaseColor: string; active: b
           ctx.beginPath();
           ctx.arc(px, py, p.size * (0.85 + 0.15 * pulse), 0, Math.PI * 2);
           ctx.fillStyle   = ch.color;
-          ctx.globalAlpha = p.alpha * (active ? 1 : 0.35);
+          ctx.globalAlpha = p.alpha * (active ? 1 : 0.45);
           ctx.shadowColor = ch.color;
-          ctx.shadowBlur  = 8;
+          ctx.shadowBlur  = 16;
           ctx.fill();
           ctx.shadowBlur  = 0;
         });
@@ -157,13 +157,15 @@ function NeuralBarCanvas({ phaseColor, active }: { phaseColor: string; active: b
       });
 
       /* scan-line sweep */
-      const sx = scanRef.current - 30;
-      const sg = ctx.createLinearGradient(sx, 0, sx + 60, 0);
+      const sx = scanRef.current - 45;
+      const sg = ctx.createLinearGradient(sx, 0, sx + 90, 0);
       sg.addColorStop(0,   "transparent");
-      sg.addColorStop(0.5, `${phaseColor}18`);
+      sg.addColorStop(0.35, `${phaseColor}18`);
+      sg.addColorStop(0.5, `${phaseColor}42`);
+      sg.addColorStop(0.65, `${phaseColor}18`);
       sg.addColorStop(1,   "transparent");
       ctx.fillStyle = sg;
-      ctx.fillRect(sx, 0, 60, BAR_H);
+      ctx.fillRect(sx, 0, 90, BAR_H);
     }
 
     draw();
@@ -200,9 +202,9 @@ function NeuralSphereCanvas({ col }: { col: string }) {
   useEffect(() => {
     const canvas = ref.current; if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
-    const SZ = 46; const R = 17; const CX = 23; const CY = 23;
+    const SZ = 46; const R = 18; const CX = 23; const CY = 23;
     let raf = 0; let t = 0;
-    const N = 14;
+    const N = 22;
     const baseNodes: [number, number, number][] = Array.from({ length: N }, (_, i) => {
       const y = 1 - (i / (N - 1)) * 2;
       const r = Math.sqrt(Math.max(0, 1 - y * y));
@@ -223,17 +225,17 @@ function NeuralSphereCanvas({ col }: { col: string }) {
       proj.forEach((p1, i) => proj.forEach((p2, j) => {
         if (j <= i) return;
         const d = Math.hypot(p1.px - p2.px, p1.py - p2.py);
-        if (d > R * 1.1) return;
-        const a = (1 - d / (R * 1.1)) * ((p1.z + p2.z) / 2 + 1) * 0.2;
+        if (d > R * 0.9) return;
+        const a = (1 - d / (R * 0.9)) * ((p1.z + p2.z) / 2 + 1) * 0.28;
         ctx.beginPath(); ctx.moveTo(p1.px, p1.py); ctx.lineTo(p2.px, p2.py);
         ctx.strokeStyle = col + Math.floor(Math.min(255, a * 255)).toString(16).padStart(2, "0");
-        ctx.lineWidth = 0.6; ctx.stroke();
+        ctx.lineWidth = 0.7; ctx.stroke();
       }));
       proj.forEach(p => {
         const v = Math.min(1, (p.z + 1) * 0.5 + 0.1);
-        ctx.beginPath(); ctx.arc(p.px, p.py, 1.8, 0, Math.PI * 2);
+        ctx.beginPath(); ctx.arc(p.px, p.py, 2.2, 0, Math.PI * 2);
         ctx.fillStyle = col; ctx.globalAlpha = v;
-        ctx.shadowColor = col; ctx.shadowBlur = 5; ctx.fill(); ctx.shadowBlur = 0;
+        ctx.shadowColor = col; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0;
       });
       ctx.globalAlpha = 1;
     }
@@ -298,14 +300,13 @@ export function ThinkingIndicator({ agentMode = false }: ThinkingIndicatorProps)
       {/* 3-D card shell */}
       <div
         style={{
-          borderRadius: "12px",
-          background: "linear-gradient(145deg, rgba(10,10,18,0.99) 0%, rgba(5,5,10,0.98) 100%)",
-          border: `1px solid ${col}28`,
-          boxShadow: `0 0 0 1px ${col}08, 0 12px 40px rgba(0,0,0,0.65), 0 0 60px ${col}08, inset 0 1px 0 ${col}10`,
+          borderRadius: "14px",
+          background: "linear-gradient(145deg, rgba(8,8,18,1) 0%, rgba(4,4,12,0.99) 60%, rgba(6,4,16,1) 100%)",
+          border: `1px solid ${col}38`,
+          boxShadow: `0 0 0 1px ${col}12, 0 16px 60px rgba(0,0,0,0.85), 0 0 80px ${col}14, 0 0 30px ${col}10, inset 0 1px 0 ${col}18, inset 0 0 40px ${col}04`,
           overflow: "hidden",
           position: "relative",
-          /* subtle 3D tilt */
-          transform: "rotateX(1.5deg) rotateY(-0.5deg)",
+          transform: "rotateX(3deg) rotateY(-1deg)",
           transformStyle: "preserve-3d",
         }}
       >

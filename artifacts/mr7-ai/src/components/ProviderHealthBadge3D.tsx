@@ -735,8 +735,8 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
 
   return (
     <canvas ref={canvasRef}
-      width={36} height={36}
-      style={{ width: 36, height: 36, display: "block", flexShrink: 0, imageRendering: "auto", cursor: dragRef.current.dragging ? "grabbing" : "grab" }}
+      width={14} height={14}
+      style={{ width: 14, height: 14, display: "block", flexShrink: 0, imageRendering: "auto", cursor: dragRef.current.dragging ? "grabbing" : "grab" }}
       onMouseEnter={() => { hoverRef.current = true; burstRef.current = tRef.current; }}
       onMouseLeave={() => {
         hoverRef.current = false;
@@ -1176,8 +1176,8 @@ export function ProviderHealthBadge3D() {
               right: "16px",
               top: "5vh",
               zIndex: 9999,
-              width: "clamp(340px, 44vw, 560px)",
-              maxHeight: "90vh",
+              width: "clamp(220px, 28vw, 340px)",
+              maxHeight: "78vh",
               perspective: "1400px",
               transformStyle: "preserve-3d",
               pointerEvents: "auto",
@@ -1189,7 +1189,7 @@ export function ProviderHealthBadge3D() {
                 border: "1px solid rgba(139,92,246,0.35)",
                 boxShadow: "0 0 100px rgba(139,92,246,0.20), 0 0 40px rgba(139,92,246,0.08), 0 32px 80px rgba(0,0,0,0.96), inset 0 1px 0 rgba(167,139,250,0.14), inset 0 0 60px rgba(139,92,246,0.03)",
                 backdropFilter: "blur(36px)",
-                maxHeight: "90vh",
+                maxHeight: "78vh",
                 overflow: "hidden",
               }}>
               <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,#8b5cf6,#c084fc,transparent)" }} />

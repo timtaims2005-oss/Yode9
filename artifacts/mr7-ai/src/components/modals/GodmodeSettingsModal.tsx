@@ -12,7 +12,7 @@ function GodmodeNeural3D({ champCount, color, glow }: { champCount: number; colo
   useEffect(() => {
     const cv = cvRef.current; if (!cv) return;
     const ctx = cv.getContext("2d")!;
-    const W = 560, H = 120;
+    const W = 190, H = 42;
     const DPR = Math.min(window.devicePixelRatio * 1.5, 3);
     cv.width = W * DPR; cv.height = H * DPR;
     cv.style.width = W + "px"; cv.style.height = H + "px";
@@ -103,18 +103,18 @@ function GodmodeNeural3D({ champCount, color, glow }: { champCount: number; colo
         if (pk.p >= 1) { pk.p = 0; pk.from = pk.to; pk.to = Math.floor(Math.random() * n); }
         const sx = nodePos[pk.from].x, sy = nodePos[pk.from].y;
         const ex = nodePos[pk.to].x,   ey = nodePos[pk.to].y;
-        const mx2 = cx + (Math.random() - 0.5) * 20;
-        const my2 = cy + (Math.random() - 0.5) * 12;
+        const mx2 = cx + (Math.random() - 0.5) * 7;
+        const my2 = cy + (Math.random() - 0.5) * 4;
         const px2 = sx + (ex - sx) * pk.p + (mx2 - sx) * pk.p * (1 - pk.p) * 2;
         const py2 = sy + (ey - sy) * pk.p + (my2 - sy) * pk.p * (1 - pk.p) * 2;
         const alpha = Math.sin(pk.p * Math.PI) * 0.8;
-        const pgr = ctx.createRadialGradient(px2, py2, 0, px2, py2, 5);
+        const pgr = ctx.createRadialGradient(px2, py2, 0, px2, py2, 2);
         pgr.addColorStop(0, `rgba(255,255,255,${alpha})`);
         pgr.addColorStop(0.4, `rgba(${rgb},${alpha * 0.6})`);
         pgr.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.beginPath(); ctx.arc(px2, py2, 5, 0, Math.PI * 2);
+        ctx.beginPath(); ctx.arc(px2, py2, 2, 0, Math.PI * 2);
         ctx.fillStyle = pgr; ctx.fill();
-        ctx.beginPath(); ctx.arc(px2, py2, 1.2, 0, Math.PI * 2);
+        ctx.beginPath(); ctx.arc(px2, py2, 0.6, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,255,255,${alpha})`; ctx.fill();
       });
 
@@ -124,12 +124,12 @@ function GodmodeNeural3D({ champCount, color, glow }: { champCount: number; colo
         const px2 = cx + Math.cos(a) * RB;
         const py2 = cy + Math.sin(a) * RA;
         const pulse = 0.45 + Math.sin(t * 3.5 + p) * 0.35;
-        const pgr2 = ctx.createRadialGradient(px2, py2, 0, px2, py2, 4);
+        const pgr2 = ctx.createRadialGradient(px2, py2, 0, px2, py2, 1.5);
         pgr2.addColorStop(0, `rgba(${rgb},${pulse})`);
         pgr2.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.beginPath(); ctx.arc(px2, py2, 4, 0, Math.PI * 2);
+        ctx.beginPath(); ctx.arc(px2, py2, 1.5, 0, Math.PI * 2);
         ctx.fillStyle = pgr2; ctx.fill();
-        ctx.beginPath(); ctx.arc(px2, py2, 1.4, 0, Math.PI * 2);
+        ctx.beginPath(); ctx.arc(px2, py2, 0.6, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,255,255,${pulse * 0.8})`; ctx.fill();
       }
 
@@ -137,15 +137,15 @@ function GodmodeNeural3D({ champCount, color, glow }: { champCount: number; colo
       nodePos.forEach((nd, i) => {
         const isFiring = fireSet.current.has(i);
         const breathe = Math.sin(t * 1.6 + i * 0.55) * 0.5 + 0.5;
-        const baseR = 2.8 + breathe * 0.6;
-        const radius = isFiring ? baseR + Math.sin(t * 14) * 2.5 : baseR;
+        const baseR = 1.2 + breathe * 0.25;
+        const radius = isFiring ? baseR + Math.sin(t * 14) * 0.8 : baseR;
         const alpha = isFiring ? 1.0 : 0.45 + breathe * 0.35;
 
         if (isFiring) {
           // Firing burst rings
           for (let br = 0; br < 3; br++) {
             const bp = ((t * 2.8 + br * 0.25) % 1);
-            const bR = radius + bp * 14;
+            const bR = radius + bp * 5;
             ctx.beginPath(); ctx.arc(nd.x, nd.y, bR, 0, Math.PI * 2);
             ctx.strokeStyle = `rgba(${rgb},${(1 - bp) * 0.5})`; ctx.lineWidth = 1.0; ctx.stroke();
           }
@@ -167,7 +167,7 @@ function GodmodeNeural3D({ champCount, color, glow }: { champCount: number; colo
 
       // ── Central power vortex ─────────────────────────────────────────────
       for (let vi = 0; vi < 4; vi++) {
-        const vR = 8 + vi * 6 + Math.sin(t * 1.2 + vi) * 3;
+        const vR = 3 + vi * 2 + Math.sin(t * 1.2 + vi) * 1;
         const vA = 0.08 - vi * 0.016 + Math.sin(t * 0.9 + vi) * 0.02;
         ctx.beginPath(); ctx.arc(cx, cy, vR, 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(${rgb},${vA})`; ctx.lineWidth = 0.7; ctx.stroke();
@@ -177,7 +177,7 @@ function GodmodeNeural3D({ champCount, color, glow }: { champCount: number; colo
         ctx.beginPath();
         for (let s = 0; s < 30; s++) {
           const sa = (s / 30) * Math.PI * 1.5 + arm * (Math.PI * 2 / 3) + t * 0.4;
-          const sr = 4 + s * 0.7;
+          const sr = 1.5 + s * 0.25;
           const sx2 = cx + Math.cos(sa) * sr;
           const sy2 = cy + Math.sin(sa) * sr * 0.6;
           s === 0 ? ctx.moveTo(sx2, sy2) : ctx.lineTo(sx2, sy2);
@@ -185,15 +185,15 @@ function GodmodeNeural3D({ champCount, color, glow }: { champCount: number; colo
         ctx.strokeStyle = `rgba(${rgb},${0.12 + arm * 0.02})`; ctx.lineWidth = 0.5; ctx.stroke();
       }
       // Core composite dot
-      const corGr = ctx.createRadialGradient(cx, cy, 0, cx, cy, 10);
+      const corGr = ctx.createRadialGradient(cx, cy, 0, cx, cy, 3.5);
       corGr.addColorStop(0, `rgba(255,255,255,0.90)`);
       corGr.addColorStop(0.3, `rgba(${rgb},0.65)`);
       corGr.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.beginPath(); ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+      ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
       ctx.fillStyle = corGr; ctx.fill();
 
       // Champion count label
-      ctx.font = "bold 9px monospace";
+      ctx.font = "bold 6px monospace";
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.fillStyle = `rgba(${rgb},0.70)`;
       ctx.fillText(`${champCount}`, cx, cy - 1);
@@ -211,7 +211,7 @@ function GodmodeNeural3D({ champCount, color, glow }: { champCount: number; colo
   void glow;
   return (
     <canvas ref={cvRef}
-      style={{ width: "100%", height: 80, display: "block", imageRendering: "auto" }} />
+      style={{ width: "100%", height: 42, display: "block", imageRendering: "auto" }} />
   );
 }
 
