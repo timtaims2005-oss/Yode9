@@ -820,7 +820,7 @@ export function TopBar({
         >
           {/* ── GROUP 1 — Core ──────────────────────────────────────────── */}
           <HUDBtn icon={LayoutGrid} label={t("top.toolsHub")} shortLabel={t("top.tools")} color="#10b981" onClick={onOpenToolsHub} />
-          <HUDBtn icon={Bot}       label="KaliAgent"  color="#ff4d4d" onClick={onOpenAgent}   badge="AI" />
+          <HUDBtn icon={Bot}       label="KaliAgent"  shortLabel="KGT" color="#ff4d4d" onClick={onOpenAgent} />
           <HUDBtn icon={Hexagon}   label="NEXUS"      color="#fbbf24" onClick={onOpenNexus}   badge="5X" />
           <HUDBtn icon={Shield}    label="Arsenal"    color="#e21227" onClick={onOpenArsenal} />
           <VDivider />
