@@ -206,29 +206,29 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    const SIZE = 46;
+    const SIZE = 38;
     const DPR  = Math.min(window.devicePixelRatio * 2, 4);
     cv.width   = SIZE * DPR;
     cv.height  = SIZE * DPR;
     ctx.scale(DPR, DPR);
     const [cx, cy] = [SIZE / 2, SIZE / 2];
-    const FOV = 190;
+    const FOV = 160;
 
     // 12 rings — rainbow spectrum, hOff staggers hue 30° per ring — nuclear fusion atom
     type Ring = { r: number; tX: number; tY: number; speed: number; hOff: number; eCount: number };
     const RINGS: Ring[] = [
-      { r:  6, tX:  0.22, tY:  0.10, speed:  0.030, hOff:   0, eCount: 8  },
-      { r:  9, tX:  0.40, tY:  0.20, speed:  0.020, hOff:  30, eCount: 10 },
-      { r: 12, tX: -0.55, tY:  0.50, speed: -0.014, hOff:  60, eCount: 12 },
-      { r: 15, tX:  0.75, tY: -0.58, speed:  0.009, hOff:  90, eCount: 14 },
-      { r: 18, tX: -0.38, tY:  0.32, speed: -0.007, hOff: 120, eCount: 11 },
-      { r: 21, tX:  0.52, tY: -0.45, speed:  0.005, hOff: 150, eCount: 9  },
-      { r: 24, tX: -0.28, tY:  0.62, speed: -0.004, hOff: 180, eCount: 8  },
-      { r: 27, tX:  0.68, tY:  0.18, speed:  0.003, hOff: 210, eCount: 7  },
-      { r: 30, tX: -0.52, tY: -0.35, speed: -0.002, hOff: 240, eCount: 5  },
-      { r: 33, tX:  0.30, tY:  0.70, speed:  0.0015,hOff: 270, eCount: 5  },
-      { r: 36, tX: -0.65, tY: -0.20, speed: -0.0012,hOff: 300, eCount: 4  },
-      { r: 39, tX:  0.45, tY:  0.55, speed:  0.0009,hOff: 330, eCount: 3  },
+      { r:  5, tX:  0.22, tY:  0.10, speed:  0.030, hOff:   0, eCount: 8  },
+      { r:  7, tX:  0.40, tY:  0.20, speed:  0.020, hOff:  30, eCount: 10 },
+      { r: 10, tX: -0.55, tY:  0.50, speed: -0.014, hOff:  60, eCount: 12 },
+      { r: 12, tX:  0.75, tY: -0.58, speed:  0.009, hOff:  90, eCount: 14 },
+      { r: 15, tX: -0.38, tY:  0.32, speed: -0.007, hOff: 120, eCount: 11 },
+      { r: 17, tX:  0.52, tY: -0.45, speed:  0.005, hOff: 150, eCount: 9  },
+      { r: 19, tX: -0.28, tY:  0.62, speed: -0.004, hOff: 180, eCount: 8  },
+      { r: 21, tX:  0.68, tY:  0.18, speed:  0.003, hOff: 210, eCount: 7  },
+      { r: 23, tX: -0.52, tY: -0.35, speed: -0.002, hOff: 240, eCount: 5  },
+      { r: 25, tX:  0.30, tY:  0.70, speed:  0.0015,hOff: 270, eCount: 5  },
+      { r: 27, tX: -0.65, tY: -0.20, speed: -0.0012,hOff: 300, eCount: 4  },
+      { r: 29, tX:  0.45, tY:  0.55, speed:  0.0009,hOff: 330, eCount: 3  },
     ];
 
     // Nuclear fusion events — periodic plasma bursts
@@ -238,7 +238,7 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
 
     // Quantum foam — micro background dots
     type Foam = { x: number; y: number; r: number; a: number; va: number };
-    const foam: Foam[] = Array.from({ length: 55 }, () => ({
+    const foam: Foam[] = Array.from({ length: 45 }, () => ({
       x: Math.random() * SIZE, y: Math.random() * SIZE,
       r: 0.3 + Math.random() * 0.5,
       a: 0.02 + Math.random() * 0.06,
@@ -314,7 +314,7 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
       });
 
       // ── Deep ambient field ──────────────────────────────────────────────
-      const aR = isO ? 22 : isH ? 21 : 20;
+      const aR = isO ? 17 : isH ? 16 : 15;
       const aA = ph === "scanning" ? 0.28 : isO ? 0.22 : isH ? 0.20 : 0.13;
       const amb = ctx.createRadialGradient(cx, cy, 0, cx, cy, aR);
       amb.addColorStop(0,   `rgba(${hsl(hue)},${aA * 2.4})`);

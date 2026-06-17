@@ -12,14 +12,14 @@ function GodmodeNeural3D({ champCount, color, glow }: { champCount: number; colo
   useEffect(() => {
     const cv = cvRef.current; if (!cv) return;
     const ctx = cv.getContext("2d")!;
-    const W = 190, H = 42;
+    const W = 160, H = 34;
     const DPR = Math.min(window.devicePixelRatio * 1.5, 3);
     cv.width = W * DPR; cv.height = H * DPR;
     cv.style.width = W + "px"; cv.style.height = H + "px";
     ctx.scale(DPR, DPR);
     const cx = W / 2, cy = H / 2;
     const n = Math.min(champCount, 32);
-    const RA = Math.min(46, (H / 2) - 10);
+    const RA = Math.min(40, (H / 2) - 4);
     const RB = W * 0.42;
 
     const hexToRgb = (h: string) => {
@@ -211,7 +211,7 @@ function GodmodeNeural3D({ champCount, color, glow }: { champCount: number; colo
   void glow;
   return (
     <canvas ref={cvRef}
-      style={{ width: "100%", height: 42, display: "block", imageRendering: "auto" }} />
+      style={{ width: "100%", height: 34, display: "block", imageRendering: "auto" }} />
   );
 }
 

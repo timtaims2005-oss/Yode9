@@ -63,14 +63,15 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    const SIZE = 46;
+    const SIZE = 38;
     const DPR  = Math.min(window.devicePixelRatio * 2, 4);
     cv.width   = SIZE * DPR;
     cv.height  = SIZE * DPR;
+    cv.style.width = SIZE + "px"; cv.style.height = SIZE + "px";
     ctx.scale(DPR, DPR);
     const [cx, cy] = [SIZE / 2, SIZE / 2];
-    const R   = 13;
-    const FOV = 210;
+    const R   = 10;
+    const FOV = 170;
 
     // ── 3D math ──────────────────────────────────────────────────────────
     function rotX(x: number, y: number, z: number, a: number): [number,number,number] {
@@ -93,18 +94,18 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
     // 12 orbital rings — rainbow spectrum, gravitational star system
     type OrbRing = { r: number; tX: number; tY: number; speed: number; hOff: number; moonR: number };
     const ORB_RINGS: OrbRing[] = [
-      { r: 14, tX:  0.42, tY:  0.20, speed:  0.026, hOff:   0, moonR: 1.5 },
-      { r: 17, tX: -0.58, tY:  0.50, speed: -0.017, hOff:  30, moonR: 1.2 },
-      { r: 20, tX:  0.78, tY: -0.60, speed:  0.012, hOff:  60, moonR: 1.0 },
-      { r: 23, tX: -0.30, tY:  0.35, speed: -0.009, hOff:  90, moonR: 0.85},
-      { r: 26, tX:  0.62, tY:  0.28, speed:  0.007, hOff: 120, moonR: 0.70},
-      { r: 29, tX: -0.45, tY: -0.42, speed: -0.005, hOff: 150, moonR: 0.58},
-      { r: 32, tX:  0.35, tY:  0.55, speed:  0.004, hOff: 180, moonR: 0.46},
-      { r: 35, tX: -0.60, tY:  0.25, speed: -0.003, hOff: 210, moonR: 0.35},
-      { r: 38, tX:  0.48, tY: -0.38, speed:  0.002, hOff: 240, moonR: 0.25},
-      { r: 41, tX: -0.22, tY:  0.60, speed: -0.0016,hOff: 270, moonR: 0.18},
-      { r: 44, tX:  0.55, tY: -0.28, speed:  0.0012,hOff: 300, moonR: 0.12},
-      { r: 47, tX: -0.40, tY:  0.42, speed: -0.0009,hOff: 330, moonR: 0.08},
+      { r: 12, tX:  0.42, tY:  0.20, speed:  0.026, hOff:   0, moonR: 1.3 },
+      { r: 14, tX: -0.58, tY:  0.50, speed: -0.017, hOff:  30, moonR: 1.0 },
+      { r: 16, tX:  0.78, tY: -0.60, speed:  0.012, hOff:  60, moonR: 0.85},
+      { r: 19, tX: -0.30, tY:  0.35, speed: -0.009, hOff:  90, moonR: 0.70},
+      { r: 21, tX:  0.62, tY:  0.28, speed:  0.007, hOff: 120, moonR: 0.58},
+      { r: 24, tX: -0.45, tY: -0.42, speed: -0.005, hOff: 150, moonR: 0.46},
+      { r: 26, tX:  0.35, tY:  0.55, speed:  0.004, hOff: 180, moonR: 0.38},
+      { r: 29, tX: -0.60, tY:  0.25, speed: -0.003, hOff: 210, moonR: 0.30},
+      { r: 31, tX:  0.48, tY: -0.38, speed:  0.002, hOff: 240, moonR: 0.22},
+      { r: 34, tX: -0.22, tY:  0.60, speed: -0.0016,hOff: 270, moonR: 0.16},
+      { r: 36, tX:  0.55, tY: -0.28, speed:  0.0012,hOff: 300, moonR: 0.11},
+      { r: 39, tX: -0.40, tY:  0.42, speed: -0.0009,hOff: 330, moonR: 0.07},
     ];
 
     // Comet system — periodic flyby events
@@ -115,8 +116,8 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
     // Gravitational wave pulse system
     const gravWaves: Array<{ age: number; maxAge: number }> = [];
 
-    // Saturn-like flat planetary ring (scaled to SIZE 46)
-    const RING_DISC = { rInner: 15, rOuter: 23, tX: 0.55, tY: 0.10 };
+    // Saturn-like flat planetary ring (scaled to SIZE 38)
+    const RING_DISC = { rInner: 12, rOuter: 19, tX: 0.55, tY: 0.10 };
 
     type P = { ring: number; angle: number; trail: Array<{ x: number; y: number }> };
     const particles: P[] = ORB_RINGS.flatMap((_, ri) =>
@@ -1558,7 +1559,7 @@ export function ProviderHealthBadge3D() {
                       { label: "استقرار الاتصال", pct: Math.max(0, 100 - (latency ?? 500) / 10), color: "#22c55e" },
                       { label: "تزامن البيانات",  pct: uptimePct, color: "#a78bfa" },
                       { label: "موثوقية الاستجابة", pct: successCnt > 0 ? Math.round((successCnt / Math.max(checks, 1)) * 100) : 0, color: "#06b6d4" },
-                      { label: "نقاء الإشارة",   pct: health === "healthy" ? 95 : health === "degraded" ? 58 : 12, color: hColor },
+                      { label: "نقاء الإشارة",   pct: health === "healthy" ? 95 : health === "slow" ? 58 : 12, color: hColor },
                     ].map(bar => (
                       <div key={bar.label}>
                         <div className="flex items-center justify-between mb-1">

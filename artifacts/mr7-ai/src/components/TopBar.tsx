@@ -88,81 +88,154 @@ function TopBarHUDCanvas({ powerOn }: { powerOn: boolean }) {
     ro.observe(cv);
 
     // Floating particles
-    type Pt = { x: number; y: number; vx: number; vy: number; r: number; a: number };
-    const pts: Pt[] = Array.from({ length: 22 }, () => ({
+    type Pt = { x: number; y: number; vx: number; vy: number; r: number; a: number; hue: number };
+    const pts: Pt[] = Array.from({ length: 46 }, (_, i) => ({
       x: Math.random(), y: Math.random(),
-      vx: (Math.random() - 0.5) * 0.0006,
-      vy: (Math.random() - 0.5) * 0.0004,
-      r: 0.6 + Math.random() * 1.2,
-      a: 0.08 + Math.random() * 0.25,
+      vx: (Math.random() - 0.5) * 0.0007,
+      vy: (Math.random() - 0.5) * 0.0005,
+      r: 0.5 + Math.random() * 1.4,
+      a: 0.06 + Math.random() * 0.28,
+      hue: i < 30 ? 350 : i < 40 ? 180 : 270,
     }));
+
+    // Data stream nodes — vertical drifting bits
+    type Bit = { x: number; y: number; speed: number; alpha: number; val: string };
+    const bits: Bit[] = Array.from({ length: 28 }, () => ({
+      x: Math.random(),
+      y: Math.random(),
+      speed: 0.0008 + Math.random() * 0.0016,
+      alpha: 0.04 + Math.random() * 0.12,
+      val: Math.random() > 0.5 ? "1" : "0",
+    }));
+
+    // Wave pulses
+    type Wave = { cx: number; r: number; maxR: number; alpha: number };
+    const waves: Wave[] = [];
+    let waveTimer = 0;
 
     function draw() {
       rafRef.current = requestAnimationFrame(draw);
-      tRef.current += 0.008;
+      tRef.current += 0.009;
       const t = tRef.current;
       const W = cv.width, H = cv.height;
       const pw = powerRef.current;
+      const DPR = Math.min(window.devicePixelRatio, 2);
       ctx.clearRect(0, 0, W, H);
 
-      // Vertical grid columns (subtle)
-      const gridCol = pw ? "rgba(226,18,39," : "rgba(226,18,39,";
-      for (let x = 0; x < W; x += 56) {
+      // ── Diagonal cyber grid ────────────────────────────────────────────────
+      const gridA = pw ? 0.055 : 0.033;
+      ctx.save(); ctx.setLineDash([4 * DPR, 8 * DPR]);
+      for (let x = -H; x < W + H; x += 48 * DPR) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + H, H);
+        ctx.strokeStyle = `rgba(226,18,39,${gridA})`; ctx.lineWidth = 0.6; ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      for (let x = 0; x < W; x += 56 * DPR) {
         ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H);
-        ctx.strokeStyle = `${gridCol}${pw ? 0.06 : 0.04})`; ctx.lineWidth = 0.5; ctx.stroke();
+        ctx.strokeStyle = `rgba(226,18,39,${gridA * 0.7})`; ctx.lineWidth = 0.4; ctx.stroke();
       }
-      // Horizontal scanlines
-      for (let y = 0; y < H; y += 16) {
+      ctx.restore();
+
+      // ── Horizontal data bands ──────────────────────────────────────────────
+      for (let y = 0; y < H; y += 14 * DPR) {
+        const band = (Math.sin(t * 0.4 + y * 0.08) + 1) / 2;
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y);
-        ctx.strokeStyle = `rgba(226,18,39,${pw ? 0.04 : 0.025})`; ctx.lineWidth = 0.4; ctx.stroke();
+        ctx.strokeStyle = `rgba(226,18,39,${pw ? 0.035 + band * 0.018 : 0.018})`; ctx.lineWidth = 0.4; ctx.stroke();
       }
 
-      // Travelling scan beam (vertical sweep)
-      const scanY = ((t * 0.35) % 1) * H;
-      const sg = ctx.createLinearGradient(0, scanY - 10, 0, scanY + 10);
+      // ── Dual scan beams ────────────────────────────────────────────────────
+      const scanY = ((t * 0.38) % 1) * H;
+      const sg = ctx.createLinearGradient(0, scanY - 12, 0, scanY + 12);
       sg.addColorStop(0, "rgba(226,18,39,0)");
-      sg.addColorStop(0.5, `rgba(226,18,39,${pw ? 0.12 : 0.06})`);
+      sg.addColorStop(0.4, `rgba(226,18,39,${pw ? 0.14 : 0.065})`);
+      sg.addColorStop(0.6, `rgba(255,60,60,${pw ? 0.09 : 0.04})`);
       sg.addColorStop(1, "rgba(226,18,39,0)");
-      ctx.fillStyle = sg; ctx.fillRect(0, scanY - 10, W, 20);
+      ctx.fillStyle = sg; ctx.fillRect(0, scanY - 12, W, 24);
 
-      // Travelling horizontal light streak
-      const sx = ((t * 0.14 + 0.1) % 1.4 - 0.2) * W;
-      const hg = ctx.createLinearGradient(sx - 100, 0, sx + 100, 0);
+      const scanY2 = ((t * 0.22 + 0.5) % 1) * H;
+      const sg2 = ctx.createLinearGradient(0, scanY2 - 8, 0, scanY2 + 8);
+      sg2.addColorStop(0, "rgba(0,229,255,0)");
+      sg2.addColorStop(0.5, `rgba(0,229,255,${pw ? 0.05 : 0.025})`);
+      sg2.addColorStop(1, "rgba(0,229,255,0)");
+      ctx.fillStyle = sg2; ctx.fillRect(0, scanY2 - 8, W, 16);
+
+      // ── Dual horizontal streaks ────────────────────────────────────────────
+      const sx = ((t * 0.15 + 0.1) % 1.4 - 0.2) * W;
+      const hg = ctx.createLinearGradient(sx - 120, 0, sx + 120, 0);
       hg.addColorStop(0, "rgba(226,18,39,0)");
-      hg.addColorStop(0.5, `rgba(226,18,39,${pw ? 0.18 : 0.09})`);
+      hg.addColorStop(0.5, `rgba(226,18,39,${pw ? 0.22 : 0.1})`);
       hg.addColorStop(1, "rgba(226,18,39,0)");
-      ctx.fillStyle = hg; ctx.fillRect(sx - 100, 0, 200, H);
+      ctx.fillStyle = hg; ctx.fillRect(sx - 120, 0, 240, H);
 
-      // Corner HUD brackets (4 corners)
-      const bs = 14 * Math.min(window.devicePixelRatio, 2);
-      const bw = 1.5 * Math.min(window.devicePixelRatio, 2);
-      ctx.strokeStyle = `rgba(226,18,39,${pw ? 0.75 : 0.5})`; ctx.lineWidth = bw;
+      const sx2 = ((t * 0.09 + 0.7) % 1.4 - 0.2) * W;
+      const hg2 = ctx.createLinearGradient(sx2 - 80, 0, sx2 + 80, 0);
+      hg2.addColorStop(0, "rgba(139,92,246,0)");
+      hg2.addColorStop(0.5, `rgba(139,92,246,${pw ? 0.07 : 0.03})`);
+      hg2.addColorStop(1, "rgba(139,92,246,0)");
+      ctx.fillStyle = hg2; ctx.fillRect(sx2 - 80, 0, 160, H);
+
+      // ── Binary rain bits ──────────────────────────────────────────────────
+      ctx.font = `${7 * DPR}px monospace`;
+      bits.forEach(b => {
+        b.y += b.speed;
+        if (b.y > 1) { b.y = 0; b.x = Math.random(); b.val = Math.random() > 0.5 ? "1" : "0"; }
+        ctx.fillStyle = `rgba(226,18,39,${b.alpha * (pw ? 1.6 : 1)})`;
+        ctx.fillText(b.val, b.x * W, b.y * H);
+      });
+
+      // ── Wave pulse rings ──────────────────────────────────────────────────
+      waveTimer++;
+      if (pw && waveTimer % 90 === 0) {
+        waves.push({ cx: Math.random() * W, r: 0, maxR: 30 * DPR + Math.random() * 20 * DPR, alpha: 0.35 });
+      }
+      for (let i = waves.length - 1; i >= 0; i--) {
+        const w = waves[i];
+        w.r += 1.2 * DPR; w.alpha -= 0.008;
+        if (w.alpha <= 0) { waves.splice(i, 1); continue; }
+        ctx.beginPath(); ctx.arc(w.cx, H / 2, w.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(226,18,39,${w.alpha})`; ctx.lineWidth = 1.2; ctx.stroke();
+      }
+
+      // ── Corner HUD brackets ───────────────────────────────────────────────
+      const bs = 16 * DPR, bw = 1.8 * DPR;
+      const pulse = (Math.sin(t * 2.4) + 1) / 2;
+      ctx.strokeStyle = `rgba(226,18,39,${pw ? 0.75 + pulse * 0.2 : 0.45})`; ctx.lineWidth = bw;
       ctx.beginPath(); ctx.moveTo(0, bs); ctx.lineTo(0, 0); ctx.lineTo(bs, 0); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(W - bs, 0); ctx.lineTo(W, 0); ctx.lineTo(W, bs); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0, H - bs); ctx.lineTo(0, H); ctx.lineTo(bs, H); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(W - bs, H); ctx.lineTo(W, H); ctx.lineTo(W, H - bs); ctx.stroke();
+      // Inner tick marks on brackets
+      ctx.strokeStyle = `rgba(226,18,39,${pw ? 0.4 : 0.22})`; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(bs * 0.5, 0); ctx.lineTo(bs * 0.5, 4 * DPR); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, bs * 0.5); ctx.lineTo(4 * DPR, bs * 0.5); ctx.stroke();
 
-      // Power mode glow bands (left + right edges)
+      // ── Power mode glow bands ────────────────────────────────────────────
       if (pw) {
-        const pulse = (Math.sin(t * 3) + 1) / 2;
-        const lg = ctx.createLinearGradient(0, 0, 36 * Math.min(window.devicePixelRatio, 2), 0);
-        lg.addColorStop(0, `rgba(226,18,39,${0.16 + pulse * 0.12})`);
-        lg.addColorStop(1, "rgba(226,18,39,0)");
-        ctx.fillStyle = lg; ctx.fillRect(0, 0, 36 * Math.min(window.devicePixelRatio, 2), H);
-        const rg = ctx.createLinearGradient(W, 0, W - 36 * Math.min(window.devicePixelRatio, 2), 0);
-        rg.addColorStop(0, `rgba(226,18,39,${0.16 + pulse * 0.12})`);
-        rg.addColorStop(1, "rgba(226,18,39,0)");
-        ctx.fillStyle = rg; ctx.fillRect(W - 36 * Math.min(window.devicePixelRatio, 2), 0, 36 * Math.min(window.devicePixelRatio, 2), H);
+        const pls = 0.16 + pulse * 0.14;
+        const lg = ctx.createLinearGradient(0, 0, 40 * DPR, 0);
+        lg.addColorStop(0, `rgba(226,18,39,${pls})`); lg.addColorStop(1, "rgba(226,18,39,0)");
+        ctx.fillStyle = lg; ctx.fillRect(0, 0, 40 * DPR, H);
+        const rg = ctx.createLinearGradient(W, 0, W - 40 * DPR, 0);
+        rg.addColorStop(0, `rgba(226,18,39,${pls})`); rg.addColorStop(1, "rgba(226,18,39,0)");
+        ctx.fillStyle = rg; ctx.fillRect(W - 40 * DPR, 0, 40 * DPR, H);
+        // Top glow band
+        const tg = ctx.createLinearGradient(0, 0, 0, 8 * DPR);
+        tg.addColorStop(0, `rgba(226,18,39,${pls * 0.8})`); tg.addColorStop(1, "rgba(226,18,39,0)");
+        ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 8 * DPR);
       }
 
-      // Floating particles
+      // ── Floating particles ───────────────────────────────────────────────
       pts.forEach(p => {
         p.x += p.vx; p.y += p.vy;
         if (p.x < 0) p.x = 1; if (p.x > 1) p.x = 0;
         if (p.y < 0) p.y = 1; if (p.y > 1) p.y = 0;
-        const pulse = (Math.sin(t * 2.2 + p.x * 10) + 1) / 2;
-        ctx.beginPath(); ctx.arc(p.x * W, p.y * H, p.r * Math.min(window.devicePixelRatio, 2), 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(226,18,39,${p.a * (0.4 + pulse * 0.6)})`; ctx.fill();
+        const pls2 = (Math.sin(t * 2.4 + p.x * 12 + p.y * 8) + 1) / 2;
+        const alpha = p.a * (0.38 + pls2 * 0.62);
+        ctx.beginPath(); ctx.arc(p.x * W, p.y * H, p.r * DPR, 0, Math.PI * 2);
+        if (p.hue === 350) ctx.fillStyle = `rgba(226,18,39,${alpha})`;
+        else if (p.hue === 180) ctx.fillStyle = `rgba(0,229,255,${alpha * 0.45})`;
+        else ctx.fillStyle = `rgba(139,92,246,${alpha * 0.4})`;
+        ctx.fill();
       });
     }
 

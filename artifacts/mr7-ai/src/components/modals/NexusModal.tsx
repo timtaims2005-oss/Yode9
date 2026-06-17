@@ -135,6 +135,10 @@ export function NexusModal({ open, onOpenChange }: NexusModalProps) {
   const [councilSynthesis, setCouncilSynthesis] = useState("");
   const [expandedThinking, setExpandedThinking] = useState<Record<number, boolean>>({});
   const [gatewayOk, setGatewayOk] = useState<boolean | null>(null);
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
+  const [sessionReqs, setSessionReqs] = useState(0);
+  const [sessionSteps, setSessionSteps] = useState(0);
+  const [healthExpanded, setHealthExpanded] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
@@ -143,7 +147,10 @@ export function NexusModal({ open, onOpenChange }: NexusModalProps) {
 
   useEffect(() => {
     if (!open) return;
-    fetch("/api/healthz").then((r) => setGatewayOk(r.ok)).catch(() => setGatewayOk(false));
+    const start = performance.now();
+    fetch("/api/healthz")
+      .then((r) => { setGatewayOk(r.ok); setLatencyMs(Math.round(performance.now() - start)); })
+      .catch(() => { setGatewayOk(false); setLatencyMs(null); });
   }, [open]);
 
   useEffect(() => {
@@ -173,6 +180,7 @@ export function NexusModal({ open, onOpenChange }: NexusModalProps) {
     clearAll();
     setRunning(true);
     setPhase("agent");
+    setSessionReqs(r => r + 1);
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     const messages = getContextMessages(task.trim());
@@ -202,6 +210,7 @@ export function NexusModal({ open, onOpenChange }: NexusModalProps) {
             setAgentAnswer(agentAnswerRef.current);
           } else if (ev.type === "done") {
             setLogs((p) => [...p, { kind: "agent_done", steps: ev.steps }]);
+            setSessionSteps(s => s + ev.steps);
           }
         },
         ctrl.signal,
@@ -312,24 +321,87 @@ export function NexusModal({ open, onOpenChange }: NexusModalProps) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5">
-                  <div
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{
-                      background: gatewayOk === null ? "#444" : gatewayOk ? "#00e5cc" : "#ff4d4d",
-                      boxShadow: gatewayOk ? "0 0 8px #00e5cc" : undefined,
-                    }}
-                  />
-                  <span className="text-[10px] font-mono" style={{ color: gatewayOk ? "#00e5cc" : "#555" }}>
-                    {gatewayOk === null ? "CHECKING" : gatewayOk ? "ONLINE" : "OFFLINE"}
+              <div className="flex items-center gap-2">
+                {/* Health toggle button */}
+                <button
+                  onClick={() => setHealthExpanded(h => !h)}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all"
+                  style={{
+                    background: healthExpanded ? "rgba(0,229,204,0.1)" : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${healthExpanded ? "rgba(0,229,204,0.35)" : "rgba(255,255,255,0.08)"}`,
+                  }}
+                  title="NEXUS Health Dashboard"
+                >
+                  <div className="w-1.5 h-1.5 rounded-full" style={{
+                    background: gatewayOk === null ? "#666" : gatewayOk ? "#00e5cc" : "#ff4d4d",
+                    boxShadow: gatewayOk ? "0 0 6px #00e5cc" : undefined,
+                  }} />
+                  <span className="text-[9px] font-mono hidden sm:block" style={{ color: gatewayOk ? "#00e5cc" : "#666" }}>
+                    {gatewayOk === null ? "INIT" : gatewayOk ? `${latencyMs ?? "?"}ms` : "OFFLINE"}
                   </span>
-                </div>
-                <button onClick={close} className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/10 transition-colors">
+                  {healthExpanded
+                    ? <ChevronUp className="w-3 h-3 text-gray-600" />
+                    : <ChevronDown className="w-3 h-3 text-gray-600" />}
+                </button>
+                <button onClick={close} className="p-1.5 rounded-lg transition-colors" style={{ color: "#555", border: "1px solid rgba(255,255,255,0.07)" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#fff"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#555"; (e.currentTarget as HTMLElement).style.background = ""; }}>
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
+
+            {/* ── NEXUS HEALTH DASHBOARD ── */}
+            {healthExpanded && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.18 }}
+                className="px-4 pb-2 border-b"
+                style={{ borderColor: "rgba(0,229,204,0.1)", background: "rgba(0,229,204,0.02)" }}
+              >
+                <div className="py-2 space-y-1.5">
+                  <div className="text-[8px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: "rgba(0,229,204,0.45)" }}>
+                    NEXUS SYSTEM HEALTH
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: "Gateway API", val: gatewayOk === null ? "INIT" : gatewayOk ? "ONLINE" : "OFFLINE", color: gatewayOk ? "#00e5cc" : "#ff4d4d", dot: true },
+                      { label: "Latency", val: latencyMs !== null ? `${latencyMs}ms` : "N/A", color: latencyMs !== null && latencyMs < 300 ? "#00e5cc" : latencyMs !== null && latencyMs < 800 ? "#fbbf24" : "#ff4d4d", dot: false },
+                      { label: "Council", val: tier.council ? "ENABLED" : "UNAVAIL", color: tier.council ? "#fbbf24" : "#444", dot: false },
+                      { label: "Agent Tier", val: `${tier.code} · ${tier.steps} steps`, color: tier.color, dot: false },
+                      { label: "Session Reqs", val: String(sessionReqs), color: "#a78bfa", dot: false },
+                      { label: "Steps Used", val: String(sessionSteps), color: activeTier.color, dot: false },
+                    ].map(m => (
+                      <div key={m.label} className="rounded-lg px-2 py-1.5" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                        <div className="text-[7px] uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>{m.label}</div>
+                        <div className="flex items-center gap-1">
+                          {m.dot && <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: m.color, boxShadow: `0 0 4px ${m.color}` }} />}
+                          <span className="text-[10px] font-black font-mono" style={{ color: m.color }}>{m.val}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Latency bar */}
+                  {latencyMs !== null && (
+                    <div className="mt-1">
+                      <div className="h-0.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+                        <motion.div className="h-full rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, (latencyMs / 1500) * 100)}%` }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                          style={{ background: latencyMs < 300 ? "#00e5cc" : latencyMs < 800 ? "#fbbf24" : "#ff4d4d" }} />
+                      </div>
+                      <div className="flex justify-between mt-0.5">
+                        <span className="text-[6px] font-mono" style={{ color: "rgba(255,255,255,0.18)" }}>0ms</span>
+                        <span className="text-[6px] font-mono" style={{ color: "rgba(255,255,255,0.18)" }}>1500ms</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
 
             {/* ── Tier Selector ── */}
             <div className="px-4 pt-3 pb-2">

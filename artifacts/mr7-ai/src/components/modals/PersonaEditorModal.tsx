@@ -8,6 +8,7 @@ import {
   Terminal, Database, Scale, TrendingUp, Heart, BookOpen, Feather, Activity,
   Wifi, Radio, Cpu, GitBranch, Layers, Hash, Crosshair, Satellite, DollarSign,
   Wrench, Swords, Dna, Atom, Landmark, FlameKindling, Biohazard, Radar,
+  Copy, Download, Send,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -2405,6 +2406,41 @@ export function PersonaEditorModal({ open, onOpenChange }: PersonaEditorModalPro
     toast({ description: lang === "ar" ? "تمت إعادة الضبط إلى الافتراضي." : "Reset to default persona." });
   }
 
+  function copyPrompt() {
+    const text = effectivePrompt;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      toast({ description: lang === "ar" ? "تم نسخ إيحاء النظام." : "System prompt copied." });
+    });
+  }
+
+  function exportPreset() {
+    const preset = {
+      id: selectedPreset.id,
+      name: selectedPreset.name,
+      nameAr: selectedPreset.nameAr,
+      category: selectedPreset.category,
+      desc: selectedPreset.desc,
+      prompt: effectivePrompt,
+      exportedAt: new Date().toISOString(),
+      source: "mr7.ai",
+    };
+    const blob = new Blob([JSON.stringify(preset, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `persona-${selectedPreset.id}.json`; a.click();
+    URL.revokeObjectURL(url);
+    toast({ description: lang === "ar" ? "تم تصدير الشخصية." : "Persona exported." });
+  }
+
+  function injectOnly() {
+    const finalPrompt = selectedId === "default" ? "" : effectivePrompt;
+    dispatch({ type: "SET_SETTINGS", patch: { customSystemPrompt: finalPrompt, activePersonaPreset: selectedId } });
+    const name = lang === "ar" ? selectedPreset.nameAr : selectedPreset.name;
+    toast({ description: lang === "ar" ? `تم حقن الشخصية: ${name}` : `Injected: ${name}` });
+    // keep modal open
+  }
+
   const isActive = activePresetId !== "default" || state.settings.customSystemPrompt.trim().length > 0;
 
   const innerContent = (
@@ -2600,21 +2636,54 @@ export function PersonaEditorModal({ open, onOpenChange }: PersonaEditorModalPro
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between gap-2 pt-1 border-t border-border flex-shrink-0">
-            <button
-              onClick={reset}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background/60 hover:bg-accent text-[12px] text-muted-foreground font-semibold transition-colors"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              {lang === "ar" ? "إعادة الضبط" : "Reset to Default"}
-            </button>
+          <div className="pt-2 border-t border-border flex-shrink-0 space-y-2">
+            {/* Secondary row — utility buttons */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                onClick={reset}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border bg-background/60 hover:bg-accent text-[11px] text-muted-foreground font-semibold transition-colors"
+                title={lang === "ar" ? "إعادة الضبط إلى الافتراضي" : "Reset to Default"}
+              >
+                <RotateCcw className="w-3 h-3" />
+                {lang === "ar" ? "إعادة الضبط" : "Reset"}
+              </button>
+              <button
+                onClick={copyPrompt}
+                disabled={!effectivePrompt}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border bg-background/60 hover:bg-accent text-[11px] text-muted-foreground font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                title={lang === "ar" ? "نسخ إيحاء النظام" : "Copy system prompt"}
+              >
+                <Copy className="w-3 h-3" />
+                {lang === "ar" ? "نسخ" : "Copy"}
+              </button>
+              <button
+                onClick={exportPreset}
+                disabled={!effectivePrompt}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border bg-background/60 hover:bg-accent text-[11px] text-muted-foreground font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                title={lang === "ar" ? "تصدير الشخصية JSON" : "Export preset as JSON"}
+              >
+                <Download className="w-3 h-3" />
+                {lang === "ar" ? "تصدير" : "Export"}
+              </button>
+              <button
+                onClick={injectOnly}
+                disabled={selectedId === "custom" && !customPrompt.trim()}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg border transition-colors text-[11px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ borderColor: "rgba(0,229,255,0.3)", color: "#00e5ff", background: "rgba(0,229,255,0.05)" }}
+                title={lang === "ar" ? "حقن بدون إغلاق النافذة" : "Inject without closing"}
+              >
+                <Send className="w-3 h-3" />
+                {lang === "ar" ? "حقن" : "Inject"}
+              </button>
+            </div>
+            {/* Primary apply */}
             <button
               onClick={apply}
               disabled={selectedId === "custom" && !customPrompt.trim()}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-[12px] font-bold transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-[12px] font-bold transition-colors"
             >
               <Check className="w-3.5 h-3.5" />
-              {lang === "ar" ? "تطبيق الشخصية" : "Apply Persona"}
+              {lang === "ar" ? "تطبيق الشخصية وإغلاق" : "Apply Persona & Close"}
             </button>
           </div>
         </div>
