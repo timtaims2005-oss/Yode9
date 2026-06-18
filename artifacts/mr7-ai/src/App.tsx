@@ -528,10 +528,21 @@ function AppContent() {
 
   void state;
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem("mr7-sidebar-collapsed") === "1");
+  function toggleSidebar() {
+    setSidebarCollapsed(v => {
+      const next = !v;
+      localStorage.setItem("mr7-sidebar-collapsed", next ? "1" : "0");
+      return next;
+    });
+  }
+
   return (
     <div className="flex h-[100dvh] w-full overflow-hidden text-foreground selection:bg-primary/30 dark">
       <Sidebar
         isOpen={modals.sidebar}
+        collapsed={sidebarCollapsed}
+        onToggleCollapsed={toggleSidebar}
         onClose={() => close('sidebar')}
         onOpenPricing={() => open('pricing')}
         onOpenApi={() => open('api')}
@@ -553,6 +564,8 @@ function AppContent() {
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
         <TopBar
           onMenuClick={() => open('sidebar')}
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={toggleSidebar}
           onOpenPricing={() => open('pricing')}
           onOpenToolsHub={() => open('toolsHub')}
           onOpenHelp={() => open('shortcuts')}

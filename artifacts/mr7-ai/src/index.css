@@ -16,18 +16,99 @@ canvas,
   image-rendering: auto;
 }
 
-/* ── Force compositor layer on all animated elements ── */
-[style*="animation"],
-[style*="transition"],
-[style*="transform"] {
-  will-change: transform, opacity;
+/* ── Compositor layers only on intentional animated elements ── */
+.gpu-layer {
+  will-change: transform;
   transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* ── Mobile sidebar never overflows ── */
 @media (max-width: 767px) {
   .CHAT-GPT-sidebar { width: min(280px, 100vw) !important; }
 }
+
+/* ── Desktop sidebar collapse transition ── */
+.sidebar-desktop-wrapper {
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.sidebar-desktop-wrapper.collapsed { width: 64px !important; }
+.sidebar-desktop-wrapper.expanded  { width: 280px; }
+
+/* ── Safe-area padding for mobile input ── */
+.chat-input-safe {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+/* ── Minimum touch target size ── */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* ── Modal size system ── */
+.modal-sm  { max-width: min(420px, 96vw); }
+.modal-md  { max-width: min(720px, 96vw);  max-height: 90vh; }
+.modal-lg  { max-width: min(1060px, 96vw); max-height: 94vh; }
+
+/* ── Sidebar collapsed icon rail ── */
+.sidebar-icon-rail {
+  width: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  height: 100%;
+  overflow: hidden;
+}
+.sidebar-icon-rail .rail-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+  border: 1px solid transparent;
+  color: rgba(255,255,255,0.28);
+  background: transparent;
+}
+.sidebar-icon-rail .rail-btn:hover {
+  background: rgba(226,18,39,0.12);
+  border-color: rgba(226,18,39,0.35);
+  color: #e21227;
+}
+.sidebar-icon-rail .rail-btn.active {
+  background: rgba(226,18,39,0.15);
+  border-color: rgba(226,18,39,0.4);
+  color: #e21227;
+}
+
+/* ── Neon glow keyframes ── */
+@keyframes neon-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(226,18,39,0.5), 0 0 20px rgba(226,18,39,0.2); }
+  50%       { box-shadow: 0 0 16px rgba(226,18,39,0.8), 0 0 40px rgba(226,18,39,0.35); }
+}
+@keyframes cyber-scan {
+  0%   { transform: translateY(-100%); opacity: 0.6; }
+  100% { transform: translateY(100vh);  opacity: 0; }
+}
+@keyframes float-y {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+@keyframes holo-shimmer {
+  0%   { opacity: 0.2; transform: translateX(-100%) skewX(-15deg); }
+  100% { opacity: 0;   transform: translateX(400%)  skewX(-15deg); }
+}
+
+/* ── Tab hidden optimization ── */
+body.tab-hidden canvas { animation-play-state: paused !important; }
 
 /* ── Scrollable tab bars ── */
 .overflow-x-auto { -ms-overflow-style: none; scrollbar-width: none; }

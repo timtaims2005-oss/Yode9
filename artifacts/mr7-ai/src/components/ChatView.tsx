@@ -2548,7 +2548,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
                   placeholder={editingId ? t("chat.placeholderEdit") : streaming ? t("chat.placeholderGenerating") : t("chat.placeholder")}
                   rows={1}
                   maxLength={4000}
-                  className="flex-1 bg-transparent px-1 py-2 outline-none text-[15px] placeholder:text-muted-foreground/50 resize-none max-h-40 leading-relaxed"
+                  className="flex-1 bg-transparent px-1 py-2 outline-none text-[15px] placeholder:text-muted-foreground/50 resize-none max-h-64 leading-relaxed"
                 />
 
                 {streaming ? (

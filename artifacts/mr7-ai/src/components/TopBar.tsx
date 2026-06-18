@@ -67,6 +67,8 @@ interface TopBarProps {
   onOpenAutonomousDecisionEngine?: () => void;
   onOpenJARVISCommandCenter?: () => void;
   hudsVisible?: boolean;
+  sidebarCollapsed?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 // ── 3D animated HUD background ────────────────────────────────────────────────
@@ -718,6 +720,8 @@ export function TopBar({
   onOpenAutonomousDecisionEngine,
   onOpenJARVISCommandCenter,
   hudsVisible,
+  sidebarCollapsed,
+  onToggleSidebar,
 }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -789,9 +793,9 @@ export function TopBar({
           animation: "topbar-travel 3.5s linear infinite",
         }} />
 
-      {/* ── LEFT: menu + model selector ──────────────────────────────── */}
+      {/* ── LEFT: menu + sidebar toggle + model selector ────────────── */}
       <div className="flex items-center gap-1.5 flex-shrink-0 relative z-10">
-        {/* Hamburger */}
+        {/* Mobile hamburger */}
         <motion.button
           onClick={onMenuClick}
           className="p-2 md:hidden rounded-lg"
@@ -802,6 +806,27 @@ export function TopBar({
         >
           <Menu className="w-5 h-5" />
         </motion.button>
+
+        {/* Desktop sidebar collapse toggle */}
+        {onToggleSidebar && (
+          <motion.button
+            onClick={onToggleSidebar}
+            className="hidden md:flex p-2 rounded-lg"
+            style={{
+              color: sidebarCollapsed ? "#e21227" : "rgba(255,255,255,0.35)",
+              background: sidebarCollapsed ? "rgba(226,18,39,0.08)" : "transparent",
+              border: `1px solid ${sidebarCollapsed ? "rgba(226,18,39,0.25)" : "rgba(255,255,255,0.07)"}`,
+            }}
+            whileHover={{ color: "#e21227", background: "rgba(226,18,39,0.1)", borderColor: "rgba(226,18,39,0.3)" }}
+            whileTap={{ scale: 0.92 }}
+            aria-label={sidebarCollapsed ? "توسيع الشريط الجانبي" : "طي الشريط الجانبي"}
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {sidebarCollapsed
+              ? <PanelLeftOpen className="w-4 h-4" />
+              : <PanelLeftClose className="w-4 h-4" />}
+          </motion.button>
+        )}
 
         {/* Model selector */}
         <ModelSelector3D onOpenPricing={onOpenPricing} />

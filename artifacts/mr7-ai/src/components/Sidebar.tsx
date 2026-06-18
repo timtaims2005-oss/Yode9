@@ -23,11 +23,24 @@ function NeuralCanvasBG() {
     const cv = cvRef.current;
     if (!cv) return;
     const ctx = cv.getContext("2d")!;
-    const W = 280, H = 500;
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
-    cv.width = W * DPR; cv.height = H * DPR;
-    cv.style.width = W + "px"; cv.style.height = H + "px";
-    ctx.scale(DPR, DPR);
+
+    function resize() {
+      const W = cv.parentElement?.offsetWidth ?? 280;
+      const H = cv.parentElement?.offsetHeight ?? 500;
+      cv.width = W * DPR; cv.height = H * DPR;
+      cv.style.width = W + "px"; cv.style.height = H + "px";
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.scale(DPR, DPR);
+    }
+    resize();
+    const ro = new ResizeObserver(resize);
+    if (cv.parentElement) ro.observe(cv.parentElement);
+
+    function getWH() {
+      return { W: cv.parentElement?.offsetWidth ?? 280, H: cv.parentElement?.offsetHeight ?? 500 };
+    }
+    const { W, H } = getWH();
 
     const N = 22;
     type Node = { x: number; y: number; vx: number; vy: number; r: number };
@@ -49,13 +62,14 @@ function NeuralCanvasBG() {
       rafRef.current = requestAnimationFrame(draw);
       tRef.current += 0.008;
       const t = tRef.current;
-      ctx.clearRect(0, 0, W, H);
+      const { W: cW, H: cH } = getWH();
+      ctx.clearRect(0, 0, cW, cH);
 
       // Move nodes
       nodes.forEach(n => {
         n.x += n.vx; n.y += n.vy;
-        if (n.x < 0 || n.x > W) n.vx *= -1;
-        if (n.y < 0 || n.y > H) n.vy *= -1;
+        if (n.x < 0 || n.x > cW) n.vx *= -1;
+        if (n.y < 0 || n.y > cH) n.vy *= -1;
       });
 
       // Draw edges
@@ -89,7 +103,7 @@ function NeuralCanvasBG() {
       });
     }
     draw();
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => { cancelAnimationFrame(rafRef.current); ro.disconnect(); };
   }, []);
 
   return (
@@ -105,6 +119,8 @@ function NeuralCanvasBG() {
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
   onOpenPricing: () => void;
   onOpenApi: () => void;
   onOpenTool: () => void;
@@ -242,7 +258,7 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: DbIcon, label: "Kali SQLi Guide", color: "text-blue-400" },
 ];
 
-export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib }: SidebarProps) {
   const { toast } = useToast();
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -1052,7 +1068,77 @@ export function Sidebar({ isOpen, onClose, onOpenPricing, onOpenApi, onOpenTool,
 
   return (
     <>
-      <div className="hidden md:block h-full relative z-20">{content}</div>
+      {/* Desktop sidebar — collapsible */}
+      <div
+        className={`hidden md:flex h-full relative z-20 sidebar-desktop-wrapper ${collapsed ? "collapsed" : "expanded"}`}
+        style={{ background: "linear-gradient(180deg, rgba(10,10,16,0.99) 0%, rgba(6,6,10,1) 100%)", borderRight: "1px solid rgba(226,18,39,0.15)" }}
+      >
+        {collapsed ? (
+          /* ── Icon-only collapsed rail ── */
+          <div className="sidebar-icon-rail">
+            {/* Expand button */}
+            <button
+              onClick={onToggleCollapsed}
+              className="rail-btn"
+              title="توسيع الشريط الجانبي"
+              aria-label="Expand sidebar"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+            {/* Logo */}
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2"
+              style={{ background: "radial-gradient(circle at 35% 35%, rgba(226,18,39,0.3), rgba(8,8,12,0.95))", border: "1px solid rgba(226,18,39,0.4)", boxShadow: "0 0 16px rgba(226,18,39,0.2)" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4.5 h-4.5" style={{ color: "#e21227" }}>
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <div className="w-full h-px my-1" style={{ background: "rgba(226,18,39,0.15)" }} />
+            {/* New Chat */}
+            <button onClick={() => { dispatch({ type: "NEW_CHAT" }); onClose(); }} className="rail-btn" title="محادثة جديدة">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+            {/* Search */}
+            <button onClick={onOpenSearch} className="rail-btn" title="بحث">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            {/* Tools Hub */}
+            <button onClick={onOpenToolsHub} className="rail-btn" title="مركز الأدوات">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            </button>
+            {/* Memory */}
+            <button onClick={onOpenMemory} className="rail-btn" title="الذاكرة">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
+            </button>
+            {/* Bookmarks */}
+            <button onClick={onOpenBookmarks} className="rail-btn" title="المفضلة">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            </button>
+            <div className="flex-1" />
+            {/* Settings */}
+            <button onClick={onOpenSettings} className="rail-btn" title="الإعدادات">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+          </div>
+        ) : (
+          /* ── Full expanded sidebar ── */
+          <div className="relative h-full w-full">
+            {/* Collapse button (desktop only) */}
+            <button
+              onClick={onToggleCollapsed}
+              className="absolute top-4 right-2 z-10 p-1.5 rounded-lg transition-colors text-muted-foreground/50 hover:text-foreground hover:bg-white/5"
+              title="طي الشريط الجانبي"
+              aria-label="Collapse sidebar"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            {content}
+          </div>
+        )}
+      </div>
       <AnimatePresence>
         {isOpen && (
           <>
