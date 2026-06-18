@@ -132,12 +132,34 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
   }, []);
 
   const topPresets = PERSONA_PRESETS.slice(0, 8);
+  const btnRef2 = useRef<HTMLButtonElement>(null);
+  const [panelPos, setPanelPos] = useState({ top: 0, left: 0 });
+
+  function openPanel() {
+    if (btnRef2.current) {
+      const r = btnRef2.current.getBoundingClientRect();
+      setPanelPos({
+        top: Math.min(r.bottom + 8, window.innerHeight - 460),
+        left: Math.min(r.left - 120, window.innerWidth - 300),
+      });
+    }
+    setShowPanel(v => !v);
+  }
+
+  // Escape key to close
+  useEffect(() => {
+    if (!showPanel) return;
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") setShowPanel(false); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [showPanel]);
 
   return (
     <div ref={ref} className="relative flex-shrink-0">
       {/* Main trigger button — circular 36px */}
       <motion.button
-        onClick={() => setShowPanel(v => !v)}
+        ref={btnRef2}
+        onClick={openPanel}
         className="relative flex items-center justify-center rounded-full transition-all"
         style={{
           width: 36, height: 36,
@@ -165,26 +187,44 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
         )}
       </motion.button>
 
-      {/* 3D Quick-Pick Panel */}
+      {/* 3D External Floating Window */}
       <AnimatePresence>
         {showPanel && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              className="fixed inset-0 z-[1994]"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+              onClick={() => setShowPanel(false)}
+            />
+
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.94, rotateX: -8 }}
-            animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-            exit={{ opacity: 0, y: -8, scale: 0.94, rotateX: -6 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50"
+            initial={{ opacity: 0, scale: 0.93, y: -12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.93, y: -10 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              width: 280,
-              background: "rgba(7,7,12,0.97)",
-              border: `1px solid rgba(${cr},${cg},${cb},0.25)`,
-              borderRadius: 16,
-              boxShadow: `0 0 40px rgba(${cr},${cg},${cb},0.15), 0 8px 32px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05)`,
-              backdropFilter: "blur(20px)",
+              position: "fixed",
+              top: panelPos.top,
+              left: panelPos.left,
+              zIndex: 1995,
+              width: 300,
+              background: "linear-gradient(160deg, rgba(5,3,14,0.99) 0%, rgba(3,2,9,0.99) 100%)",
+              border: `1px solid rgba(${cr},${cg},${cb},0.30)`,
+              borderRadius: 18,
+              boxShadow: `0 0 80px rgba(${cr},${cg},${cb},0.18), 0 0 30px rgba(${cr},${cg},${cb},0.08), 0 24px 60px rgba(0,0,0,0.90), inset 0 1px 0 rgba(${cr},${cg},${cb},0.12)`,
+              backdropFilter: "blur(32px)",
               transformStyle: "preserve-3d",
-              perspective: 800,
+              perspective: 900,
+              pointerEvents: "auto",
             }}
           >
+            {/* Corner brackets */}
+            <span className="absolute top-2 left-2 w-3 h-3 border-t border-l pointer-events-none" style={{ borderColor: `rgba(${cr},${cg},${cb},0.55)` }} />
+            <span className="absolute top-2 right-2 w-3 h-3 border-t border-r pointer-events-none" style={{ borderColor: `rgba(${cr},${cg},${cb},0.55)` }} />
+            <span className="absolute bottom-2 left-2 w-3 h-3 border-b border-l pointer-events-none" style={{ borderColor: `rgba(${cr},${cg},${cb},0.3)` }} />
+            <span className="absolute bottom-2 right-2 w-3 h-3 border-b border-r pointer-events-none" style={{ borderColor: `rgba(${cr},${cg},${cb},0.3)` }} />
             {/* Header stripe */}
             <div className="h-[2px] w-full rounded-t-2xl"
               style={{ background: `linear-gradient(90deg, transparent, rgba(${cr},${cg},${cb},0.8), transparent)` }} />
@@ -316,8 +356,9 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
 
             {/* Bottom stripe */}
             <div className="h-px w-full rounded-b-2xl"
-              style={{ background: `linear-gradient(90deg, transparent, rgba(${cr},${cg},${cb},0.2), transparent)` }} />
+              style={{ background: `linear-gradient(90deg, transparent, rgba(${cr},${cg},${cb},0.4), transparent)` }} />
           </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>

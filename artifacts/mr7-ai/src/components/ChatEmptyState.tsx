@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Shield, Cpu, Network, Terminal, Zap, Code2, Eye, Target } from "lucide-react";
+import { Brain, Shield, Cpu, Network, Terminal, Zap, Code2, Eye, Target, Server } from "lucide-react";
 import { MatrixRain } from "./MatrixRain";
 import { FuturisticBackground3D } from "./FuturisticBackground3D";
+import { useStore } from "@/lib/store";
 
 // ── 3D Wireframe Threat Globe ─────────────────────────────────────────────────
 function ThreatGlobe3D() {
@@ -193,7 +194,100 @@ interface ChatEmptyStateProps {
   emptyText?: string;
 }
 
+// ── Mini local model toggle orb ────────────────────────────────────────────────
+function LocalToggleOrb({ active, onClick }: { active: boolean; onClick: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef    = useRef(0);
+  const tRef      = useRef(0);
+
+  useEffect(() => {
+    const cv = canvasRef.current; if (!cv) return;
+    const ctx = cv.getContext("2d", { alpha: true, desynchronized: true })!;
+    const S = 48, DPR = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = S * DPR; cv.height = S * DPR; ctx.scale(DPR, DPR);
+    const cx = S / 2, cy = S / 2, R = S * 0.32;
+    const [r, g, b] = active ? [34, 197, 94] : [239, 68, 68];
+
+    function draw() {
+      rafRef.current = requestAnimationFrame(draw);
+      tRef.current += 0.04;
+      const t = tRef.current;
+      ctx.clearRect(0, 0, S, S);
+
+      const pulse = 0.5 + Math.sin(t * (active ? 2.2 : 3.5)) * 0.35;
+      const glow = ctx.createRadialGradient(cx, cy, R * 0.3, cx, cy, S * 0.5);
+      glow.addColorStop(0, `rgba(${r},${g},${b},${pulse * 0.6})`);
+      glow.addColorStop(0.55, `rgba(${r},${g},${b},${pulse * 0.18})`);
+      glow.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      ctx.beginPath(); ctx.arc(cx, cy, S * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = glow; ctx.fill();
+
+      // Rotating ring
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(t * (active ? 0.8 : 2.2));
+      ctx.beginPath(); ctx.arc(0, 0, R * 1.3, 0, Math.PI * 1.4);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${active ? 0.55 : 0.3})`;
+      ctx.lineWidth = 1.4; ctx.stroke(); ctx.restore();
+
+      // Sphere
+      const diff = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, 0, cx, cy, R);
+      diff.addColorStop(0, `rgba(${Math.min(r+90,255)},${Math.min(g+90,255)},${Math.min(b+90,255)},0.96)`);
+      diff.addColorStop(0.5, `rgba(${r},${g},${b},0.88)`);
+      diff.addColorStop(1, `rgba(${Math.round(r*0.2)},${Math.round(g*0.2)},${Math.round(b*0.2)},0.72)`);
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(2,6,4,0.9)`; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = diff; ctx.fill();
+
+      // Specular
+      const spec = ctx.createRadialGradient(cx - R * 0.38, cy - R * 0.42, 0, cx, cy, R);
+      spec.addColorStop(0, "rgba(255,255,255,0.78)");
+      spec.addColorStop(0.3, "rgba(255,255,255,0.2)");
+      spec.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = spec; ctx.fill();
+    }
+
+    rafRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [active]);
+
+  return (
+    <motion.button
+      onClick={onClick}
+      className="relative flex flex-col items-center gap-1.5 group"
+      whileHover={{ scale: 1.08, y: -2 }}
+      whileTap={{ scale: 0.92, transition: { type: "spring", stiffness: 600, damping: 25 } }}
+      title={active ? "تعطيل النموذج المحلي" : "تفعيل النموذج المحلي"}
+      aria-label="Local model toggle"
+    >
+      <div className="relative">
+        <canvas ref={canvasRef} style={{ width: 48, height: 48, display: "block", cursor: "pointer", borderRadius: "50%" }} />
+        {/* Outer ring pulse */}
+        <motion.div className="absolute inset-0 rounded-full pointer-events-none"
+          style={{ border: `1.5px solid ${active ? "rgba(34,197,94,0.55)" : "rgba(239,68,68,0.4)"}` }}
+          animate={{ scale: [1, 1.22, 1], opacity: [0.6, 0, 0.6] }}
+          transition={{ duration: active ? 2.0 : 1.1, repeat: Infinity }} />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+        <span style={{
+          fontSize: "7px", fontWeight: 900, letterSpacing: "0.32em",
+          color: active ? "rgba(34,197,94,0.8)" : "rgba(239,68,68,0.65)",
+          fontFamily: "monospace", textTransform: "uppercase",
+        }}>LOCAL MODEL</span>
+        <span style={{
+          fontSize: "9px", fontWeight: 900, letterSpacing: "0.2em",
+          color: active ? "#22c55e" : "#ef4444",
+          fontFamily: "monospace",
+          textShadow: `0 0 10px ${active ? "#22c55e" : "#ef4444"}`,
+        }}>{active ? "ENABLED" : "DISABLED"}</span>
+      </div>
+    </motion.button>
+  );
+}
+
 export function ChatEmptyState({ modelName, memoryCount = 0, onPrompt, emptyText }: ChatEmptyStateProps) {
+  const { state, dispatch } = useStore();
+  const useLocal = state.settings.useLocalModel;
   const [bootLine, setBootLine] = useState(0);
   const [showMain, setShowMain] = useState(false);
   const [glitching, setGlitching] = useState(false);
@@ -340,6 +434,36 @@ export function ChatEmptyState({ modelName, memoryCount = 0, onPrompt, emptyText
                   fontFamily: "monospace", fontSize: "8px", fontWeight: 700,
                   color: "rgba(226,18,39,0.55)", letterSpacing: "0.25em", whiteSpace: "nowrap",
                 }}>GLOBAL THREAT MAP</div>
+              </div>
+            </div>
+
+            {/* Local Model toggle — boot screen */}
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: "20px",
+                padding: "12px 24px", borderRadius: "16px",
+                background: useLocal ? "rgba(34,197,94,0.05)" : "rgba(239,68,68,0.04)",
+                border: `1px solid ${useLocal ? "rgba(34,197,94,0.18)" : "rgba(239,68,68,0.14)"}`,
+                backdropFilter: "blur(8px)",
+              }}>
+                <LocalToggleOrb
+                  active={useLocal}
+                  onClick={() => dispatch({ type: "SET_SETTINGS", patch: { useLocalModel: !useLocal } })}
+                />
+                <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+                  <div style={{ fontSize: "10px", fontFamily: "monospace", fontWeight: 900, letterSpacing: "0.28em", color: "rgba(255,255,255,0.35)", textTransform: "uppercase" }}>
+                    وضع النموذج
+                  </div>
+                  <div style={{ fontSize: "13px", fontWeight: 900, color: useLocal ? "#22c55e" : "#ef4444", textShadow: `0 0 18px ${useLocal ? "#22c55e" : "#ef4444"}` }}>
+                    {useLocal ? "نموذج محلي" : "نموذج سحابي"}
+                  </div>
+                  <div style={{ fontSize: "9px", fontFamily: "monospace", color: "rgba(255,255,255,0.28)" }}>
+                    {useLocal ? (state.settings.localModel || "Ollama / LM Studio") : (state.activeProvider?.toUpperCase() || "CLOUD")}
+                  </div>
+                  <div style={{ fontSize: "8px", fontFamily: "monospace", color: "rgba(255,255,255,0.18)", letterSpacing: "0.1em" }}>
+                    اضغط للتبديل ←→ toggle
+                  </div>
+                </div>
               </div>
             </div>
 

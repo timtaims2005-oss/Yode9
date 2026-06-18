@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useContext, createContext } from "react";
+import { useEffect, useRef, useState, useContext, createContext, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { useT } from "@/lib/i18n";
@@ -336,32 +336,161 @@ function TopBarHUDCanvas({ powerOn }: { powerOn: boolean }) {
   );
 }
 
+// ── Real-time local model health ping hook ─────────────────────────────────────
+type LocalHealth = "online" | "slow" | "offline" | "checking";
+const HEALTH_C: Record<LocalHealth, string> = {
+  online:   "#22c55e",
+  slow:     "#f59e0b",
+  offline:  "#ef4444",
+  checking: "#6366f1",
+};
+const HEALTH_LBL: Record<LocalHealth, string> = {
+  online:   "ONLINE",
+  slow:     "SLOW",
+  offline:  "OFFLINE",
+  checking: "PING...",
+};
+
+function useLocalModelHealth(endpoint: string, enabled: boolean) {
+  const [health,  setHealth]  = useState<LocalHealth>("checking");
+  const [latency, setLatency] = useState<number | null>(null);
+  const [lastMs,  setLastMs]  = useState<number | null>(null);
+
+  const ping = useCallback(async () => {
+    if (!enabled) { setHealth("offline"); setLatency(null); return; }
+    setHealth("checking");
+    const t0 = Date.now();
+    try {
+      const base = (endpoint || "http://localhost:11434/v1").replace(/\/v1\/?$/, "");
+      // Try Ollama models endpoint, fallback to LM Studio
+      const res = await Promise.race([
+        fetch(`${base}/api/tags`, { signal: AbortSignal.timeout(4000) }).catch(() =>
+          fetch(`${base}/v1/models`, { signal: AbortSignal.timeout(4000) })
+        ),
+        new Promise<never>((_, rej) => setTimeout(() => rej(new Error("timeout")), 4200)),
+      ]) as Response;
+      const ms = Date.now() - t0;
+      setLatency(ms); setLastMs(Date.now());
+      setHealth(ms < 600 ? "online" : ms < 2000 ? "slow" : "slow");
+    } catch {
+      setHealth("offline"); setLatency(null); setLastMs(Date.now());
+    }
+  }, [endpoint, enabled]);
+
+  useEffect(() => {
+    ping();
+    const id = setInterval(ping, 30000);
+    return () => clearInterval(id);
+  }, [ping]);
+
+  return { health, latency, lastMs, ping };
+}
+
+// ── 3D Health pulse orb canvas ─────────────────────────────────────────────────
+function HealthOrb3D({ health }: { health: LocalHealth }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef    = useRef(0);
+  const tRef      = useRef(0);
+
+  useEffect(() => {
+    const cv = canvasRef.current; if (!cv) return;
+    const ctx = cv.getContext("2d", { alpha: true, desynchronized: true })!;
+    const S = 28, DPR = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = S * DPR; cv.height = S * DPR; ctx.scale(DPR, DPR);
+    const cx = S / 2, cy = S / 2, R = S * 0.36;
+
+    function hexToRgb(hex: string) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return [r, g, b];
+    }
+
+    function draw() {
+      rafRef.current = requestAnimationFrame(draw);
+      tRef.current += 0.05;
+      const t = tRef.current;
+      ctx.clearRect(0, 0, S, S);
+
+      const col = HEALTH_C[health] || "#6366f1";
+      const [r, g, b] = hexToRgb(col);
+
+      // Outer glow ring
+      const pulse = health === "checking" ? 0.5 + Math.sin(t * 4) * 0.4 : 0.5 + Math.sin(t * 2) * 0.25;
+      const glow = ctx.createRadialGradient(cx, cy, R * 0.4, cx, cy, S * 0.5);
+      glow.addColorStop(0, `rgba(${r},${g},${b},${pulse * 0.55})`);
+      glow.addColorStop(0.6, `rgba(${r},${g},${b},${pulse * 0.15})`);
+      glow.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      ctx.beginPath(); ctx.arc(cx, cy, S * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = glow; ctx.fill();
+
+      // Spinning ring (checking = fast)
+      ctx.save(); ctx.translate(cx, cy);
+      ctx.rotate(t * (health === "checking" ? 3.5 : 0.9));
+      ctx.beginPath();
+      ctx.arc(0, 0, R * 1.25, 0, Math.PI * 1.35);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${health === "offline" ? 0.15 : 0.5})`;
+      ctx.lineWidth = 1.2; ctx.stroke(); ctx.restore();
+
+      // Inner sphere
+      const diff = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, 0, cx, cy, R);
+      diff.addColorStop(0, `rgba(${Math.min(r+80,255)},${Math.min(g+80,255)},${Math.min(b+80,255)},0.95)`);
+      diff.addColorStop(0.5, `rgba(${r},${g},${b},0.85)`);
+      diff.addColorStop(1, `rgba(${Math.round(r*0.25)},${Math.round(g*0.25)},${Math.round(b*0.25)},0.7)`);
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${Math.round(r*0.06)},${Math.round(g*0.06)},${Math.round(b*0.06)},0.95)`;
+      ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = diff; ctx.fill();
+
+      // Specular highlight
+      const spec = ctx.createRadialGradient(cx - R * 0.4, cy - R * 0.45, 0, cx, cy, R);
+      spec.addColorStop(0, "rgba(255,255,255,0.75)");
+      spec.addColorStop(0.3, "rgba(255,255,255,0.18)");
+      spec.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = spec; ctx.fill();
+    }
+
+    rafRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [health]);
+
+  return <canvas ref={canvasRef} style={{ width: 28, height: 28, display: "block", flexShrink: 0 }} />;
+}
+
 // ── Local Model Quick Toggle ───────────────────────────────────────────────────
 function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => void }) {
   const { state, dispatch } = useStore();
   const useLocal = state.settings.useLocalModel;
   const model    = state.settings.localModel || "dolphin-mixtral";
+  const endpoint = state.settings.localEndpoint || "http://localhost:11434/v1";
   const [floatOpen, setFloatOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const [pos, setPos] = useState({ top: 0, left: 0 });
 
+  const { health, latency, lastMs, ping } = useLocalModelHealth(endpoint, useLocal);
+  const hColor = HEALTH_C[health];
+
   function openFloat() {
     if (btnRef.current) {
       const r = btnRef.current.getBoundingClientRect();
-      setPos({ top: r.bottom + 8, left: r.left });
+      setPos({
+        top:  Math.min(r.bottom + 8, window.innerHeight - 380),
+        left: Math.min(r.left, window.innerWidth - 340),
+      });
     }
     setFloatOpen(o => !o);
   }
 
   useEffect(() => {
     if (!floatOpen) return;
-    const h = (e: MouseEvent) => {
-      const t = e.target as Node;
-      if (btnRef.current && !btnRef.current.contains(t)) setFloatOpen(false);
-    };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") setFloatOpen(false); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
   }, [floatOpen]);
+
+  const lastAgo = lastMs ? Math.round((Date.now() - lastMs) / 1000) : null;
 
   return (
     <>
@@ -370,17 +499,23 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
         onClick={openFloat}
         className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1.5 rounded-lg relative overflow-hidden"
         style={{
-          color:      useLocal ? "#22c55e" : "rgba(255,80,80,0.65)",
-          background: useLocal ? "rgba(34,197,94,0.1)"  : "rgba(255,50,50,0.06)",
-          border:     `1px solid ${useLocal ? "rgba(34,197,94,0.35)" : "rgba(255,80,80,0.22)"}`,
-          boxShadow:  useLocal ? "0 0 12px rgba(34,197,94,0.2)" : "none",
+          color:      useLocal ? hColor : "rgba(255,80,80,0.65)",
+          background: useLocal ? `${hColor}12` : "rgba(255,50,50,0.06)",
+          border:     `1px solid ${useLocal ? hColor + "44" : "rgba(255,80,80,0.22)"}`,
+          boxShadow:  useLocal ? `0 0 14px ${hColor}28` : "none",
         }}
         whileHover={{ scale: 1.05, y: -0.5 }}
-        whileTap={{ scale: 0.94 }}
+        whileTap={{ scale: 0.94, transition: { type: "spring", stiffness: 600, damping: 25 } }}
         aria-label="Local Model status"
-        title={useLocal ? `Local active: ${model}` : "Local model disabled"}
+        title={useLocal ? `Local: ${model} — ${HEALTH_LBL[health]}` : "Local model disabled"}
       >
-        <motion.div
+        {/* Shimmer sweep on hover */}
+        <motion.span className="absolute inset-y-0 w-12 pointer-events-none"
+          style={{ background: `linear-gradient(90deg,transparent,${hColor}22,transparent)` }}
+          animate={{ x: ["-120%", "320%"] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }} />
+
+        <motion.div style={{ filter: `drop-shadow(0 0 3px ${hColor}88)` }}
           animate={useLocal ? { opacity: [1, 0.3, 1] } : { opacity: 0.5 }}
           transition={{ duration: 1.6, repeat: Infinity }}
         >
@@ -390,11 +525,21 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
           <span className="text-[6.5px] font-black tracking-[0.3em] uppercase opacity-60">LOCAL</span>
           <span className="text-[8px] font-black tracking-wide">{useLocal ? "ON" : "OFF"}</span>
         </div>
+
+        {/* Live health dot */}
         {useLocal && (
-          <motion.span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-            style={{ background: "#22c55e", boxShadow: "0 0 6px #22c55e" }}
-            animate={{ scale: [1, 1.4, 1], opacity: [1, 0.4, 1] }}
-            transition={{ duration: 1.4, repeat: Infinity }} />
+          <motion.span className="w-2 h-2 rounded-full flex-shrink-0"
+            style={{ background: hColor, boxShadow: `0 0 8px ${hColor}` }}
+            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.35, 1] }}
+            transition={{ duration: health === "checking" ? 0.7 : 1.6, repeat: Infinity }} />
+        )}
+
+        {/* Active pulse bottom line */}
+        {floatOpen && (
+          <motion.span className="absolute bottom-0 left-0 right-0 h-px pointer-events-none"
+            style={{ background: `linear-gradient(90deg,transparent,${hColor},transparent)` }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.2, repeat: Infinity }} />
         )}
       </motion.button>
 
@@ -404,82 +549,130 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
           <>
             <motion.div className="fixed inset-0 z-[1998]"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+              style={{ background: "rgba(0,0,0,0.60)", backdropFilter: "blur(5px)" }}
               onClick={() => setFloatOpen(false)} />
 
             <motion.div
-              className="fixed z-[1999] rounded-2xl overflow-hidden"
+              className="fixed z-[1999] rounded-2xl"
               style={{
-                top: Math.min(pos.top, window.innerHeight - 300),
-                left: Math.min(pos.left, window.innerWidth - 320),
-                width: 300,
-                background: "linear-gradient(160deg, rgba(5,3,12,0.99) 0%, rgba(3,2,8,0.99) 100%)",
-                border: "1px solid rgba(34,197,94,0.3)",
-                boxShadow: "0 0 60px rgba(34,197,94,0.12), 0 20px 60px rgba(0,0,0,0.85), inset 0 1px 0 rgba(34,197,94,0.12)",
+                top: pos.top, left: pos.left, width: 320,
+                background: "linear-gradient(160deg, rgba(4,8,5,0.99) 0%, rgba(2,5,3,0.99) 100%)",
+                border: `1px solid ${hColor}40`,
+                boxShadow: `0 0 80px ${hColor}18, 0 0 30px ${hColor}0a, 0 28px 70px rgba(0,0,0,0.92), inset 0 1px 0 ${hColor}18`,
+                backdropFilter: "blur(32px)",
               }}
-              initial={{ opacity: 0, scale: 0.9, y: -8 }}
+              initial={{ opacity: 0, scale: 0.91, y: -10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: -8 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              exit={{ opacity: 0, scale: 0.91, y: -8 }}
+              transition={{ duration: 0.20, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="h-px w-full" style={{ background: "linear-gradient(90deg,transparent,#22c55e,rgba(34,197,94,0.4),transparent)" }} />
-              {/* Corner brackets */}
-              <span className="absolute top-2 left-2 w-3 h-3 border-t border-l pointer-events-none" style={{ borderColor: "rgba(34,197,94,0.5)" }} />
-              <span className="absolute top-2 right-2 w-3 h-3 border-t border-r pointer-events-none" style={{ borderColor: "rgba(34,197,94,0.5)" }} />
-              <span className="absolute bottom-2 left-2 w-3 h-3 border-b border-l pointer-events-none" style={{ borderColor: "rgba(34,197,94,0.3)" }} />
-              <span className="absolute bottom-2 right-2 w-3 h-3 border-b border-r pointer-events-none" style={{ borderColor: "rgba(34,197,94,0.3)" }} />
+              <div className="h-px w-full" style={{ background: `linear-gradient(90deg,transparent,${hColor},rgba(34,197,94,0.3),transparent)` }} />
 
-              <div className="px-5 pt-4 pb-3">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                    style={{ background: useLocal ? "rgba(34,197,94,0.15)" : "rgba(255,80,80,0.1)", border: `1px solid ${useLocal ? "rgba(34,197,94,0.4)" : "rgba(255,80,80,0.3)"}` }}>
-                    <Server className="w-4 h-4" style={{ color: useLocal ? "#22c55e" : "rgba(255,80,80,0.8)" }} />
-                  </div>
-                  <div>
-                    <div className="text-[8px] font-black tracking-[0.4em] uppercase" style={{ color: "rgba(255,255,255,0.22)" }}>LOCAL MODEL</div>
-                    <div className="text-[13px] font-black" style={{ color: useLocal ? "#22c55e" : "rgba(255,80,80,0.9)" }}>
-                      {useLocal ? "نشط" : "معطَّل"}
+              {/* Corner brackets */}
+              <span className="absolute top-2 left-2 w-3 h-3 border-t border-l pointer-events-none" style={{ borderColor: hColor + "66" }} />
+              <span className="absolute top-2 right-2 w-3 h-3 border-t border-r pointer-events-none" style={{ borderColor: hColor + "66" }} />
+              <span className="absolute bottom-2 left-2 w-3 h-3 border-b border-l pointer-events-none" style={{ borderColor: hColor + "33" }} />
+              <span className="absolute bottom-2 right-2 w-3 h-3 border-b border-r pointer-events-none" style={{ borderColor: hColor + "33" }} />
+
+              <div className="px-5 pt-4 pb-2">
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-3">
+                  <HealthOrb3D health={health} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[7px] font-black tracking-[0.4em] uppercase" style={{ color: "rgba(255,255,255,0.22)" }}>LOCAL MODEL ENGINE</div>
+                    <div className="text-[13px] font-black flex items-center gap-1.5" style={{ color: hColor }}>
+                      {HEALTH_LBL[health]}
+                      {latency != null && (
+                        <span className="text-[9px] font-mono font-normal" style={{ color: hColor + "aa" }}>{latency}ms</span>
+                      )}
                     </div>
                   </div>
                   <motion.button onClick={() => setFloatOpen(false)}
-                    className="ml-auto w-7 h-7 rounded-lg flex items-center justify-center text-[13px]"
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-[13px]"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)" }}
                     whileHover={{ background: "rgba(226,18,39,0.12)", color: "#e21227" }}>×</motion.button>
                 </div>
 
-                <div className="text-[10px] font-mono mb-3 px-2 py-1.5 rounded-lg truncate"
-                  style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                  {state.settings.localEndpoint || "http://localhost:11434/v1"} · {model}
+                {/* Live latency bar */}
+                {useLocal && (
+                  <div className="mb-3 rounded-lg overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div className="flex items-center justify-between px-2.5 py-1.5">
+                      <span className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.3)" }}>اتصال مباشر</span>
+                      <span className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>
+                        {lastAgo != null ? `آخر فحص: ${lastAgo}ث` : "—"} · كل 30ث
+                      </span>
+                    </div>
+                    <div className="mx-2.5 mb-2 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+                      <motion.div className="h-full rounded-full"
+                        animate={{ width: health === "online" ? "92%" : health === "slow" ? "52%" : health === "checking" ? ["20%","80%","20%"] : "8%" }}
+                        transition={{ duration: health === "checking" ? 1.2 : 0.6, repeat: health === "checking" ? Infinity : 0, ease: "easeOut" }}
+                        style={{ background: `linear-gradient(90deg,${hColor},${hColor}aa)` }} />
+                    </div>
+
+                    {/* Real-time health indicators */}
+                    <div className="grid grid-cols-3 gap-1 mx-2.5 mb-2">
+                      {[
+                        { label: "LATENCY", value: latency != null ? `${latency}ms` : "—", color: latency != null ? (latency < 600 ? "#22c55e" : latency < 2000 ? "#f59e0b" : "#ef4444") : "rgba(255,255,255,0.3)" },
+                        { label: "STATUS",  value: HEALTH_LBL[health], color: hColor },
+                        { label: "UPTIME",  value: health !== "offline" ? "LIVE" : "DOWN", color: health !== "offline" ? "#22c55e" : "#ef4444" },
+                      ].map(s => (
+                        <div key={s.label} className="rounded-lg p-1.5 text-center" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                          <div className="text-[6px] uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>{s.label}</div>
+                          <div className="text-[8px] font-black font-mono" style={{ color: s.color }}>{s.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Endpoint display */}
+                <div className="text-[9px] font-mono mb-3 px-2 py-1.5 rounded-lg truncate"
+                  style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  {endpoint} · {model}
                 </div>
 
                 <div className="flex flex-col gap-2">
+                  {/* Main toggle */}
                   <motion.button
                     onClick={() => {
                       dispatch({ type: "SET_SETTINGS", patch: { useLocalModel: !useLocal } });
                       setFloatOpen(false);
                     }}
-                    className="w-full py-2.5 rounded-xl text-[11px] font-black tracking-wider uppercase"
+                    className="w-full py-2.5 rounded-xl text-[11px] font-black tracking-wider uppercase relative overflow-hidden"
                     style={{
-                      background: useLocal ? "rgba(255,50,50,0.12)" : "rgba(34,197,94,0.12)",
-                      border: `1px solid ${useLocal ? "rgba(255,80,80,0.35)" : "rgba(34,197,94,0.35)"}`,
-                      color: useLocal ? "rgba(255,80,80,0.9)" : "#22c55e",
+                      background: useLocal ? "rgba(239,68,68,0.12)" : "rgba(34,197,94,0.14)",
+                      border: `1px solid ${useLocal ? "rgba(239,68,68,0.4)" : "rgba(34,197,94,0.4)"}`,
+                      color: useLocal ? "#ef4444" : "#22c55e",
                     }}
-                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                  >
-                    {useLocal ? "⊘  تعطيل النموذج المحلي" : "⊕  تفعيل النموذج المحلي"}
-                  </motion.button>
-                  <motion.button
-                    onClick={() => { setFloatOpen(false); onOpenLocalModel(); }}
-                    className="w-full py-2 rounded-xl text-[10px] font-black tracking-wider uppercase"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.45)" }}
-                    whileHover={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.7)" }}
+                    whileHover={{ scale: 1.02, boxShadow: `0 0 20px ${useLocal ? "rgba(239,68,68,0.22)" : "rgba(34,197,94,0.22)"}` }}
                     whileTap={{ scale: 0.97 }}
                   >
-                    ⚙ إعدادات متقدمة
+                    <motion.span className="absolute inset-y-0 w-20 pointer-events-none"
+                      style={{ background: `linear-gradient(90deg,transparent,${useLocal ? "rgba(239,68,68,0.18)" : "rgba(34,197,94,0.18)"},transparent)` }}
+                      animate={{ x: ["-150%", "400%"] }} transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }} />
+                    {useLocal ? "⊘  تعطيل النموذج المحلي" : "⊕  تفعيل النموذج المحلي"}
                   </motion.button>
+
+                  <div className="flex gap-2">
+                    {/* Ping now */}
+                    <motion.button
+                      onClick={() => ping()}
+                      className="flex-1 py-2 rounded-xl text-[9px] font-black tracking-wider uppercase"
+                      style={{ background: `${hColor}10`, border: `1px solid ${hColor}28`, color: hColor }}
+                      whileHover={{ scale: 1.02, background: `${hColor}18` }} whileTap={{ scale: 0.97 }}
+                    >⟳ فحص الآن</motion.button>
+
+                    <motion.button
+                      onClick={() => { setFloatOpen(false); onOpenLocalModel(); }}
+                      className="flex-1 py-2 rounded-xl text-[9px] font-black tracking-wider uppercase"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.45)" }}
+                      whileHover={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.7)" }}
+                      whileTap={{ scale: 0.97 }}
+                    >⚙ إعدادات</motion.button>
+                  </div>
                 </div>
               </div>
-              <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(34,197,94,0.3),transparent)" }} />
+              <div className="h-px" style={{ background: `linear-gradient(90deg,transparent,${hColor}44,transparent)` }} />
             </motion.div>
           </>
         )}
