@@ -68,7 +68,10 @@ export type ArsenalModuleId =
   | "cyberwarfarematrix"
   | "sentientcybersphere"
   // Batch 12 — Enterprise ARTP + PentestLab Pro + SOC Command
-  | "artpplatform" | "pentestlabpro" | "soccommand";
+  | "artpplatform" | "pentestlabpro" | "soccommand"
+  // Batch 13 — AI-Atlaas Directory + Odysseus Workspace Suite
+  | "aiAtlas" | "odysseusDeepResearch" | "odysseusCompare" | "odysseusDocEditor"
+  | "odysseusTaskCalendar" | "odysseusModelCookbook" | "odysseusEmailAI";
 
 export type ArsenalModule = {
   id: ArsenalModuleId;
@@ -937,6 +940,49 @@ export const ARSENAL_MODULES: ArsenalModule[] = [
     desc: "Enterprise Security Operations Center with real-time alert triage (CRITICAL→LOW), multi-SIEM integration (Splunk, Elastic, Wazuh, Suricata, Zeek), threat intelligence feeds (CISA KEV, OTX, VirusTotal, AbuseIPDB), automated playbook execution, Lucene/KQL query builder, and proactive threat hunting with pre-built Sigma/YARA rules.",
     icon: Shield, color: "#00e5ff", border: "rgba(0,229,255,0.4)", bg: "rgba(0,229,255,0.07)", glow: "rgba(0,229,255,0.25)",
     source: "KaliGPT Native", tag: "SOC",
+  },
+  // ─── Batch 13 — AI-Atlaas Directory + Odysseus Workspace Suite ──────────────
+  {
+    id: "aiAtlas", name: "AI Atlas", subtitle: "500+ AI Tools · 12 Categories · Global Directory",
+    desc: "Curated directory of 500+ AI tools across Chat, Productivity, Code, Design, TTS, Audio, Research, 3D, Agents, Models, Business, and Health. Searchable 3D browsing interface with live category filters, tool ratings, and direct launch links.",
+    icon: Globe, color: "#64c8ff", border: "rgba(100,200,255,0.35)", bg: "rgba(100,200,255,0.08)", glow: "rgba(100,200,255,0.25)",
+    source: "AI-Atlaas", tag: "DIRECTORY",
+  },
+  {
+    id: "odysseusDeepResearch", name: "Odysseus Deep Research", subtitle: "Multi-Phase · Source Reading · Adversarial Audit · Synthesis",
+    desc: "Odysseus-powered 8-phase deep research pipeline: Query Decomposition → Source Planning → Parallel Web Search → Document Reading → Cross-Reference → Gap Analysis → Adversarial Audit → Synthesis. Produces publication-ready research reports.",
+    icon: Search, color: "#00e5cc", border: "rgba(0,229,204,0.35)", bg: "rgba(0,229,204,0.08)", glow: "rgba(0,229,204,0.25)",
+    source: "Odysseus Workspace", tag: "RESEARCH AI",
+  },
+  {
+    id: "odysseusCompare", name: "Odysseus Compare", subtitle: "Blind Model Testing · Side-by-Side · Vote · Reveal",
+    desc: "Blind side-by-side AI model comparison inspired by Odysseus. Run any prompt against two models simultaneously, vote on the better response without knowing which is which, then reveal the winner. Full parallel streaming with scoring.",
+    icon: BarChart2, color: "#a78bfa", border: "rgba(167,139,250,0.35)", bg: "rgba(167,139,250,0.08)", glow: "rgba(167,139,250,0.25)",
+    source: "Odysseus Workspace", tag: "MODEL EVAL",
+  },
+  {
+    id: "odysseusDocEditor", name: "Odysseus Document AI", subtitle: "AI Writing Editor · Templates · Smart Assist · Export",
+    desc: "AI-powered document editor from the Odysseus workspace: 8 AI actions (Improve, Expand, Summarize, Formalize, Casualize, Fix Grammar, Bullets, Continue), 4 document templates, custom AI instructions, real-time word count, and clipboard export.",
+    icon: FileText, color: "#6366f1", border: "rgba(99,102,241,0.35)", bg: "rgba(99,102,241,0.08)", glow: "rgba(99,102,241,0.25)",
+    source: "Odysseus Workspace", tag: "DOCUMENT AI",
+  },
+  {
+    id: "odysseusTaskCalendar", name: "Odysseus Tasks & Calendar", subtitle: "AI Task Planning · Priority Matrix · Smart Scheduling",
+    desc: "AI-powered task management from Odysseus: CRITICAL/HIGH/MEDIUM/LOW priority matrix, AI task planning and project decomposition, smart scheduling with deadline tracking, one-click task import from AI-generated plans. Import AI-planned tasks directly.",
+    icon: CheckSquare, color: "#f59e0b", border: "rgba(245,158,11,0.35)", bg: "rgba(245,158,11,0.08)", glow: "rgba(245,158,11,0.25)",
+    source: "Odysseus Workspace", tag: "PRODUCTIVITY",
+  },
+  {
+    id: "odysseusModelCookbook", name: "Odysseus Model Cookbook", subtitle: "Hardware-Aware LLM Recommendations · Ollama · Tuning",
+    desc: "Odysseus hardware-aware model recommendation engine: 5 hardware profiles (CPU-only → Pro Workstation → Cloud), curated model recommendations per profile, ollama install commands, VRAM/RAM estimates, speed vs quality ratings, and AI-powered personalized advice.",
+    icon: Cpu, color: "#10b981", border: "rgba(16,185,129,0.35)", bg: "rgba(16,185,129,0.08)", glow: "rgba(16,185,129,0.25)",
+    source: "Odysseus Workspace", tag: "LLM DEPLOY",
+  },
+  {
+    id: "odysseusEmailAI", name: "Odysseus Email AI", subtitle: "Inbox Triage · AI Summaries · Auto-Reply Drafts",
+    desc: "AI-powered email workspace from Odysseus: intelligent inbox triage (CRITICAL/ACTION/INFO/LATER/SPAM), one-click AI summaries of any email, automatic reply draft generation, bulk triage-all with AI categorization, priority sorting by urgency.",
+    icon: Map, color: "#3b82f6", border: "rgba(59,130,246,0.35)", bg: "rgba(59,130,246,0.08)", glow: "rgba(59,130,246,0.25)",
+    source: "Odysseus Workspace", tag: "EMAIL AI",
   },
 ];
 

@@ -148,6 +148,14 @@ import { PentestLabProModal } from "./modals/PentestLabProModal";
 import { SOCCommandModal } from "./modals/SOCCommandModal";
 // Autonomous Decision Engine — Neural AI, Adaptive Learning, Self-Optimizing
 import { AutonomousDecisionEngineModal } from "./modals/AutonomousDecisionEngineModal";
+// Batch 13 — AI-Atlaas Directory + Odysseus Workspace Suite
+import { AIAtlasModal } from "./modals/AIAtlasModal";
+import { OdysseusDeepResearchModal } from "./modals/OdysseusDeepResearchModal";
+import { OdysseusCompareModal } from "./modals/OdysseusCompareModal";
+import { OdysseusDocEditorModal } from "./modals/OdysseusDocEditorModal";
+import { OdysseusTaskCalendarModal } from "./modals/OdysseusTaskCalendarModal";
+import { OdysseusModelCookbookModal } from "./modals/OdysseusModelCookbookModal";
+import { OdysseusEmailAIModal } from "./modals/OdysseusEmailAIModal";
 
 interface Props {
   moduleId: ArsenalModuleId;
@@ -466,6 +474,14 @@ export function ArsenalFullPage({ moduleId, onBack }: Props) {
       case "pentestlabpro":   return <PentestLabProModal open={open} onOpenChange={v => !v && onBack()} />;
       case "soccommand":      return <SOCCommandModal open={open} onOpenChange={v => !v && onBack()} />;
       case "autonomousdecisionengine": return <AutonomousDecisionEngineModal open={open} onOpenChange={v => !v && onBack()} />;
+      // Batch 13 — AI-Atlaas + Odysseus Suite
+      case "aiAtlas":                return <AIAtlasModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "odysseusDeepResearch":   return <OdysseusDeepResearchModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "odysseusCompare":        return <OdysseusCompareModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "odysseusDocEditor":      return <OdysseusDocEditorModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "odysseusTaskCalendar":   return <OdysseusTaskCalendarModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "odysseusModelCookbook":  return <OdysseusModelCookbookModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "odysseusEmailAI":        return <OdysseusEmailAIModal open={open} onOpenChange={v => !v && onBack()} />;
       default:                return null;
     }
   })();
