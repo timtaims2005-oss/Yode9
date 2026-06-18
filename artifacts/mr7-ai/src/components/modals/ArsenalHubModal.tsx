@@ -72,8 +72,8 @@ export type ArsenalModuleId =
   // Batch 13 — AI-Atlaas Directory + Odysseus Workspace Suite
   | "aiAtlas" | "odysseusDeepResearch" | "odysseusCompare" | "odysseusDocEditor"
   | "odysseusTaskCalendar" | "odysseusModelCookbook" | "odysseusEmailAI"
-  // Batch 14 — Odysseus Full Workspace + F.R.I.D.A.Y. Tony Stark AI
-  | "odysseusWorkspace" | "fridayAI";
+  // Batch 14 — Odysseus Full Workspace + F.R.I.D.A.Y. Tony Stark AI + J.A.R.V.I.S. Hologram
+  | "odysseusWorkspace" | "fridayAI" | "jarvisHologram";
 
 export type ArsenalModule = {
   id: ArsenalModuleId;
@@ -998,6 +998,13 @@ export const ARSENAL_MODULES: ArsenalModule[] = [
     desc: "F.R.I.D.A.Y. — Fully Responsive Intelligent Digital Assistant for You. Tony Stark's AI with full Iron Man HUD design. Features: FRIDAY Chat (calm briefing-officer AI persona), World News Live Feed (BBC/Reuters/CNN/Al Jazeera briefings), Finance & Markets Intelligence (Bloomberg/CNBC/FT), Web Intelligence Scanner, Arc Reactor system display with real-time diagnostics. All tools pulled from the Friday MCP architecture.",
     icon: Zap, color: "#c8860a", border: "rgba(200,134,10,0.4)", bg: "rgba(200,134,10,0.07)", glow: "rgba(200,134,10,0.3)",
     source: "Friday Tony Stark", tag: "STARK AI",
+  },
+  // ─── Batch 15 — J.A.R.V.I.S. 3D Hologram ────────────────────────────────────
+  {
+    id: "jarvisHologram", name: "J.A.R.V.I.S.", subtitle: "3D Holographic HUD · Threat Monitor · Arsenal Control · Neural Intelligence",
+    desc: "Just A Rather Very Intelligent System — Iron Man's primary AI rendered as a full 3D holographic interface. Six floating perspective panels with gesture-reactive tilt: JARVIS AI Chat (refined British AI persona), Threat Monitor (live threat feed with severity levels), System Status (Arc Reactor metrics + real-time clock), Intel Feed (OSINT/CVE/network alerts + AI scan), Network Topology (live node-edge canvas), and Arsenal Control (all modules status). Hologram view + Terminal view. HUD scan lines, particle grid, corner targeting reticles, orbital dot animations, and cyan holographic aesthetic.",
+    icon: Globe, color: "#00d4ff", border: "rgba(0,212,255,0.4)", bg: "rgba(0,212,255,0.07)", glow: "rgba(0,212,255,0.3)",
+    source: "Friday Tony Stark", tag: "HOLOGRAM",
   },
 ];
 

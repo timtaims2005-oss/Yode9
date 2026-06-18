@@ -156,9 +156,10 @@ import { OdysseusDocEditorModal } from "./modals/OdysseusDocEditorModal";
 import { OdysseusTaskCalendarModal } from "./modals/OdysseusTaskCalendarModal";
 import { OdysseusModelCookbookModal } from "./modals/OdysseusModelCookbookModal";
 import { OdysseusEmailAIModal } from "./modals/OdysseusEmailAIModal";
-// Batch 14 — Odysseus Full Workspace + F.R.I.D.A.Y.
+// Batch 14 — Odysseus Full Workspace + F.R.I.D.A.Y. + J.A.R.V.I.S.
 import { OdysseusWorkspaceModal } from "./modals/OdysseusWorkspaceModal";
 import { FridayAIModal } from "./modals/FridayAIModal";
+import { JarvisHologramModal } from "./modals/JarvisHologramModal";
 
 interface Props {
   moduleId: ArsenalModuleId;
@@ -487,6 +488,7 @@ export function ArsenalFullPage({ moduleId, onBack }: Props) {
       case "odysseusEmailAI":        return <OdysseusEmailAIModal open={open} onOpenChange={v => !v && onBack()} />;
       case "odysseusWorkspace":      return <OdysseusWorkspaceModal open={open} onOpenChange={v => !v && onBack()} />;
       case "fridayAI":               return <FridayAIModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "jarvisHologram":         return <JarvisHologramModal open={open} onOpenChange={v => !v && onBack()} />;
       default:                return null;
     }
   })();
