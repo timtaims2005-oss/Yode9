@@ -65,6 +65,7 @@ interface TopBarProps {
   onOpenAutonomousOffense?: () => void;
   onOpenAttackGraph?: () => void;
   onOpenAutonomousDecisionEngine?: () => void;
+  onOpenJARVISCommandCenter?: () => void;
   hudsVisible?: boolean;
 }
 
@@ -715,6 +716,7 @@ export function TopBar({
   onOpenThreatMap, onOpenCveTracker, onOpenLiveOps,
   onOpenCyberHierarchy, onOpenCognitiveWarfare, onOpenAutonomousOffense, onOpenAttackGraph,
   onOpenAutonomousDecisionEngine,
+  onOpenJARVISCommandCenter,
   hudsVisible,
 }: TopBarProps) {
   const { state, dispatch } = useStore();
@@ -855,7 +857,8 @@ export function TopBar({
           {onOpenAutonomousOffense    && <HUDBtn icon={Flame}       label="Offense"      color="#f97316" onClick={onOpenAutonomousOffense} />}
           {onOpenAttackGraph          && <HUDBtn icon={Share2}      label="Atk. Graph"   color="#10b981" onClick={onOpenAttackGraph} />}
           {onOpenAutonomousDecisionEngine && <HUDBtn icon={BrainCircuit} label="AI Engine" shortLabel="ADE" color="#8b5cf6" onClick={onOpenAutonomousDecisionEngine} badge="NEW" />}
-          {(onOpenWarRoom || onOpenDeepSearch || onOpenChainInvestigation || onOpenRedTeam || onOpenCognitiveWarfare || onOpenAutonomousOffense || onOpenAttackGraph || onOpenAutonomousDecisionEngine) && <VDivider />}
+          {onOpenJARVISCommandCenter && <HUDBtn icon={Bot} label="JARVIS" shortLabel="JRV" color="#00d4ff" onClick={onOpenJARVISCommandCenter} badge="NEW" />}
+          {(onOpenWarRoom || onOpenDeepSearch || onOpenChainInvestigation || onOpenRedTeam || onOpenCognitiveWarfare || onOpenAutonomousOffense || onOpenAttackGraph || onOpenAutonomousDecisionEngine || onOpenJARVISCommandCenter) && <VDivider />}
 
           {/* ── GROUP 3 — Analytics & Intelligence ─────────────────────── */}
           {onOpenNeuralMatrix && <HUDBtn icon={Crosshair}   label="Neural Matrix" color="#e21227"  onClick={onOpenNeuralMatrix} />}

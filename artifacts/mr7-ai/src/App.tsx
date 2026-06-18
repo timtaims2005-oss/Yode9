@@ -194,6 +194,7 @@ const ARTPlatformModal   = lazy(() => import("./components/modals/ARTPlatformMod
 const PentestLabProModal = lazy(() => import("./components/modals/PentestLabProModal").then(m=>({default:m.PentestLabProModal})));
 const SOCCommandModal    = lazy(() => import("./components/modals/SOCCommandModal").then(m=>({default:m.SOCCommandModal})));
 const AutonomousDecisionEngineModal = lazy(() => import("./components/modals/AutonomousDecisionEngineModal").then(m=>({default:m.AutonomousDecisionEngineModal})));
+const JARVISCommandCenterModal      = lazy(() => import("./components/modals/JARVISCommandCenterModal").then(m=>({default:m.JARVISCommandCenterModal})));
 
 // ── MODAL STATE REDUCER ───────────────────────────────────────────────────────
 const MODAL_IDS = [
@@ -225,6 +226,7 @@ const MODAL_IDS = [
   'threatMap','cveTracker','liveOps',
   'artpPlatform','pentestLabPro','socCommand',
   'autonomousDecisionEngine',
+  'jarvisCommandCenter',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -280,6 +282,7 @@ const ARSENAL_MAP: Partial<Record<string, ModalId>> = {
   "pentestlabpro": "pentestLabPro",
   "soccommand": "socCommand",
   "autonomousdecisionengine": "autonomousDecisionEngine",
+  "jarviscommandcenter": "jarvisCommandCenter",
 };
 
 const queryClient = new QueryClient();
@@ -590,6 +593,7 @@ function AppContent() {
           onOpenAutonomousOffense={() => open('autonomousOffense')}
           onOpenAttackGraph={() => open('attackGraph')}
           onOpenAutonomousDecisionEngine={() => open('autonomousDecisionEngine')}
+          onOpenJARVISCommandCenter={() => open('jarvisCommandCenter')}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
@@ -850,6 +854,9 @@ function AppContent() {
 
       {/* ── Autonomous Decision Engine — Neural AI · Adaptive Learning ── */}
       <AutonomousDecisionEngineModal open={modals.autonomousDecisionEngine} onOpenChange={(v) => mDispatch({type:'SET',id:'autonomousDecisionEngine',value:v})} />
+
+      {/* ── JARVIS Command Center — File Control · Terminal · Project · API · Auto-Pilot ── */}
+      <JARVISCommandCenterModal open={modals.jarvisCommandCenter} onOpenChange={(v) => mDispatch({type:'SET',id:'jarvisCommandCenter',value:v})} />
     </div>
   );
 }
