@@ -206,7 +206,7 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    const SIZE = 38;
+    const SIZE = 24;
     const DPR  = Math.min(window.devicePixelRatio * 2, 4);
     cv.width   = SIZE * DPR;
     cv.height  = SIZE * DPR;
@@ -1123,7 +1123,7 @@ export function AIQuickSetupButton() {
       <motion.button
         onClick={() => setOpen(o => !o)}
         disabled={phase === "scanning"}
-        className="relative flex items-center gap-1 pl-0.5 pr-1.5 py-0.5 rounded-xl"
+        className="relative flex items-center gap-0.5 p-0.5 rounded-lg"
         onMouseEnter={() => setAtomHover(true)}
         onMouseLeave={() => { setAtomHover(false); setMagPos({ x: 0, y: 0 }); }}
         onMouseMove={(e) => {
@@ -1163,22 +1163,6 @@ export function AIQuickSetupButton() {
         )}
 
         <QuantumAtom3D phase={phase} open={open} hover={atomHover} />
-
-        <div className="hidden sm:flex flex-col items-start leading-none gap-0.5 pr-0.5">
-          <span className="text-[7px] font-black tracking-widest uppercase"
-            style={{ color: "rgba(0,255,136,0.5)" }}>
-            {phase === "scanning" ? "SCAN" : "AUTO AI"}
-          </span>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.span key={label}
-              initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -3 }}
-              transition={{ duration: 0.12 }}
-              className="text-[11px] font-black"
-              style={{ color: phase === "fail" ? "#ef4444" : phase === "done" ? "#22c55e" : "rgba(0,255,136,0.9)" }}>
-              {label}
-            </motion.span>
-          </AnimatePresence>
-        </div>
       </motion.button>
 
       {/* ── POPUP PANEL ── */}

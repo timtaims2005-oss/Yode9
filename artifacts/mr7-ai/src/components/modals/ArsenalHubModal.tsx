@@ -77,7 +77,9 @@ export type ArsenalModuleId =
   | "odysseusWorkspace" | "fridayAI" | "jarvisHologram"
   | "agent4"
   // Batch 15 — Agent 4 Power Tools
-  | "agent4DesignCanvas" | "agent4WebSearch" | "agent4Git" | "agent4Integrations" | "agent4Slides";
+  | "agent4DesignCanvas" | "agent4WebSearch" | "agent4Git" | "agent4Integrations" | "agent4Slides"
+  // Collab — Real-Time WebSocket Collaboration
+  | "collab";
 
 export type ArsenalModule = {
   id: ArsenalModuleId;
@@ -1045,6 +1047,12 @@ export const ARSENAL_MODULES: ArsenalModule[] = [
     desc: "منشئ العروض التقديمية ثلاثي الأبعاد بالذكاء الاصطناعي. أدخل موضوع واحصل على 6-8 شرائح احترافية. 7 تخطيطات (عنوان، محتوى، عمودان، اقتباس، كود، رسم بياني، فارغ)، 5 ثيمات ملوّنة، وضع العرض الكامل بلوحة مفاتيح، تحرير مباشر لكل شريحة، تأثيرات 3D parallax.",
     icon: Presentation, color: "#f59e0b", border: "rgba(245,158,11,0.4)", bg: "rgba(245,158,11,0.07)", glow: "rgba(245,158,11,0.35)",
     source: "Agent 4 · Slides Creator", tag: "3D SLIDES",
+  },
+  {
+    id: "collab", name: "REAL-TIME COLLAB", subtitle: "WebSocket · 3D Hologram · تعاون فوري",
+    desc: "نظام تعاون حقيقي فوري بين المستخدمين عبر WebSocket. خريطة هولوغرافية ثلاثية الأبعاد تُظهر المستخدمين المتصلين، مؤشرات الكتابة الفورية، مزامنة الرسائل، مشاركة معرّف الغرفة، وإحصاءات الزمن الفعلي بالمللي ثانية.",
+    icon: Users, color: "#e21227", border: "rgba(226,18,39,0.4)", bg: "rgba(226,18,39,0.07)", glow: "rgba(226,18,39,0.35)",
+    source: "KaliGPT · WebSocket Collab", tag: "REAL-TIME",
   },
 ];
 

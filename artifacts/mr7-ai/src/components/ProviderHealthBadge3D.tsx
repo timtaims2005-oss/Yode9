@@ -63,7 +63,7 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    const SIZE = 38;
+    const SIZE = 24;
     const DPR  = Math.min(window.devicePixelRatio * 2, 4);
     cv.width   = SIZE * DPR;
     cv.height  = SIZE * DPR;
@@ -1151,7 +1151,7 @@ export function ProviderHealthBadge3D() {
       {/* Main trigger button */}
       <motion.button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1 pl-0.5 pr-1.5 py-0.5 rounded-xl transition-all"
+        className="flex items-center gap-0.5 p-0.5 rounded-lg transition-all"
         onMouseEnter={() => setPlanetHover(true)}
         onMouseLeave={() => { setPlanetHover(false); setMagPos2({ x: 0, y: 0 }); }}
         onMouseMove={(e) => {
@@ -1175,14 +1175,6 @@ export function ProviderHealthBadge3D() {
         aria-label="حالة اتصال المزوّد"
       >
         <QuantumPlanet3D health={health} latency={latency} open={open} hover={planetHover} />
-        <div className="hidden sm:flex flex-col items-start leading-none gap-0.5 pr-0.5">
-          <span style={{ fontSize: "8px", fontWeight: 800, color: "rgba(167,139,250,0.6)", letterSpacing: "0.1em", fontFamily: "monospace" }}>
-            {label}
-          </span>
-          <span style={{ fontSize: "9px", fontWeight: 700, color: hColor, fontFamily: "monospace", letterSpacing: "0.04em" }}>
-            {latency != null ? `${latency}ms` : hLabel}
-          </span>
-        </div>
       </motion.button>
 
       {/* ── POPUP PANEL ── */}

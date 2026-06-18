@@ -166,6 +166,7 @@ import Agent4WebSearchModal from "./modals/Agent4WebSearchModal";
 import Agent4GitDashboardModal from "./modals/Agent4GitDashboardModal";
 import Agent4IntegrationsModal from "./modals/Agent4IntegrationsModal";
 import Agent4SlidesModal from "./modals/Agent4SlidesModal";
+import CollabModal from "./modals/CollabModal";
 
 interface Props {
   moduleId: ArsenalModuleId;
@@ -501,6 +502,7 @@ export function ArsenalFullPage({ moduleId, onBack }: Props) {
       case "agent4Git":              return <Agent4GitDashboardModal open={open} onOpenChange={v => !v && onBack()} />;
       case "agent4Integrations":     return <Agent4IntegrationsModal open={open} onOpenChange={v => !v && onBack()} />;
       case "agent4Slides":           return <Agent4SlidesModal open={open} onOpenChange={v => !v && onBack()} />;
+      case "collab":                 return <CollabModal open={open} onOpenChange={v => !v && onBack()} />;
       default:                return null;
     }
   })();

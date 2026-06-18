@@ -138,7 +138,7 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
       {/* Main trigger button */}
       <motion.button
         onClick={() => setShowPanel(v => !v)}
-        className="relative flex items-center gap-1 px-1 sm:gap-1.5 sm:px-2 py-0.5 rounded-xl transition-all"
+        className="relative flex items-center gap-0.5 p-0.5 rounded-lg transition-all"
         style={{
           background: showPanel || isCustomActive
             ? `rgba(${cr},${cg},${cb},0.12)`
@@ -159,21 +159,7 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
         <span className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 border-b border-r pointer-events-none"
           style={{ borderColor: `rgba(${cr},${cg},${cb},0.5)` }} />
 
-        <PersonaOrb color={color} pulse={isCustomActive} size={22} />
-
-        <div className="hidden sm:flex flex-col items-start leading-none gap-0.5">
-          <span style={{ fontSize: "7px", fontWeight: 800, letterSpacing: "0.25em", color: `rgba(${cr},${cg},${cb},0.7)`, fontFamily: "monospace" }}>
-            PERSONA
-          </span>
-          <span className="text-[10px] font-black truncate max-w-[64px]" style={{ color: `rgba(${cr},${cg},${cb},0.95)` }}>
-            {activePreset.nameAr.slice(0, 10)}
-          </span>
-        </div>
-
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 hidden sm:block"
-          style={{ color: `rgba(${cr},${cg},${cb},0.5)` }}>
-          <path d={showPanel ? "m18 15-6-6-6 6" : "m6 9 6 6 6-6"} />
-        </svg>
+        <PersonaOrb color={color} pulse={isCustomActive} size={18} />
       </motion.button>
 
       {/* 3D Quick-Pick Panel */}
