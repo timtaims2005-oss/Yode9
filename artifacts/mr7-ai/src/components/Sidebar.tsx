@@ -20,8 +20,9 @@ function NeuralCanvasBG() {
   const tRef = useRef(0);
 
   useEffect(() => {
-    const cv = cvRef.current;
-    if (!cv) return;
+    const cvEl = cvRef.current;
+    if (!cvEl) return;
+    const cv: HTMLCanvasElement = cvEl;
     const ctx = cv.getContext("2d")!;
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
 

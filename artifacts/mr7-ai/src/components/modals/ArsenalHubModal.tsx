@@ -79,7 +79,9 @@ export type ArsenalModuleId =
   // Batch 15 — Agent 4 Power Tools
   | "agent4DesignCanvas" | "agent4WebSearch" | "agent4Git" | "agent4Integrations" | "agent4Slides"
   // Collab — Real-Time WebSocket Collaboration
-  | "collab";
+  | "collab"
+  // OMEGA AGENT — Autonomous Neural Command Center
+  | "omegaAgent";
 
 export type ArsenalModule = {
   id: ArsenalModuleId;
@@ -96,6 +98,12 @@ export type ArsenalModule = {
 };
 
 export const ARSENAL_MODULES: ArsenalModule[] = [
+  {
+    id: "omegaAgent", name: "OMEGA AGENT", subtitle: "مركز القيادة العصبي المستقل",
+    desc: "نظام ذكاء اصطناعي مستقل فائق القوة: 10 فئات قدرات، بناء تطبيقات كاملة، تخطيط ذكي، وكلاء متوازيون، 6 أوضاع تشغيل، تصور 3D.",
+    icon: Zap, color: "#e21227", border: "rgba(226,18,39,0.5)", bg: "rgba(226,18,39,0.08)", glow: "rgba(226,18,39,0.35)",
+    source: "OMEGA CORE", tag: "∞ AUTONOMOUS",
+  },
   {
     id: "kaliagent", name: "KaliAgent", subtitle: "Autonomous Recon Agent",
     desc: "Multi-step ReAct agent with live web search, DNS, CVE hunting, exploit gen & network recon.",

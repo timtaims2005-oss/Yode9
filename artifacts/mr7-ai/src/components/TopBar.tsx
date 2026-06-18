@@ -66,6 +66,7 @@ interface TopBarProps {
   onOpenAttackGraph?: () => void;
   onOpenAutonomousDecisionEngine?: () => void;
   onOpenJARVISCommandCenter?: () => void;
+  onOpenOmegaAgent?: () => void;
   hudsVisible?: boolean;
   sidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
@@ -719,6 +720,7 @@ export function TopBar({
   onOpenCyberHierarchy, onOpenCognitiveWarfare, onOpenAutonomousOffense, onOpenAttackGraph,
   onOpenAutonomousDecisionEngine,
   onOpenJARVISCommandCenter,
+  onOpenOmegaAgent,
   hudsVisible,
   sidebarCollapsed,
   onToggleSidebar,
@@ -883,7 +885,8 @@ export function TopBar({
           {onOpenAttackGraph          && <HUDBtn icon={Share2}      label="Atk. Graph"   color="#10b981" onClick={onOpenAttackGraph} />}
           {onOpenAutonomousDecisionEngine && <HUDBtn icon={BrainCircuit} label="AI Engine" shortLabel="ADE" color="#8b5cf6" onClick={onOpenAutonomousDecisionEngine} badge="NEW" />}
           {onOpenJARVISCommandCenter && <HUDBtn icon={Bot} label="JARVIS" shortLabel="JRV" color="#00d4ff" onClick={onOpenJARVISCommandCenter} badge="NEW" />}
-          {(onOpenWarRoom || onOpenDeepSearch || onOpenChainInvestigation || onOpenRedTeam || onOpenCognitiveWarfare || onOpenAutonomousOffense || onOpenAttackGraph || onOpenAutonomousDecisionEngine || onOpenJARVISCommandCenter) && <VDivider />}
+          {onOpenOmegaAgent && <HUDBtn icon={Zap} label="OMEGA AGENT" shortLabel="Ω" color="#e21227" onClick={onOpenOmegaAgent} badge="∞" />}
+          {(onOpenWarRoom || onOpenDeepSearch || onOpenChainInvestigation || onOpenRedTeam || onOpenCognitiveWarfare || onOpenAutonomousOffense || onOpenAttackGraph || onOpenAutonomousDecisionEngine || onOpenJARVISCommandCenter || onOpenOmegaAgent) && <VDivider />}
 
           {/* ── GROUP 3 — Analytics & Intelligence ─────────────────────── */}
           {onOpenNeuralMatrix && <HUDBtn icon={Crosshair}   label="Neural Matrix" color="#e21227"  onClick={onOpenNeuralMatrix} />}

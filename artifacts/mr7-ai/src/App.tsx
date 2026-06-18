@@ -195,6 +195,7 @@ const PentestLabProModal = lazy(() => import("./components/modals/PentestLabProM
 const SOCCommandModal    = lazy(() => import("./components/modals/SOCCommandModal").then(m=>({default:m.SOCCommandModal})));
 const AutonomousDecisionEngineModal = lazy(() => import("./components/modals/AutonomousDecisionEngineModal").then(m=>({default:m.AutonomousDecisionEngineModal})));
 const JARVISCommandCenterModal      = lazy(() => import("./components/modals/JARVISCommandCenterModal").then(m=>({default:m.JARVISCommandCenterModal})));
+const OmegaAgentModal               = lazy(() => import("./components/modals/OmegaAgentModal").then(m=>({default:m.OmegaAgentModal})));
 
 // ── MODAL STATE REDUCER ───────────────────────────────────────────────────────
 const MODAL_IDS = [
@@ -227,6 +228,7 @@ const MODAL_IDS = [
   'artpPlatform','pentestLabPro','socCommand',
   'autonomousDecisionEngine',
   'jarvisCommandCenter',
+  'omegaAgent',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -283,6 +285,7 @@ const ARSENAL_MAP: Partial<Record<string, ModalId>> = {
   "soccommand": "socCommand",
   "autonomousdecisionengine": "autonomousDecisionEngine",
   "jarviscommandcenter": "jarvisCommandCenter",
+  "omegaagent": "omegaAgent",
 };
 
 const queryClient = new QueryClient();
@@ -465,6 +468,7 @@ function AppContent() {
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "u") { e.preventDefault(); toggle('useCaseLib'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "i") { e.preventDefault(); toggle('intelligenceCore'); }
       if (!inField && (e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "h") { e.preventDefault(); toggle('widgetsDock'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "g") { e.preventDefault(); toggle('omegaAgent'); }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -607,6 +611,7 @@ function AppContent() {
           onOpenAttackGraph={() => open('attackGraph')}
           onOpenAutonomousDecisionEngine={() => open('autonomousDecisionEngine')}
           onOpenJARVISCommandCenter={() => open('jarvisCommandCenter')}
+          onOpenOmegaAgent={() => open('omegaAgent')}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
@@ -870,6 +875,9 @@ function AppContent() {
 
       {/* ── JARVIS Command Center — File Control · Terminal · Project · API · Auto-Pilot ── */}
       <JARVISCommandCenterModal open={modals.jarvisCommandCenter} onOpenChange={(v) => mDispatch({type:'SET',id:'jarvisCommandCenter',value:v})} />
+
+      {/* ── OMEGA AGENT — Autonomous Neural Command Center ── */}
+      <OmegaAgentModal open={modals.omegaAgent} onOpenChange={(v) => mDispatch({type:'SET',id:'omegaAgent',value:v})} />
     </div>
   );
 }
