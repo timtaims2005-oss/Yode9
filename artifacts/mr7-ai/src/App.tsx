@@ -563,6 +563,7 @@ function AppContent() {
         onOpenChangelog={() => open('changelog')}
         onOpenOsint={() => open('osintDash')}
         onOpenUseCaseLib={() => open('useCaseLib')}
+        onOpenOmegaAgent={() => open('omegaAgent')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">

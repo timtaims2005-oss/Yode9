@@ -258,9 +258,184 @@ function TopBarHUDCanvas({ powerOn }: { powerOn: boolean }) {
   );
 }
 
+// ── Operation Mode Button 3D ──────────────────────────────────────────────────
+type PerfMode     = "low" | "medium" | "high" | "xhigh";
+type WorkflowMode = "Smarter" | "Lite" | "Autonomous" | "Max" | "Power" | "Turbo";
+
+const PERF_DEFS: { id: PerfMode; label: string; color: string; desc: string }[] = [
+  { id: "low",    label: "LOW",   color: "#4ade80", desc: "موفّر" },
+  { id: "medium", label: "MED",   color: "#fbbf24", desc: "متوازن" },
+  { id: "high",   label: "HIGH",  color: "#f97316", desc: "مرتفع" },
+  { id: "xhigh",  label: "XHIGH", color: "#e21227", desc: "أقصى"  },
+];
+const WFLOW_DEFS: { id: WorkflowMode; color: string; desc: string }[] = [
+  { id: "Smarter",    color: "#6366f1", desc: "ذكاء متقدم" },
+  { id: "Lite",       color: "#06b6d4", desc: "خفيف وسريع" },
+  { id: "Autonomous", color: "#8b5cf6", desc: "مستقل"     },
+  { id: "Max",        color: "#e21227", desc: "أقصى قدرة" },
+  { id: "Power",      color: "#f97316", desc: "طاقة عالية"},
+  { id: "Turbo",      color: "#fbbf24", desc: "توربو"     },
+];
+const LS_PERF  = "mr7-op-perf";
+const LS_WFLOW = "mr7-op-wflow";
+
+function OperationModeBtn3D() {
+  const [perfMode,  setPerfMode]  = useState<PerfMode>(() =>
+    (localStorage.getItem(LS_PERF) as PerfMode) || "medium");
+  const [wflowMode, setWflowMode] = useState<WorkflowMode>(() =>
+    (localStorage.getItem(LS_WFLOW) as WorkflowMode) || "Smarter");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const perf  = PERF_DEFS.find(p => p.id === perfMode)!;
+  const wflow = WFLOW_DEFS.find(w => w.id === wflowMode)!;
+
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [open]);
+
+  const savePerfMode = (m: PerfMode) => { setPerfMode(m); localStorage.setItem(LS_PERF, m); };
+  const saveWflowMode = (m: WorkflowMode) => { setWflowMode(m); localStorage.setItem(LS_WFLOW, m); };
+
+  return (
+    <div className="relative flex-shrink-0" ref={ref}>
+      {/* Trigger */}
+      <motion.button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${perf.color}1a 0%, rgba(0,0,0,0.65) 100%)`,
+          border: `1px solid ${perf.color}${open ? "55" : "30"}`,
+          boxShadow: `0 0 18px ${perf.color}${open ? "35" : "18"}, inset 0 1px 0 ${perf.color}18`,
+          minWidth: 0,
+        }}
+        whileHover={{ scale: 1.04, y: -0.5 }}
+        whileTap={{ scale: 0.95 }}
+        title={`وضع التشغيل — ${perf.label} · ${wflowMode}`}
+        aria-label="أوضاع التشغيل"
+      >
+        {/* HUD corners */}
+        <span className="absolute top-0.5 left-0.5 w-2 h-2 border-t border-l pointer-events-none" style={{ borderColor: perf.color + "55" }} />
+        <span className="absolute bottom-0.5 right-0.5 w-2 h-2 border-b border-r pointer-events-none" style={{ borderColor: perf.color + "55" }} />
+        {/* Scan beam */}
+        <motion.span className="absolute inset-y-0 pointer-events-none"
+          style={{ width: 40, background: `linear-gradient(90deg,transparent,${perf.color}22,transparent)` }}
+          animate={{ x: ["-100%", "400%"] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: "linear" }} />
+
+        {/* Pulse dot */}
+        <motion.div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+          style={{ background: perf.color, boxShadow: `0 0 8px ${perf.color}` }}
+          animate={{ opacity: [1, 0.25, 1], scale: [1, 1.4, 1] }}
+          transition={{ duration: 1.4, repeat: Infinity }} />
+
+        {/* Perf label */}
+        <div className="flex flex-col items-start leading-none gap-0.5">
+          <span className="text-[7px] font-black tracking-[0.25em] uppercase" style={{ color: perf.color + "99" }}>PERF</span>
+          <span className="text-[9px] font-black tracking-wide" style={{ color: perf.color }}>{perf.label}</span>
+        </div>
+
+        <div className="w-px h-5 mx-0.5 flex-shrink-0" style={{ background: "rgba(255,255,255,0.08)" }} />
+
+        {/* Workflow label */}
+        <div className="flex flex-col items-start leading-none gap-0.5">
+          <span className="text-[7px] font-black tracking-[0.25em] uppercase hidden sm:block" style={{ color: wflow.color + "99" }}>FLOW</span>
+          <span className="text-[9px] font-black tracking-wide hidden sm:block" style={{ color: wflow.color }}>{wflowMode.slice(0, 5).toUpperCase()}</span>
+        </div>
+      </motion.button>
+
+      {/* Dropdown panel */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.95 }}
+            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute top-full left-0 mt-2 z-50 rounded-2xl overflow-hidden"
+            style={{
+              width: 248,
+              background: "rgba(4,2,12,0.98)",
+              border: "1px solid rgba(226,18,39,0.2)",
+              boxShadow: "0 0 48px rgba(226,18,39,0.10), 0 20px 60px rgba(0,0,0,0.92)",
+              backdropFilter: "blur(24px)",
+            }}
+          >
+            <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,#e21227,transparent)" }} />
+
+            {/* Performance section */}
+            <div className="p-2.5">
+              <div className="text-[8px] font-black tracking-[0.3em] uppercase mb-2 px-0.5" style={{ color: "rgba(255,255,255,0.22)" }}>
+                PERFORMANCE LEVEL
+              </div>
+              <div className="grid grid-cols-4 gap-1">
+                {PERF_DEFS.map(p => (
+                  <motion.button key={p.id}
+                    onClick={() => savePerfMode(p.id)}
+                    className="flex flex-col items-center gap-1 py-2.5 rounded-xl relative overflow-hidden"
+                    style={{
+                      background: perfMode === p.id ? `${p.color}1c` : "rgba(255,255,255,0.03)",
+                      border: `1px solid ${perfMode === p.id ? p.color + "55" : "rgba(255,255,255,0.07)"}`,
+                      boxShadow: perfMode === p.id ? `0 0 16px ${p.color}30, inset 0 1px 0 ${p.color}18` : "none",
+                    }}
+                    whileHover={{ scale: 1.06, background: `${p.color}14` }}
+                    whileTap={{ scale: 0.92 }}
+                  >
+                    <motion.div className="w-2 h-2 rounded-full"
+                      style={{ background: p.color, boxShadow: perfMode === p.id ? `0 0 10px ${p.color}` : "none" }}
+                      animate={perfMode === p.id ? { opacity: [1, 0.3, 1] } : {}}
+                      transition={{ duration: 1.4, repeat: Infinity }} />
+                    <span className="text-[8px] font-black tracking-wide" style={{ color: perfMode === p.id ? p.color : "rgba(255,255,255,0.38)" }}>{p.label}</span>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mx-2.5 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+
+            {/* Workflow section */}
+            <div className="p-2.5">
+              <div className="text-[8px] font-black tracking-[0.3em] uppercase mb-2 px-0.5" style={{ color: "rgba(255,255,255,0.22)" }}>
+                WORKFLOW MODE
+              </div>
+              <div className="grid grid-cols-3 gap-1">
+                {WFLOW_DEFS.map(w => (
+                  <motion.button key={w.id}
+                    onClick={() => saveWflowMode(w.id)}
+                    className="flex flex-col items-center gap-1 py-2.5 rounded-xl relative overflow-hidden"
+                    style={{
+                      background: wflowMode === w.id ? `${w.color}1c` : "rgba(255,255,255,0.03)",
+                      border: `1px solid ${wflowMode === w.id ? w.color + "55" : "rgba(255,255,255,0.07)"}`,
+                      boxShadow: wflowMode === w.id ? `0 0 16px ${w.color}30, inset 0 1px 0 ${w.color}18` : "none",
+                    }}
+                    whileHover={{ scale: 1.06, background: `${w.color}14` }}
+                    whileTap={{ scale: 0.92 }}
+                  >
+                    <motion.div className="w-2 h-2 rounded-full"
+                      style={{ background: w.color, boxShadow: wflowMode === w.id ? `0 0 10px ${w.color}` : "none" }}
+                      animate={wflowMode === w.id ? { opacity: [1, 0.3, 1] } : {}}
+                      transition={{ duration: 1.4, repeat: Infinity }} />
+                    <span className="text-[9px] font-black" style={{ color: wflowMode === w.id ? w.color : "rgba(255,255,255,0.42)" }}>{w.id}</span>
+                    <span className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.18)" }}>{w.desc}</span>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+
+            <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(226,18,39,0.3),transparent)" }} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ── Holographic HUD toolbar button ────────────────────────────────────────────
 function HUDBtn({
-  icon: Icon, label, color, onClick, badge, shortLabel, title: tip, active,
+  icon: Icon, label, color, onClick, badge, shortLabel, title: tip, active, iconOnly,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
@@ -270,8 +445,10 @@ function HUDBtn({
   shortLabel?: string;
   title?: string;
   active?: boolean;
+  iconOnly?: boolean;
 }) {
   const compact = useContext(CompactCtx);
+  const isIconOnly = compact || iconOnly;
   return (
     <motion.button
       onClick={onClick}
@@ -279,9 +456,9 @@ function HUDBtn({
       aria-label={label}
       className="flex-shrink-0 flex items-center gap-1.5 py-1.5 rounded-lg relative overflow-hidden whitespace-nowrap"
       style={{
-        padding: compact ? "6px 8px" : undefined,
-        paddingLeft: compact ? undefined : "8px",
-        paddingRight: compact ? undefined : "10px",
+        padding: isIconOnly ? "6px 8px" : undefined,
+        paddingLeft: isIconOnly ? undefined : "8px",
+        paddingRight: isIconOnly ? undefined : "10px",
         background: active ? `${color}22` : `${color}0e`,
         border: active ? `1px solid ${color}77` : `1px solid ${color}30`,
         color: color,
@@ -297,12 +474,12 @@ function HUDBtn({
       transition={{ type: "spring", stiffness: 500, damping: 28 }}
     >
       <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-      {!compact && (
+      {!isIconOnly && (
         <span className="hidden sm:block text-[10px] font-black tracking-wide uppercase">
           {shortLabel ?? label}
         </span>
       )}
-      {!compact && badge && (
+      {!isIconOnly && badge && (
         <span className="hidden sm:block text-[7px] font-black px-1 py-0.5 rounded"
           style={{ background: `${color}25`, color: color, border: `1px solid ${color}40` }}>
           {badge}
@@ -795,7 +972,7 @@ export function TopBar({
           animation: "topbar-travel 3.5s linear infinite",
         }} />
 
-      {/* ── LEFT: menu + sidebar toggle + model selector ────────────── */}
+      {/* ── LEFT: menu + sidebar toggle + model selector + op mode ─────── */}
       <div className="flex items-center gap-1.5 flex-shrink-0 relative z-10">
         {/* Mobile hamburger */}
         <motion.button
@@ -809,36 +986,49 @@ export function TopBar({
           <Menu className="w-5 h-5" />
         </motion.button>
 
-        {/* Desktop sidebar collapse toggle */}
+        {/* Desktop sidebar collapse toggle — 3D styled */}
         {onToggleSidebar && (
           <motion.button
             onClick={onToggleSidebar}
-            className="hidden md:flex p-2 rounded-lg"
+            className="hidden md:flex p-2 rounded-lg relative overflow-hidden"
             style={{
-              color: sidebarCollapsed ? "#e21227" : "rgba(255,255,255,0.35)",
-              background: sidebarCollapsed ? "rgba(226,18,39,0.08)" : "transparent",
-              border: `1px solid ${sidebarCollapsed ? "rgba(226,18,39,0.25)" : "rgba(255,255,255,0.07)"}`,
+              color: sidebarCollapsed ? "#e21227" : "rgba(255,255,255,0.42)",
+              background: sidebarCollapsed ? "rgba(226,18,39,0.12)" : "rgba(255,255,255,0.03)",
+              border: `1px solid ${sidebarCollapsed ? "rgba(226,18,39,0.40)" : "rgba(255,255,255,0.09)"}`,
+              boxShadow: sidebarCollapsed ? "0 0 14px rgba(226,18,39,0.25), inset 0 1px 0 rgba(255,255,255,0.06)" : "none",
             }}
-            whileHover={{ color: "#e21227", background: "rgba(226,18,39,0.1)", borderColor: "rgba(226,18,39,0.3)" }}
-            whileTap={{ scale: 0.92 }}
+            whileHover={{ color: "#e21227", background: "rgba(226,18,39,0.14)", borderColor: "rgba(226,18,39,0.45)", scale: 1.06 }}
+            whileTap={{ scale: 0.90 }}
             aria-label={sidebarCollapsed ? "توسيع الشريط الجانبي" : "طي الشريط الجانبي"}
             title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            transition={{ type: "spring", stiffness: 500, damping: 28 }}
           >
             {sidebarCollapsed
               ? <PanelLeftOpen className="w-4 h-4" />
               : <PanelLeftClose className="w-4 h-4" />}
+            {/* Pulse ring when collapsed */}
+            {sidebarCollapsed && (
+              <motion.span className="absolute inset-0 rounded-lg pointer-events-none"
+                animate={{ opacity: [0.4, 0, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                style={{ border: "1px solid rgba(226,18,39,0.6)" }} />
+            )}
           </motion.button>
         )}
 
         {/* Model selector */}
         <ModelSelector3D onOpenPricing={onOpenPricing} />
+
+        {/* Operation Mode Button */}
+        <OperationModeBtn3D />
       </div>
 
-      {/* ── CENTER: health + auto AI + persona (between model and toolbar) ─ */}
-      <div className="flex items-center gap-1.5 flex-shrink-0 relative z-10 mx-1.5" style={{ minWidth: 0, overflow: "visible" }}>
+      {/* ── CENTER: 4 circular 3D buttons — all same size 36px ───────────── */}
+      <div className="flex items-center gap-2 flex-shrink-0 relative z-10 mx-2" style={{ minWidth: 0, overflow: "visible" }}>
         <ProviderHealthBadge3D />
         <AIQuickSetupButton />
         <QuantumPersona3D onOpenPersonaManager={onOpenPersonaManager} />
+        <PersonaSwitcher3D onOpenPersonaEditor={onOpenPersonaEditor} onOpenPersonaManager={onOpenPersonaManager} />
       </div>
 
       {/* ── RIGHT: scrollable toolbar ─────────────────────────────────── */}
@@ -870,7 +1060,7 @@ export function TopBar({
         >
           {/* ── GROUP 1 — Core ──────────────────────────────────────────── */}
           <HUDBtn icon={LayoutGrid} label={t("top.toolsHub")} shortLabel={t("top.tools")} color="#10b981" onClick={onOpenToolsHub} />
-          <HUDBtn icon={Bot}       label="KaliAgent"  shortLabel="KGT" color="#ff4d4d" onClick={onOpenAgent} />
+          <HUDBtn icon={Bot} label="KaliAgent" color="#ff4d4d" onClick={onOpenAgent} iconOnly />
           <HUDBtn icon={Hexagon}   label="NEXUS"      color="#fbbf24" onClick={onOpenNexus}   badge="5X" />
           <HUDBtn icon={Shield}    label="Arsenal"    color="#e21227" onClick={onOpenArsenal} />
           <VDivider />
@@ -885,8 +1075,7 @@ export function TopBar({
           {onOpenAttackGraph          && <HUDBtn icon={Share2}      label="Atk. Graph"   color="#10b981" onClick={onOpenAttackGraph} />}
           {onOpenAutonomousDecisionEngine && <HUDBtn icon={BrainCircuit} label="AI Engine" shortLabel="ADE" color="#8b5cf6" onClick={onOpenAutonomousDecisionEngine} badge="NEW" />}
           {onOpenJARVISCommandCenter && <HUDBtn icon={Bot} label="JARVIS" shortLabel="JRV" color="#00d4ff" onClick={onOpenJARVISCommandCenter} badge="NEW" />}
-          {onOpenOmegaAgent && <HUDBtn icon={Zap} label="OMEGA AGENT" shortLabel="Ω" color="#e21227" onClick={onOpenOmegaAgent} badge="∞" />}
-          {(onOpenWarRoom || onOpenDeepSearch || onOpenChainInvestigation || onOpenRedTeam || onOpenCognitiveWarfare || onOpenAutonomousOffense || onOpenAttackGraph || onOpenAutonomousDecisionEngine || onOpenJARVISCommandCenter || onOpenOmegaAgent) && <VDivider />}
+          {(onOpenWarRoom || onOpenDeepSearch || onOpenChainInvestigation || onOpenRedTeam || onOpenCognitiveWarfare || onOpenAutonomousOffense || onOpenAttackGraph || onOpenAutonomousDecisionEngine || onOpenJARVISCommandCenter) && <VDivider />}
 
           {/* ── GROUP 3 — Analytics & Intelligence ─────────────────────── */}
           {onOpenNeuralMatrix && <HUDBtn icon={Crosshair}   label="Neural Matrix" color="#e21227"  onClick={onOpenNeuralMatrix} />}
@@ -916,8 +1105,6 @@ export function TopBar({
           {(onOpenCisaLive || onOpenCveTimeline || onOpenCyberHierarchy || onOpenThreatFeed) && <VDivider />}
 
           {/* ── GROUP 5 — System ────────────────────────────────────────── */}
-          {/* Persona Switcher */}
-          <PersonaSwitcher3D onOpenPersonaEditor={onOpenPersonaEditor} onOpenPersonaManager={onOpenPersonaManager} />
 
           {/* Provider chip */}
           {onOpenProviderSettings && (

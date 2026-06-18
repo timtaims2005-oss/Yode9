@@ -1119,11 +1119,11 @@ export function AIQuickSetupButton() {
 
   return (
     <div className="relative flex-shrink-0" ref={panelRef}>
-      {/* Main trigger button */}
+      {/* Main trigger button — circular 36px */}
       <motion.button
         onClick={() => setOpen(o => !o)}
         disabled={phase === "scanning"}
-        className="relative flex items-center gap-0.5 p-0.5 rounded-lg"
+        className="relative flex items-center justify-center rounded-full"
         onMouseEnter={() => setAtomHover(true)}
         onMouseLeave={() => { setAtomHover(false); setMagPos({ x: 0, y: 0 }); }}
         onMouseMove={(e) => {
@@ -1134,34 +1134,27 @@ export function AIQuickSetupButton() {
           });
         }}
         style={{
-          minWidth: 0, overflow: "visible",
+          width: 36, height: 36,
           x: magPos.x, y: magPos.y,
           background: open
-            ? "linear-gradient(135deg,rgba(0,255,136,0.15) 0%,rgba(0,229,255,0.08) 100%)"
-            : "linear-gradient(135deg,rgba(0,255,136,0.08) 0%,rgba(0,229,255,0.03) 100%)",
-          border: `1px solid rgba(0,255,136,${open ? 0.58 : 0.33})`,
+            ? "radial-gradient(circle at 38% 38%, rgba(0,255,136,0.28), rgba(0,18,14,0.95))"
+            : "radial-gradient(circle at 38% 38%, rgba(0,255,136,0.12), rgba(0,10,8,0.90))",
+          border: `2px solid rgba(0,255,136,${open ? 0.68 : 0.30})`,
           boxShadow: open
-            ? "0 0 32px rgba(0,255,136,0.26), 0 0 12px rgba(0,229,255,0.12), inset 0 1px 0 rgba(0,255,136,0.15)"
-            : "0 0 20px rgba(0,255,136,0.15), inset 0 1px 0 rgba(0,255,136,0.08)",
+            ? "0 0 28px rgba(0,255,136,0.45), 0 0 56px rgba(0,229,255,0.14), inset 0 0 10px rgba(0,255,136,0.10)"
+            : "0 0 14px rgba(0,255,136,0.25), 0 0 28px rgba(0,229,255,0.07)",
           cursor: phase === "scanning" ? "wait" : "pointer",
         }}
-        whileHover={{ scale: 1.03 }}
+        whileHover={{ scale: 1.10, y: -1 }}
+        whileTap={{ scale: 0.90 }}
         aria-label="إعداد الذكاء الاصطناعي تلقائياً"
       >
-        {/* HUD corner brackets */}
-        <span className="absolute top-0.5 left-0.5 w-2 h-2 border-t border-l pointer-events-none"
-          style={{ borderColor: "rgba(0,255,136,0.65)" }} />
-        <span className="absolute bottom-0.5 right-0.5 w-2 h-2 border-b border-r pointer-events-none"
-          style={{ borderColor: "rgba(0,255,136,0.65)" }} />
-
-        {/* Scan line */}
         {phase === "scanning" && (
-          <motion.span className="absolute inset-x-0 h-px pointer-events-none"
-            style={{ background: "linear-gradient(90deg,transparent,rgba(0,229,255,0.9),transparent)" }}
-            animate={{ top: ["15%", "85%", "15%"] }}
+          <motion.span className="absolute inset-0 rounded-full pointer-events-none"
+            style={{ border: "1px solid rgba(0,229,255,0.9)" }}
+            animate={{ scale: [1, 1.45, 1], opacity: [0.9, 0, 0.9] }}
             transition={{ duration: 1.0, repeat: Infinity, ease: "linear" }} />
         )}
-
         <QuantumAtom3D phase={phase} open={open} hover={atomHover} />
       </motion.button>
 

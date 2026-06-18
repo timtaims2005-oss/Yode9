@@ -1148,10 +1148,10 @@ export function ProviderHealthBadge3D() {
 
   return (
     <div className="relative flex-shrink-0" ref={panelRef} style={{ isolation: "isolate" }}>
-      {/* Main trigger button */}
+      {/* Main trigger button — circular 36px */}
       <motion.button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-0.5 p-0.5 rounded-lg transition-all"
+        className="flex items-center justify-center rounded-full transition-all"
         onMouseEnter={() => setPlanetHover(true)}
         onMouseLeave={() => { setPlanetHover(false); setMagPos2({ x: 0, y: 0 }); }}
         onMouseMove={(e) => {
@@ -1162,16 +1162,17 @@ export function ProviderHealthBadge3D() {
           });
         }}
         style={{
+          width: 36, height: 36,
           x: magPos2.x, y: magPos2.y,
           background: open
-            ? "linear-gradient(135deg,rgba(139,92,246,0.16) 0%,rgba(167,139,250,0.09) 100%)"
-            : "linear-gradient(135deg,rgba(139,92,246,0.09) 0%,rgba(167,139,250,0.04) 100%)",
-          border: `1px solid rgba(139,92,246,${open ? 0.58 : 0.36})`,
+            ? "radial-gradient(circle at 38% 38%, rgba(139,92,246,0.28), rgba(10,4,28,0.96))"
+            : "radial-gradient(circle at 38% 38%, rgba(139,92,246,0.14), rgba(8,4,20,0.92))",
+          border: `2px solid rgba(139,92,246,${open ? 0.72 : 0.35})`,
           boxShadow: open
-            ? "0 0 32px rgba(139,92,246,0.28), 0 0 12px rgba(167,139,250,0.14), inset 0 1px 0 rgba(167,139,250,0.12)"
-            : "0 0 20px rgba(139,92,246,0.18), 0 0 7px rgba(167,139,250,0.08), inset 0 1px 0 rgba(167,139,250,0.07)",
+            ? "0 0 32px rgba(139,92,246,0.50), 0 0 64px rgba(167,139,250,0.18), inset 0 0 12px rgba(167,139,250,0.10)"
+            : "0 0 16px rgba(139,92,246,0.28), 0 0 32px rgba(167,139,250,0.09)",
         }}
-        whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+        whileHover={{ scale: 1.10, y: -1 }} whileTap={{ scale: 0.90 }}
         aria-label="حالة اتصال المزوّد"
       >
         <QuantumPlanet3D health={health} latency={latency} open={open} hover={planetHover} />

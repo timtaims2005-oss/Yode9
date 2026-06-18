@@ -135,31 +135,34 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
 
   return (
     <div ref={ref} className="relative flex-shrink-0">
-      {/* Main trigger button */}
+      {/* Main trigger button — circular 36px */}
       <motion.button
         onClick={() => setShowPanel(v => !v)}
-        className="relative flex items-center gap-0.5 p-0.5 rounded-lg transition-all"
+        className="relative flex items-center justify-center rounded-full transition-all"
         style={{
+          width: 36, height: 36,
           background: showPanel || isCustomActive
-            ? `rgba(${cr},${cg},${cb},0.12)`
-            : "rgba(255,255,255,0.04)",
-          border: `1px solid rgba(${cr},${cg},${cb},${showPanel || isCustomActive ? 0.45 : 0.18})`,
+            ? `radial-gradient(circle at 38% 38%, rgba(${cr},${cg},${cb},0.28), rgba(0,0,0,0.92))`
+            : `radial-gradient(circle at 38% 38%, rgba(${cr},${cg},${cb},0.10), rgba(0,0,0,0.85))`,
+          border: `2px solid rgba(${cr},${cg},${cb},${showPanel || isCustomActive ? 0.65 : 0.25})`,
           boxShadow: showPanel || isCustomActive
-            ? `0 0 18px rgba(${cr},${cg},${cb},0.25), inset 0 1px 0 rgba(255,255,255,0.06)`
-            : "inset 0 1px 0 rgba(255,255,255,0.04)",
+            ? `0 0 22px rgba(${cr},${cg},${cb},0.40), 0 0 50px rgba(${cr},${cg},${cb},0.14), inset 0 0 10px rgba(${cr},${cg},${cb},0.09)`
+            : `0 0 12px rgba(${cr},${cg},${cb},0.18), 0 0 24px rgba(${cr},${cg},${cb},0.07)`,
         }}
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.96 }}
+        whileHover={{ scale: 1.10, y: -1 }}
+        whileTap={{ scale: 0.90 }}
         aria-label="محوّل الشخصيات"
         title={`الشخصية النشطة: ${activePreset.nameAr}`}
       >
-        {/* HUD corner accents */}
-        <span className="absolute top-0.5 left-0.5 w-1.5 h-1.5 border-t border-l pointer-events-none"
-          style={{ borderColor: `rgba(${cr},${cg},${cb},0.5)` }} />
-        <span className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 border-b border-r pointer-events-none"
-          style={{ borderColor: `rgba(${cr},${cg},${cb},0.5)` }} />
-
-        <PersonaOrb color={color} pulse={isCustomActive} size={18} />
+        <PersonaOrb color={color} pulse={isCustomActive} size={22} />
+        {(showPanel || isCustomActive) && (
+          <motion.span
+            className="absolute inset-0 rounded-full pointer-events-none"
+            animate={{ opacity: [0.5, 0, 0.5], scale: [1, 1.35, 1] }}
+            transition={{ duration: 2.2, repeat: Infinity }}
+            style={{ border: `1px solid rgba(${cr},${cg},${cb},0.55)` }}
+          />
+        )}
       </motion.button>
 
       {/* 3D Quick-Pick Panel */}

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, Search, TerminalSquare, Code, Globe, KeyRound, Network, FileCode, Bug, Gift, Clock, Coins, Pin, Pencil, Trash2, MessageSquare, Filter, Check, LayoutGrid, Hash, Binary, QrCode, Calculator, Regex, FileJson, Fingerprint, Terminal, ShieldAlert, Sparkles, Cookie, Lock as LockIcon, ScanLine, Server, Link as LinkIcon, Wand2, Image as ImageIcon, FileText, Languages, ShieldAlert as PhishIcon, BookOpenCheck, Activity, UserCog, TrendingUp, Mail, Brain, Bookmark, ArrowLeftRight, AtSign, Wallet, Eye, Send, Database as DbIcon, Container as ContainerIcon, FileSearch, Radar, Crosshair, ScrollText, FileCheck2, GitCommit, Music, Palette, ShieldCheck, FlaskConical, ChevronDown } from "lucide-react";
+import { Plus, Search, TerminalSquare, Code, Globe, KeyRound, Network, FileCode, Bug, Gift, Clock, Coins, Pin, Pencil, Trash2, MessageSquare, Filter, Check, LayoutGrid, Hash, Binary, QrCode, Calculator, Regex, FileJson, Fingerprint, Terminal, ShieldAlert, Sparkles, Cookie, Lock as LockIcon, ScanLine, Server, Link as LinkIcon, Wand2, Image as ImageIcon, FileText, Languages, ShieldAlert as PhishIcon, BookOpenCheck, Activity, UserCog, TrendingUp, Mail, Brain, Bookmark, ArrowLeftRight, AtSign, Wallet, Eye, Send, Database as DbIcon, Container as ContainerIcon, FileSearch, Radar, Crosshair, ScrollText, FileCheck2, GitCommit, Music, Palette, ShieldCheck, FlaskConical, ChevronDown, Zap } from "lucide-react";
 import { AI_MODELS } from "@/lib/ai-config";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -137,6 +137,7 @@ interface SidebarProps {
   onOpenChangelog?: () => void;
   onOpenOsint?: () => void;
   onOpenUseCaseLib?: () => void;
+  onOpenOmegaAgent?: () => void;
 }
 
 const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: string }[] = [
@@ -259,7 +260,7 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: DbIcon, label: "Kali SQLi Guide", color: "text-blue-400" },
 ];
 
-export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent }: SidebarProps) {
   const { toast } = useToast();
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -1046,6 +1047,52 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
               )}
             </AnimatePresence>
           </div>
+        )}
+
+        {/* ── OMEGA AGENT — 3D glowing button ─────────────────────────── */}
+        {onOpenOmegaAgent && (
+          <motion.button
+            onClick={onOpenOmegaAgent}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl relative overflow-hidden mb-1"
+            style={{
+              background: "linear-gradient(135deg, rgba(226,18,39,0.18) 0%, rgba(180,10,30,0.10) 100%)",
+              border: "1px solid rgba(226,18,39,0.40)",
+              boxShadow: "0 0 24px rgba(226,18,39,0.25), inset 0 1px 0 rgba(255,80,80,0.12)",
+            }}
+            whileHover={{
+              scale: 1.02,
+              boxShadow: "0 0 40px rgba(226,18,39,0.45), 0 0 80px rgba(226,18,39,0.12), inset 0 1px 0 rgba(255,80,80,0.20)",
+              borderColor: "rgba(226,18,39,0.70)",
+            }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 420, damping: 26 }}
+            title="OMEGA AGENT"
+            aria-label="فتح OMEGA AGENT"
+          >
+            {/* Scan line */}
+            <motion.div
+              className="absolute inset-y-0 pointer-events-none"
+              style={{ width: 60, background: "linear-gradient(90deg,transparent,rgba(226,18,39,0.30),transparent)" }}
+              animate={{ x: ["-100%", "500%"] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+            />
+            {/* Corner brackets */}
+            <span className="absolute top-1 left-1 w-2 h-2 border-t border-l pointer-events-none" style={{ borderColor: "rgba(226,18,39,0.65)" }} />
+            <span className="absolute bottom-1 right-1 w-2 h-2 border-b border-r pointer-events-none" style={{ borderColor: "rgba(226,18,39,0.65)" }} />
+
+            <motion.div
+              animate={{ opacity: [1, 0.2, 1], scale: [1, 1.5, 1] }}
+              transition={{ duration: 1.6, repeat: Infinity }}
+            >
+              <Zap className="w-3.5 h-3.5 relative" style={{ color: "#e21227" }} />
+            </motion.div>
+            <span className="relative text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: "#ff4444", textShadow: "0 0 16px rgba(226,18,39,0.8)" }}>
+              OMEGA AGENT
+            </span>
+            <span className="relative text-[8px] font-black px-1 py-0.5 rounded" style={{ background: "rgba(226,18,39,0.25)", color: "#ff6666", border: "1px solid rgba(226,18,39,0.40)" }}>
+              ∞
+            </span>
+          </motion.button>
         )}
 
         <div className="flex items-center justify-between pt-1">

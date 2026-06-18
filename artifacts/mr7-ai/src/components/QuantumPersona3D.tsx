@@ -516,13 +516,13 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
       onMouseLeave={() => setHover(false)}
       className="relative flex-shrink-0 rounded-full cursor-pointer select-none"
       style={{
-        width: 46, height: 46,
+        width: 36, height: 36,
         boxShadow: hover || open
-          ? `0 0 24px ${activeColor}70, 0 0 48px ${activeColor}30, 0 0 10px ${activeColor}50, inset 0 0 8px ${activeColor}15`
-          : `0 0 12px ${activeColor}30`,
-        border: `1px solid ${hover || open ? activeColor+"88" : activeColor+"30"}`,
+          ? `0 0 22px ${activeColor}80, 0 0 44px ${activeColor}35, 0 0 10px ${activeColor}55, inset 0 0 8px ${activeColor}18`
+          : `0 0 12px ${activeColor}35, 0 0 24px ${activeColor}15`,
+        border: `2px solid ${hover || open ? activeColor+"99" : activeColor+"35"}`,
         borderRadius: "50%",
-        background: "rgba(3,3,10,0.90)",
+        background: `radial-gradient(circle at 38% 38%, ${activeColor}22, rgba(3,3,10,0.95))`,
         transition: "box-shadow 0.22s, border-color 0.22s",
       }}
       whileHover={{ scale: 1.10, y: -2 }}
