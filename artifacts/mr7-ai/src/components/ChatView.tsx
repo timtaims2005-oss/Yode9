@@ -621,6 +621,11 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
     const trimmed = text.trim();
     if (!trimmed || streaming) return;
 
+    if (localStorage.getItem("mr7-model-off") === "true") {
+      toast({ description: "⚠️ AI Model is OFF. Enable it from the model selector.", variant: "destructive" });
+      return;
+    }
+
     if (editingId) {
       dispatch({ type: "EDIT_MSG", chatId: chat.id, msgId: editingId, content: trimmed });
       setEditingId(null);
@@ -829,6 +834,10 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
   // ─── Multi-modal OSINT file handler ─────────────────────────────────────
   async function handleFile(file: File) {
     if (!chat || streaming) return;
+    if (localStorage.getItem("mr7-model-off") === "true") {
+      toast({ description: "⚠️ AI Model is OFF. Enable it from the model selector.", variant: "destructive" });
+      return;
+    }
     const lang = state.settings.language;
     const chatId = chat.id;
 
@@ -881,6 +890,10 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
 
   async function regenerate() {
     if (!chat || streaming) return;
+    if (localStorage.getItem("mr7-model-off") === "true") {
+      toast({ description: "⚠️ AI Model is OFF. Enable it from the model selector.", variant: "destructive" });
+      return;
+    }
     const lastUser = [...chat.messages].reverse().find((m) => m.role === "user");
     if (!lastUser) return;
     if (chat.messages[chat.messages.length - 1]?.role === "assistant") {

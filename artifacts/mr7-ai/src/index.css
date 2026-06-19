@@ -676,8 +676,13 @@ body.tab-hidden canvas { animation-play-state: paused !important; }
     0 8px 32px rgba(0,0,0,0.5),
     inset 3px 0 12px rgba(226,18,39,0.1) !important;
 }
-/* Rainbow colored AI text */
-.msg-bubble-ai .prose, .msg-bubble-ai > p, .msg-bubble-ai > div > p {
+/* Rainbow colored AI text — covers RichTextBlock divs and any p elements */
+.msg-bubble-ai .prose,
+.msg-bubble-ai > p,
+.msg-bubble-ai > div > p,
+.msg-bubble-ai > div,
+.msg-bubble-ai > div > div,
+.msg-bubble-ai > div > span {
   animation: rainbow-flow-slow 10s linear infinite;
 }
 
@@ -1424,7 +1429,7 @@ html::before {
 
 /* Floating 3D effect for message bubbles */
 .msg-bubble-user {
-  animation: holo-float 6s ease-in-out infinite;
+  animation: neon-border-pulse 6s ease-in-out infinite, bubble-float 5s ease-in-out infinite !important;
 }
 
 /* Chat input area — glass morphism depth */
