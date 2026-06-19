@@ -139,6 +139,7 @@ interface SidebarProps {
   onOpenOsint?: () => void;
   onOpenUseCaseLib?: () => void;
   onOpenOmegaAgent?: () => void;
+  onOpenLocalEngineHub?: () => void;
 }
 
 const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: string }[] = [
@@ -261,7 +262,7 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: DbIcon, label: "Kali SQLi Guide", color: "text-blue-400" },
 ];
 
-export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub }: SidebarProps) {
   const { toast } = useToast();
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -1093,6 +1094,15 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
         <div className="flex items-center justify-between pt-1">
           <UserMenu onAccount={onOpenAccount} onSettings={onOpenSettings} onTheme={onOpenSettings} />
           <div className="flex items-center gap-1">
+            {onOpenLocalEngineHub && (
+              <button
+                onClick={onOpenLocalEngineHub}
+                title="Local Engine Hub — 7 AI Engines"
+                className="p-1.5 rounded text-[#00e5ff88] hover:text-[#00e5ff] hover:bg-[#00e5ff12] transition-colors"
+              >
+                <Server className="w-3.5 h-3.5" />
+              </button>
+            )}
             {onOpenQRSync && (
               <button
                 onClick={onOpenQRSync}

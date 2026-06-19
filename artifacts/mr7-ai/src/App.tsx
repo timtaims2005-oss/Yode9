@@ -66,6 +66,7 @@ const SearchModal           = lazy(() => import("./components/modals/SearchModal
 const PersonaEditorModal    = lazy(() => import("./components/modals/PersonaEditorModal").then(m=>({default:m.PersonaEditorModal})));
 const PersonaManagerModal   = lazy(() => import("./components/modals/PersonaManagerModal").then(m=>({default:m.PersonaManagerModal})));
 const LocalModelModal       = lazy(() => import("./components/modals/LocalModelModal").then(m=>({default:m.LocalModelModal})));
+const LocalEngineHubModal   = lazy(() => import("./components/modals/LocalEngineHubModal").then(m=>({default:m.LocalEngineHubModal})));
 const ProviderSettingsModal = lazy(() => import("./components/modals/ProviderSettingsModal").then(m=>({default:m.ProviderSettingsModal})));
 const OsintDashboard        = lazy(() => import("./components/modals/OsintDashboard").then(m=>({default:m.OsintDashboard})));
 const AdminPanel            = lazy(() => import("./components/modals/AdminPanel").then(m=>({default:m.AdminPanel})));
@@ -234,6 +235,7 @@ const MODAL_IDS = [
   'jarvisCommandCenter',
   'omegaAgent',
   'ollamaHub',
+  'localEngineHub',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -572,6 +574,7 @@ function AppContent() {
         onOpenOsint={() => open('osintDash')}
         onOpenUseCaseLib={() => open('useCaseLib')}
         onOpenOmegaAgent={() => open('omegaAgent')}
+        onOpenLocalEngineHub={() => open('localEngineHub')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
@@ -679,7 +682,10 @@ function AppContent() {
           <PersonaManagerModal open={modals.personaManager} onClose={() => close('personaManager')} />
         </WindowChrome>
         <WindowChrome open={modals.localModel} color="#22c55e" title="LOCAL MODEL ENGINE" onClose={() => close('localModel')}>
-          <LocalModelModal open={modals.localModel} onOpenChange={(v) => mDispatch({type:'SET',id:'localModel',value:v})} />
+          <LocalModelModal open={modals.localModel} onOpenChange={(v) => mDispatch({type:'SET',id:'localModel',value:v})} onOpenEngineHub={() => { mDispatch({type:'SET',id:'localModel',value:false}); open('localEngineHub'); }} />
+        </WindowChrome>
+        <WindowChrome open={modals.localEngineHub} color="#00e5ff" title="LOCAL ENGINE HUB" onClose={() => close('localEngineHub')}>
+          <LocalEngineHubModal open={modals.localEngineHub} onOpenChange={(v) => mDispatch({type:'SET',id:'localEngineHub',value:v})} />
         </WindowChrome>
         <WindowChrome open={modals.providerSettings} color="#00e5ff" title="PROVIDER SETTINGS" onClose={() => close('providerSettings')}>
           <ProviderSettingsModal open={modals.providerSettings} onClose={() => close('providerSettings')} />

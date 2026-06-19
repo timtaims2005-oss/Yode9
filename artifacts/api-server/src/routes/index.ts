@@ -17,6 +17,7 @@ import providersRouter from "./providers";
 import localProxyRouter from "./local-proxy";
 import agent4Router from "./agent4";
 import ollamaRouter from "./ollama";
+import localEnginesRouter from "./local-engines";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use(providersRouter);
 router.use(localProxyRouter);
 router.use(agent4Router);
 router.use(ollamaRouter);
+router.use(localEnginesRouter);
 
 export default router;

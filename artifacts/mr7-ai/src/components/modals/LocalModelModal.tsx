@@ -306,9 +306,10 @@ const VRAM_PROFILES: { id: VramProfile; label: string; ram: string; recommended:
 interface LocalModelModalProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  onOpenEngineHub?: () => void;
 }
 
-export function LocalModelModal({ open, onOpenChange }: LocalModelModalProps) {
+export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalModelModalProps) {
   const { state, dispatch } = useStore();
   const { toast } = useToast();
   const lang = state.settings.language;
@@ -601,7 +602,18 @@ export function LocalModelModal({ open, onOpenChange }: LocalModelModalProps) {
             <p className="text-[10px] text-[#555]">شغّل نماذج مفتوحة المصدر غير مقيّدة محلياً على جهازك واربطها بـ KaliGPT</p>
           </div>
           {useLocal && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-green-400/20 text-green-400 border border-green-400/30">مُفعّل</span>}
-          <button onClick={() => onOpenChange(false)} className="ml-auto w-8 h-8 rounded-lg flex items-center justify-center bg-[#161616] border border-[#1f1f1f] text-[#555] hover:text-white hover:border-[#e21227] transition-all">
+          {onOpenEngineHub && (
+            <button
+              onClick={onOpenEngineHub}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all hover:scale-105"
+              style={{ background: "rgba(0,229,255,0.12)", color: "#00e5ff", border: "1px solid rgba(0,229,255,0.3)", marginLeft: "auto" }}
+              title="فتح Local Engine Hub — جميع النماذج الـ 7"
+            >
+              <Zap className="w-3 h-3" />
+              Engine Hub
+            </button>
+          )}
+          <button onClick={() => onOpenChange(false)} className={`${onOpenEngineHub ? "" : "ml-auto"} w-8 h-8 rounded-lg flex items-center justify-center bg-[#161616] border border-[#1f1f1f] text-[#555] hover:text-white hover:border-[#e21227] transition-all`}>
             <X className="w-4 h-4" />
           </button>
         </div>
