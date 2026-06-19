@@ -204,6 +204,7 @@ const AutonomousDecisionEngineModal = lazy(() => import("./components/modals/Aut
 const JARVISCommandCenterModal      = lazy(() => import("./components/modals/JARVISCommandCenterModal").then(m=>({default:m.JARVISCommandCenterModal})));
 const OmegaAgentModal               = lazy(() => import("./components/modals/OmegaAgentModal").then(m=>({default:m.OmegaAgentModal})));
 const OllamaHub3D                   = lazy(() => import("./components/OllamaHub3D").then(m=>({default:m.OllamaHub3D})));
+import { LocalAIModelNexus, LocalAINexusTrigger } from "./components/LocalAIModelNexus";
 
 // ── MODAL STATE REDUCER ───────────────────────────────────────────────────────
 const MODAL_IDS = [
@@ -241,6 +242,7 @@ const MODAL_IDS = [
   'localEngineHub',
   'multiModelRace',
   'localBenchmark',
+  'localAINexus',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -1030,6 +1032,33 @@ function AppContent() {
           <OllamaHub3D open={modals.ollamaHub} onClose={() => close('ollamaHub')} />
         )}
       </Suspense>
+
+      {/* ── LOCAL AI MODEL NEXUS — Auto-Connect Hub ── */}
+      <WindowChrome open={modals.localAINexus} color="#00e5ff" title="LOCAL AI MODEL NEXUS" onClose={() => close('localAINexus')}>
+        <LocalAIModelNexus open={modals.localAINexus} onClose={() => close('localAINexus')} />
+      </WindowChrome>
+
+      {/* LOCAL AI floating trigger button */}
+      <AnimatePresence>
+        {!modals.localAINexus && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            style={{
+              position: "fixed",
+              bottom: 18,
+              right: 18,
+              zIndex: 7800,
+            }}
+          >
+            <LocalAINexusTrigger
+              onOpen={() => open('localAINexus')}
+              onlineCount={0}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Global Window Tray — bottom taskbar for minimized windows */}
       <WindowTray
