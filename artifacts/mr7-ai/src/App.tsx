@@ -50,6 +50,7 @@ import type { ArsenalModuleId } from "./components/modals/ArsenalHubModal";
 import type { UtilityTool } from "./components/modals/UtilityToolModal";
 import { WindowManagerProvider } from "./components/DraggableWindow";
 import { WindowChrome } from "./components/WindowChrome";
+import { WindowTray } from "./components/WindowTray";
 
 // ── LAZY MODAL IMPORTS ────────────────────────────────────────────────────────
 const ApiAccessModal        = lazy(() => import("./components/modals/ApiAccessModal").then(m=>({default:m.ApiAccessModal})));
@@ -82,6 +83,8 @@ const SkillsLibraryModal    = lazy(() => import("./components/modals/SkillsLibra
 const OpenGravityModal      = lazy(() => import("./components/modals/OpenGravityModal").then(m=>({default:m.OpenGravityModal})));
 const AgentOSModal          = lazy(() => import("./components/modals/AgentOSModal").then(m=>({default:m.AgentOSModal})));
 const GeminiCLIModal        = lazy(() => import("./components/modals/GeminiCLIModal").then(m=>({default:m.GeminiCLIModal})));
+const MultiModelRaceModal   = lazy(() => import("./components/modals/MultiModelRaceModal").then(m=>({default:m.MultiModelRaceModal})));
+const LocalBenchmarkModal   = lazy(() => import("./components/modals/LocalBenchmarkModal").then(m=>({default:m.LocalBenchmarkModal})));
 const HermesModal           = lazy(() => import("./components/modals/HermesModal").then(m=>({default:m.HermesModal})));
 const GraphifyModal         = lazy(() => import("./components/modals/GraphifyModal").then(m=>({default:m.GraphifyModal})));
 const GetShitDoneModal      = lazy(() => import("./components/modals/GetShitDoneModal").then(m=>({default:m.GetShitDoneModal})));
@@ -236,6 +239,8 @@ const MODAL_IDS = [
   'omegaAgent',
   'ollamaHub',
   'localEngineHub',
+  'multiModelRace',
+  'localBenchmark',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -625,6 +630,8 @@ function AppContent() {
           onOpenJARVISCommandCenter={() => open('jarvisCommandCenter')}
           onOpenOmegaAgent={() => open('omegaAgent')}
           onOpenOllamaHub={() => open('ollamaHub')}
+          onOpenMultiModelRace={() => open('multiModelRace')}
+          onOpenLocalBenchmark={() => open('localBenchmark')}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
@@ -686,6 +693,12 @@ function AppContent() {
         </WindowChrome>
         <WindowChrome open={modals.localEngineHub} color="#00e5ff" title="LOCAL ENGINE HUB" onClose={() => close('localEngineHub')}>
           <LocalEngineHubModal open={modals.localEngineHub} onOpenChange={(v) => mDispatch({type:'SET',id:'localEngineHub',value:v})} />
+        </WindowChrome>
+        <WindowChrome open={modals.multiModelRace} color="#f72585" title="MULTI-MODEL RACE" onClose={() => close('multiModelRace')}>
+          <MultiModelRaceModal open={modals.multiModelRace} onOpenChange={(v) => mDispatch({type:'SET',id:'multiModelRace',value:v})} />
+        </WindowChrome>
+        <WindowChrome open={modals.localBenchmark} color="#a78bfa" title="ENGINE BENCHMARK" onClose={() => close('localBenchmark')}>
+          <LocalBenchmarkModal open={modals.localBenchmark} onOpenChange={(v) => mDispatch({type:'SET',id:'localBenchmark',value:v})} />
         </WindowChrome>
         <WindowChrome open={modals.providerSettings} color="#00e5ff" title="PROVIDER SETTINGS" onClose={() => close('providerSettings')}>
           <ProviderSettingsModal open={modals.providerSettings} onClose={() => close('providerSettings')} />
@@ -1017,6 +1030,12 @@ function AppContent() {
           <OllamaHub3D open={modals.ollamaHub} onClose={() => close('ollamaHub')} />
         )}
       </Suspense>
+
+      {/* Global Window Tray — bottom taskbar for minimized windows */}
+      <WindowTray
+        onOpenLocalEngineHub={() => open('localEngineHub')}
+        onOpenBenchmark={() => open('localBenchmark')}
+      />
     </div>
     </>
   );

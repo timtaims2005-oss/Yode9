@@ -426,6 +426,13 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
   /* Background download tracker */
   const [dlStatus, setDlStatus] = useState<{ done: boolean; binExists: boolean; log: string }>({ done: false, binExists: false, log: "" });
 
+  /* ── Auto-pull queue ─────────────────────────────────── */
+  const [autoPullActive,  setAutoPullActive]  = useState(false);
+  const [autoPullQueue,   setAutoPullQueue]   = useState<string[]>([]);
+  const [autoPullCurrent, setAutoPullCurrent] = useState<string | null>(null);
+  const [autoPullDone,    setAutoPullDone]    = useState<string[]>([]);
+  const autoPullAbort = useRef(false);
+
   const activeModels = useMemo(
     () => status.models.map(m => m.name),
     [status.models],
@@ -537,6 +544,39 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
       await fetchStatus();
     }
   };
+
+  /* ── Auto-pull all recommended models sequentially ──── */
+  const handleAutoPullAll = useCallback(async () => {
+    if (!status.running) return;
+    const installed = new Set(status.models.map(m => m.name));
+    const queue = REPLIT_MODELS.filter(m => m.ok && !installed.has(m.name)).map(m => m.name);
+    if (queue.length === 0) return;
+
+    setAutoPullActive(true);
+    setAutoPullQueue([...queue]);
+    setAutoPullDone([]);
+    autoPullAbort.current = false;
+
+    for (const modelName of queue) {
+      if (autoPullAbort.current) break;
+      setAutoPullCurrent(modelName);
+      setAutoPullQueue(prev => prev.filter(n => n !== modelName));
+      await handlePull(modelName);
+      setAutoPullDone(prev => [...prev, modelName]);
+      await fetchStatus();
+    }
+
+    setAutoPullCurrent(null);
+    setAutoPullActive(false);
+    autoPullAbort.current = false;
+  }, [status.running, status.models, handlePull, fetchStatus]);
+
+  const stopAutoPull = useCallback(() => {
+    autoPullAbort.current = true;
+    setAutoPullActive(false);
+    setAutoPullCurrent(null);
+    setAutoPullQueue([]);
+  }, []);
 
   const handleDelete = async (name: string) => {
     await fetch("/api/ollama/delete", {
@@ -947,6 +987,64 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
                   All 7 models run without GPU. Start with qwen2.5:0.5b (395MB) for instant speed.
                   Ollama must be running before pulling models.
                 </p>
+
+                {/* Auto-pull Queue */}
+                <div className="mt-3 flex items-center gap-2 flex-wrap">
+                  {!autoPullActive ? (
+                    <button
+                      onClick={handleAutoPullAll}
+                      disabled={!status.running}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all disabled:opacity-40"
+                      style={{ background: "rgba(0,229,255,0.12)", color: "#00e5ff", border: "1px solid rgba(0,229,255,0.3)" }}
+                    >
+                      <Download className="w-3 h-3" />
+                      Auto-pull All Recommended
+                    </button>
+                  ) : (
+                    <button
+                      onClick={stopAutoPull}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all"
+                      style={{ background: "rgba(239,68,68,0.12)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)" }}
+                    >
+                      <X className="w-3 h-3" />
+                      Stop Queue
+                    </button>
+                  )}
+                  {autoPullDone.length > 0 && (
+                    <span className="text-[9px] text-emerald-400 font-mono">✓ {autoPullDone.length} pulled</span>
+                  )}
+                  {autoPullQueue.length > 0 && (
+                    <span className="text-[9px] text-white/30 font-mono">{autoPullQueue.length} queued</span>
+                  )}
+                </div>
+
+                {/* Active pull indicator */}
+                {autoPullCurrent && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <Loader2 className="w-3 h-3 animate-spin text-cyan-400" />
+                    <span className="text-[9px] font-mono text-cyan-400">Pulling: {autoPullCurrent}</span>
+                    <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: "rgba(0,229,255,0.1)" }}>
+                      <motion.div
+                        className="h-full rounded-full"
+                        style={{ background: "#00e5ff" }}
+                        animate={{ width: [`${pulling[autoPullCurrent] ?? 0}%`] }}
+                      />
+                    </div>
+                    <span className="text-[9px] font-mono text-cyan-400">{pulling[autoPullCurrent] ?? 0}%</span>
+                  </div>
+                )}
+
+                {/* Queue list */}
+                {autoPullQueue.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {autoPullQueue.map(name => (
+                      <span key={name} className="text-[8px] px-1.5 py-0.5 rounded font-mono text-white/30"
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        {name.split(":")[0]}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {REPLIT_MODELS.map((m, idx) => {

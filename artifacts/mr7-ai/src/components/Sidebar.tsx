@@ -140,6 +140,8 @@ interface SidebarProps {
   onOpenUseCaseLib?: () => void;
   onOpenOmegaAgent?: () => void;
   onOpenLocalEngineHub?: () => void;
+  onOpenMultiModelRace?: () => void;
+  onOpenLocalBenchmark?: () => void;
 }
 
 const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: string }[] = [
@@ -262,7 +264,7 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: DbIcon, label: "Kali SQLi Guide", color: "text-blue-400" },
 ];
 
-export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark }: SidebarProps) {
   const { toast } = useToast();
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -1101,6 +1103,24 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                 className="p-1.5 rounded text-[#00e5ff88] hover:text-[#00e5ff] hover:bg-[#00e5ff12] transition-colors"
               >
                 <Server className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {onOpenMultiModelRace && (
+              <button
+                onClick={onOpenMultiModelRace}
+                title="Multi-Model Race — سباق النماذج"
+                className="p-1.5 rounded text-[#f7258588] hover:text-[#f72585] hover:bg-[#f7258512] transition-colors"
+              >
+                <Zap className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {onOpenLocalBenchmark && (
+              <button
+                onClick={onOpenLocalBenchmark}
+                title="Engine Benchmark — اختبار الأداء"
+                className="p-1.5 rounded text-[#a78bfa88] hover:text-[#a78bfa] hover:bg-[#a78bfa12] transition-colors"
+              >
+                <Activity className="w-3.5 h-3.5" />
               </button>
             )}
             {onOpenQRSync && (
