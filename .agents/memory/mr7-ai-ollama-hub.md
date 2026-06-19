@@ -1,35 +1,72 @@
 ---
 name: mr7-ai Ollama Hub
-description: OllamaHub3D integration — architecture, Replit install limitations, HF Spaces deployment
+description: Ollama local model server — binary paths, CPU lib extraction, workflow auto-start, inference confirmed
 ---
 
-## What was built
+## Ollama Binary & Libs
 
-- `artifacts/mr7-ai/src/components/OllamaHub3D.tsx` — 838-line Three.js 3D model management UI
-  - Orbital rings + node particles canvas (Three.js)
-  - 4 tabs: Installed / Library / Chat / HF Spaces
-  - Pull progress, live chat with any local model, parallel model selector
-- `artifacts/api-server/src/routes/ollama.ts` — Full Ollama REST proxy
-  - Endpoints: GET /api/ollama/status, /models, /ps, /show/:model, POST /ollama/pull (SSE), /delete, /chat, /generate, /start, /install (SSE)
-  - Registered in routes/index.ts
-- Integrated in App.tsx (`ollamaHub` modal ID, lazy import) and TopBar.tsx (`onOpenOllamaHub` prop, purple HUDBtn)
-- HF Spaces deployment files in `hf-spaces/`: Dockerfile, README.md, proxy.py (FastAPI auth proxy), start.sh, nginx.conf
-- `scripts/start-ollama.sh` — auto-start script if binary exists at /home/runner/.ollama-bin/ollama
-- `scripts/install-ollama.sh` — full install script with correct tar.zst extraction
+- Binary: `/home/runner/workspace/.ollama-bin/ollama` (37MB, CPU-only, v0.30.10) — workspace-persistent
+- CPU Libs: `/home/runner/workspace/.ollama-bin/lib/ollama/` (35 files, ~27MB)
+  - Includes: `llama-server`, `libggml-*.so`, `libllama-*.so`, `libgomp.so`, `libmtmd.so`
+  - NO CUDA libs (cuda_v12, cuda_v13, vulkan excluded to save disk space)
+- Models dir: `/home/runner/.ollama/models/` (NOT workspace — home dir only, not persistent across repls)
 
-## Replit binary install limitation
+## Extraction Method (re-install recipe)
 
-**Why:** Ollama v0.30.10 tarball is 1.3GB (tar.zst). It includes CUDA v12/v13 libraries that together exceed the Replit container disk quota. Even stream-extracting just `bin/ollama` times out at the bash 120s limit due to network speed.
+Full Ollama tarball (~1.4GB) downloaded to `/tmp/ollama.tar.zst`.
+Extract CPU-only files (no cuda/vulkan) to get ~64MB total:
+```bash
+mkdir -p /tmp/ol-cpu && tar --use-compress-program=zstd -xf /tmp/ollama.tar.zst \
+  --exclude='lib/ollama/cuda_v12' --exclude='lib/ollama/cuda_v13' --exclude='lib/ollama/vulkan' \
+  -C /tmp/ol-cpu
+# Then copy:
+cp /tmp/ol-cpu/bin/ollama /home/runner/workspace/.ollama-bin/ollama
+cp -r /tmp/ol-cpu/lib/ollama /home/runner/workspace/.ollama-bin/lib/
+```
 
-**How to apply:** Do not attempt to install Ollama binary as part of the app startup on Replit. The `/api/ollama/install` SSE endpoint handles it at user request. The real solution is HF Spaces.
+## Critical: OLLAMA_LIBRARY_PATH
 
-## HF Spaces deployment (recommended)
+MUST set `OLLAMA_LIBRARY_PATH=/home/runner/workspace/.ollama-bin/lib/ollama` at startup.
+Without it, `llama-server` not found → server starts, lists models, but inference FAILS silently.
 
-1. Create a new HF Space with Docker SDK and T4 GPU
-2. Upload files from `hf-spaces/` folder
-3. Set `API_KEY` secret in Space settings
-4. Enter the Space URL in OllamaHub3D "HF Spaces" tab → Connect button
+## Launch Method
 
-## Remote Ollama connection
+Must use Python `subprocess.Popen(..., start_new_session=True)` to detach from shell.
+Shell `nohup ... &` gets killed when bash tool session ends.
+Launcher script: `scripts/launch-ollama.py`
 
-Any remote Ollama instance can be used: enter its URL in the HF Spaces tab. The API proxy in `ollama.ts` forwards requests to `OLLAMA_BASE_URL` (default: http://localhost:11434).
+## Workflow Integration
+
+"Start application" workflow command includes:
+```
+python3 scripts/launch-ollama.py & pnpm --filter @workspace/api-server run dev & pnpm --filter @workspace/mr7-ai run dev
+```
+
+## API Routes (ollama.ts at api-server)
+
+- `GET /api/ollama/status` — running, models, version, binExists
+- `POST /api/ollama/start` — starts daemon (startDaemon() sets OLLAMA_LIBRARY_PATH)
+- `POST /api/ollama/pull` — pull model, streams SSE progress
+- `DELETE /api/ollama/model/:name` — delete model
+- `POST /api/ollama/chat/stream` — SSE chat with local model
+
+## Confirmed Working
+
+- `qwen2.5:0.5b` (398MB) — CONFIRMED inference: `curl /api/chat` returns `Hello.`
+- `tinyllama` (637MB) — being pulled
+
+## 7 Recommended CPU Models
+
+1. `qwen2.5:0.5b` (395MB)
+2. `tinyllama` (637MB)
+3. `deepseek-r1:1.5b` (1.1GB)
+4. `llama3.2:1b` (1.3GB)
+5. `gemma2:2b` (1.6GB)
+6. `phi3:mini` (2.2GB)
+7. `mistral:7b-q4_0` (4.1GB) — needs ~8GB RAM
+
+## Frontend
+
+`OllamaHub3D.tsx` — Three.js orbital system, 7 planet models, particle field, 4 tabs.
+Accessible via purple "Ollama" button in TopBar (`onOpenOllamaHub` prop).
+Modal ID `ollamaHub` registered in App.tsx.

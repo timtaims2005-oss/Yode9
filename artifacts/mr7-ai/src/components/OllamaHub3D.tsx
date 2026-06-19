@@ -1,248 +1,371 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Cpu, Download, Trash2, Play, Square, Activity,
-  Zap, Brain, Server, Globe, RefreshCw, Terminal,
-  ChevronRight, AlertCircle, CheckCircle2, Loader2,
-  MemoryStick, HardDrive, Wifi, WifiOff
+  X, Cpu, Download, Trash2, Activity, Zap, Brain, Server,
+  Globe, RefreshCw, Terminal, ChevronRight, CheckCircle2,
+  Loader2, HardDrive, WifiOff, Play, MemoryStick,
+  Network, Layers, Atom,
 } from "lucide-react";
 
-/* ═══════════════════════════════════════════════════════════════
-   OLLAMA HUB 3D — Neural Model Command Center
-   Futuristic 3D management dashboard for local AI models.
-   Three.js orbital rings + holographic panels + live stats.
-═══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════
+   OLLAMA NEURAL HUB — MAXIMUM EDITION
+   Full Three.js orbital system with per-model planets, neural connections,
+   particle flow, mouse hover raycasting, streaming chat, live stats.
+══════════════════════════════════════════════════════════════════════ */
 
-interface OllamaHubProps {
-  open: boolean;
-  onClose: () => void;
-}
+interface OllamaHubProps { open: boolean; onClose: () => void; }
 
 interface OllamaModel {
-  name: string;
-  size: number;
-  digest: string;
-  modified_at: string;
+  name: string; size: number; digest: string; modified_at: string;
   details?: { parameter_size?: string; quantization_level?: string; family?: string };
 }
-
-interface RunningModel {
-  name: string;
-  model: string;
-  size: number;
-  size_vram?: number;
-  expires_at?: string;
-}
-
+interface RunningModel { name: string; model: string; size: number; expires_at?: string; }
 interface OllamaStatus {
-  running: boolean;
-  models: OllamaModel[];
-  version: string | null;
+  running: boolean; models: OllamaModel[]; version: string | null;
+  binExists?: boolean; dlLog?: string | null;
 }
 
-const AVAILABLE_MODELS = [
-  { name: "llama3.2:3b",      label: "Llama 3.2",    size: "2GB",  speed: "⚡ Fast",   color: "#7c3aed", tag: "META" },
-  { name: "llama3.3:70b",     label: "Llama 3.3 70B",size: "40GB", speed: "🧠 Smart",  color: "#4f46e5", tag: "META" },
-  { name: "deepseek-r1:7b",   label: "DeepSeek R1",  size: "4GB",  speed: "🔍 Reason", color: "#0891b2", tag: "DS" },
-  { name: "deepseek-r1:14b",  label: "DeepSeek 14B", size: "8GB",  speed: "🔍 Reason", color: "#0e7490", tag: "DS" },
-  { name: "qwen2.5:7b",       label: "Qwen 2.5",     size: "4GB",  speed: "⚡ Fast",   color: "#059669", tag: "ALI" },
-  { name: "qwen2.5:72b",      label: "Qwen 2.5 72B", size: "41GB", speed: "🧠 Smart",  color: "#047857", tag: "ALI" },
-  { name: "mistral:7b",       label: "Mistral",      size: "4GB",  speed: "⚡ Fast",   color: "#b45309", tag: "MIS" },
-  { name: "phi3:mini",        label: "Phi-3 Mini",   size: "2GB",  speed: "⚡ Tiny",   color: "#be185d", tag: "MS" },
-  { name: "gemma2:2b",        label: "Gemma 2",      size: "1.6GB",speed: "⚡ Tiny",   color: "#dc2626", tag: "GOO" },
-  { name: "codellama:13b",    label: "CodeLlama",    size: "7GB",  speed: "💻 Code",   color: "#9333ea", tag: "META" },
-  { name: "vicuna:13b",       label: "Vicuna",       size: "7GB",  speed: "💬 Chat",   color: "#ea580c", tag: "LMSYS" },
-  { name: "neural-chat:7b",   label: "NeuralChat",   size: "4GB",  speed: "💬 Chat",   color: "#0f766e", tag: "INTEL" },
-];
+/* ── 7 optimised models for Replit CPU (no GPU needed) ────────────── */
+const REPLIT_MODELS = [
+  { name: "qwen2.5:0.5b",      label: "Qwen 0.5B",      size: "395MB", ram: "~1GB",  speed: "ULTRA", color: "#10b981", geo: "sphere",       tag: "ALI",   ok: true  },
+  { name: "tinyllama",          label: "TinyLlama",       size: "637MB", ram: "~1GB",  speed: "ULTRA", color: "#f59e0b", geo: "tetrahedron",   tag: "TL",    ok: true  },
+  { name: "deepseek-r1:1.5b",  label: "DeepSeek R1 1.5B",size: "1.1GB", ram: "~2GB",  speed: "FAST",  color: "#0ea5e9", geo: "icosahedron",   tag: "DS",    ok: true  },
+  { name: "llama3.2:1b",       label: "Llama 3.2 1B",    size: "1.3GB", ram: "~2GB",  speed: "FAST",  color: "#8b5cf6", geo: "dodecahedron",  tag: "META",  ok: true  },
+  { name: "gemma2:2b",         label: "Gemma 2 2B",      size: "1.6GB", ram: "~3GB",  speed: "MED",   color: "#ec4899", geo: "octahedron",    tag: "GOO",   ok: true  },
+  { name: "phi3:mini",         label: "Phi-3 Mini",      size: "2.2GB", ram: "~4GB",  speed: "MED",   color: "#06b6d4", geo: "torus",         tag: "MS",    ok: true  },
+  { name: "mistral:7b-q4_0",   label: "Mistral 7B Q4",   size: "4.1GB", ram: "~6GB",  speed: "SLOW",  color: "#f97316", geo: "sphere",        tag: "MIS",   ok: false },
+] as const;
 
-function formatSize(bytes: number): string {
-  if (bytes >= 1e9) return `${(bytes / 1e9).toFixed(1)} GB`;
-  if (bytes >= 1e6) return `${(bytes / 1e6).toFixed(0)} MB`;
-  return `${bytes} B`;
+const MODEL_COLORS = REPLIT_MODELS.map(m => m.color);
+
+function fmtBytes(b: number): string {
+  if (b >= 1e9) return `${(b/1e9).toFixed(1)} GB`;
+  if (b >= 1e6) return `${(b/1e6).toFixed(0)} MB`;
+  return `${b} B`;
 }
 
-/* ── Three.js Neural Core Scene ─────────────────────────────── */
-function useNeuralScene(canvasRef: React.RefObject<HTMLCanvasElement | null>, modelCount: number) {
-  const sceneRef   = useRef<THREE.Scene | null>(null);
-  const rendererRef= useRef<THREE.WebGLRenderer | null>(null);
-  const cameraRef  = useRef<THREE.PerspectiveCamera | null>(null);
-  const frameRef   = useRef<number>(0);
-  const ringsRef   = useRef<THREE.Mesh[]>([]);
-  const nodesRef   = useRef<THREE.Mesh[]>([]);
-  const coreRef    = useRef<THREE.Mesh | null>(null);
-  const particlesRef = useRef<THREE.Points | null>(null);
-  const timeRef    = useRef(0);
+/* ══════════════════════════════════════════════════════════════════════
+   THREE.JS NEURAL SCENE — hooks
+══════════════════════════════════════════════════════════════════════ */
+interface SceneState {
+  hoveredIdx: number | null;
+  selectedIdx: number | null;
+}
+
+function buildGeo(type: string): THREE.BufferGeometry {
+  switch (type) {
+    case "tetrahedron":   return new THREE.TetrahedronGeometry(0.55, 0);
+    case "icosahedron":   return new THREE.IcosahedronGeometry(0.5, 1);
+    case "dodecahedron":  return new THREE.DodecahedronGeometry(0.5, 0);
+    case "octahedron":    return new THREE.OctahedronGeometry(0.55, 0);
+    case "torus":         return new THREE.TorusGeometry(0.38, 0.18, 12, 36);
+    default:              return new THREE.SphereGeometry(0.48, 24, 24);
+  }
+}
+
+function useNeuralScene(
+  canvasRef: React.RefObject<HTMLCanvasElement | null>,
+  activeModels: string[],
+  onHover: (idx: number | null) => void,
+  onSelect: (idx: number) => void,
+  sceneState: SceneState,
+) {
+  const rendRef   = useRef<THREE.WebGLRenderer | null>(null);
+  const sceneRef  = useRef<THREE.Scene | null>(null);
+  const camRef    = useRef<THREE.PerspectiveCamera | null>(null);
+  const rafRef    = useRef<number>(0);
+  const tRef      = useRef(0);
+  const mouseRef  = useRef({ x: 0, y: 0, nx: 0, ny: 0 });
+
+  const planetsRef    = useRef<THREE.Mesh[]>([]);
+  const glowsRef      = useRef<THREE.Mesh[]>([]);
+  const ringsRef      = useRef<THREE.Mesh[]>([]);
+  const coreRef       = useRef<THREE.Mesh | null>(null);
+  const coreGlowRef   = useRef<THREE.Mesh | null>(null);
+  const linesRef      = useRef<THREE.Line | null>(null);
+  const particlesRef  = useRef<THREE.Points | null>(null);
+  const pPosRef       = useRef<Float32Array>(new Float32Array(0));
+  const gridRef       = useRef<THREE.Mesh | null>(null);
+  const raycasterRef  = useRef(new THREE.Raycaster());
+  const mouseVecRef   = useRef(new THREE.Vector2());
+  const hovIdxRef     = useRef<number | null>(null);
+
+  // Planet orbital positions (fixed radii + phase offsets)
+  const ORBITS = useMemo(() => REPLIT_MODELS.map((_, i) => ({
+    radius: 2.2 + (i % 3) * 0.9,
+    tilt:   (Math.PI / 7) * i,
+    speed:  (i % 2 === 0 ? 1 : -1) * (0.004 + i * 0.0012),
+    phase:  (Math.PI * 2 / 7) * i,
+  })), []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const W = canvas.clientWidth  || 700;
+    const H = canvas.clientHeight || 500;
 
-    const W = canvas.clientWidth || 600;
-    const H = canvas.clientHeight || 400;
-
+    /* ── Renderer ─────────────────────────────────────── */
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setSize(W, H);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
-    rendererRef.current = renderer;
+    renderer.shadowMap.enabled = false;
+    rendRef.current = renderer;
 
-    const scene = new THREE.Scene();
+    /* ── Scene + Camera ───────────────────────────────── */
+    const scene  = new THREE.Scene();
     sceneRef.current = scene;
-
-    const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
-    camera.position.set(0, 2, 7);
+    const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 200);
+    camera.position.set(0, 1.5, 9);
     camera.lookAt(0, 0, 0);
-    cameraRef.current = camera;
+    camRef.current = camera;
 
-    /* ── Ambient + point lights ── */
-    scene.add(new THREE.AmbientLight(0x111133, 2));
-    const pL1 = new THREE.PointLight(0x7c3aed, 80, 20);
-    pL1.position.set(0, 4, 0);
-    scene.add(pL1);
-    const pL2 = new THREE.PointLight(0x00e5ff, 40, 15);
-    pL2.position.set(-4, -2, 2);
-    scene.add(pL2);
-    const pL3 = new THREE.PointLight(0xff2079, 30, 15);
-    pL3.position.set(4, -2, -2);
-    scene.add(pL3);
+    /* ── Lights ───────────────────────────────────────── */
+    scene.add(new THREE.AmbientLight(0x080820, 4));
+    const pL1 = new THREE.PointLight(0x7c3aed, 150, 25); pL1.position.set(0, 5, 0); scene.add(pL1);
+    const pL2 = new THREE.PointLight(0x00e5ff, 80, 20);  pL2.position.set(-5, -2, 3); scene.add(pL2);
+    const pL3 = new THREE.PointLight(0xff2079, 60, 20);  pL3.position.set(5, -2, -3); scene.add(pL3);
+    const pL4 = new THREE.PointLight(0x00ff88, 40, 18);  pL4.position.set(0, -4, 5); scene.add(pL4);
 
-    /* ── Neural core ── */
+    /* ── Core ─────────────────────────────────────────── */
+    const coreGeo = new THREE.IcosahedronGeometry(0.72, 3);
     const coreMat = new THREE.MeshStandardMaterial({
-      color: 0x7c3aed, emissive: 0x4c1d95, emissiveIntensity: 2,
-      metalness: 0.8, roughness: 0.2, wireframe: false,
+      color: 0x6d28d9, emissive: 0x4c1d95, emissiveIntensity: 3,
+      metalness: 0.9, roughness: 0.05, wireframe: false,
     });
-    const coreGeo = new THREE.IcosahedronGeometry(0.8, 2);
     const core = new THREE.Mesh(coreGeo, coreMat);
-    scene.add(core);
-    coreRef.current = core;
+    scene.add(core); coreRef.current = core;
 
-    /* ── Orbital rings ── */
-    const ringColors = [0x7c3aed, 0x00e5ff, 0x00ff88, 0xff2079, 0xffaa00, 0xff6600, 0xff0000];
-    const ringData = [
-      { radius: 1.5, tilt: 0, speed: 0.012 },
-      { radius: 2.1, tilt: Math.PI * 0.3, speed: -0.008 },
-      { radius: 2.7, tilt: Math.PI * 0.6, speed: 0.006 },
-      { radius: 3.2, tilt: Math.PI * 0.15, speed: -0.005 },
-      { radius: 3.7, tilt: Math.PI * 0.45, speed: 0.004 },
-      { radius: 4.1, tilt: Math.PI * 0.75, speed: -0.003 },
-      { radius: 4.5, tilt: Math.PI * 0.9, speed: 0.007 },
-    ];
+    // Core wireframe overlay
+    const wireGeo = new THREE.IcosahedronGeometry(0.74, 1);
+    const wireMat = new THREE.MeshBasicMaterial({ color: 0xc4b5fd, wireframe: true, transparent: true, opacity: 0.15 });
+    core.add(new THREE.Mesh(wireGeo, wireMat));
 
-    ringsRef.current = [];
-    ringData.forEach((rd, i) => {
-      const geo = new THREE.TorusGeometry(rd.radius, 0.015, 8, 80);
+    // Core glow halo
+    const coreGlowGeo = new THREE.SphereGeometry(1.1, 24, 24);
+    const coreGlowMat = new THREE.MeshBasicMaterial({
+      color: 0x7c3aed, transparent: true, opacity: 0.06, side: THREE.BackSide,
+    });
+    const coreGlow = new THREE.Mesh(coreGlowGeo, coreGlowMat);
+    scene.add(coreGlow); coreGlowRef.current = coreGlow;
+
+    /* ── 7 Model Planets ──────────────────────────────── */
+    planetsRef.current = [];
+    glowsRef.current   = [];
+    ringsRef.current   = [];
+    REPLIT_MODELS.forEach((model, i) => {
+      const color  = new THREE.Color(model.color);
+      const orbit  = ORBITS[i];
+
+      // Planet body
+      const geo = buildGeo(model.geo);
       const mat = new THREE.MeshStandardMaterial({
-        color: ringColors[i % ringColors.length],
-        emissive: ringColors[i % ringColors.length],
-        emissiveIntensity: 1.5, metalness: 1, roughness: 0,
-        transparent: true, opacity: i < modelCount ? 0.9 : 0.25,
+        color, emissive: color, emissiveIntensity: 0.6,
+        metalness: 0.7, roughness: 0.25,
       });
-      const ring = new THREE.Mesh(geo, mat);
-      ring.rotation.x = rd.tilt;
-      (ring as any).userData = { speed: rd.speed, active: i < modelCount };
+      const planet = new THREE.Mesh(geo, mat);
+      planet.userData = { modelIdx: i, orbit, phase: orbit.phase };
+      scene.add(planet);
+      planetsRef.current.push(planet);
+
+      // Glow sphere (back-face)
+      const glowGeo = new THREE.SphereGeometry(0.9, 16, 16);
+      const glowMat = new THREE.MeshBasicMaterial({
+        color, transparent: true, opacity: 0.07, side: THREE.BackSide,
+      });
+      const glow = new THREE.Mesh(glowGeo, glowMat);
+      planet.add(glow);
+      glowsRef.current.push(glow);
+
+      // Orbital ring guide (faint)
+      const ringGeo = new THREE.TorusGeometry(orbit.radius, 0.008, 6, 120);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color, transparent: true, opacity: 0.12,
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = orbit.tilt;
       scene.add(ring);
       ringsRef.current.push(ring);
     });
 
-    /* ── Node spheres on each ring ── */
-    nodesRef.current = [];
-    ringsRef.current.forEach((ring, ri) => {
-      const nodeCount = 4 + ri;
-      for (let n = 0; n < nodeCount; n++) {
-        const angle = (n / nodeCount) * Math.PI * 2;
-        const rd = ringData[ri];
-        const nodeMat = new THREE.MeshStandardMaterial({
-          color: ringColors[ri % ringColors.length],
-          emissive: ringColors[ri % ringColors.length],
-          emissiveIntensity: 2,
-          transparent: true,
-          opacity: ri < modelCount ? 1 : 0.2,
-        });
-        const node = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), nodeMat);
-        node.position.set(
-          Math.cos(angle) * rd.radius,
-          0,
-          Math.sin(angle) * rd.radius,
-        );
-        (node as any).userData = { ring: ri, angle, radius: rd.radius, active: ri < modelCount };
-        scene.add(node);
-        nodesRef.current.push(node);
-      }
+    /* ── Neural Connection Lines ──────────────────────── */
+    const linePositions = new Float32Array(REPLIT_MODELS.length * 6); // placeholder
+    const lineGeo = new THREE.BufferGeometry();
+    lineGeo.setAttribute("position", new THREE.BufferAttribute(linePositions, 3));
+    const lineMat = new THREE.LineBasicMaterial({
+      color: 0x7c3aed, transparent: true, opacity: 0.18, linewidth: 1,
     });
+    const lines = new THREE.LineSegments(lineGeo, lineMat);
+    scene.add(lines); linesRef.current = lines;
 
-    /* ── Particle field ── */
-    const pCount = 800;
-    const pPositions = new Float32Array(pCount * 3);
-    for (let i = 0; i < pCount * 3; i++) pPositions[i] = (Math.random() - 0.5) * 20;
+    /* ── Particle Field ───────────────────────────────── */
+    const pCount = 1200;
+    const pPos   = new Float32Array(pCount * 3);
+    const pCol   = new Float32Array(pCount * 3);
+    for (let i = 0; i < pCount; i++) {
+      pPos[i*3]   = (Math.random() - 0.5) * 24;
+      pPos[i*3+1] = (Math.random() - 0.5) * 18;
+      pPos[i*3+2] = (Math.random() - 0.5) * 16;
+      const c = new THREE.Color(MODEL_COLORS[i % MODEL_COLORS.length]);
+      pCol[i*3] = c.r; pCol[i*3+1] = c.g; pCol[i*3+2] = c.b;
+    }
+    pPosRef.current = pPos;
     const pGeo = new THREE.BufferGeometry();
-    pGeo.setAttribute("position", new THREE.BufferAttribute(pPositions, 3));
-    const pMat = new THREE.PointsMaterial({ color: 0x7c3aed, size: 0.03, transparent: true, opacity: 0.4 });
+    pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+    pGeo.setAttribute("color",    new THREE.BufferAttribute(pCol, 3));
+    const pMat = new THREE.PointsMaterial({ size: 0.035, vertexColors: true, transparent: true, opacity: 0.5 });
     const particles = new THREE.Points(pGeo, pMat);
-    scene.add(particles);
-    particlesRef.current = particles;
+    scene.add(particles); particlesRef.current = particles;
 
-    /* ── Grid plane ── */
-    const gridHelper = new THREE.GridHelper(20, 30, 0x1a0533, 0x1a0533);
-    gridHelper.position.y = -3;
-    (gridHelper.material as THREE.Material).transparent = true;
-    (gridHelper.material as THREE.Material).opacity = 0.3;
-    scene.add(gridHelper);
+    /* ── Hex Grid Plane ───────────────────────────────── */
+    const gridGeo = new THREE.PlaneGeometry(30, 30, 40, 40);
+    const gridMat = new THREE.MeshBasicMaterial({
+      color: 0x2d1b69, wireframe: true, transparent: true, opacity: 0.12,
+    });
+    const grid = new THREE.Mesh(gridGeo, gridMat);
+    grid.rotation.x = -Math.PI / 2;
+    grid.position.y = -4.5;
+    scene.add(grid); gridRef.current = grid;
 
-    /* ── Animation loop ── */
+    /* ── Animation Loop ───────────────────────────────── */
+    let lastTime = performance.now();
     function animate() {
-      frameRef.current = requestAnimationFrame(animate);
-      timeRef.current += 0.016;
-      const t = timeRef.current;
+      rafRef.current = requestAnimationFrame(animate);
+      const now  = performance.now();
+      const dt   = Math.min((now - lastTime) / 1000, 0.033);
+      lastTime   = now;
+      tRef.current += dt;
+      const t = tRef.current;
 
+      /* Core pulse */
       if (coreRef.current) {
-        coreRef.current.rotation.x = t * 0.3;
-        coreRef.current.rotation.y = t * 0.5;
-        const pulse = 1 + Math.sin(t * 2) * 0.05;
-        coreRef.current.scale.setScalar(pulse);
+        coreRef.current.rotation.x = t * 0.22;
+        coreRef.current.rotation.y = t * 0.37;
+        const s = 1 + Math.sin(t * 1.8) * 0.04;
+        coreRef.current.scale.setScalar(s);
+        const mat = coreRef.current.material as THREE.MeshStandardMaterial;
+        mat.emissiveIntensity = 2.5 + Math.sin(t * 2.5) * 0.8;
+      }
+      if (coreGlowRef.current) {
+        const m = coreGlowRef.current.material as THREE.MeshBasicMaterial;
+        m.opacity = 0.04 + Math.sin(t * 2) * 0.03;
       }
 
-      ringsRef.current.forEach((ring, i) => {
-        const ud = (ring as any).userData;
-        ring.rotation.z += ud.speed;
+      /* Planet orbits + self-rotation */
+      const linePos = new Float32Array(REPLIT_MODELS.length * (REPLIT_MODELS.length - 1) * 6);
+      let li = 0;
+      planetsRef.current.forEach((planet, i) => {
+        const orbit = ORBITS[i];
+        const angle = orbit.phase + t * orbit.speed * 60;
+        // Calculate position in tilted orbit plane
+        const localX = Math.cos(angle) * orbit.radius;
+        const localZ = Math.sin(angle) * orbit.radius;
+        // Apply tilt
+        const cosT = Math.cos(orbit.tilt), sinT = Math.sin(orbit.tilt);
+        planet.position.set(localX, localZ * sinT, localZ * cosT);
+        planet.rotation.x += dt * (0.3 + i * 0.1);
+        planet.rotation.y += dt * (0.2 + i * 0.07);
+
+        const isHov = hovIdxRef.current === i;
+        const isAct = activeModels.includes(REPLIT_MODELS[i].name);
+        const mat   = planet.material as THREE.MeshStandardMaterial;
+        const glow  = glowsRef.current[i].material as THREE.MeshBasicMaterial;
+
+        if (isHov) {
+          mat.emissiveIntensity = 2.5 + Math.sin(t * 6) * 0.5;
+          glow.opacity = 0.22;
+          planet.scale.setScalar(1.25 + Math.sin(t * 5) * 0.05);
+        } else if (isAct) {
+          mat.emissiveIntensity = 1.2 + Math.sin(t * 3 + i) * 0.3;
+          glow.opacity = 0.12;
+          planet.scale.setScalar(1.08 + Math.sin(t * 2.5 + i) * 0.04);
+        } else {
+          mat.emissiveIntensity = 0.3 + Math.sin(t * 1.5 + i * 0.5) * 0.1;
+          glow.opacity = 0.04;
+          planet.scale.setScalar(0.85);
+        }
+        mat.needsUpdate = true;
       });
 
-      nodesRef.current.forEach((node) => {
-        const ud = (node as any).userData;
-        const ri = ud.ring;
-        const ringMesh = ringsRef.current[ri];
-        if (!ringMesh) return;
-        const newAngle = ud.angle + t * Math.abs(ringData[ri].speed) * 60;
-        const rd = ringData[ri];
-        const localPos = new THREE.Vector3(
-          Math.cos(newAngle) * rd.radius,
-          0,
-          Math.sin(newAngle) * rd.radius,
-        );
-        localPos.applyEuler(ringMesh.rotation);
-        node.position.copy(localPos);
-        if (ud.active) {
-          const s = 1 + Math.sin(t * 3 + ri) * 0.3;
-          node.scale.setScalar(s);
+      /* Update connection lines (core ↔ active planets) */
+      const cPos = coreRef.current?.position ?? new THREE.Vector3();
+      planetsRef.current.forEach((planet, i) => {
+        if (activeModels.includes(REPLIT_MODELS[i].name)) {
+          const p = planet.position;
+          linePos[li++] = cPos.x; linePos[li++] = cPos.y; linePos[li++] = cPos.z;
+          linePos[li++] = p.x;    linePos[li++] = p.y;    linePos[li++] = p.z;
         }
       });
-
-      if (particlesRef.current) {
-        particlesRef.current.rotation.y = t * 0.02;
-        particlesRef.current.rotation.x = t * 0.01;
+      if (linesRef.current) {
+        const attr = linesRef.current.geometry.attributes.position as THREE.BufferAttribute;
+        for (let k = 0; k < linePos.length; k++) (attr.array as Float32Array)[k] = linePos[k];
+        attr.count = li / 3;
+        attr.needsUpdate = true;
+        (linesRef.current.material as THREE.LineBasicMaterial).opacity =
+          0.12 + Math.sin(t * 2) * 0.06;
       }
 
-      camera.position.x = Math.sin(t * 0.1) * 0.5;
-      camera.position.y = 2 + Math.sin(t * 0.07) * 0.3;
+      /* Particles drift */
+      if (particlesRef.current) {
+        particlesRef.current.rotation.y  = t * 0.018;
+        particlesRef.current.rotation.x  = Math.sin(t * 0.05) * 0.06;
+        const pos = pPosRef.current;
+        for (let i = 0; i < pos.length / 3; i++) {
+          pos[i*3+1] += dt * 0.08;
+          if (pos[i*3+1] > 9) pos[i*3+1] = -9;
+        }
+        (particlesRef.current.geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+      }
+
+      /* Grid pulse */
+      if (gridRef.current) {
+        (gridRef.current.material as THREE.MeshBasicMaterial).opacity =
+          0.08 + Math.sin(t * 0.8) * 0.04;
+      }
+
+      /* Camera smooth mouse parallax */
+      const mx = mouseRef.current.nx * 1.2;
+      const my = mouseRef.current.ny * 0.7;
+      camera.position.x += (mx - camera.position.x) * 0.04;
+      camera.position.y += (my + 1.5 - camera.position.y) * 0.04;
       camera.lookAt(0, 0, 0);
+
+      /* Raycasting for hover */
+      raycasterRef.current.setFromCamera(mouseVecRef.current, camera);
+      const hits = raycasterRef.current.intersectObjects(planetsRef.current, false);
+      const newHov = hits.length > 0 ? (hits[0].object.userData.modelIdx as number) : null;
+      if (newHov !== hovIdxRef.current) {
+        hovIdxRef.current = newHov;
+        onHover(newHov);
+      }
 
       renderer.render(scene, camera);
     }
     animate();
 
+    /* ── Mouse tracking ───────────────────────────────── */
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseRef.current.x  = e.clientX - rect.left;
+      mouseRef.current.y  = e.clientY - rect.top;
+      mouseRef.current.nx = ((e.clientX - rect.left) / rect.width  - 0.5) * 2;
+      mouseRef.current.ny = -((e.clientY - rect.top)  / rect.height - 0.5) * 2;
+      mouseVecRef.current.set(
+        (e.clientX - rect.left) / rect.width  * 2 - 1,
+        -((e.clientY - rect.top)  / rect.height) * 2 + 1,
+      );
+    };
+    const onClick = () => {
+      if (hovIdxRef.current !== null) onSelect(hovIdxRef.current);
+    };
+    canvas.addEventListener("mousemove", onMouseMove);
+    canvas.addEventListener("click", onClick);
+
+    /* ── Resize ───────────────────────────────────────── */
     const onResize = () => {
-      const W2 = canvas.clientWidth;
-      const H2 = canvas.clientHeight;
+      const W2 = canvas.clientWidth, H2 = canvas.clientHeight;
+      if (!W2 || !H2) return;
       camera.aspect = W2 / H2;
       camera.updateProjectionMatrix();
       renderer.setSize(W2, H2);
@@ -250,55 +373,83 @@ function useNeuralScene(canvasRef: React.RefObject<HTMLCanvasElement | null>, mo
     window.addEventListener("resize", onResize);
 
     return () => {
-      cancelAnimationFrame(frameRef.current);
+      cancelAnimationFrame(rafRef.current);
+      canvas.removeEventListener("mousemove", onMouseMove);
+      canvas.removeEventListener("click", onClick);
       window.removeEventListener("resize", onResize);
       renderer.dispose();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* Update ring opacity when model count changes */
+  // Update active model visuals reactively
   useEffect(() => {
+    // Orbital ring opacity by active state
     ringsRef.current.forEach((ring, i) => {
-      const mat = ring.material as THREE.MeshStandardMaterial;
-      mat.opacity = i < modelCount ? 0.9 : 0.2;
-      mat.emissiveIntensity = i < modelCount ? 1.5 : 0.3;
+      const mat = ring.material as THREE.MeshBasicMaterial;
+      mat.opacity = activeModels.includes(REPLIT_MODELS[i].name) ? 0.35 : 0.1;
       mat.needsUpdate = true;
     });
-    nodesRef.current.forEach((node) => {
-      const ud = (node as any).userData;
-      const mat = node.material as THREE.MeshStandardMaterial;
-      const active = ud.ring < modelCount;
-      mat.opacity = active ? 1 : 0.15;
-      mat.emissiveIntensity = active ? 2 : 0.2;
-      mat.needsUpdate = true;
-      (node as any).userData.active = active;
-    });
-  }, [modelCount]);
+  }, [activeModels]);
 }
 
-/* ── Main Component ─────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════════════════════════════════════ */
+type Tab = "dashboard" | "library" | "chat" | "hf";
+
 export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
-  const canvasRef    = useRef<HTMLCanvasElement>(null);
-  const [tab, setTab] = useState<"installed" | "library" | "chat" | "hf">("installed");
-  const [status, setStatus] = useState<OllamaStatus>({ running: false, models: [], version: null });
-  const [running, setRunning] = useState<RunningModel[]>([]);
-  const [pulling, setPulling] = useState<Record<string, number>>({});
-  const [pullLog, setPullLog]  = useState<Record<string, string>>({});
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const [tab,        setTab]        = useState<Tab>("dashboard");
+  const [status,     setStatus]     = useState<OllamaStatus>({ running: false, models: [], version: null });
+  const [running,    setRunning]    = useState<RunningModel[]>([]);
+  const [pulling,    setPulling]    = useState<Record<string, number>>({});
+  const [pullLog,    setPullLog]    = useState<Record<string, string>>({});
   const [installing, setInstalling] = useState(false);
   const [installLog, setInstallLog] = useState<string[]>([]);
-  const [chatModel, setChatModel] = useState("");
-  const [chatInput, setChatInput] = useState("");
+  const [hoveredModel, setHoveredModel] = useState<number | null>(null);
+  const [selectedModel, setSelectedModel] = useState<number | null>(null);
+
+  /* Chat state */
+  const [chatModel,   setChatModel]   = useState("");
+  const [chatInput,   setChatInput]   = useState("");
   const [chatHistory, setChatHistory] = useState<Array<{ role: string; content: string }>>([]);
   const [chatLoading, setChatLoading] = useState(false);
+  const [streamBuf,   setStreamBuf]   = useState("");
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  /* HF Spaces */
   const [hfUrl, setHfUrl] = useState(() => localStorage.getItem("ollama-hf-url") || "");
   const [hfKey, setHfKey] = useState(() => localStorage.getItem("ollama-hf-key") || "");
 
-  useNeuralScene(canvasRef, status.models.length);
+  /* Background download tracker */
+  const [dlStatus, setDlStatus] = useState<{ done: boolean; binExists: boolean; log: string }>({ done: false, binExists: false, log: "" });
 
+  const activeModels = useMemo(
+    () => status.models.map(m => m.name),
+    [status.models],
+  );
+
+  const sceneState = useMemo<SceneState>(
+    () => ({ hoveredIdx: hoveredModel, selectedIdx: selectedModel }),
+    [hoveredModel, selectedModel],
+  );
+
+  const handleHover  = useCallback((idx: number | null) => setHoveredModel(idx), []);
+  const handleSelect = useCallback((idx: number) => {
+    setSelectedModel(idx);
+    setChatModel(REPLIT_MODELS[idx].name);
+    setTab("chat");
+  }, []);
+
+  useNeuralScene(canvasRef, activeModels, handleHover, handleSelect, sceneState);
+
+  /* ── Data Fetching ──────────────────────────────────── */
   const fetchStatus = useCallback(async () => {
     try {
-      const r = await fetch("/api/ollama/status");
-      const d = await r.json() as OllamaStatus;
+      const r  = await fetch("/api/ollama/status");
+      const d  = await r.json() as OllamaStatus;
       setStatus(d);
       if (d.running) {
         const ps = await fetch("/api/ollama/ps");
@@ -309,17 +460,33 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
     } catch { /* offline */ }
   }, [chatModel]);
 
+  const fetchDlStatus = useCallback(async () => {
+    try {
+      const r = await fetch("/api/ollama/dl-status");
+      const d = await r.json() as typeof dlStatus;
+      setDlStatus(d);
+    } catch { /* skip */ }
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     fetchStatus();
-    const iv = setInterval(fetchStatus, 8000);
-    return () => clearInterval(iv);
-  }, [open, fetchStatus]);
+    fetchDlStatus();
+    const iv1 = setInterval(fetchStatus,   10_000);
+    const iv2 = setInterval(fetchDlStatus, 5_000);
+    return () => { clearInterval(iv1); clearInterval(iv2); };
+  }, [open, fetchStatus, fetchDlStatus]);
 
+  /* ── Auto-scroll chat ───────────────────────────────── */
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatHistory, streamBuf]);
+
+  /* ── Install Handler ────────────────────────────────── */
   const handleInstall = async () => {
     setInstalling(true);
     setInstallLog([]);
-    setTab("installed");
+    setTab("dashboard");
     try {
       const r = await fetch("/api/ollama/install", { method: "POST" });
       if (!r.body) return;
@@ -328,23 +495,22 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const lines = decoder.decode(value).split("\n").filter(l => l.startsWith("data:"));
-        for (const line of lines) {
+        for (const line of decoder.decode(value).split("\n").filter(l => l.startsWith("data:"))) {
           try {
             const d = JSON.parse(line.slice(5));
-            if (d.msg)  setInstallLog(p => [...p, d.msg]);
+            if (d.msg)  setInstallLog(p => [...p.slice(-20), d.msg]);
             if (d.done) { await fetchStatus(); }
           } catch { /* skip */ }
         }
       }
-    } finally {
-      setInstalling(false);
-    }
+    } finally { setInstalling(false); }
   };
 
+  /* ── Pull Model Handler ─────────────────────────────── */
   const handlePull = async (modelName: string) => {
+    if (!status.running) return;
     setPulling(p => ({ ...p, [modelName]: 0 }));
-    setPullLog(p => ({ ...p, [modelName]: "Starting..." }));
+    setPullLog(p  => ({ ...p, [modelName]: "Connecting..." }));
     try {
       const r = await fetch("/api/ollama/pull", {
         method: "POST",
@@ -357,15 +523,12 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const lines = decoder.decode(value).split("\n").filter(l => l.startsWith("data:"));
-        for (const line of lines) {
+        for (const line of decoder.decode(value).split("\n").filter(l => l.startsWith("data:"))) {
           try {
             const d = JSON.parse(line.slice(5));
-            if (d.total && d.completed) {
-              const pct = Math.round((d.completed / d.total) * 100);
-              setPulling(p => ({ ...p, [modelName]: pct }));
-            }
+            if (d.total && d.completed) setPulling(p => ({ ...p, [modelName]: Math.round(d.completed / d.total * 100) }));
             if (d.status) setPullLog(p => ({ ...p, [modelName]: d.status }));
+            if (d.done)   await fetchStatus();
           } catch { /* skip */ }
         }
       }
@@ -375,15 +538,15 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
     }
   };
 
-  const handleDelete = async (modelName: string) => {
+  const handleDelete = async (name: string) => {
     await fetch("/api/ollama/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: modelName }),
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: name }),
     });
     await fetchStatus();
   };
 
+  /* ── Streaming Chat ─────────────────────────────────── */
   const handleChat = async () => {
     if (!chatInput.trim() || !chatModel || chatLoading) return;
     const msg = chatInput.trim();
@@ -391,448 +554,705 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
     const newHistory = [...chatHistory, { role: "user", content: msg }];
     setChatHistory(newHistory);
     setChatLoading(true);
+    setStreamBuf("");
+    let buf = "";
     try {
-      const r = await fetch("/api/ollama/chat", {
+      const r = await fetch("/api/ollama/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: chatModel, messages: newHistory }),
       });
-      const d = await r.json() as { message?: { content?: string } };
-      setChatHistory(h => [...h, { role: "assistant", content: d.message?.content ?? "..." }]);
-    } finally {
-      setChatLoading(false);
-    }
-  };
-
-  const saveHfConfig = () => {
-    localStorage.setItem("ollama-hf-url", hfUrl);
-    localStorage.setItem("ollama-hf-key", hfKey);
+      if (!r.body) throw new Error("no stream");
+      const reader  = r.body.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        for (const line of decoder.decode(value).split("\n").filter(l => l.startsWith("data:"))) {
+          try {
+            const d = JSON.parse(line.slice(5));
+            if (d.message?.content) { buf += d.message.content; setStreamBuf(buf); }
+            if (d.done) {
+              setChatHistory(h => [...h, { role: "assistant", content: buf || "(empty)" }]);
+              setStreamBuf("");
+            }
+          } catch { /* skip */ }
+        }
+      }
+    } catch {
+      // Fallback to non-streaming
+      try {
+        const r2 = await fetch("/api/ollama/chat", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: chatModel, messages: newHistory }),
+        });
+        const d = await r2.json() as { message?: { content?: string } };
+        setChatHistory(h => [...h, { role: "assistant", content: d.message?.content ?? "Error" }]);
+      } catch { /* give up */ }
+    } finally { setChatLoading(false); setStreamBuf(""); }
   };
 
   if (!open) return null;
 
   const installedNames = new Set(status.models.map(m => m.name));
+  const hovModel = hoveredModel !== null ? REPLIT_MODELS[hoveredModel] : null;
+  const dlRunning = !dlStatus.done && !dlStatus.binExists && !status.binExists;
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[200] flex flex-col"
-      style={{ background: "radial-gradient(ellipse at center, #0d0015 0%, #000008 60%, #000000 100%)" }}
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.25 }}
+      className="fixed inset-0 z-[200] flex flex-col overflow-hidden"
+      style={{ background: "radial-gradient(ellipse 120% 80% at 50% 30%, #0a0020 0%, #020008 55%, #000000 100%)" }}
     >
-      {/* ── Header ── */}
-      <div className="relative z-10 flex items-center justify-between px-6 py-3 border-b border-violet-900/40"
-           style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(20px)" }}>
+      {/* ── Scan line overlay ─────────────────────────────── */}
+      <div className="pointer-events-none absolute inset-0 z-0"
+        style={{ backgroundImage: "repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.12) 4px)", backgroundSize: "100% 4px" }} />
+
+      {/* ── Animated bottom scan ──────────────────────────── */}
+      <motion.div
+        animate={{ x: ["-100%", "100%"] }}
+        transition={{ repeat: Infinity, duration: 5, ease: "linear" }}
+        className="pointer-events-none absolute bottom-0 left-0 right-0 h-px z-50"
+        style={{ background: "linear-gradient(90deg, transparent 0%, #7c3aed 40%, #00e5ff 50%, #7c3aed 60%, transparent 100%)" }}
+      />
+
+      {/* ═══════════════════════════════════════════════════
+          HEADER
+      ══════════════════════════════════════════════════ */}
+      <div className="relative z-10 flex items-center justify-between px-5 py-3 flex-shrink-0"
+        style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(124,58,237,0.25)" }}>
+
+        {/* Brand */}
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <Brain className="w-7 h-7 text-violet-400" />
-            <motion.div
-              animate={{ scale: [1, 1.5, 1], opacity: [0.8, 0.2, 0.8] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-              className="absolute inset-0 rounded-full bg-violet-500/30"
-            />
-          </div>
-          <div>
-            <h1 className="text-xl font-black tracking-widest bg-gradient-to-r from-violet-400 via-cyan-400 to-violet-400 bg-clip-text text-transparent">
-              OLLAMA NEURAL HUB
-            </h1>
-            <p className="text-[10px] font-mono text-violet-400/60 tracking-[0.3em]">
-              LOCAL AI MODEL COMMAND CENTER
-            </p>
-          </div>
-          <div className="flex items-center gap-2 ml-4">
-            {status.running ? (
-              <motion.div animate={{ opacity: [1, 0.5, 1] }} transition={{ repeat: Infinity, duration: 1.5 }}
-                className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/40">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span className="text-[10px] font-mono text-emerald-400">ONLINE v{status.version}</span>
-              </motion.div>
-            ) : (
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-950/60 border border-red-500/40">
-                <WifiOff className="w-3 h-3 text-red-400" />
-                <span className="text-[10px] font-mono text-red-400">OFFLINE</span>
-              </div>
-            )}
-            <div className="px-2 py-0.5 rounded-full bg-violet-950/60 border border-violet-500/30 text-[10px] font-mono text-violet-400">
-              {status.models.length} MODELS · {running.length} ACTIVE
+          <div className="relative w-9 h-9">
+            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+              className="absolute inset-0 rounded-full border border-violet-500/50"
+              style={{ borderTopColor: "#7c3aed", borderRightColor: "transparent", borderBottomColor: "transparent" }} />
+            <div className="absolute inset-1.5 rounded-full bg-violet-900/60 flex items-center justify-center">
+              <Atom className="w-4 h-4 text-violet-300" />
             </div>
           </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-base font-black tracking-[0.2em] bg-gradient-to-r from-violet-300 via-cyan-300 to-violet-400 bg-clip-text text-transparent">
+                OLLAMA NEURAL HUB
+              </span>
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border border-violet-600/40 text-violet-400 bg-violet-950/50 tracking-widest">MAX</span>
+            </div>
+            <div className="text-[9px] font-mono text-violet-500/50 tracking-[0.25em]">LOCAL AI MODEL COMMAND CENTER</div>
+          </div>
         </div>
+
+        {/* Status badges */}
         <div className="flex items-center gap-2">
+          {/* Background download indicator */}
+          {dlRunning && (
+            <motion.div animate={{ opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 1.5 }}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-600/40 bg-amber-950/40">
+              <Loader2 className="w-3 h-3 text-amber-400 animate-spin" />
+              <span className="text-[9px] font-mono text-amber-400">DOWNLOADING BINARY...</span>
+            </motion.div>
+          )}
+          {(dlStatus.binExists || status.binExists) && !status.running && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-cyan-600/40 bg-cyan-950/40">
+              <CheckCircle2 className="w-3 h-3 text-cyan-400" />
+              <span className="text-[9px] font-mono text-cyan-400">BINARY READY</span>
+            </div>
+          )}
+          {status.running ? (
+            <motion.div animate={{ opacity: [1,0.6,1] }} transition={{ repeat: Infinity, duration: 2 }}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-600/30 bg-emerald-950/40">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="text-[9px] font-mono text-emerald-400">OLLAMA {status.version} ONLINE</span>
+            </motion.div>
+          ) : (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-red-700/30 bg-red-950/30">
+              <WifiOff className="w-3 h-3 text-red-500" />
+              <span className="text-[9px] font-mono text-red-400">OFFLINE</span>
+            </div>
+          )}
+          <div className="px-2.5 py-1 rounded-full border border-violet-700/30 bg-violet-950/30 text-[9px] font-mono text-violet-400">
+            {status.models.length}/7 MODELS · {running.length} ACTIVE
+          </div>
           <button onClick={fetchStatus}
-            className="p-1.5 rounded-lg border border-violet-800/40 text-violet-400 hover:bg-violet-900/20 transition-all">
-            <RefreshCw className="w-4 h-4" />
+            className="p-1.5 rounded-lg border border-violet-800/30 text-violet-500 hover:text-violet-300 hover:border-violet-600/50 transition-all">
+            <RefreshCw className="w-3.5 h-3.5" />
           </button>
           {!status.running && (
             <button onClick={handleInstall} disabled={installing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-all disabled:opacity-50">
-              {installing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-              {installing ? "INSTALLING..." : "INSTALL OLLAMA"}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all disabled:opacity-50 shadow-lg shadow-violet-900/40"
+              style={{ background: "linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%)", color: "white" }}>
+              {installing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+              {installing ? "INSTALLING..." : "INSTALL & START"}
             </button>
           )}
           <button onClick={onClose}
-            className="p-1.5 rounded-lg border border-red-800/40 text-red-400 hover:bg-red-900/20 transition-all">
-            <X className="w-5 h-5" />
+            className="p-1.5 rounded-lg border border-red-800/30 text-red-500 hover:text-red-300 hover:border-red-600/50 transition-all">
+            <X className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* ── Body ── */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* ═══════════════════════════════════════════════════
+          TABS
+      ══════════════════════════════════════════════════ */}
+      <div className="relative z-10 flex items-center gap-1 px-5 pt-2 pb-0 flex-shrink-0"
+        style={{ borderBottom: "1px solid rgba(124,58,237,0.15)" }}>
+        {(["dashboard","library","chat","hf"] as Tab[]).map(t => {
+          const icons: Record<Tab, React.ReactNode> = {
+            dashboard: <Network className="w-3 h-3" />,
+            library:   <Layers  className="w-3 h-3" />,
+            chat:      <Terminal className="w-3 h-3" />,
+            hf:        <Globe   className="w-3 h-3" />,
+          };
+          const labels: Record<Tab, string> = {
+            dashboard: "NEURAL CORE",
+            library:   "MODEL LIBRARY",
+            chat:      "LOCAL CHAT",
+            hf:        "HF SPACES",
+          };
+          return (
+            <button key={t} onClick={() => setTab(t)}
+              className={`relative flex items-center gap-1.5 px-4 py-2 text-[10px] font-bold tracking-widest rounded-t-lg transition-all ${
+                tab === t
+                  ? "text-violet-200 bg-violet-950/60"
+                  : "text-violet-600 hover:text-violet-400"
+              }`}>
+              {icons[t]} {labels[t]}
+              {tab === t && (
+                <motion.div layoutId="tabBar" className="absolute bottom-0 left-0 right-0 h-px bg-violet-500" />
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-        {/* ── Left: 3D Scene ── */}
-        <div className="relative w-[42%] flex-shrink-0 hidden lg:flex flex-col">
-          <canvas ref={canvasRef} className="w-full h-full" style={{ background: "transparent" }} />
+      {/* ═══════════════════════════════════════════════════
+          BODY
+      ══════════════════════════════════════════════════ */}
+      <div className="relative flex flex-1 overflow-hidden">
 
-          {/* Overlay stats */}
-          <div className="absolute bottom-4 left-4 right-4 grid grid-cols-3 gap-2">
-            {[
-              { icon: <Server className="w-3.5 h-3.5" />, label: "MODELS",  value: status.models.length, color: "violet" },
-              { icon: <Cpu    className="w-3.5 h-3.5" />, label: "ACTIVE",  value: running.length,       color: "cyan" },
-              { icon: <HardDrive className="w-3.5 h-3.5"/>,label: "STORAGE",
-                value: status.models.reduce((a, m) => a + (m.size || 0), 0) > 0
-                  ? formatSize(status.models.reduce((a, m) => a + (m.size || 0), 0))
-                  : "0 GB",
-                color: "emerald" },
-            ].map(({ icon, label, value, color }) => (
-              <div key={label} className={`flex items-center gap-2 px-3 py-2 rounded-xl border border-${color}-800/40 bg-black/60 backdrop-blur-sm`}>
-                <span className={`text-${color}-400`}>{icon}</span>
-                <div>
-                  <div className={`text-sm font-black text-${color}-300`}>{value}</div>
-                  <div className={`text-[9px] font-mono text-${color}-500`}>{label}</div>
+        {/* ── 3D Canvas (always visible) ─────────────────── */}
+        <div className="relative flex-shrink-0 w-[45%] min-w-[380px] hidden lg:block">
+          <canvas ref={canvasRef} className="w-full h-full cursor-crosshair" style={{ background: "transparent" }} />
+
+          {/* Hover tooltip */}
+          <AnimatePresence>
+            {hovModel && (
+              <motion.div key={hovModel.name}
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-xl border pointer-events-none"
+                style={{ borderColor: `${hovModel.color}40`, background: `rgba(0,0,0,0.85)`, backdropFilter: "blur(12px)" }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: hovModel.color, boxShadow: `0 0 8px ${hovModel.color}` }} />
+                  <span className="text-xs font-bold text-white">{hovModel.label}</span>
+                  <span className="text-[9px] font-mono px-1 rounded" style={{ backgroundColor: `${hovModel.color}20`, color: hovModel.color }}>{hovModel.tag}</span>
                 </div>
-              </div>
-            ))}
-          </div>
+                <div className="flex gap-3 text-[10px] font-mono text-white/50">
+                  <span>{hovModel.size}</span>
+                  <span>RAM: {hovModel.ram}</span>
+                  <span className="font-bold" style={{ color: hovModel.color }}>{hovModel.speed}</span>
+                </div>
+                {installedNames.has(hovModel.name) && (
+                  <div className="mt-1 flex items-center gap-1 text-[9px] text-emerald-400">
+                    <CheckCircle2 className="w-2.5 h-2.5" /> INSTALLED — Click to chat
+                  </div>
+                )}
+                {!installedNames.has(hovModel.name) && (
+                  <div className="mt-1 text-[9px] text-violet-400/60">Click to pull model</div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Ring legend */}
-          <div className="absolute top-4 left-4 space-y-1">
-            {status.models.slice(0, 7).map((m, i) => {
-              const colors = ["#7c3aed","#00e5ff","#00ff88","#ff2079","#ffaa00","#ff6600","#ff0000"];
-              return (
-                <motion.div key={m.name} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
-                  className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors[i], boxShadow: `0 0 6px ${colors[i]}` }} />
-                  <span className="text-[10px] font-mono text-white/70">{m.name.split(":")[0]}</span>
-                  <span className="text-[8px] font-mono text-white/40">{m.details?.parameter_size || ""}</span>
+          {/* Bottom overlay — planet legend */}
+          <div className="absolute bottom-3 left-3 right-3">
+            <div className="grid grid-cols-4 gap-1.5 mb-2">
+              {[
+                { label: "INSTALLED",  value: status.models.length, color: "#10b981", icon: <Server     className="w-3 h-3" /> },
+                { label: "RUNNING",    value: running.length,        color: "#00e5ff", icon: <Activity   className="w-3 h-3" /> },
+                { label: "STORAGE",    value: status.models.reduce((a,m)=>a+(m.size||0),0) > 0 ? fmtBytes(status.models.reduce((a,m)=>a+(m.size||0),0)) : "0 GB", color: "#8b5cf6", icon: <HardDrive  className="w-3 h-3" /> },
+                { label: "PULLING",    value: Object.keys(pulling).length, color: "#f59e0b", icon: <Download  className="w-3 h-3" /> },
+              ].map(({ label, value, color, icon }) => (
+                <div key={label} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg border"
+                  style={{ borderColor: `${color}25`, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+                  <span style={{ color }}>{icon}</span>
+                  <div>
+                    <div className="text-xs font-black" style={{ color }}>{value}</div>
+                    <div className="text-[8px] font-mono" style={{ color: `${color}80` }}>{label}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Model ring legend */}
+            <div className="flex flex-wrap gap-1">
+              {REPLIT_MODELS.map((m, i) => (
+                <motion.div key={m.name}
+                  animate={installedNames.has(m.name) ? { opacity: [0.9,1,0.9] } : {}}
+                  transition={{ repeat: Infinity, duration: 2, delay: i*0.3 }}
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.6)" }}
+                  onClick={() => { setChatModel(m.name); setTab("chat"); }}>
+                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: m.color, boxShadow: installedNames.has(m.name) ? `0 0 5px ${m.color}` : "none", opacity: installedNames.has(m.name) ? 1 : 0.3 }} />
+                  <span className="text-[8px] font-mono" style={{ color: installedNames.has(m.name) ? m.color : `${m.color}50` }}>
+                    {m.label.split(" ").slice(0,2).join(" ")}
+                  </span>
                 </motion.div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* ── Right: Control Panel ── */}
-        <div className="flex-1 flex flex-col overflow-hidden border-l border-violet-900/30"
-             style={{ background: "rgba(5,0,20,0.85)", backdropFilter: "blur(20px)" }}>
+        {/* ── Right Panel ─────────────────────────────────── */}
+        <div className="flex-1 flex flex-col overflow-hidden"
+          style={{ borderLeft: "1px solid rgba(124,58,237,0.2)", background: "rgba(2,0,12,0.88)", backdropFilter: "blur(20px)" }}>
 
-          {/* Tabs */}
-          <div className="flex border-b border-violet-900/30 px-4 pt-3">
-            {(["installed","library","chat","hf"] as const).map(t => (
-              <button key={t} onClick={() => setTab(t)}
-                className={`px-4 py-2 text-xs font-bold tracking-widest rounded-t-lg transition-all mr-1 ${
-                  tab === t
-                    ? "bg-violet-900/40 text-violet-300 border-x border-t border-violet-600/40"
-                    : "text-violet-500/60 hover:text-violet-300"
-                }`}>
-                {t === "installed" ? "🧠 INSTALLED" : t === "library" ? "📦 LIBRARY" : t === "chat" ? "💬 CHAT" : "☁️ HF SPACES"}
-              </button>
-            ))}
-          </div>
+          {/* ═══ DASHBOARD TAB ═══ */}
+          {tab === "dashboard" && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {/* Install log */}
+              {installLog.length > 0 && (
+                <div className="rounded-xl border border-violet-700/30 bg-black/50 p-3 font-mono text-xs space-y-0.5 max-h-28 overflow-y-auto">
+                  {installLog.map((l, i) => (
+                    <div key={i} className={l.includes("fail") || l.includes("Error") ? "text-red-400" : l.includes("Running") || l.includes("Done") ? "text-emerald-400" : "text-violet-300"}>
+                      <span className="text-violet-700 mr-2">&gt;</span>{l}
+                    </div>
+                  ))}
+                </div>
+              )}
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-
-            {/* ══ INSTALLED TAB ══ */}
-            {tab === "installed" && (
-              <>
-                {installLog.length > 0 && (
-                  <div className="rounded-xl border border-violet-700/30 bg-black/40 p-3 font-mono text-xs space-y-0.5 max-h-32 overflow-y-auto">
-                    {installLog.map((l, i) => <div key={i} className="text-emerald-400">{l}</div>)}
+              {/* Background download status */}
+              {dlStatus.log && !status.running && (
+                <div className="rounded-xl border border-amber-700/30 bg-amber-950/20 p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Download className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="text-[10px] font-bold text-amber-300 tracking-widest">BACKGROUND DOWNLOAD</span>
                   </div>
-                )}
-
-                {!status.running && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    className="flex flex-col items-center gap-4 py-12 text-center">
-                    <div className="relative">
-                      <WifiOff className="w-16 h-16 text-violet-800" />
-                      <motion.div animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0.1, 0.5] }} transition={{ repeat: Infinity, duration: 2 }}
-                        className="absolute inset-0 rounded-full bg-violet-500/10" />
-                    </div>
-                    <div>
-                      <p className="text-lg font-bold text-violet-300">Ollama Not Running</p>
-                      <p className="text-sm text-violet-500/60 mt-1">Install Ollama to run local AI models</p>
-                      <p className="text-xs text-violet-600/40 mt-2">⚠️ Requires ~4GB+ RAM per model. GPU recommended for large models.</p>
-                    </div>
+                  <div className="font-mono text-[9px] text-amber-400/60">{dlStatus.log}</div>
+                  {dlStatus.binExists && (
                     <button onClick={handleInstall} disabled={installing}
-                      className="flex items-center gap-2 px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold transition-all disabled:opacity-50 shadow-lg shadow-violet-900/50">
-                      {installing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                      {installing ? "Installing..." : "Install & Start Ollama"}
+                      className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-700 hover:bg-violet-600 text-white text-xs font-bold transition-all disabled:opacity-50">
+                      <Play className="w-3 h-3" /> Start Ollama
                     </button>
-                  </motion.div>
-                )}
+                  )}
+                </div>
+              )}
 
-                {status.running && status.models.length === 0 && (
-                  <div className="flex flex-col items-center gap-3 py-8 text-center">
-                    <Brain className="w-12 h-12 text-violet-700" />
-                    <p className="text-violet-300 font-bold">No models installed</p>
-                    <p className="text-sm text-violet-500/60">Go to Library tab to pull a model</p>
+              {/* Offline state */}
+              {!status.running && !installing && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className="flex flex-col items-center gap-5 py-10 text-center">
+                  <div className="relative w-20 h-20">
+                    <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.1, 0.4] }} transition={{ repeat: Infinity, duration: 2.5 }}
+                      className="absolute inset-0 rounded-full"
+                      style={{ background: "radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%)" }} />
+                    <div className="absolute inset-3 rounded-full border border-violet-700/50 flex items-center justify-center">
+                      <WifiOff className="w-8 h-8 text-violet-700" />
+                    </div>
                   </div>
-                )}
-
-                {status.models.map((model, idx) => {
-                  const isActive = running.some(r => r.name === model.name || r.model === model.name);
-                  const colors = ["#7c3aed","#00e5ff","#00ff88","#ff2079","#ffaa00","#ff6600","#ff0000"];
-                  const color  = colors[idx % colors.length];
-                  return (
-                    <motion.div key={model.name}
-                      initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
-                      className="relative rounded-xl border overflow-hidden group"
-                      style={{ borderColor: `${color}30`, background: `linear-gradient(135deg, ${color}08 0%, transparent 100%)` }}>
-                      {/* Active glow */}
-                      {isActive && (
-                        <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 2 }}
-                          className="absolute inset-0 pointer-events-none"
-                          style={{ background: `radial-gradient(ellipse at left, ${color}15 0%, transparent 70%)` }} />
-                      )}
-                      <div className="flex items-center gap-3 p-3">
-                        {/* Status dot */}
-                        <div className="relative flex-shrink-0">
-                          <div className={`w-3 h-3 rounded-full`} style={{ backgroundColor: isActive ? "#00ff88" : color, boxShadow: `0 0 8px ${isActive ? "#00ff88" : color}` }} />
-                          {isActive && <motion.div animate={{ scale: [1, 2, 1], opacity: [0.8, 0, 0.8] }} transition={{ repeat: Infinity, duration: 1.5 }}
-                            className="absolute inset-0 rounded-full" style={{ backgroundColor: "#00ff88" }} />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm text-white truncate">{model.name}</span>
-                            {isActive && <span className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-emerald-900/60 text-emerald-400 border border-emerald-700/40">RUNNING</span>}
-                          </div>
-                          <div className="flex gap-3 mt-0.5 text-[10px] font-mono text-white/40">
-                            <span>{formatSize(model.size)}</span>
-                            {model.details?.parameter_size && <span>{model.details.parameter_size}</span>}
-                            {model.details?.quantization_level && <span>{model.details.quantization_level}</span>}
-                            {model.details?.family && <span className="capitalize">{model.details.family}</span>}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => { setChatModel(model.name); setTab("chat"); }}
-                            className="p-1.5 rounded-lg text-cyan-400 hover:bg-cyan-900/30 transition-all" title="Chat">
-                            <Terminal className="w-3.5 h-3.5" />
-                          </button>
-                          <button onClick={() => handleDelete(model.name)}
-                            className="p-1.5 rounded-lg text-red-400 hover:bg-red-900/30 transition-all" title="Delete">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </>
-            )}
-
-            {/* ══ LIBRARY TAB ══ */}
-            {tab === "library" && (
-              <>
-                <div className="text-[10px] font-mono text-violet-500/60 tracking-widest pb-1 border-b border-violet-900/30">
-                  ⚠️ REPLIT FREE TIER: Small models only (≤7B Q4). Large models need 16-40GB RAM + GPU.
-                </div>
-                {AVAILABLE_MODELS.map((m, idx) => {
-                  const installed = installedNames.has(m.name);
-                  const isPulling  = m.name in pulling;
-                  const pct        = pulling[m.name] ?? 0;
-                  const log        = pullLog[m.name] ?? "";
-                  return (
-                    <motion.div key={m.name}
-                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}
-                      className="rounded-xl border p-3 group transition-all"
-                      style={{ borderColor: `${m.color}30`, background: `linear-gradient(135deg, ${m.color}06 0%, transparent 100%)` }}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-black border"
-                          style={{ borderColor: `${m.color}60`, backgroundColor: `${m.color}15`, color: m.color }}>
-                          {m.tag}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm text-white">{m.label}</span>
-                            <span className="text-[9px] font-mono text-white/40">{m.name}</span>
-                          </div>
-                          <div className="flex items-center gap-3 mt-0.5">
-                            <span className="text-[10px] font-mono" style={{ color: m.color }}>{m.size}</span>
-                            <span className="text-[10px] text-white/40">{m.speed}</span>
-                          </div>
-                        </div>
-                        <div className="flex-shrink-0">
-                          {installed ? (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-950/60 border border-emerald-700/40">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                              <span className="text-[10px] font-bold text-emerald-400">INSTALLED</span>
-                            </div>
-                          ) : isPulling ? (
-                            <div className="flex items-center gap-1.5 min-w-[100px]">
-                              <div className="flex-1 h-1.5 rounded-full bg-violet-900/60 overflow-hidden">
-                                <motion.div animate={{ width: `${pct}%` }} className="h-full rounded-full bg-violet-400" />
-                              </div>
-                              <span className="text-[10px] font-mono text-violet-400">{pct}%</span>
-                            </div>
-                          ) : (
-                            <button onClick={() => handlePull(m.name)} disabled={!status.running}
-                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-40"
-                              style={{ backgroundColor: `${m.color}20`, borderWidth: 1, borderColor: `${m.color}40`, color: m.color }}>
-                              <Download className="w-3 h-3" />
-                              PULL
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      {isPulling && log && (
-                        <div className="mt-2 text-[9px] font-mono text-violet-400/60 truncate">{log}</div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </>
-            )}
-
-            {/* ══ CHAT TAB ══ */}
-            {tab === "chat" && (
-              <div className="flex flex-col h-full gap-3">
-                <div className="flex items-center gap-2">
-                  <select value={chatModel} onChange={e => setChatModel(e.target.value)}
-                    className="flex-1 px-3 py-1.5 rounded-lg bg-violet-950/40 border border-violet-700/40 text-violet-200 text-xs font-mono focus:outline-none focus:border-violet-500">
-                    {status.models.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
-                  </select>
-                  <button onClick={() => setChatHistory([])}
-                    className="px-2 py-1.5 rounded-lg border border-violet-700/40 text-violet-400 hover:bg-violet-900/30 text-xs">
-                    <RefreshCw className="w-3.5 h-3.5" />
+                  <div>
+                    <p className="text-lg font-black text-violet-300 tracking-wider">OLLAMA OFFLINE</p>
+                    <p className="text-xs text-violet-500/60 mt-1 font-mono">Install Ollama to run local AI models</p>
+                    <p className="text-[10px] text-violet-700/50 mt-2">Replit free tier: small models only (no GPU).</p>
+                    <p className="text-[10px] text-violet-700/50">Recommended: qwen2.5:0.5b — only 395MB</p>
+                  </div>
+                  <button onClick={handleInstall}
+                    className="flex items-center gap-2 px-8 py-3 rounded-xl font-black text-sm tracking-wider transition-all shadow-2xl shadow-violet-900/60"
+                    style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)", color: "white" }}>
+                    <Download className="w-4 h-4" />
+                    INSTALL OLLAMA
                   </button>
-                </div>
+                </motion.div>
+              )}
 
-                <div className="flex-1 overflow-y-auto space-y-3 min-h-[200px] max-h-[400px] pr-1">
-                  {chatHistory.length === 0 && (
-                    <div className="flex flex-col items-center gap-2 py-8 text-center opacity-40">
-                      <Brain className="w-8 h-8 text-violet-600" />
-                      <p className="text-xs text-violet-400">Start a conversation with {chatModel || "a local model"}</p>
+              {/* Installed models list */}
+              {status.running && (
+                <>
+                  <div className="text-[9px] font-mono text-violet-600/50 tracking-[0.3em] pb-1 border-b border-violet-900/30">
+                    INSTALLED MODELS — {status.models.length} / 7
+                  </div>
+                  {status.models.length === 0 && (
+                    <div className="flex flex-col items-center gap-3 py-6 text-center">
+                      <Brain className="w-10 h-10 text-violet-800" />
+                      <p className="text-sm text-violet-400 font-bold">No models installed</p>
+                      <p className="text-xs text-violet-600/50">Go to MODEL LIBRARY tab to pull models</p>
                     </div>
                   )}
-                  {chatHistory.map((msg, i) => (
-                    <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[80%] px-3 py-2 rounded-xl text-xs leading-relaxed ${
-                        msg.role === "user"
-                          ? "bg-violet-700/40 text-violet-100 border border-violet-600/30"
-                          : "bg-black/40 text-emerald-100 border border-emerald-800/30"
-                      }`}>
-                        {msg.content}
+                  {status.models.map((model, idx) => {
+                    const isActive = running.some(r => r.name === model.name || r.model === model.name);
+                    const match    = REPLIT_MODELS.find(m => m.name === model.name);
+                    const color    = match?.color ?? MODEL_COLORS[idx % MODEL_COLORS.length];
+                    return (
+                      <motion.div key={model.name}
+                        initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.04 }}
+                        className="relative rounded-xl border overflow-hidden group"
+                        style={{ borderColor: `${color}28`, background: `linear-gradient(135deg, ${color}06 0%, transparent 100%)` }}>
+                        {isActive && (
+                          <motion.div animate={{ opacity: [0.2, 0.5, 0.2] }} transition={{ repeat: Infinity, duration: 2.5 }}
+                            className="absolute inset-0 pointer-events-none"
+                            style={{ background: `radial-gradient(ellipse at left, ${color}18 0%, transparent 65%)` }} />
+                        )}
+                        <div className="flex items-center gap-3 p-3">
+                          <div className="relative flex-shrink-0">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: isActive ? "#00ff88" : color, boxShadow: `0 0 10px ${isActive ? "#00ff88" : color}` }} />
+                            {isActive && (
+                              <motion.div animate={{ scale: [1, 2.2, 1], opacity: [0.8, 0, 0.8] }} transition={{ repeat: Infinity, duration: 1.8 }}
+                                className="absolute inset-0 rounded-full" style={{ backgroundColor: "#00ff88" }} />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-sm text-white truncate">{model.name}</span>
+                              {isActive && <span className="px-1.5 py-0.5 text-[8px] font-black rounded tracking-wider bg-emerald-900/50 text-emerald-400 border border-emerald-700/30">RUNNING</span>}
+                            </div>
+                            <div className="flex gap-2.5 mt-0.5 text-[9px] font-mono text-white/35">
+                              <span>{fmtBytes(model.size)}</span>
+                              {model.details?.parameter_size && <span>{model.details.parameter_size}</span>}
+                              {model.details?.quantization_level && <span>{model.details.quantization_level}</span>}
+                              {model.details?.family && <span className="capitalize">{model.details.family}</span>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => { setChatModel(model.name); setTab("chat"); }}
+                              className="p-1.5 rounded-lg text-cyan-400 hover:bg-cyan-900/30 transition-all" title="Chat">
+                              <Terminal className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => handleDelete(model.name)}
+                              className="p-1.5 rounded-lg text-red-400 hover:bg-red-900/30 transition-all" title="Delete">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ═══ LIBRARY TAB ═══ */}
+          {tab === "library" && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
+              <div className="rounded-xl border border-amber-700/25 bg-amber-950/15 p-3 mb-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Zap className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="text-[10px] font-bold text-amber-300 tracking-widest">REPLIT-OPTIMISED — CPU ONLY, NO GPU</span>
+                </div>
+                <p className="text-[9px] text-amber-500/60 font-mono">
+                  All 7 models run without GPU. Start with qwen2.5:0.5b (395MB) for instant speed.
+                  Ollama must be running before pulling models.
+                </p>
+              </div>
+
+              {REPLIT_MODELS.map((m, idx) => {
+                const installed = installedNames.has(m.name);
+                const isPulling  = m.name in pulling;
+                const pct        = pulling[m.name] ?? 0;
+                const log        = pullLog[m.name] ?? "";
+                return (
+                  <motion.div key={m.name}
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}
+                    className="relative rounded-xl border overflow-hidden group transition-all"
+                    style={{ borderColor: `${m.color}28`, background: `linear-gradient(135deg, ${m.color}05 0%, transparent 100%)` }}>
+
+                    {installed && (
+                      <motion.div animate={{ opacity: [0.15, 0.35, 0.15] }} transition={{ repeat: Infinity, duration: 3 }}
+                        className="absolute inset-0 pointer-events-none"
+                        style={{ background: `radial-gradient(ellipse at top left, ${m.color}12 0%, transparent 70%)` }} />
+                    )}
+
+                    <div className="flex items-center gap-3 p-3.5">
+                      {/* Tag badge */}
+                      <div className="w-11 h-11 rounded-xl flex-shrink-0 flex flex-col items-center justify-center border font-black text-[9px]"
+                        style={{ borderColor: `${m.color}50`, backgroundColor: `${m.color}12`, color: m.color }}>
+                        <span>{m.tag}</span>
+                        <span className="text-[7px] opacity-60 mt-0.5">{m.geo.slice(0,4).toUpperCase()}</span>
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-bold text-sm text-white">{m.label}</span>
+                          {!m.ok && <span className="text-[8px] px-1 rounded border border-amber-600/30 text-amber-500">HEAVY</span>}
+                          {m.ok && <span className="text-[8px] px-1 rounded border border-emerald-700/30 text-emerald-500">REPLIT OK</span>}
+                        </div>
+                        <div className="text-[9px] font-mono text-white/35">{m.name}</div>
+                        <div className="flex items-center gap-3 mt-1">
+                          <div className="flex items-center gap-1">
+                            <HardDrive className="w-2.5 h-2.5" style={{ color: m.color }} />
+                            <span className="text-[9px] font-mono" style={{ color: m.color }}>{m.size}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MemoryStick className="w-2.5 h-2.5 text-white/30" />
+                            <span className="text-[9px] font-mono text-white/30">{m.ram}</span>
+                          </div>
+                          <span className="text-[8px] font-bold px-1.5 py-0.5 rounded"
+                            style={{ backgroundColor: `${m.color}15`, color: m.color }}>
+                            {m.speed}
+                          </span>
+                        </div>
+                        {/* Pull progress bar */}
+                        {isPulling && (
+                          <div className="mt-2">
+                            <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: `${m.color}20` }}>
+                              <motion.div animate={{ width: `${pct}%` }} transition={{ type: "spring", stiffness: 50 }}
+                                className="h-full rounded-full" style={{ backgroundColor: m.color }} />
+                            </div>
+                            <div className="flex justify-between mt-0.5">
+                              <span className="text-[8px] font-mono truncate max-w-[70%]" style={{ color: `${m.color}80` }}>{log}</span>
+                              <span className="text-[8px] font-mono" style={{ color: m.color }}>{pct}%</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action */}
+                      <div className="flex-shrink-0">
+                        {installed ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg border border-emerald-700/30 bg-emerald-950/40">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              <span className="text-[9px] font-bold text-emerald-400">INSTALLED</span>
+                            </div>
+                            <button onClick={() => { setChatModel(m.name); setTab("chat"); }}
+                              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-bold transition-all"
+                              style={{ backgroundColor: `${m.color}15`, color: m.color, borderWidth: 1, borderColor: `${m.color}30` }}>
+                              <Terminal className="w-2.5 h-2.5" /> CHAT
+                            </button>
+                          </div>
+                        ) : isPulling ? (
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center border"
+                            style={{ borderColor: m.color, background: `${m.color}10` }}>
+                            <span className="text-xs font-black" style={{ color: m.color }}>{pct}</span>
+                          </div>
+                        ) : (
+                          <button onClick={() => handlePull(m.name)} disabled={!status.running}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-30 hover:scale-105"
+                            style={{ backgroundColor: `${m.color}18`, borderWidth: 1, borderColor: `${m.color}40`, color: m.color }}>
+                            <Download className="w-3.5 h-3.5" />
+                            PULL
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ═══ CHAT TAB ═══ */}
+          {tab === "chat" && (
+            <div className="flex-1 flex flex-col overflow-hidden p-4 gap-3">
+              {/* Model selector */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex-1 relative">
+                  <select value={chatModel} onChange={e => setChatModel(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border text-violet-200 text-xs font-mono focus:outline-none appearance-none cursor-pointer"
+                    style={{ background: "rgba(0,0,0,0.6)", borderColor: "rgba(124,58,237,0.35)", backdropFilter: "blur(8px)" }}>
+                    <option value="">— Select a model —</option>
+                    {status.models.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
+                  </select>
+                </div>
+                <button onClick={() => setChatHistory([])}
+                  className="p-2 rounded-xl border border-violet-800/30 text-violet-500 hover:text-violet-300 transition-all" title="Clear chat">
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto space-y-3 pr-1 min-h-0">
+                {chatHistory.length === 0 && !streamBuf && (
+                  <div className="flex flex-col items-center gap-3 py-10 text-center opacity-40">
+                    <div className="relative">
+                      <Brain className="w-10 h-10 text-violet-700" />
+                      <motion.div animate={{ scale: [1,1.4,1], opacity: [0.5,0,0.5] }} transition={{ repeat: Infinity, duration: 2 }}
+                        className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%)" }} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-violet-400">{chatModel ? `Ready to chat with ${chatModel}` : "Select a model to start"}</p>
+                      <p className="text-[10px] text-violet-600 mt-1 font-mono">Messages stream in real time</p>
+                    </div>
+                  </div>
+                )}
+                {chatHistory.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap ${
+                      msg.role === "user"
+                        ? "rounded-tr-sm"
+                        : "rounded-tl-sm"
+                    }`}
+                      style={msg.role === "user"
+                        ? { background: "rgba(109,40,217,0.35)", border: "1px solid rgba(139,92,246,0.3)", color: "#ede9fe" }
+                        : { background: "rgba(0,0,0,0.5)", border: "1px solid rgba(16,185,129,0.2)", color: "#d1fae5" }
+                      }>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                {/* Streaming message */}
+                {streamBuf && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[82%] px-3.5 py-2.5 rounded-2xl rounded-tl-sm text-xs leading-relaxed whitespace-pre-wrap"
+                      style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(16,185,129,0.25)", color: "#d1fae5" }}>
+                      {streamBuf}
+                      <motion.span animate={{ opacity: [1,0,1] }} transition={{ repeat: Infinity, duration: 0.7 }}
+                        className="inline-block w-1.5 h-3 bg-emerald-400 ml-0.5 align-middle" />
+                    </div>
+                  </div>
+                )}
+                {chatLoading && !streamBuf && (
+                  <div className="flex justify-start">
+                    <div className="px-3.5 py-2.5 rounded-2xl rounded-tl-sm"
+                      style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                      <div className="flex gap-1.5 items-center">
+                        {[0,1,2].map(i => (
+                          <motion.div key={i} animate={{ opacity: [0.3,1,0.3], scale: [1,1.3,1] }}
+                            transition={{ repeat: Infinity, duration: 1, delay: i * 0.25 }}
+                            className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Input */}
+              <div className="flex gap-2 flex-shrink-0">
+                <input value={chatInput} onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && !e.shiftKey && !e.ctrlKey && handleChat()}
+                  placeholder={status.running && chatModel ? `Message ${chatModel}...` : "Start Ollama and select a model first..."}
+                  disabled={!status.running || !chatModel || chatLoading}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-xs font-mono placeholder-violet-800 focus:outline-none transition-all disabled:opacity-40"
+                  style={{ background: "rgba(0,0,0,0.6)", border: "1px solid rgba(124,58,237,0.3)", color: "#ede9fe" }} />
+                <button onClick={handleChat} disabled={!status.running || !chatModel || chatLoading}
+                  className="px-4 py-2.5 rounded-xl transition-all disabled:opacity-40 hover:scale-105"
+                  style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)", color: "white" }}>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ═══ HF SPACES TAB ═══ */}
+          {tab === "hf" && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Connect form */}
+              <div className="rounded-xl border border-violet-700/25 bg-violet-950/15 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-violet-400" />
+                  <span className="text-sm font-bold text-violet-200">HuggingFace Spaces — Remote GPU Ollama</span>
+                </div>
+                <p className="text-[10px] text-violet-500/60 font-mono leading-relaxed">
+                  Run large models (Llama 3.3 70B, DeepSeek 67B) on HuggingFace T4 GPU.
+                  Connect your app to the remote Ollama instance.
+                </p>
+                <div className="space-y-2">
+                  <label className="text-[9px] font-mono text-violet-500/60 tracking-widest">SPACE URL</label>
+                  <input value={hfUrl} onChange={e => setHfUrl(e.target.value)}
+                    placeholder="https://username-space.hf.space"
+                    className="w-full px-3 py-2 rounded-lg text-xs font-mono placeholder-violet-900/60 focus:outline-none"
+                    style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(124,58,237,0.35)", color: "#c4b5fd" }} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[9px] font-mono text-violet-500/60 tracking-widest">API KEY</label>
+                  <input value={hfKey} onChange={e => setHfKey(e.target.value)} type="password"
+                    placeholder="your-secret-api-key"
+                    className="w-full px-3 py-2 rounded-lg text-xs font-mono placeholder-violet-900/60 focus:outline-none"
+                    style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(124,58,237,0.35)", color: "#c4b5fd" }} />
+                </div>
+                <button onClick={() => { localStorage.setItem("ollama-hf-url", hfUrl); localStorage.setItem("ollama-hf-key", hfKey); }}
+                  className="w-full py-2.5 rounded-xl font-bold text-xs tracking-wider transition-all hover:scale-[1.02]"
+                  style={{ background: "linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)", color: "white" }}>
+                  SAVE & CONNECT
+                </button>
+              </div>
+
+              {/* Setup guide */}
+              <div className="rounded-xl border border-cyan-800/25 bg-cyan-950/10 p-4">
+                <h3 className="text-[10px] font-bold text-cyan-300 tracking-widest mb-3">SETUP GUIDE</h3>
+                <div className="space-y-2">
+                  {[
+                    { step: "1", text: "Go to huggingface.co/spaces → New Space" },
+                    { step: "2", text: "Choose Docker SDK, enable GPU T4 (free tier)" },
+                    { step: "3", text: "Upload all files from hf-spaces/ folder in your project" },
+                    { step: "4", text: "Add secret: API_KEY=<your-secret-key>" },
+                    { step: "5", text: "Add env var: PRELOAD_MODELS=llama3.2:3b" },
+                    { step: "6", text: "Copy Space URL above and save" },
+                  ].map(({ step, text }) => (
+                    <div key={step} className="flex items-start gap-2.5">
+                      <div className="w-4 h-4 rounded flex-shrink-0 flex items-center justify-center text-[8px] font-black mt-0.5"
+                        style={{ backgroundColor: "rgba(6,182,212,0.2)", color: "#06b6d4", border: "1px solid rgba(6,182,212,0.3)" }}>
+                        {step}
+                      </div>
+                      <span className="text-[10px] text-cyan-400/60 font-mono leading-tight">{text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* GPU models */}
+              <div className="rounded-xl border border-emerald-800/25 bg-emerald-950/10 p-4">
+                <h3 className="text-[10px] font-bold text-emerald-300 tracking-widest mb-3">RECOMMENDED FOR HF GPU</h3>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { name: "llama3.3:70b", size: "40GB", speed: "POWERFUL" },
+                    { name: "deepseek-r1:7b", size: "4GB", speed: "FAST" },
+                    { name: "qwen2.5:72b", size: "41GB", speed: "SMART" },
+                    { name: "mistral:7b", size: "4GB", speed: "FAST" },
+                    { name: "llava:34b", size: "20GB", speed: "VISION" },
+                    { name: "codestral:22b", size: "12GB", speed: "CODE" },
+                  ].map(m => (
+                    <div key={m.name} className="px-2.5 py-2 rounded-lg border border-emerald-800/20 bg-emerald-950/30">
+                      <div className="text-[9px] font-bold text-emerald-300">{m.name}</div>
+                      <div className="flex gap-2 mt-0.5">
+                        <span className="text-[8px] font-mono text-emerald-600">{m.size}</span>
+                        <span className="text-[8px] font-bold text-emerald-500">{m.speed}</span>
                       </div>
                     </div>
                   ))}
-                  {chatLoading && (
-                    <div className="flex justify-start">
-                      <div className="px-3 py-2 rounded-xl bg-black/40 border border-emerald-800/30">
-                        <div className="flex gap-1">
-                          {[0,1,2].map(i => (
-                            <motion.div key={i} animate={{ opacity: [0.3,1,0.3] }} transition={{ repeat: Infinity, duration: 1, delay: i*0.3 }}
-                              className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                          ))}
-                        </div>
-                      </div>
+                </div>
+              </div>
+
+              {/* API reference */}
+              <div className="rounded-xl border border-violet-800/20 bg-violet-950/10 p-4">
+                <h3 className="text-[10px] font-bold text-violet-300 tracking-widest mb-2">API ENDPOINTS</h3>
+                <div className="font-mono text-[9px] space-y-1 text-violet-400/50">
+                  {[
+                    ["GET",  "/api/tags",    "List models"],
+                    ["POST", "/api/chat",    "Chat"],
+                    ["POST", "/api/generate","Generate"],
+                    ["POST", "/api/pull",    "Pull model"],
+                  ].map(([method, path, desc]) => (
+                    <div key={path} className="flex gap-2 items-center">
+                      <span className="text-violet-500 w-8">{method}</span>
+                      <span className="text-violet-300">{hfUrl || "https://your-space.hf.space"}{path}</span>
+                      <span className="text-violet-700">— {desc}</span>
                     </div>
-                  )}
+                  ))}
                 </div>
-
-                <div className="flex gap-2">
-                  <input value={chatInput} onChange={e => setChatInput(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleChat()}
-                    placeholder={status.running && chatModel ? `Message ${chatModel}...` : "Ollama not running..."}
-                    disabled={!status.running || !chatModel}
-                    className="flex-1 px-3 py-2 rounded-xl bg-black/40 border border-violet-700/40 text-violet-100 text-xs placeholder-violet-700 focus:outline-none focus:border-violet-500 disabled:opacity-40" />
-                  <button onClick={handleChat} disabled={!status.running || !chatModel || chatLoading}
-                    className="px-3 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white transition-all disabled:opacity-40">
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                {hfKey && (
+                  <div className="mt-2 text-[9px] font-mono text-violet-600">
+                    Authorization: Bearer *** (saved)
+                  </div>
+                )}
               </div>
-            )}
-
-            {/* ══ HF SPACES TAB ══ */}
-            {tab === "hf" && (
-              <div className="space-y-4">
-                <div className="rounded-xl border border-violet-700/30 bg-violet-950/20 p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-violet-400" />
-                    <span className="text-sm font-bold text-violet-300">HuggingFace Spaces — Remote Ollama</span>
-                  </div>
-                  <p className="text-xs text-violet-500/70">
-                    Run Ollama on HuggingFace with GPU acceleration for free. Your Space runs 24/7 and connects to your phone via API.
-                  </p>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-mono text-violet-400/60">YOUR SPACE URL</label>
-                    <input value={hfUrl} onChange={e => setHfUrl(e.target.value)}
-                      placeholder="https://username-space-name.hf.space"
-                      className="w-full px-3 py-2 rounded-lg bg-black/40 border border-violet-700/40 text-violet-200 text-xs font-mono placeholder-violet-800 focus:outline-none focus:border-violet-500" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-mono text-violet-400/60">API KEY (optional)</label>
-                    <input value={hfKey} onChange={e => setHfKey(e.target.value)} type="password"
-                      placeholder="your-secret-key"
-                      className="w-full px-3 py-2 rounded-lg bg-black/40 border border-violet-700/40 text-violet-200 text-xs font-mono placeholder-violet-800 focus:outline-none focus:border-violet-500" />
-                  </div>
-                  <button onClick={saveHfConfig}
-                    className="w-full py-2 rounded-lg bg-violet-700 hover:bg-violet-600 text-white text-xs font-bold transition-all">
-                    SAVE & CONNECT
-                  </button>
-                </div>
-
-                <div className="rounded-xl border border-cyan-800/30 bg-cyan-950/10 p-4 space-y-3">
-                  <h3 className="text-xs font-bold text-cyan-300">📦 Setup Instructions</h3>
-                  <div className="space-y-2 text-xs text-cyan-400/70 font-mono">
-                    {[
-                      "1. Go to huggingface.co/spaces → New Space",
-                      "2. Choose Docker SDK, enable GPU (T4 free tier)",
-                      "3. Upload files from hf-spaces/ folder in your project",
-                      "4. Add API_KEY secret in Space Settings",
-                      "5. Set PRELOAD_MODELS=llama3.2:3b in Space env vars",
-                      "6. Copy your Space URL and paste it above",
-                    ].map((step, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <ChevronRight className="w-3 h-3 flex-shrink-0 mt-0.5 text-cyan-500" />
-                        <span>{step}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-emerald-800/30 bg-emerald-950/10 p-4 space-y-2">
-                  <h3 className="text-xs font-bold text-emerald-300">📱 Mobile API Access</h3>
-                  <div className="text-[10px] font-mono text-emerald-400/60 space-y-1">
-                    <div>GET  {hfUrl || "https://your-space.hf.space"}/api/tags</div>
-                    <div>POST {hfUrl || "https://your-space.hf.space"}/api/chat</div>
-                    <div>POST {hfUrl || "https://your-space.hf.space"}/api/generate</div>
-                  </div>
-                  <p className="text-[10px] text-emerald-500/50">Add Authorization: Bearer {hfKey ? "***" : "<key>"} header</p>
-                </div>
-
-                <div className="rounded-xl border border-amber-800/30 bg-amber-950/10 p-4">
-                  <h3 className="text-xs font-bold text-amber-300 mb-2">⚡ Recommended Free Models for HF</h3>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {["llama3.2:3b (2GB)","qwen2.5:7b (4GB)","mistral:7b (4GB)","phi3:mini (2GB)"].map(m => (
-                      <div key={m} className="px-2 py-1 rounded bg-amber-950/40 border border-amber-800/20 text-[10px] font-mono text-amber-300">{m}</div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── Ambient bottom scan line ── */}
-      <motion.div
-        animate={{ x: ["-100%", "100%"] }}
-        transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-        className="absolute bottom-0 left-0 right-0 h-px"
-        style={{ background: "linear-gradient(90deg, transparent 0%, #7c3aed 50%, transparent 100%)" }}
-      />
+      {/* ── Corner decorations ──────────────────────────────── */}
+      <div className="pointer-events-none absolute top-0 left-0 w-24 h-24 z-0"
+        style={{ background: "radial-gradient(circle at top left, rgba(124,58,237,0.08) 0%, transparent 70%)" }} />
+      <div className="pointer-events-none absolute bottom-0 right-0 w-32 h-32 z-0"
+        style={{ background: "radial-gradient(circle at bottom right, rgba(0,229,255,0.06) 0%, transparent 70%)" }} />
     </motion.div>
   );
 }

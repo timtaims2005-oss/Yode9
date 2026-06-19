@@ -33,7 +33,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pnpm --filter @workspace/api-server run dev & pnpm --filter @workspace/mr7-ai run dev"
+args = "python3 scripts/launch-ollama.py & pnpm --filter @workspace/api-server run dev & pnpm --filter @workspace/mr7-ai run dev"
 waitForPort = 5000
 
 [[workflows.workflow]]
