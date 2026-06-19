@@ -1046,7 +1046,7 @@ export function ProviderHealthBadge3D() {
   const [history,  setHistory]   = useState<number[]>([]);
   const [checks,   setChecks]    = useState(0);
   const [open,     setOpen]      = useState(false);
-  const [activeTab, setActiveTab] = useState<"status" | "matrix" | "shield" | "net" | "log" | "bench" | "pulse">("status");
+  const [activeTab, setActiveTab] = useState<"status" | "matrix" | "shield" | "net" | "log" | "bench" | "pulse" | "globe">("status");
   const [eventLog,  setEventLog]  = useState<{ ts: number; msg: string; color: string }[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [filterRegion, setFilterRegion] = useState<"all" | "US" | "EU" | "CN" | "CA">("all");
@@ -1248,8 +1248,8 @@ export function ProviderHealthBadge3D() {
 
               {/* Tab bar */}
               <div className="flex px-3 gap-0.5 pt-2 pb-0 flex-wrap" style={{ borderBottom: "1px solid rgba(139,92,246,0.09)" }}>
-                {(["status", "matrix", "shield", "net", "log", "bench", "pulse"] as const).map(tab => {
-                  const labels: Record<string, string> = { status: "STATUS", matrix: "MATRIX", shield: "SHIELD", net: "NET", log: "LOG", bench: "BENCH", pulse: "PULSE" };
+                {(["status", "matrix", "shield", "net", "log", "bench", "pulse", "globe"] as const).map(tab => {
+                  const labels: Record<string, string> = { status: "STATUS", matrix: "MATRIX", shield: "SHIELD", net: "NET", log: "LOG", bench: "BENCH", pulse: "PULSE", globe: "🌐 GLOBE" };
                   const active = activeTab === tab;
                   const hasNew = tab === "log" && eventLog.length > 0;
                   return (
@@ -1601,6 +1601,66 @@ export function ProviderHealthBadge3D() {
                         style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${s.color}18` }}>
                         <div className="text-[6px] uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.3)" }}>{s.label}</div>
                         <div className="text-[9px] font-black font-mono mt-0.5" style={{ color: s.color }}>{s.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── GLOBE TAB ── */}
+              {activeTab === "globe" && (
+                <div className="p-3 space-y-2 overflow-y-auto" style={{ maxHeight: "55vh", scrollbarWidth: "thin", scrollbarColor: "rgba(139,92,246,0.18) transparent" }}>
+                  <div className="text-[7px] font-bold tracking-[0.25em] uppercase mb-2" style={{ color: "rgba(255,255,255,0.28)" }}>توزيع المزودين العالمي</div>
+                  {/* Stylized globe visualization */}
+                  <div className="relative h-32 rounded-2xl overflow-hidden mb-3"
+                    style={{ background: "radial-gradient(ellipse at center, rgba(139,92,246,0.12) 0%, rgba(0,0,0,0.8) 70%)", border: "1px solid rgba(139,92,246,0.15)" }}>
+                    {/* Grid lines */}
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="absolute inset-x-0 border-t border-dashed"
+                        style={{ top: `${(i+1)*16}%`, borderColor: "rgba(139,92,246,0.08)" }} />
+                    ))}
+                    {[...Array(7)].map((_, i) => (
+                      <div key={i} className="absolute inset-y-0 border-l border-dashed"
+                        style={{ left: `${(i+1)*12.5}%`, borderColor: "rgba(139,92,246,0.08)" }} />
+                    ))}
+                    {/* Provider nodes */}
+                    {[
+                      { name:"OpenAI",    x:22, y:38, color:"#10b981", region:"US-WEST" },
+                      { name:"Anthropic", x:28, y:42, color:"#f59e0b", region:"US-EAST" },
+                      { name:"Groq",      x:25, y:48, color:"#6366f1", region:"US"      },
+                      { name:"Gemini",    x:72, y:30, color:"#3b82f6", region:"EU"      },
+                      { name:"OpenRouter",x:55, y:55, color:"#e21227", region:"GLOBAL"  },
+                      { name:"Mistral",   x:52, y:35, color:"#a78bfa", region:"EU"      },
+                      { name:"Together",  x:30, y:62, color:"#ec4899", region:"US"      },
+                    ].map(node => (
+                      <div key={node.name} className="absolute flex flex-col items-center" style={{ left: `${node.x}%`, top: `${node.y}%`, transform: "translate(-50%,-50%)" }}>
+                        <motion.div className="w-2 h-2 rounded-full"
+                          style={{ background: node.color, boxShadow: `0 0 8px ${node.color}80` }}
+                          animate={{ scale: [1, 1.4, 1], opacity: [0.8, 1, 0.8] }}
+                          transition={{ duration: 2 + Math.random()*1.5, repeat: Infinity, ease: "easeInOut" }} />
+                        <div className="text-[5px] font-black font-mono mt-0.5 whitespace-nowrap" style={{ color: `${node.color}cc` }}>{node.name}</div>
+                      </div>
+                    ))}
+                    {/* Center label */}
+                    <div className="absolute bottom-2 right-2 text-[6px] font-mono" style={{ color: "rgba(139,92,246,0.35)" }}>GLOBAL MESH · LIVE</div>
+                  </div>
+                  {/* Region stats */}
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      { region: "US",     providers: 4, avgMs: 180, color: "#10b981" },
+                      { region: "EU",     providers: 2, avgMs: 210, color: "#3b82f6" },
+                      { region: "GLOBAL", providers: 1, avgMs: 145, color: "#e21227" },
+                      { region: "CN",     providers: 0, avgMs: 0,   color: "#444444" },
+                    ].map(r => (
+                      <div key={r.region} className="rounded-xl p-2.5"
+                        style={{ background: "rgba(255,255,255,0.025)", border: `1px solid ${r.color}${r.providers ? "25" : "10"}` }}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[8px] font-black font-mono" style={{ color: r.providers ? r.color : "rgba(255,255,255,0.2)" }}>{r.region}</span>
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: r.providers ? r.color : "#333", boxShadow: r.providers ? `0 0 6px ${r.color}` : "none" }} />
+                        </div>
+                        <div className="text-[11px] font-black font-mono" style={{ color: r.providers ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.2)" }}>{r.providers}</div>
+                        <div className="text-[6px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.25)" }}>مزودين</div>
+                        {r.providers > 0 && <div className="text-[6px] font-mono mt-0.5" style={{ color: `${r.color}88` }}>{r.avgMs}ms avg</div>}
                       </div>
                     ))}
                   </div>

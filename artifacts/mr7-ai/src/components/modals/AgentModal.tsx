@@ -203,67 +203,106 @@ export function AgentModal({ open, onOpenChange, pipelineTask }: AgentModalProps
           style={{ backdropFilter: "blur(8px)", background: "rgba(0,0,0,0.75)" }}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.2 }}
-            className="w-full max-w-2xl max-h-[88dvh] flex flex-col rounded-2xl border overflow-hidden shadow-2xl"
+            initial={{ opacity: 0, scale: 0.90, y: 28, rotateX: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 20, rotateX: 4 }}
+            transition={{ duration: 0.30, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-2xl max-h-[88dvh] flex flex-col rounded-2xl overflow-hidden shadow-2xl relative"
             style={{
-              background: "#090909",
-              borderColor: "rgba(255,77,77,0.25)",
-              boxShadow: "0 0 60px rgba(255,77,77,0.15), 0 25px 50px rgba(0,0,0,0.8)",
+              background: "linear-gradient(160deg, rgba(6,2,14,0.99) 0%, rgba(4,1,10,0.99) 60%, rgba(8,2,16,0.99) 100%)",
+              border: "1px solid rgba(255,77,77,0.32)",
+              boxShadow: "0 0 140px rgba(255,77,77,0.18), 0 0 60px rgba(255,77,77,0.08), 0 32px 80px rgba(0,0,0,0.97), inset 0 1px 0 rgba(255,77,77,0.18), inset 0 0 100px rgba(255,77,77,0.02)",
             }}
           >
+            {/* Animated scan line */}
+            <motion.div className="absolute inset-x-0 h-px pointer-events-none z-30"
+              style={{ background: "linear-gradient(90deg,transparent,rgba(255,77,77,0.70),rgba(0,229,255,0.30),rgba(255,77,77,0.70),transparent)" }}
+              animate={{ top: ["0%", "100%", "0%"] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "linear" }} />
+
+            {/* Corner brackets */}
+            <span className="absolute top-2.5 left-2.5 w-5 h-5 border-t-2 border-l-2 pointer-events-none z-20" style={{ borderColor: "rgba(255,77,77,0.75)" }} />
+            <span className="absolute top-2.5 right-2.5 w-5 h-5 border-t-2 border-r-2 pointer-events-none z-20" style={{ borderColor: "rgba(255,77,77,0.75)" }} />
+            <span className="absolute bottom-2.5 left-2.5 w-5 h-5 border-b-2 border-l-2 pointer-events-none z-20" style={{ borderColor: "rgba(255,77,77,0.35)" }} />
+            <span className="absolute bottom-2.5 right-2.5 w-5 h-5 border-b-2 border-r-2 pointer-events-none z-20" style={{ borderColor: "rgba(255,77,77,0.35)" }} />
+
+            {/* Top accent bar */}
+            <div className="h-[2px]" style={{ background: "linear-gradient(90deg, transparent, #ff4d4d, #00e5ff44, #ff4d4d, transparent)" }} />
+
             {/* ── Header ── */}
-            <div
-              className="flex items-center justify-between px-4 py-3 border-b"
-              style={{ borderColor: "rgba(255,77,77,0.2)", background: "rgba(255,77,77,0.04)" }}
-            >
+            <div className="flex items-center justify-between px-4 py-3.5 relative" style={{ borderBottom: "1px solid rgba(255,77,77,0.14)", background: "rgba(255,77,77,0.03)" }}>
+              {/* Left: branding */}
               <div className="flex items-center gap-3">
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center border"
-                  style={{ background: "rgba(255,77,77,0.12)", borderColor: "rgba(255,77,77,0.4)" }}
-                >
-                  <span style={{ color: "#ff4d4d" }}><ClawIcon className="w-5 h-5" /></span>
+                <div className="relative">
+                  <motion.div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                    style={{ background: "radial-gradient(circle, rgba(255,77,77,0.22) 0%, rgba(255,77,77,0.06) 100%)", border: "1px solid rgba(255,77,77,0.45)", boxShadow: "0 0 20px rgba(255,77,77,0.20), inset 0 0 14px rgba(255,77,77,0.08)" }}
+                    animate={{ boxShadow: ["0 0 16px rgba(255,77,77,0.18)", "0 0 32px rgba(255,77,77,0.38)", "0 0 16px rgba(255,77,77,0.18)"] }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}>
+                    <span style={{ color: "#ff4d4d" }}><ClawIcon className="w-6 h-6" /></span>
+                  </motion.div>
+                  {/* Orbit ring */}
+                  <motion.div className="absolute inset-[-4px] rounded-2xl border border-dashed pointer-events-none"
+                    style={{ borderColor: "rgba(255,77,77,0.22)" }}
+                    animate={{ rotate: 360 }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }} />
+                  {/* Status dot */}
+                  <motion.div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2"
+                    style={{ background: gatewayOk ? "#00e5cc" : gatewayOk === null ? "#888" : "#ff4d4d", borderColor: "#06020e", boxShadow: gatewayOk ? "0 0 8px #00e5cc" : "none" }}
+                    animate={gatewayOk ? { scale: [1, 1.25, 1], opacity: [0.8, 1, 0.8] } : {}}
+                    transition={{ duration: 1.2, repeat: Infinity }} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-black tracking-wider" style={{ color: "#ff4d4d" }}>
-                      KALI<span className="text-white">AGENT</span>
+                    <span className="text-base font-black tracking-[0.12em]">
+                      <span style={{ color: "#ff4d4d" }}>KALI</span>
+                      <span className="text-white">AGENT</span>
                     </span>
-                    <span
-                      className="text-[9px] font-bold px-1.5 py-0.5 rounded border font-mono"
-                      style={{ color: "#00e5cc", borderColor: "rgba(0,229,204,0.4)", background: "rgba(0,229,204,0.08)" }}
-                    >
-                      v1.0
+                    <div className="px-1.5 py-0.5 rounded border font-mono text-[8px] font-black"
+                      style={{ color: "#00e5cc", borderColor: "rgba(0,229,204,0.45)", background: "rgba(0,229,204,0.08)" }}>
+                      v2.0
+                    </div>
+                    {running && (
+                      <motion.div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full"
+                        style={{ background: "rgba(255,77,77,0.12)", border: "1px solid rgba(255,77,77,0.30)" }}>
+                        <motion.div className="w-1 h-1 rounded-full" style={{ background: "#ff4d4d" }}
+                          animate={{ scale: [1, 1.5, 1], opacity: [0.7, 1, 0.7] }} transition={{ duration: 0.7, repeat: Infinity }} />
+                        <span className="text-[7px] font-black font-mono" style={{ color: "#ff4d4d" }}>EXEC</span>
+                      </motion.div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[9px] font-mono" style={{ color: "rgba(255,255,255,0.35)" }}>AUTONOMOUS CYBER AGENT</span>
+                    <span className="text-[7px] font-mono" style={{ color: gatewayOk ? "rgba(0,229,204,0.70)" : "rgba(255,77,77,0.70)" }}>
+                      · {gatewayOk === null ? "INIT" : gatewayOk ? "GATEWAY ONLINE" : "OFFLINE"}
                     </span>
                   </div>
-                  <div className="text-[10px] text-gray-500 font-mono">All your tasks, one KaliAgent.</div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                {/* Gateway Status */}
-                <div className="flex items-center gap-1.5">
-                  <div
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{
-                      background: gatewayOk === null ? "#888" : gatewayOk ? "#00e5cc" : "#ff4d4d",
-                      boxShadow: gatewayOk ? "0 0 6px #00e5cc" : undefined,
-                      animation: gatewayOk && running ? "pulse 1s infinite" : undefined,
-                    }}
-                  />
-                  <span className="text-[10px] font-mono" style={{ color: gatewayOk === null ? "#666" : gatewayOk ? "#00e5cc" : "#ff4d4d" }}>
-                    {gatewayOk === null ? "CHECKING" : gatewayOk ? "GATEWAY ONLINE" : "GATEWAY OFFLINE"}
-                  </span>
+              {/* Right: metrics + close */}
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col items-end gap-1">
+                  {[
+                    { label: "NEURAL", pct: 87, color: "#ff4d4d" },
+                    { label: "SYNC",   pct: 94, color: "#00e5ff" },
+                  ].map(m => (
+                    <div key={m.label} className="flex items-center gap-1.5">
+                      <span className="text-[6px] font-mono uppercase" style={{ color: "rgba(255,255,255,0.28)" }}>{m.label}</span>
+                      <div className="w-14 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                        <motion.div className="h-full rounded-full"
+                          style={{ background: m.color, boxShadow: `0 0 4px ${m.color}60` }}
+                          initial={{ width: 0 }} animate={{ width: `${m.pct}%` }} transition={{ duration: 1, ease: "easeOut" }} />
+                      </div>
+                      <span className="text-[6px] font-black font-mono" style={{ color: m.color }}>{m.pct}%</span>
+                    </div>
+                  ))}
                 </div>
-
-                <button
-                  onClick={close}
-                  className="p-1.5 rounded-lg transition-colors text-gray-500 hover:text-white hover:bg-white/10"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                <motion.button onClick={close}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.45)" }}
+                  whileHover={{ background: "rgba(255,60,60,0.15)", color: "#ff4444", borderColor: "rgba(255,60,60,0.35)" }}>
+                  <X className="w-3.5 h-3.5" />
+                </motion.button>
               </div>
             </div>
 

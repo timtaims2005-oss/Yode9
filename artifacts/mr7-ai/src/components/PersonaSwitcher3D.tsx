@@ -225,6 +225,9 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
   const { state, dispatch } = useStore();
   const [showPanel, setShowPanel] = useState(false);
   const [hoverPreset, setHoverPreset] = useState<string | null>(null);
+  const [psTab, setPsTab] = useState<"swift"|"library"|"stats"|"build">("swift");
+  const [psSearch, setPsSearch] = useState("");
+  const [psCategory, setPsCategory] = useState<"all"|"general"|"security"|"uncensored"|"specialist">("all");
   const ref = useRef<HTMLDivElement>(null);
 
   const activePresetId = state.settings.activePersonaPreset ?? "default";
@@ -297,7 +300,7 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
         )}
       </motion.button>
 
-      {/* 3D External Floating Window */}
+      {/* 3D External Floating Window — UPGRADED v4 */}
       <AnimatePresence>
         {showPanel && (
           <>
@@ -305,168 +308,336 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
             <motion.div
               className="fixed inset-0 z-[1994]"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+              style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
               onClick={() => setShowPanel(false)}
             />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.93, y: -12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.93, y: -10 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, scale: 0.90, y: -18, rotateX: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
+            exit={{ opacity: 0, scale: 0.90, y: -14, rotateX: 6 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: "fixed",
-              top: panelPos.top,
-              left: panelPos.left,
+              top: Math.max(8, Math.min(panelPos.top, window.innerHeight - 620)),
+              left: Math.max(8, Math.min(panelPos.left - 100, window.innerWidth - 560)),
               zIndex: 1995,
-              width: 300,
-              background: "linear-gradient(160deg, rgba(5,3,14,0.99) 0%, rgba(3,2,9,0.99) 100%)",
-              border: `1px solid rgba(${cr},${cg},${cb},0.30)`,
-              borderRadius: 18,
-              boxShadow: `0 0 80px rgba(${cr},${cg},${cb},0.18), 0 0 30px rgba(${cr},${cg},${cb},0.08), 0 24px 60px rgba(0,0,0,0.90), inset 0 1px 0 rgba(${cr},${cg},${cb},0.12)`,
-              backdropFilter: "blur(32px)",
-              transformStyle: "preserve-3d",
-              perspective: 900,
+              width: "clamp(340px, 40vw, 560px)",
+              background: "linear-gradient(160deg, rgba(4,2,12,0.99) 0%, rgba(2,1,8,0.99) 55%, rgba(5,2,14,0.99) 100%)",
+              border: `1px solid rgba(${cr},${cg},${cb},0.35)`,
+              borderRadius: 20,
+              boxShadow: `0 0 120px rgba(${cr},${cg},${cb},0.22), 0 0 50px rgba(${cr},${cg},${cb},0.10), 0 32px 80px rgba(0,0,0,0.96), inset 0 1px 0 rgba(${cr},${cg},${cb},0.18), inset 0 0 60px rgba(${cr},${cg},${cb},0.03)`,
+              backdropFilter: "blur(40px)",
+              perspective: 1200,
               pointerEvents: "auto",
+              overflow: "hidden",
             }}
           >
+            {/* Animated scan line */}
+            <motion.div className="absolute inset-x-0 h-px pointer-events-none z-20"
+              style={{ background: `linear-gradient(90deg,transparent,rgba(${cr},${cg},${cb},0.6),transparent)` }}
+              animate={{ top: ["0%", "100%", "0%"] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }} />
+
             {/* Corner brackets */}
-            <span className="absolute top-2 left-2 w-3 h-3 border-t border-l pointer-events-none" style={{ borderColor: `rgba(${cr},${cg},${cb},0.55)` }} />
-            <span className="absolute top-2 right-2 w-3 h-3 border-t border-r pointer-events-none" style={{ borderColor: `rgba(${cr},${cg},${cb},0.55)` }} />
-            <span className="absolute bottom-2 left-2 w-3 h-3 border-b border-l pointer-events-none" style={{ borderColor: `rgba(${cr},${cg},${cb},0.3)` }} />
-            <span className="absolute bottom-2 right-2 w-3 h-3 border-b border-r pointer-events-none" style={{ borderColor: `rgba(${cr},${cg},${cb},0.3)` }} />
+            <span className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 pointer-events-none rounded-tl" style={{ borderColor: `rgba(${cr},${cg},${cb},0.65)` }} />
+            <span className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 pointer-events-none rounded-tr" style={{ borderColor: `rgba(${cr},${cg},${cb},0.65)` }} />
+            <span className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 pointer-events-none rounded-bl" style={{ borderColor: `rgba(${cr},${cg},${cb},0.35)` }} />
+            <span className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 pointer-events-none rounded-br" style={{ borderColor: `rgba(${cr},${cg},${cb},0.35)` }} />
+
             {/* Header stripe */}
-            <div className="h-[2px] w-full rounded-t-2xl"
-              style={{ background: `linear-gradient(90deg, transparent, rgba(${cr},${cg},${cb},0.8), transparent)` }} />
+            <div className="h-[2px] w-full"
+              style={{ background: `linear-gradient(90deg, transparent, rgba(${cr},${cg},${cb},0.9), rgba(255,255,255,0.3), rgba(${cr},${cg},${cb},0.9), transparent)` }} />
 
             {/* Header */}
-            <div className="px-3 pt-3 pb-2 flex items-center justify-between">
-              <div>
-                <div className="text-[9px] font-black tracking-[0.3em] uppercase"
-                  style={{ color: `rgba(${cr},${cg},${cb},0.7)` }}>
-                  محوّل الشخصيات
+            <div className="px-4 pt-3 pb-2.5 flex items-center justify-between"
+              style={{ borderBottom: `1px solid rgba(${cr},${cg},${cb},0.10)` }}>
+              <div className="flex items-center gap-3">
+                <PersonaOrb color={color} pulse={true} size={36} />
+                <div>
+                  <div className="text-[8px] font-black tracking-[0.3em] uppercase font-mono"
+                    style={{ color: `rgba(${cr},${cg},${cb},0.75)` }}>PERSONA MATRIX · v4.0</div>
+                  <div className="text-white text-sm font-black mt-0.5">{activePreset.nameAr}</div>
+                  <div className="text-[8px] mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+                    {activePreset.category.toUpperCase()} · نشط
+                  </div>
                 </div>
-                <div className="text-white text-xs font-bold mt-0.5">اختر شخصية AI</div>
               </div>
-              <div className="flex items-center gap-1">
-                <motion.div
-                  className="w-2 h-2 rounded-full"
-                  style={{ background: `rgba(${cr},${cg},${cb},0.9)`, boxShadow: `0 0 8px rgba(${cr},${cg},${cb},0.8)` }}
-                  animate={{ opacity: [0.6, 1], scale: [0.9, 1.1] }}
-                  transition={{ duration: 1.2, repeat: Infinity, repeatType: "reverse" }}
-                />
-                <span className="text-[8px] font-mono" style={{ color: `rgba(${cr},${cg},${cb},0.6)` }}>LIVE</span>
-              </div>
-            </div>
-
-            {/* Current persona card */}
-            <div className="mx-3 mb-2 rounded-xl p-2.5 flex items-center gap-2.5"
-              style={{
-                background: `rgba(${cr},${cg},${cb},0.08)`,
-                border: `1px solid rgba(${cr},${cg},${cb},0.2)`,
-              }}>
-              <PersonaOrb color={color} pulse={true} size={36} />
-              <div className="flex-1 min-w-0">
-                <div className="text-[9px] font-bold tracking-widest uppercase" style={{ color: `rgba(${cr},${cg},${cb},0.65)` }}>
-                  {activePreset.category}
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col items-center gap-0.5">
+                  <motion.div className="w-2 h-2 rounded-full"
+                    style={{ background: `rgba(${cr},${cg},${cb},1)`, boxShadow: `0 0 10px rgba(${cr},${cg},${cb},0.9)` }}
+                    animate={{ opacity: [0.5, 1], scale: [0.85, 1.15] }}
+                    transition={{ duration: 1.1, repeat: Infinity, repeatType: "reverse" }} />
+                  <span className="text-[7px] font-black font-mono" style={{ color: `rgba(${cr},${cg},${cb},0.6)` }}>LIVE</span>
                 </div>
-                <div className="text-white text-xs font-bold truncate">{activePreset.nameAr}</div>
-                <div className="text-[9px] text-white/40 truncate mt-0.5">{activePreset.descAr.slice(0, 36)}…</div>
-              </div>
-            </div>
-
-            {/* Quick pick grid */}
-            <div className="px-3 pb-2">
-              <div className="text-[8px] font-bold tracking-widest uppercase mb-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>
-                تبديل سريع
-              </div>
-              <div className="grid grid-cols-2 gap-1">
-                {topPresets.map(preset => {
-                  const pc = CATEGORY_COLORS[preset.category] ?? [34, 197, 94];
-                  const isActive = preset.id === activePresetId;
-                  const isHov = hoverPreset === preset.id;
-                  const Icon = preset.icon;
-                  return (
-                    <motion.button
-                      key={preset.id}
-                      onMouseEnter={() => setHoverPreset(preset.id)}
-                      onMouseLeave={() => setHoverPreset(null)}
-                      onClick={() => {
-                        dispatch({ type: "SET_SETTINGS", patch: { activePersonaPreset: preset.id } } as Parameters<typeof dispatch>[0]);
-                        setShowPanel(false);
-                      }}
-                      className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left transition-all"
-                      style={{
-                        background: isActive
-                          ? `rgba(${pc[0]},${pc[1]},${pc[2]},0.18)`
-                          : isHov ? `rgba(${pc[0]},${pc[1]},${pc[2]},0.1)` : "rgba(255,255,255,0.03)",
-                        border: `1px solid rgba(${pc[0]},${pc[1]},${pc[2]},${isActive ? 0.4 : isHov ? 0.25 : 0.1})`,
-                        boxShadow: isActive ? `0 0 12px rgba(${pc[0]},${pc[1]},${pc[2]},0.2)` : "none",
-                      }}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
-                        style={{ background: `rgba(${pc[0]},${pc[1]},${pc[2]},0.2)` }}>
-                        <Icon className="w-3 h-3" style={{ color: `rgba(${pc[0]},${pc[1]},${pc[2]},0.9)` }} />
-                      </div>
-                      <span className="text-[10px] font-bold truncate" style={{ color: isActive ? `rgba(${pc[0]},${pc[1]},${pc[2]},0.95)` : "rgba(255,255,255,0.6)" }}>
-                        {preset.nameAr.slice(0, 12)}
-                      </span>
-                      {isActive && (
-                        <span className="w-1.5 h-1.5 rounded-full ml-auto flex-shrink-0"
-                          style={{ background: `rgba(${pc[0]},${pc[1]},${pc[2]},0.9)` }} />
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Open full editor / manager */}
-            <div className="mx-3 mb-3 flex flex-col gap-1.5">
-              {onOpenPersonaManager && (
-                <motion.button
-                  onClick={() => { setShowPanel(false); onOpenPersonaManager(); }}
-                  className="w-full rounded-xl py-2 text-[11px] font-black tracking-wider flex items-center justify-center gap-2"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(226,18,39,0.18), rgba(226,18,39,0.08))",
-                    border: "1px solid rgba(226,18,39,0.35)",
-                    color: "#e21227",
-                    boxShadow: "0 0 16px rgba(226,18,39,0.12)",
-                  }}
-                  whileHover={{ scale: 1.02, boxShadow: "0 0 24px rgba(226,18,39,0.25)" }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                <motion.button onClick={() => setShowPanel(false)}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  whileHover={{ background: "rgba(255,100,100,0.15)", color: "#ff4444", borderColor: "rgba(255,80,80,0.3)" }}>
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
                   </svg>
-                  مدير الشخصيات الكامل
                 </motion.button>
-              )}
-              <motion.button
-                onClick={() => { setShowPanel(false); onOpenPersonaEditor(); }}
-                className="w-full rounded-xl py-1.5 text-[10px] font-black tracking-wider flex items-center justify-center gap-2"
-                style={{
-                  background: `rgba(${cr},${cg},${cb},0.08)`,
-                  border: `1px solid rgba(${cr},${cg},${cb},0.22)`,
-                  color: `rgba(${cr},${cg},${cb},0.8)`,
-                }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
-                  <circle cx="12" cy="12" r="10" /><circle cx="12" cy="10" r="3" />
-                  <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
-                </svg>
-                محرر الشخصيات
-              </motion.button>
+              </div>
             </div>
+
+            {/* Tab bar */}
+            <div className="flex px-3 gap-0.5 pt-2" style={{ borderBottom: `1px solid rgba(${cr},${cg},${cb},0.10)` }}>
+              {(["swift","library","stats","build"] as const).map(tab => {
+                const tabLabels: Record<string,string> = { swift:"⚡ SWIFT", library:"📚 LIBRARY", stats:"🧠 NEURAL", build:"🔧 CRAFT" };
+                const isActive = psTab === tab;
+                return (
+                  <button key={tab} onClick={() => setPsTab(tab)}
+                    className="px-3 py-1.5 text-[8px] font-black tracking-wider uppercase rounded-t-lg transition-all font-mono"
+                    style={{
+                      color: isActive ? `rgba(${cr},${cg},${cb},0.95)` : "rgba(255,255,255,0.28)",
+                      background: isActive ? `rgba(${cr},${cg},${cb},0.12)` : "transparent",
+                      borderBottom: isActive ? `2px solid rgba(${cr},${cg},${cb},0.85)` : "2px solid transparent",
+                    }}>
+                    {tabLabels[tab]}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* SWIFT TAB */}
+            {psTab === "swift" && (
+              <div className="p-3 space-y-2">
+                {/* Stats row */}
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  {[
+                    { label: "إجمالي", value: String(PERSONA_PRESETS.length), color: `rgba(${cr},${cg},${cb},0.9)` },
+                    { label: "فئة", value: activePreset.category, color: "#a78bfa" },
+                    { label: "حالة", value: "نشط", color: "#22c55e" },
+                  ].map(s => (
+                    <div key={s.label} className="rounded-xl p-2 text-center"
+                      style={{ background: "rgba(255,255,255,0.02)", border: `1px solid rgba(${cr},${cg},${cb},0.08)` }}>
+                      <div className="text-[7px] uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>{s.label}</div>
+                      <div className="text-[10px] font-black font-mono truncate" style={{ color: s.color }}>{s.value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Quick grid */}
+                <div className="text-[7px] font-bold tracking-[0.25em] uppercase mb-1.5" style={{ color: "rgba(255,255,255,0.28)" }}>تبديل سريع</div>
+                <div className="grid grid-cols-2 gap-1.5 max-h-[52vh] overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: `rgba(${cr},${cg},${cb},0.2) transparent` }}>
+                  {topPresets.map(preset => {
+                    const pc = CATEGORY_COLORS[preset.category] ?? [34, 197, 94];
+                    const isActive = preset.id === activePresetId;
+                    const isHov = hoverPreset === preset.id;
+                    const Icon = preset.icon;
+                    return (
+                      <motion.button
+                        key={preset.id}
+                        onMouseEnter={() => setHoverPreset(preset.id)}
+                        onMouseLeave={() => setHoverPreset(null)}
+                        onClick={() => {
+                          dispatch({ type: "SET_SETTINGS", patch: { activePersonaPreset: preset.id } } as Parameters<typeof dispatch>[0]);
+                          setShowPanel(false);
+                        }}
+                        className="flex items-center gap-2 px-2.5 py-2 rounded-xl text-left transition-all relative overflow-hidden"
+                        style={{
+                          background: isActive ? `rgba(${pc[0]},${pc[1]},${pc[2]},0.16)` : isHov ? `rgba(${pc[0]},${pc[1]},${pc[2]},0.08)` : "rgba(255,255,255,0.025)",
+                          border: `1px solid rgba(${pc[0]},${pc[1]},${pc[2]},${isActive ? 0.45 : isHov ? 0.22 : 0.08})`,
+                          boxShadow: isActive ? `0 0 16px rgba(${pc[0]},${pc[1]},${pc[2]},0.22), inset 0 1px 0 rgba(${pc[0]},${pc[1]},${pc[2]},0.10)` : "none",
+                        }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.96 }}
+                      >
+                        {isActive && (
+                          <motion.div className="absolute inset-y-0 left-0 w-0.5 rounded-full"
+                            style={{ background: `rgba(${pc[0]},${pc[1]},${pc[2]},1)` }}
+                            animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.5, repeat: Infinity }} />
+                        )}
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{ background: `rgba(${pc[0]},${pc[1]},${pc[2]},0.18)`, border: `1px solid rgba(${pc[0]},${pc[1]},${pc[2]},0.28)` }}>
+                          <Icon className="w-3.5 h-3.5" style={{ color: `rgba(${pc[0]},${pc[1]},${pc[2]},0.95)` }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[10px] font-bold truncate" style={{ color: isActive ? `rgba(${pc[0]},${pc[1]},${pc[2]},1)` : "rgba(255,255,255,0.7)" }}>
+                            {preset.nameAr.slice(0, 14)}
+                          </div>
+                          <div className="text-[8px] truncate mt-0.5 font-mono" style={{ color: "rgba(255,255,255,0.28)" }}>
+                            {preset.category}
+                          </div>
+                        </div>
+                        {isActive && <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: `rgba(${pc[0]},${pc[1]},${pc[2]},0.95)`, boxShadow: `0 0 8px rgba(${pc[0]},${pc[1]},${pc[2]},0.8)` }} />}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* LIBRARY TAB */}
+            {psTab === "library" && (
+              <div className="p-3 space-y-2">
+                {/* Search */}
+                <div className="relative">
+                  <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3" style={{ color: `rgba(${cr},${cg},${cb},0.5)` }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                  <input type="text" value={psSearch} onChange={e => setPsSearch(e.target.value)}
+                    placeholder="بحث في المكتبة..."
+                    className="w-full pl-7 pr-3 py-1.5 text-[9px] font-mono rounded-xl outline-none"
+                    style={{ background: "rgba(0,0,0,0.4)", border: `1px solid rgba(${cr},${cg},${cb},${psSearch ? 0.45 : 0.18})`, color: "rgba(255,255,255,0.85)" }}
+                    dir="rtl" />
+                  {psSearch && <button onClick={() => setPsSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px]" style={{ color: "rgba(255,255,255,0.35)" }}>✕</button>}
+                </div>
+                {/* Category filter */}
+                <div className="flex gap-1 flex-wrap">
+                  {(["all", "general", "security", "uncensored", "specialist"] as const).map(cat => {
+                    const catColors: Record<string, string> = { all: "#a78bfa", general: "#22c55e", security: "#e21227", uncensored: "#f59e0b", specialist: "#6366f1" };
+                    const catLabels: Record<string, string> = { all: "الكل", general: "عام", security: "أمن", uncensored: "بلا قيود", specialist: "متخصص" };
+                    const isSel = psCategory === cat;
+                    return (
+                      <button key={cat} onClick={() => setPsCategory(cat)}
+                        className="px-2 py-0.5 rounded-lg text-[7px] font-black font-mono transition-all"
+                        style={{
+                          background: isSel ? `${catColors[cat]}20` : "rgba(255,255,255,0.04)",
+                          border: `1px solid ${isSel ? catColors[cat] + "50" : "rgba(255,255,255,0.06)"}`,
+                          color: isSel ? catColors[cat] : "rgba(255,255,255,0.35)",
+                        }}>
+                        {catLabels[cat]}
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* All presets list */}
+                <div className="space-y-1 max-h-[50vh] overflow-y-auto pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: `rgba(${cr},${cg},${cb},0.2) transparent` }}>
+                  {PERSONA_PRESETS
+                    .filter(p => {
+                      const matchCat = psCategory === "all" || p.category === psCategory;
+                      const matchSearch = !psSearch || p.nameAr.includes(psSearch) || p.category.includes(psSearch);
+                      return matchCat && matchSearch;
+                    })
+                    .map(preset => {
+                      const pc = CATEGORY_COLORS[preset.category] ?? [34, 197, 94];
+                      const isActive = preset.id === activePresetId;
+                      const Icon = preset.icon;
+                      return (
+                        <motion.button key={preset.id}
+                          onClick={() => { dispatch({ type: "SET_SETTINGS", patch: { activePersonaPreset: preset.id } } as Parameters<typeof dispatch>[0]); setShowPanel(false); }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left relative overflow-hidden"
+                          style={{
+                            background: isActive ? `rgba(${pc[0]},${pc[1]},${pc[2]},0.14)` : "rgba(255,255,255,0.02)",
+                            border: `1px solid rgba(${pc[0]},${pc[1]},${pc[2]},${isActive ? 0.40 : 0.06})`,
+                          }}
+                          whileHover={{ background: `rgba(${pc[0]},${pc[1]},${pc[2]},0.09)`, borderColor: `rgba(${pc[0]},${pc[1]},${pc[2]},0.25)` }}
+                          whileTap={{ scale: 0.98 }}>
+                          <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                            style={{ background: `rgba(${pc[0]},${pc[1]},${pc[2]},0.18)`, border: `1px solid rgba(${pc[0]},${pc[1]},${pc[2]},0.30)` }}>
+                            <Icon className="w-4 h-4" style={{ color: `rgba(${pc[0]},${pc[1]},${pc[2]},0.95)` }} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[10px] font-bold" style={{ color: isActive ? `rgba(${pc[0]},${pc[1]},${pc[2]},1)` : "rgba(255,255,255,0.75)" }}>{preset.nameAr}</div>
+                            <div className="text-[8px] mt-0.5 line-clamp-1" style={{ color: "rgba(255,255,255,0.30)" }}>{preset.descAr?.slice(0, 50) ?? "شخصية متخصصة"}…</div>
+                          </div>
+                          {isActive && <div className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse" style={{ background: `rgba(${pc[0]},${pc[1]},${pc[2]},1)`, boxShadow: `0 0 8px rgba(${pc[0]},${pc[1]},${pc[2]},0.9)` }} />}
+                        </motion.button>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+
+            {/* NEURAL STATS TAB */}
+            {psTab === "stats" && (
+              <div className="p-3 space-y-3">
+                <div className="rounded-2xl p-3 flex items-center gap-4"
+                  style={{ background: `rgba(${cr},${cg},${cb},0.08)`, border: `1px solid rgba(${cr},${cg},${cb},0.20)` }}>
+                  <PersonaOrb color={color} pulse={true} size={52} />
+                  <div className="flex-1">
+                    <div className="text-[8px] font-mono uppercase tracking-widest mb-1" style={{ color: `rgba(${cr},${cg},${cb},0.6)` }}>النيورون النشط</div>
+                    <div className="text-base font-black text-white">{activePreset.nameAr}</div>
+                    <div className="text-[9px] mt-1" style={{ color: "rgba(255,255,255,0.35)" }}>{activePreset.descAr?.slice(0, 60) ?? "الشخصية الافتراضية"}…</div>
+                  </div>
+                </div>
+                <div className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.28)" }}>مؤشرات الأداء العصبي</div>
+                {[
+                  { label: "الذكاء الأمني", pct: 94, color: "#e21227" },
+                  { label: "دقة الكود", pct: 88, color: "#22c55e" },
+                  { label: "الإبداع", pct: 76, color: "#a78bfa" },
+                  { label: "السرعة", pct: 92, color: `rgba(${cr},${cg},${cb},0.9)` },
+                  { label: "الأمان", pct: 85, color: "#00e5ff" },
+                ].map(stat => (
+                  <div key={stat.label}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[8px] font-mono" style={{ color: "rgba(255,255,255,0.50)" }}>{stat.label}</span>
+                      <span className="text-[8px] font-black font-mono" style={{ color: stat.color }}>{stat.pct}%</span>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+                      <motion.div className="h-full rounded-full"
+                        initial={{ width: 0 }} animate={{ width: `${stat.pct}%` }}
+                        transition={{ duration: 0.9, ease: "easeOut" }}
+                        style={{ background: `linear-gradient(90deg,${stat.color}66,${stat.color})`, boxShadow: `0 0 6px ${stat.color}44` }} />
+                    </div>
+                  </div>
+                ))}
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  {[
+                    { label: "الفئة", value: activePreset.category, color: `rgba(${cr},${cg},${cb},0.9)` },
+                    { label: "المعرّف", value: activePreset.id.slice(0, 10), color: "#a78bfa" },
+                  ].map(s => (
+                    <div key={s.label} className="rounded-xl p-2 text-center" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div className="text-[7px] uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.28)" }}>{s.label}</div>
+                      <div className="text-[10px] font-black font-mono" style={{ color: s.color }}>{s.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* CRAFT / BUILD TAB */}
+            {psTab === "build" && (
+              <div className="p-3 space-y-2">
+                <div className="rounded-xl p-2.5" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div className="text-[7px] font-bold tracking-widest uppercase mb-2" style={{ color: "rgba(255,255,255,0.28)" }}>أدوات الشخصية</div>
+                  <div className="space-y-1.5">
+                    {[
+                      { label: "فتح محرر الشخصيات", desc: "إنشاء شخصية مخصصة بالكامل", icon: "✏️", action: () => { setShowPanel(false); onOpenPersonaEditor(); } },
+                      { label: "مدير الشخصيات الكامل", desc: "إدارة وتنظيم جميع الشخصيات", icon: "📋", action: onOpenPersonaManager ? () => { setShowPanel(false); onOpenPersonaManager!(); } : undefined },
+                    ].filter(Boolean).map(item => (
+                      <motion.button key={item.label}
+                        onClick={item.action}
+                        disabled={!item.action}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left"
+                        style={{
+                          background: "rgba(255,255,255,0.03)",
+                          border: `1px solid rgba(${cr},${cg},${cb},0.14)`,
+                          opacity: item.action ? 1 : 0.4,
+                        }}
+                        whileHover={item.action ? { background: `rgba(${cr},${cg},${cb},0.10)`, borderColor: `rgba(${cr},${cg},${cb},0.30)` } : {}}
+                        whileTap={item.action ? { scale: 0.97 } : {}}>
+                        <span className="text-lg">{item.icon}</span>
+                        <div>
+                          <div className="text-[10px] font-bold" style={{ color: `rgba(${cr},${cg},${cb},0.9)` }}>{item.label}</div>
+                          <div className="text-[8px] mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>{item.desc}</div>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-xl p-2.5" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div className="text-[7px] font-bold tracking-widest uppercase mb-2" style={{ color: "rgba(255,255,255,0.28)" }}>إحصاءات المكتبة</div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      { label: "إجمالي الشخصيات", value: PERSONA_PRESETS.length, color: `rgba(${cr},${cg},${cb},0.9)` },
+                      { label: "فئة أمنية", value: PERSONA_PRESETS.filter(p=>p.category==="security").length, color: "#e21227" },
+                      { label: "فئة عامة", value: PERSONA_PRESETS.filter(p=>p.category==="general").length, color: "#22c55e" },
+                      { label: "بلا قيود", value: PERSONA_PRESETS.filter(p=>p.category==="uncensored").length, color: "#f59e0b" },
+                    ].map(s => (
+                      <div key={s.label} className="rounded-lg p-2 text-center" style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                        <div className="text-[14px] font-black font-mono" style={{ color: s.color }}>{s.value}</div>
+                        <div className="text-[7px] mt-0.5" style={{ color: "rgba(255,255,255,0.30)" }}>{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Bottom stripe */}
-            <div className="h-px w-full rounded-b-2xl"
-              style={{ background: `linear-gradient(90deg, transparent, rgba(${cr},${cg},${cb},0.4), transparent)` }} />
+            <div className="h-px w-full" style={{ background: `linear-gradient(90deg, transparent, rgba(${cr},${cg},${cb},0.55), transparent)` }} />
           </motion.div>
           </>
         )}

