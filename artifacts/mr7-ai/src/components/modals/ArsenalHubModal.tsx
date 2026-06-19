@@ -81,7 +81,9 @@ export type ArsenalModuleId =
   // Collab — Real-Time WebSocket Collaboration
   | "collab"
   // OMEGA AGENT — Autonomous Neural Command Center
-  | "omegaAgent";
+  | "omegaAgent"
+  // Batch 16 — Autonomous Decision Engine
+  | "autonomousdecisionengine";
 
 export type ArsenalModule = {
   id: ArsenalModuleId;

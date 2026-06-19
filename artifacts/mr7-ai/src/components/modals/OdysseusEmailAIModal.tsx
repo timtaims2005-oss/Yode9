@@ -1,8 +1,22 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, Inbox, Send, Star, Trash2, AlertTriangle, CheckCheck, Loader2, Zap, Reply, Archive, Tag, Search, RefreshCw } from "lucide-react";
-import { readChatText } from "@/lib/chat-client";
 import { pipeline } from "@/lib/pipeline";
+async function streamOdysseus(prompt: string, onChunk: (c: string) => void): Promise<string> {
+  const resp = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: [{ role: "user", content: prompt }], stream: true }) });
+  if (!resp.ok || !resp.body) return "";
+  const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = "", full = "";
+  while (true) {
+    const { done, value } = await reader.read(); if (done) break;
+    buf += dec.decode(value, { stream: true }); const lines = buf.split("\n"); buf = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue; const raw = line.slice(6).trim(); if (!raw || raw === "[DONE]") continue;
+      try { const obj = JSON.parse(raw) as { content?: string; choices?: { delta?: { content?: string } }[] }; const c2 = obj.content ?? obj.choices?.[0]?.delta?.content ?? ""; if (c2) { full += c2; onChunk(full); } } catch { /* ignore */ }
+    }
+  }
+  return full;
+}
+
 
 interface OdysseusEmailAIModalProps {
   open: boolean;
@@ -62,8 +76,7 @@ Content: ${email.preview}
 
 Write a complete, professional email reply. Be concise, clear, and appropriate for the context. Use proper email format.`;
     try {
-      await readChatText({ messages: [{ role: "user", content: prompt }], model: "claude-sonnet-4-5", persona: null, customInstructions: "", language: "en", memory: [] },
-        chunk => setAiReply(prev => prev + chunk));
+      await streamOdysseus(prompt, full => setAiReply(prev => full));
     } catch { setAiReply("Could not generate reply. Please try again."); }
     setRunning(false); setRunningAction(null);
   }
@@ -76,8 +89,7 @@ From: ${email.from}
 Subject: ${email.subject}
 Content: ${email.preview}`;
     try {
-      await readChatText({ messages: [{ role: "user", content: prompt }], model: "claude-sonnet-4-5", persona: null, customInstructions: "", language: "en", memory: [] },
-        chunk => setAiSummary(prev => prev + chunk));
+      await streamOdysseus(prompt, full => setAiSummary(prev => full));
     } catch { setAiSummary("Could not summarize. Please try again."); }
     setRunning(false); setRunningAction(null);
   }
@@ -97,8 +109,7 @@ Note: [One-line summary]
 
 Be decisive and efficient.`;
     try {
-      await readChatText({ messages: [{ role: "user", content: prompt }], model: "claude-sonnet-4-5", persona: null, customInstructions: "", language: "en", memory: [] },
-        chunk => setTriageResults(prev => prev + chunk));
+      await streamOdysseus(prompt, full => setTriageResults(prev => full));
     } catch { setTriageResults("Triage failed. Please try again."); }
     setRunning(false); setRunningAction(null);
   }

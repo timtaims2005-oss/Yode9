@@ -6,7 +6,7 @@ import {
   Play, Square, RefreshCw, ChevronRight, Layers, GitBranch,
   Eye, Shield, Target, Lightbulb, TrendingUp, Clock, AlertCircle,
   CheckCircle2, Circle, ArrowRight, Workflow, Bot, Sparkles,
-  MemoryStick, Gauge, Settings2, BookOpen, FlaskConical, Infinity,
+  MemoryStick, Gauge, Settings2, BookOpen, FlaskConical, Infinity as InfinityIcon,
 } from "lucide-react";
 
 interface Props { open: boolean; onOpenChange: (v: boolean) => void; }
@@ -523,7 +523,7 @@ export function AutonomousDecisionEngineModal({ open, onOpenChange }: Props) {
   const LOG_COLORS: Record<LogEntry["type"], string> = {
     info: "#94a3b8", success: "#10b981", warn: "#f59e0b", error: "#e21227", ai: "#8b5cf6",
   };
-  const LOG_ICONS: Record<LogEntry["type"], React.FC<{ size?: number }>> = {
+  const LOG_ICONS: Record<LogEntry["type"], React.FC<{ size?: number; style?: React.CSSProperties }>> = {
     info: Circle, success: CheckCircle2, warn: AlertCircle, error: AlertCircle, ai: Sparkles,
   };
 
@@ -948,7 +948,7 @@ export function AutonomousDecisionEngineModal({ open, onOpenChange }: Props) {
                       <div className="h-full flex flex-col gap-4">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg,#8b5cf6,#e21227)" }}>
-                            <Infinity size={18} className="text-white" />
+                            <InfinityIcon size={18} className="text-white" />
                           </div>
                           <div>
                             <div className="text-sm font-bold text-white font-mono">AUTONOMOUS EXECUTION ENGINE</div>

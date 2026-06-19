@@ -8,10 +8,10 @@ import {
   Globe, Link, Download, Upload, Eye, Shield, Lock,
   Wifi, WifiOff, CheckCircle2, AlertCircle, Circle,
   Settings, Package, GitBranch, BarChart2, Layers,
-  ArrowRight, Bot, Sparkles, Zap as ZapIcon, Infinity,
+  ArrowRight, Bot, Sparkles, Zap as ZapIcon,
   Server, HardDrive, Gauge, Clock, TrendingUp, Code2,
   ChevronDown, ChevronRight as CR, Search, Filter,
-  MemoryStick, MonitorSpeaker, Lightbulb,
+  MemoryStick, MonitorSpeaker, Lightbulb, Infinity as InfinityIcon,
 } from "lucide-react";
 
 interface Props { open: boolean; onOpenChange: (v: boolean) => void; }
@@ -858,7 +858,7 @@ export function JARVISCommandCenterModal({ open, onOpenChange }: Props) {
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
                             style={{ background: "linear-gradient(135deg,#00d4ff22,#8b5cf622)", border: "1px solid rgba(0,212,255,0.3)" }}>
-                            <Infinity size={16} style={{ color: "#00d4ff" }} />
+                            <InfinityIcon size={16} style={{ color: "#00d4ff" }} />
                           </div>
                           <div>
                             <div className="text-sm font-bold text-white font-mono">AUTONOMOUS AUTO-PILOT</div>

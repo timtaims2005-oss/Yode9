@@ -1,8 +1,22 @@
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, FileText, Zap, Sparkles, Copy, CheckCheck, Download, Loader2, Bold, Italic, AlignLeft, List, Hash, MessageSquare, RefreshCw, Wand2 } from "lucide-react";
-import { readChatText } from "@/lib/chat-client";
 import { pipeline } from "@/lib/pipeline";
+async function streamOdysseus(prompt: string, onChunk: (c: string) => void): Promise<string> {
+  const resp = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: [{ role: "user", content: prompt }], stream: true }) });
+  if (!resp.ok || !resp.body) return "";
+  const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = "", full = "";
+  while (true) {
+    const { done, value } = await reader.read(); if (done) break;
+    buf += dec.decode(value, { stream: true }); const lines = buf.split("\n"); buf = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue; const raw = line.slice(6).trim(); if (!raw || raw === "[DONE]") continue;
+      try { const obj = JSON.parse(raw) as { content?: string; choices?: { delta?: { content?: string } }[] }; const c2 = obj.content ?? obj.choices?.[0]?.delta?.content ?? ""; if (c2) { full += c2; onChunk(full); } } catch { /* ignore */ }
+    }
+  }
+  return full;
+}
+
 
 interface OdysseusDocEditorModalProps {
   open: boolean;
@@ -49,8 +63,7 @@ export function OdysseusDocEditorModal({ open, onOpenChange }: OdysseusDocEditor
     pipeline.emit({ source: "Odysseus Doc Editor", label: `AI: ${action?.label ?? "Custom"}`, sourceColor: "#6366f1" });
     const prompt = customInstruction ? `${customInstruction}\n\n---\n\n${targetText}` : `${action!.prompt}\n\n---\n\n${targetText}`;
     try {
-      await readChatText({ messages: [{ role: "user", content: prompt }], model: "claude-sonnet-4-5", persona: null, customInstructions: "", language: "en", memory: [] },
-        chunk => setAiOutput(prev => prev + chunk));
+      await streamOdysseus(prompt, full => setAiOutput(prev => full));
     } catch { setAiOutput("AI assistance unavailable. Please try again."); }
     setRunning(false);
   }

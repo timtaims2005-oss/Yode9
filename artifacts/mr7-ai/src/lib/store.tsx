@@ -234,6 +234,7 @@ type Action =
   | { type: "SET_SETTINGS"; patch: Partial<Settings> }
   | { type: "SET_ACCENT"; accent: ThemeAccent }
   | { type: "MARK_NOTIFS_READ" }
+  | { type: "CLEAR_NOTIFICATIONS" }
   | { type: "PUSH_NOTIF"; notif: { id: string; title: string; body: string; ts: number; read: boolean } }
   | { type: "HYDRATE"; state: Partial<AppState> }
   | { type: "SET_SUBSCRIPTION"; patch: Partial<Subscription> }
@@ -559,6 +560,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, themeAccent: action.accent };
     case "MARK_NOTIFS_READ":
       return { ...state, notifications: state.notifications.map((n) => ({ ...n, read: true })) };
+    case "CLEAR_NOTIFICATIONS":
+      return { ...state, notifications: [] };
     case "PUSH_NOTIF":
       return { ...state, notifications: [action.notif, ...state.notifications].slice(0, 50) };
     case "SET_SUBSCRIPTION":

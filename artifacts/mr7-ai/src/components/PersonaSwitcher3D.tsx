@@ -19,79 +19,189 @@ function PersonaOrb({ color, pulse, size = 24 }: { color: [number, number, numbe
     const cv = canvasRef.current;
     if (!cv) return;
     const ctx = cv.getContext("2d")!;
-    const DPR  = window.devicePixelRatio || 1;
+    const DPR  = Math.min(window.devicePixelRatio || 1, 2);
     const SIZE = size;
     cv.width  = SIZE * DPR;
     cv.height = SIZE * DPR;
     ctx.scale(DPR, DPR);
     const cx = SIZE / 2, cy = SIZE / 2;
     const [cr, cg, cb] = color;
-    const scale = SIZE / 36;
+    const sc = SIZE / 44; // unified scale factor
+
+    // ── Fibonacci sphere nodes ──
+    const NODE_COUNT = Math.max(8, Math.round(size * 0.55));
+    interface SphereNode { nx: number; ny: number; nz: number }
+    const nodes: SphereNode[] = [];
+    const golden = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < NODE_COUNT; i++) {
+      const y2 = 1 - (i / (NODE_COUNT - 1)) * 2;
+      const r2 = Math.sqrt(Math.max(0, 1 - y2 * y2));
+      const phi = golden * i;
+      nodes.push({ nx: Math.cos(phi) * r2, ny: y2, nz: Math.sin(phi) * r2 });
+    }
+
+    // ── Orbital particles ──
+    const ORBIT_COUNT = 3;
+    const orbitals = Array.from({ length: ORBIT_COUNT }, (_, i) => ({
+      speed:  0.9 + i * 0.55,
+      phase:  (i / ORBIT_COUNT) * Math.PI * 2,
+      tiltX:  (i * 1.3),
+      tiltZ:  (i * 0.8),
+      radius: (0.72 + i * 0.14) * sc * 18,
+    }));
 
     function draw() {
       rafRef.current = requestAnimationFrame(draw);
-      tRef.current += 0.04;
+      tRef.current += 0.028;
       const t = tRef.current;
       ctx.clearRect(0, 0, SIZE, SIZE);
 
-      // outer glow
-      const glowP = pulse ? 0.5 + Math.sin(t * 3) * 0.3 : 0.2;
-      const halo = ctx.createRadialGradient(cx, cy, 6 * scale, cx, cy, SIZE / 2);
-      halo.addColorStop(0,   `rgba(${cr},${cg},${cb},${glowP})`);
-      halo.addColorStop(0.5, `rgba(${cr},${cg},${cb},${glowP * 0.3})`);
+      const SR = 9 * sc; // sphere radius
+      const rotY = t * 0.45;
+      const rotX = Math.sin(t * 0.18) * 0.28;
+      const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+      const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+
+      // ── outer ambient halo ──
+      const glowAlpha = pulse ? 0.40 + Math.sin(t * 2.8) * 0.22 : 0.20;
+      const halo = ctx.createRadialGradient(cx, cy, SR * 0.4, cx, cy, SIZE * 0.54);
+      halo.addColorStop(0,   `rgba(${cr},${cg},${cb},${glowAlpha})`);
+      halo.addColorStop(0.45,`rgba(${cr},${cg},${cb},${glowAlpha * 0.28})`);
       halo.addColorStop(1,   `rgba(${cr},${cg},${cb},0)`);
-      ctx.beginPath(); ctx.arc(cx, cy, SIZE / 2, 0, Math.PI * 2);
+      ctx.beginPath(); ctx.arc(cx, cy, SIZE * 0.54, 0, Math.PI * 2);
       ctx.fillStyle = halo; ctx.fill();
 
-      // rotating ring
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(t * 0.6);
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 14 * scale, 4 * scale, 0, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(${cr},${cg},${cb},0.35)`;
-      ctx.lineWidth = 0.8; ctx.stroke();
-      ctx.restore();
+      // ── corona ring ──
+      if (pulse) {
+        const coronaR = SR + 5 * sc + Math.sin(t * 2.1) * 1.5 * sc;
+        ctx.beginPath(); ctx.arc(cx, cy, coronaR, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${cr},${cg},${cb},${0.15 + Math.sin(t * 2.1) * 0.10})`;
+        ctx.lineWidth = 1 * sc; ctx.stroke();
+      }
 
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(-t * 0.4);
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 10 * scale, 3.5 * scale, Math.PI / 4, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(${cr},${cg},${cb},0.22)`;
-      ctx.lineWidth = 0.6; ctx.stroke();
-      ctx.restore();
+      // ── project + sort sphere nodes ──
+      interface Projected { sx: number; sy: number; sz: number; alpha: number }
+      const projected: Projected[] = nodes.map(n => {
+        // rotate Y
+        const x1 = n.nx * cosY - n.nz * sinY;
+        const z1 = n.nx * sinY + n.nz * cosY;
+        // rotate X
+        const y2 = n.ny * cosX - z1 * sinX;
+        const z2 = n.ny * sinX + z1 * cosX;
+        const alpha = (z2 + 1) / 2; // 0..1 depth
+        return { sx: cx + x1 * SR, sy: cy + y2 * SR, sz: z2, alpha };
+      });
+      projected.sort((a, b) => a.sz - b.sz); // back-to-front
 
-      // sphere body
-      const SR = 8 * scale;
-      const diff = ctx.createRadialGradient(cx - SR * 0.3, cy - SR * 0.35, 0, cx, cy, SR);
-      diff.addColorStop(0,    `rgba(${Math.min(cr+80,255)},${Math.min(cg+80,255)},${Math.min(cb+80,255)},0.9)`);
-      diff.addColorStop(0.45, `rgba(${cr},${cg},${cb},0.8)`);
-      diff.addColorStop(1,    `rgba(${Math.round(cr*0.3)},${Math.round(cg*0.3)},${Math.round(cb*0.3)},0.6)`);
+      // ── sphere body (dark glass) ──
+      const body = ctx.createRadialGradient(cx - SR * 0.32, cy - SR * 0.38, 0, cx, cy, SR);
+      body.addColorStop(0,    `rgba(${Math.min(cr+60,255)},${Math.min(cg+60,255)},${Math.min(cb+60,255)},0.18)`);
+      body.addColorStop(0.5,  `rgba(${cr},${cg},${cb},0.09)`);
+      body.addColorStop(1,    `rgba(${Math.round(cr*0.15)},${Math.round(cg*0.15)},${Math.round(cb*0.15)},0.85)`);
       ctx.beginPath(); ctx.arc(cx, cy, SR, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${Math.round(cr*0.1)},${Math.round(cg*0.1)},${Math.round(cb*0.1)},0.95)`;
-      ctx.fill();
+      ctx.fillStyle = `rgba(2,2,6,0.88)`; ctx.fill();
       ctx.beginPath(); ctx.arc(cx, cy, SR, 0, Math.PI * 2);
-      ctx.fillStyle = diff; ctx.fill();
+      ctx.fillStyle = body; ctx.fill();
 
-      // specular
-      const spec = ctx.createRadialGradient(cx - SR * 0.4, cy - SR * 0.45, 0, cx, cy, SR);
-      spec.addColorStop(0,   "rgba(255,255,255,0.7)");
-      spec.addColorStop(0.3, "rgba(255,255,255,0.15)");
+      // ── sphere border ──
+      ctx.beginPath(); ctx.arc(cx, cy, SR, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${cr},${cg},${cb},0.38)`;
+      ctx.lineWidth = 0.7 * sc; ctx.stroke();
+
+      // ── neural connections between nearby nodes ──
+      for (let i = 0; i < projected.length; i++) {
+        for (let j = i + 1; j < Math.min(projected.length, i + 4); j++) {
+          const a = projected[i], b = projected[j];
+          const dx = a.sx - b.sx, dy = a.sy - b.sy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < SR * 1.1) {
+            const depthAlpha = ((a.alpha + b.alpha) / 2) * 0.35;
+            ctx.beginPath();
+            ctx.moveTo(a.sx, a.sy);
+            ctx.lineTo(b.sx, b.sy);
+            ctx.strokeStyle = `rgba(${cr},${cg},${cb},${depthAlpha * (1 - dist / (SR * 1.1))})`;
+            ctx.lineWidth = 0.4 * sc; ctx.stroke();
+          }
+        }
+      }
+
+      // ── neural nodes ──
+      for (const p of projected) {
+        const nr = (0.9 + p.alpha * 1.0) * sc;
+        const nodeAlpha = 0.25 + p.alpha * 0.75;
+        const ng = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, nr * 3);
+        ng.addColorStop(0, `rgba(${Math.min(cr+120,255)},${Math.min(cg+120,255)},${Math.min(cb+120,255)},${nodeAlpha})`);
+        ng.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+        ctx.beginPath(); ctx.arc(p.sx, p.sy, nr * 3, 0, Math.PI * 2);
+        ctx.fillStyle = ng; ctx.fill();
+        ctx.beginPath(); ctx.arc(p.sx, p.sy, nr, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${nodeAlpha * 0.9})`; ctx.fill();
+      }
+
+      // ── specular highlight ──
+      const spec = ctx.createRadialGradient(cx - SR * 0.38, cy - SR * 0.42, 0, cx - SR * 0.2, cy - SR * 0.2, SR * 0.75);
+      spec.addColorStop(0,   "rgba(255,255,255,0.65)");
+      spec.addColorStop(0.35,"rgba(255,255,255,0.12)");
       spec.addColorStop(1,   "rgba(255,255,255,0)");
       ctx.beginPath(); ctx.arc(cx, cy, SR, 0, Math.PI * 2);
       ctx.fillStyle = spec; ctx.fill();
 
-      // orbiting particle
-      const pa = t * 1.4;
-      const px = cx + Math.cos(pa) * 13 * scale;
-      const py = cy + Math.sin(pa) * 4 * scale;
-      const pr = 3 * scale;
-      const pGlow = ctx.createRadialGradient(px, py, 0, px, py, pr);
-      pGlow.addColorStop(0, `rgba(255,255,255,0.9)`);
-      pGlow.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
-      ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI * 2);
-      ctx.fillStyle = pGlow; ctx.fill();
+      // ── orbital rings (ellipse, tilted) ──
+      const RING_CONFIGS = [
+        { rx: 15 * sc, ry: 4.5 * sc, angle: t * 0.65,  alpha: 0.38, tilt: Math.PI * 0.12 },
+        { rx: 12 * sc, ry: 3.5 * sc, angle: -t * 0.42, alpha: 0.24, tilt: Math.PI * 0.55 },
+        { rx: 18 * sc, ry: 2.8 * sc, angle: t * 0.30,  alpha: 0.16, tilt: Math.PI * 0.30 },
+      ];
+      for (const ring of RING_CONFIGS) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(ring.angle);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, ring.rx, ring.ry, ring.tilt, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${cr},${cg},${cb},${ring.alpha})`;
+        ctx.lineWidth = 0.65 * sc; ctx.stroke();
+        ctx.restore();
+      }
+
+      // ── orbiting particles with trails ──
+      for (const orb of orbitals) {
+        const angle = t * orb.speed + orb.phase;
+        const cosT = Math.cos(orb.tiltX), sinT = Math.sin(orb.tiltX);
+        const cosZ = Math.cos(orb.tiltZ), sinZ = Math.sin(orb.tiltZ);
+        const ox = Math.cos(angle) * orb.radius;
+        const oy = Math.sin(angle) * orb.radius * 0.35;
+        const px2 = cx + ox * cosZ - oy * sinZ;
+        const py2 = cy + ox * sinT + oy * cosT;
+
+        // trail
+        for (let tr = 1; tr <= 5; tr++) {
+          const ta = angle - tr * 0.15;
+          const tax = Math.cos(ta) * orb.radius;
+          const tay = Math.sin(ta) * orb.radius * 0.35;
+          const tpx = cx + tax * cosZ - tay * sinZ;
+          const tpy = cy + tax * sinT + tay * cosT;
+          ctx.beginPath(); ctx.arc(tpx, tpy, (1.5 - tr * 0.2) * sc, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${cr},${cg},${cb},${(0.35 - tr * 0.06)})`;
+          ctx.fill();
+        }
+
+        // particle core
+        const pg = ctx.createRadialGradient(px2, py2, 0, px2, py2, 3 * sc);
+        pg.addColorStop(0, "rgba(255,255,255,0.95)");
+        pg.addColorStop(0.4, `rgba(${Math.min(cr+100,255)},${Math.min(cg+100,255)},${Math.min(cb+100,255)},0.7)`);
+        pg.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+        ctx.beginPath(); ctx.arc(px2, py2, 3 * sc, 0, Math.PI * 2);
+        ctx.fillStyle = pg; ctx.fill();
+      }
+
+      // ── inner pulsing core ──
+      const coreR = 2.8 * sc * (1 + Math.sin(t * 3.5) * 0.2);
+      const coreG = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+      coreG.addColorStop(0,   "rgba(255,255,255,0.9)");
+      coreG.addColorStop(0.5, `rgba(${cr},${cg},${cb},0.6)`);
+      coreG.addColorStop(1,   `rgba(${cr},${cg},${cb},0)`);
+      ctx.beginPath(); ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+      ctx.fillStyle = coreG; ctx.fill();
     }
 
     rafRef.current = requestAnimationFrame(draw);

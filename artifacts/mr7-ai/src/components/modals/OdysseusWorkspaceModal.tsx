@@ -11,8 +11,41 @@ import {
   LogIn, Lock, ToggleLeft, ToggleRight, Wand2, Database,
   FolderOpen, Bookmark, MoreHorizontal, ArrowRight, Play, Square
 } from "lucide-react";
-import { readChatText } from "@/lib/chat-client";
 import { pipeline } from "@/lib/pipeline";
+
+async function streamToState(prompt: string, onChunk: (chunk: string) => void): Promise<string> {
+  const resp = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages: [{ role: "user", content: prompt }], stream: true }),
+  });
+  if (!resp.ok || !resp.body) return "";
+  const reader = resp.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "", full = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split("\n");
+    buf = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const raw = line.slice(6).trim();
+      if (!raw || raw === "[DONE]") continue;
+      try {
+        const obj = JSON.parse(raw) as { content?: string; choices?: { delta?: { content?: string } }[] };
+        const chunk = obj.content ?? obj.choices?.[0]?.delta?.content ?? "";
+        if (chunk) { full += chunk; onChunk(full); }
+      } catch { /* ignore */ }
+    }
+  }
+  return full;
+}
+
+function pipelineEmit(content: string) {
+  pipeline.push({ source: "OdysseusWorkspace", sourceColor: "#00e5cc", label: "Workspace", content });
+}
 
 interface Props { open: boolean; onOpenChange: (v: boolean) => void; }
 
@@ -178,7 +211,7 @@ function ChatSection({ color, onNewConversation }: { color: string; onNewConvers
       : `You are Odysseus — a helpful AI workspace assistant. Model: ${model}. Provide clear, helpful responses.`;
 
     let full = "";
-    await readChatText(`${systemPrompt}\n\nUser: ${msg}`, c => { full += c; setDraft(full); });
+    await streamToState(`${systemPrompt}\n\nUser: ${msg}`, c => { full += c; setDraft(full); });
     const aiMsg: ChatMsg = { role: "ai", text: full };
     const updated = [...msgs, newMsg, aiMsg];
     setMsgs(updated);
@@ -188,7 +221,7 @@ function ChatSection({ color, onNewConversation }: { color: string; onNewConvers
         onNewConversation({ id: Date.now().toString(), title: msg.slice(0, 40), msgs: updated, ts: "Just now" });
       }
     }
-    pipeline.emit("ODYSSEUSWORKSPACE", full);
+    pipelineEmit(full);
     setStreaming(false); setDraft("");
   }, [input, streaming, msgs, agentMode, model, onNewConversation]);
 
@@ -427,10 +460,10 @@ function DocumentsSection({ color }: { color: string }) {
       translate: `Translate this to Arabic, maintaining the original format:\n\n${content}`,
     };
     let full = "";
-    await readChatText(PROMPTS[action], c => { full += c; setContent(full); });
+    await streamToState(PROMPTS[action], c => { full += c; setContent(full); });
     setDocs(ds => ds.map(d => d.id === selectedDoc ? { ...d, content: full } : d));
     setAiRunning(false);
-    pipeline.emit("ODYSSEUSWORKSPACE", full);
+    pipelineEmit(full);
   };
 
   const newDoc = () => {
@@ -567,9 +600,9 @@ function EmailSection({ color }: { color: string }) {
       ? `Summarize this email for an executive in 3 concise bullet points:\nFrom: ${e.from}\nSubject: ${e.subject}\n${e.preview}`
       : `Draft a professional, concise reply to this email:\nFrom: ${e.from}\nSubject: ${e.subject}\n${e.preview}\n\nKeep it under 100 words and professional.`;
     let full = "";
-    await readChatText(prompt, c => { full += c; type === "summary" ? setSummary(full) : setReply(full); });
+    await streamToState(prompt, c => { full += c; type === "summary" ? setSummary(full) : setReply(full); });
     setLoading(null);
-    pipeline.emit("ODYSSEUSWORKSPACE", full);
+    pipelineEmit(full);
   };
 
   return (
@@ -667,12 +700,12 @@ function ResearchSection({ color }: { color: string }) {
     const numPhases = DEPTHS[depth];
     for (let i = 0; i < numPhases; i++) { setPhase(i); await new Promise(r => setTimeout(r, 500 + Math.random() * 300)); }
     let full = "";
-    await readChatText(
+    await streamToState(
       `You are Odysseus Deep Research. Conduct a ${depth} research report on: "${query}". Include: Executive Summary, Key Findings (5+ points with evidence), Supporting Sources, Counterarguments, Knowledge Gaps, Expert Analysis, and Actionable Conclusions. Be thorough and cite reasoning.`,
-      c => { full += c; setResult(full); }
-    );
+      c => setResult(c)
+    ).then(r => { full = r; });
     setPhase(-1); setRunning(false);
-    pipeline.emit("ODYSSEUSWORKSPACE", full);
+    pipelineEmit(full);
   };
 
   return (
@@ -735,11 +768,11 @@ function CompareSection({ color }: { color: string }) {
     if (!prompt.trim() || running) return;
     setRunning(true); setResA(""); setResB(""); setVoted(null); setRevealed(false);
     await Promise.all([
-      readChatText(`You are ${modelA}. Respond to: "${prompt}". Give a thorough, helpful response in your natural style.`, c => setResA(p => p + c)),
-      readChatText(`You are ${modelB}. Respond to: "${prompt}". Give a thorough, helpful response with a different perspective.`, c => setResB(p => p + c)),
+      streamToState(`You are ${modelA}. Respond to: "${prompt}". Give a thorough, helpful response in your natural style.`, c => setResA(p => p + c)),
+      streamToState(`You are ${modelB}. Respond to: "${prompt}". Give a thorough, helpful response with a different perspective.`, c => setResB(p => p + c)),
     ]);
     setRunning(false);
-    pipeline.emit("ODYSSEUSWORKSPACE", `Compare: ${prompt}`);
+    pipelineEmit(`Compare: ${prompt}`);
   };
 
   const SIDE_COLOR = { A: "#3b82f6", B: "#10b981" };
@@ -824,7 +857,7 @@ function CookbookSection({ color }: { color: string }) {
   const getAdvice = async () => {
     setLoading(true); setAdvice("");
     let full = "";
-    await readChatText(
+    await streamToState(
       `You are an expert LLM deployment engineer. For this hardware profile: "${P.name} (${P.spec})", provide:
 1. Top 3 recommended models with ollama install commands
 2. Expected performance (tokens/sec, context length)
@@ -834,10 +867,10 @@ function CookbookSection({ color }: { color: string }) {
 6. Quantization recommendations (Q4, Q5, Q8)
 
 Be specific and technical. Include actual ollama commands.`,
-      c => { full += c; setAdvice(full); }
-    );
+      c => setAdvice(c)
+    ).then(r => { full = r; });
     setLoading(false);
-    pipeline.emit("ODYSSEUSWORKSPACE", full);
+    pipelineEmit(full);
   };
 
   return (
@@ -901,10 +934,10 @@ function TasksSection({ color }: { color: string }) {
   const aiPlan = async () => {
     setPlanning(true);
     let full = "";
-    await readChatText(
+    await streamToState(
       `Generate 5 actionable, specific tasks for a cybersecurity professional. For each task, respond with this exact format: [PRIORITY] Task text | due: timeframe | tag: category\nPriority must be one of: CRITICAL, HIGH, MEDIUM, LOW`,
-      c => full += c
-    );
+      () => { /* streaming not needed here */ }
+    ).then(r => { full = r; });
     const newTasks = full.split("\n").filter(l => l.match(/\[(CRITICAL|HIGH|MEDIUM|LOW)\]/i)).slice(0, 5).map((l, i) => {
       const priority = (l.match(/\[(CRITICAL|HIGH|MEDIUM|LOW)\]/i)?.[1] || "MEDIUM").toUpperCase();
       const text = l.replace(/\[.*?\]\s*/, "").split("|")[0].trim();
@@ -914,7 +947,7 @@ function TasksSection({ color }: { color: string }) {
     });
     if (newTasks.length) setTasks(t => [...t, ...newTasks]);
     setPlanning(false);
-    pipeline.emit("ODYSSEUSWORKSPACE", full);
+    pipelineEmit(full);
   };
 
   const done = tasks.filter(t => t.done).length;
@@ -1022,9 +1055,9 @@ function NotesSection({ color }: { color: string }) {
     if (!content.trim() || aiEnhancing) return;
     setAiEnhancing(true);
     let full = "";
-    await readChatText(`Enhance and organize these notes with better structure and clarity:\n\n${content}`, c => { full += c; setContent(full); });
+    await streamToState(`Enhance and organize these notes with better structure and clarity:\n\n${content}`, c => { full += c; setContent(full); });
     setAiEnhancing(false);
-    pipeline.emit("ODYSSEUSWORKSPACE", full);
+    pipelineEmit(full);
   };
 
   const newNote = () => {
@@ -1165,12 +1198,12 @@ function GallerySection({ color }: { color: string }) {
     if (!p) return;
     setPrompt(p); setGenerating(true); setDesc("");
     let full = "";
-    await readChatText(
+    await streamToState(
       `You are an AI art director describing a generated image. Create a vivid, detailed description of this ${style} image: "${p}". Describe: composition, lighting, colors, textures, mood, foreground/background details, artistic style. Write as if describing an actual finished artwork. 5-7 rich sentences.`,
-      c => { full += c; setDesc(full); }
-    );
+      c => setDesc(c)
+    ).then(r => { full = r; });
     setGenerating(false);
-    pipeline.emit("ODYSSEUSWORKSPACE", full);
+    pipelineEmit(full);
   };
 
   return (
@@ -1287,9 +1320,9 @@ function BrainSection({ color }: { color: string }) {
   const think = async (q: string) => {
     setQuery(q); setThinking(true); setResult("");
     let full = "";
-    await readChatText(`You are Odysseus Brain. ${MODE_PROMPTS[mode]} about: "${q}". Use clear sections with headers. Be thorough and insightful.`, c => { full += c; setResult(full); });
+    await streamToState(`You are Odysseus Brain. ${MODE_PROMPTS[mode]} about: "${q}". Use clear sections with headers. Be thorough and insightful.`, c => { full += c; setResult(full); });
     setThinking(false);
-    pipeline.emit("ODYSSEUSWORKSPACE", full);
+    pipelineEmit(full);
   };
 
   return (

@@ -6,8 +6,22 @@ import {
   Network, Database, Lock, Wifi, BarChart2, Layers, Bot,
   ChevronRight, RefreshCw, Terminal, Sparkles, Hexagon
 } from "lucide-react";
-import { readChatText } from "@/lib/chat-client";
 import { pipeline } from "@/lib/pipeline";
+
+async function streamOdysseus(prompt: string, onChunk: (c: string) => void): Promise<string> {
+  const resp = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: [{ role: "user", content: prompt }], stream: true }) });
+  if (!resp.ok || !resp.body) return "";
+  const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = "", full = "";
+  while (true) {
+    const { done, value } = await reader.read(); if (done) break;
+    buf += dec.decode(value, { stream: true }); const lines = buf.split("\n"); buf = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue; const raw = line.slice(6).trim(); if (!raw || raw === "[DONE]") continue;
+      try { const obj = JSON.parse(raw) as { content?: string; choices?: { delta?: { content?: string } }[] }; const c2 = obj.content ?? obj.choices?.[0]?.delta?.content ?? ""; if (c2) { full += c2; onChunk(full); } } catch { /* ignore */ }
+    }
+  }
+  return full;
+}
 
 interface Props { open: boolean; onOpenChange: (v: boolean) => void; }
 
@@ -326,7 +340,7 @@ function JarvisChat({ fullHeight = false }: { fullHeight?: boolean }) {
     setInput(""); setStreaming(true); setDraft("");
     setMsgs(m => [...m, { role: "user", text: msg }]);
     let full = "";
-    await readChatText(
+    full = await streamOdysseus(
       `You are J.A.R.V.I.S. — Just A Rather Very Intelligent System — Tony Stark's primary AI. You are calm, precise, highly intelligent, and occasionally sardonic. You speak in a refined British accent. You have complete situational awareness and access to all systems.
 
 Current time: ${new Date().toLocaleTimeString()}. Current threat level: MEDIUM. Arsenal modules online: 12/15.
@@ -334,10 +348,10 @@ Current time: ${new Date().toLocaleTimeString()}. Current threat level: MEDIUM. 
 User request: "${msg}"
 
 Respond as JARVIS: concise, intelligent, slightly formal. Use "sir" naturally. 2-4 sentences maximum. Never use bullet points — you are speaking, not writing a report.`,
-      c => { full += c; setDraft(full); }
+      (acc) => setDraft(acc)
     );
     setMsgs(m => [...m, { role: "jarvis", text: full }]);
-    pipeline.emit("JARVISHOLOGRAM", full);
+    pipeline.push({ source: "JARVISHologram", sourceColor: "#00d4ff", label: "JARVIS response", content: full });
     setStreaming(false); setDraft("");
   }, [input, streaming]);
 
@@ -428,14 +442,14 @@ function IntelPanel() {
   const runIntelScan = async () => {
     setScanning(true); setScanResult("");
     let full = "";
-    await readChatText(
+    full = await streamOdysseus(
       "You are JARVIS running a threat intelligence scan. Generate a brief intelligence report (4-5 lines) covering: active threats, CVE alerts, network anomalies, and recommended actions. Use a concise, technical style with status indicators.",
-      c => { full += c; setScanResult(full); }
+      (acc) => setScanResult(acc)
     );
     setScanning(false);
     const newFeed = { type: "JARVIS", msg: full.split("\n")[0]?.slice(0, 60) || "Scan complete", ts: new Date().toLocaleTimeString(), color: JARVIS_CYAN, icon: "⚡" };
     setFeeds(f => [newFeed, ...f.slice(0, 4)]);
-    pipeline.emit("JARVISHOLOGRAM", full);
+    pipeline.push({ source: "JARVISHologram", sourceColor: "#00d4ff", label: "Intel scan", content: full });
   };
 
   return (

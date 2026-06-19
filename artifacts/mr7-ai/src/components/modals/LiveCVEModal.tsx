@@ -815,7 +815,7 @@ export function LiveCVEModal({ open, onOpenChange }: Props) {
         </motion.div>
       )}
       {exploitOpen && selectedCVE && (
-        <ExploitChainModal open={exploitOpen} onClose={()=>setExploitOpen(false)} cveId={selectedCVE.id} cvssScore={selectedCVE.cvss} targetProduct={selectedCVE.product} vulnerabilityType={selectedCVE.type} />
+        <ExploitChainModal open={exploitOpen} onOpenChange={(v)=>{ if(!v) setExploitOpen(false); }} initialCVE={{ id: selectedCVE.id, title: selectedCVE.description ?? selectedCVE.id, cvss: selectedCVE.cvss, type: selectedCVE.type, product: selectedCVE.product }} />
       )}
     </AnimatePresence>
   );

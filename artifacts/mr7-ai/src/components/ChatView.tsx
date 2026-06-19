@@ -2583,18 +2583,35 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
                     <Square className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white text-white" />
                   </motion.button>
                 ) : (
-                  <button
+                  <motion.button
                     onClick={() => void send(input)}
                     disabled={!input.trim()}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center active:scale-95 transition-all flex-shrink-0 mb-0.5 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 mb-0.5 disabled:opacity-30 disabled:cursor-not-allowed overflow-visible"
                     style={input.trim() ? {
-                      background: "linear-gradient(135deg, #e21227 0%, #a00c1b 100%)",
-                      boxShadow: "0 0 20px rgba(226,18,39,0.5), 0 0 40px rgba(226,18,39,0.15), inset 0 1px 0 rgba(255,255,255,0.1)"
-                    } : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                      background: "radial-gradient(circle at 35% 35%, rgba(226,18,39,0.95), rgba(140,0,20,0.98))",
+                      boxShadow: "0 0 22px rgba(226,18,39,0.55), 0 0 50px rgba(226,18,39,0.18), inset 0 1px 0 rgba(255,255,255,0.18)",
+                    } : { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+                    whileHover={input.trim() ? { scale: 1.12, y: -1, boxShadow: "0 0 30px rgba(226,18,39,0.70), 0 0 60px rgba(226,18,39,0.25), inset 0 1px 0 rgba(255,255,255,0.22)" } : {}}
+                    whileTap={input.trim() ? { scale: 0.90 } : {}}
+                    transition={{ type: "spring", stiffness: 550, damping: 22 }}
                     aria-label="Send"
                   >
-                    <Send className="w-[15px] h-[15px] sm:w-4 sm:h-4 text-white -ml-0.5" />
-                  </button>
+                    {/* Outer pulse ring when input ready */}
+                    {input.trim() && (
+                      <motion.span className="absolute inset-0 rounded-full pointer-events-none"
+                        style={{ border: "1px solid rgba(226,18,39,0.30)", margin: "-4px" }}
+                        animate={{ opacity: [0.25, 0.65, 0.25], scale: [1, 1.10, 1] }}
+                        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }} />
+                    )}
+                    {/* Shimmer sweep */}
+                    {input.trim() && (
+                      <motion.span className="absolute inset-0 rounded-full pointer-events-none"
+                        style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%)" }}
+                        animate={{ opacity: [0.6, 0.2, 0.6] }}
+                        transition={{ duration: 2, repeat: Infinity }} />
+                    )}
+                    <Send className="w-[14px] h-[14px] sm:w-[15px] sm:h-[15px] text-white -ml-0.5 relative z-10" />
+                  </motion.button>
                 )}
               </div>
             </div>
@@ -2672,8 +2689,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       <HyperFusionModal
         open={hyperFusionOpen}
         onClose={() => setHyperFusionOpen(false)}
-        initialQuery={hyperFusionQuery}
-        chatHistory={(chat?.messages ?? []).filter(m => m.role === "user" || m.role === "assistant").slice(-10).map(m => ({ role: m.role, content: m.content }))}
+        initialMessages={(chat?.messages ?? []).filter(m => m.role === "user" || m.role === "assistant").slice(-10).map(m => ({ role: m.role as "user" | "assistant", content: m.content }))}
       />
     </div>
   );

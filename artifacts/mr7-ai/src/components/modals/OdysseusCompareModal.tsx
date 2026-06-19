@@ -1,8 +1,37 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Zap, Copy, CheckCheck, BarChart3, Loader2, RotateCcw, Eye, EyeOff, Trophy } from "lucide-react";
-import { readChatText } from "@/lib/chat-client";
 import { pipeline } from "@/lib/pipeline";
+
+async function streamOdysseus(prompt: string, onChunk: (c: string) => void): Promise<string> {
+  const resp = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: [{ role: "user", content: prompt }], stream: true }) });
+  if (!resp.ok || !resp.body) return "";
+  const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = "", full = "";
+  while (true) {
+    const { done, value } = await reader.read(); if (done) break;
+    buf += dec.decode(value, { stream: true }); const lines = buf.split("\n"); buf = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue; const raw = line.slice(6).trim(); if (!raw || raw === "[DONE]") continue;
+      try { const obj = JSON.parse(raw) as { content?: string; choices?: { delta?: { content?: string } }[] }; const c2 = obj.content ?? obj.choices?.[0]?.delta?.content ?? ""; if (c2) { full += c2; onChunk(full); } } catch { /* ignore */ }
+    }
+  }
+  return full;
+}
+
+async function streamModelA(prompt: string, model: string, onChunk: (c: string) => void): Promise<string> {
+  const resp = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: [{ role: "user", content: prompt }], model, stream: true }) });
+  if (!resp.ok || !resp.body) return "";
+  const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = "", full = "";
+  while (true) {
+    const { done, value } = await reader.read(); if (done) break;
+    buf += dec.decode(value, { stream: true }); const lines = buf.split("\n"); buf = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue; const raw = line.slice(6).trim(); if (!raw || raw === "[DONE]") continue;
+      try { const obj = JSON.parse(raw) as { content?: string; choices?: { delta?: { content?: string } }[] }; const c2 = obj.content ?? obj.choices?.[0]?.delta?.content ?? ""; if (c2) { full += c2; onChunk(full); } } catch { /* ignore */ }
+    }
+  }
+  return full;
+}
 
 interface OdysseusCompareModalProps {
   open: boolean;
@@ -38,8 +67,8 @@ export function OdysseusCompareModal({ open, onOpenChange }: OdysseusCompareModa
 
     try {
       await Promise.all([
-        readChatText({ messages: [{ role: "user", content: prompt }], model: modelA, persona: null, customInstructions: "", language: "en", memory: [] }, chunk => setOutputA(prev => prev + chunk)),
-        readChatText({ messages: [{ role: "user", content: prompt }], model: modelB, persona: null, customInstructions: "", language: "en", memory: [] }, chunk => setOutputB(prev => prev + chunk)),
+        streamModelA(prompt, modelA, (full) => setOutputA(full)),
+        streamModelA(prompt, modelB, (full) => setOutputB(full)),
       ]);
     } catch { /* ignore */ }
     setRunning(false);

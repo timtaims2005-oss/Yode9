@@ -6,8 +6,22 @@ import {
   Radio, Satellite, Shield, Activity, BarChart2, Newspaper,
   Search, Info, Terminal, Wifi, Battery, Monitor
 } from "lucide-react";
-import { readChatText } from "@/lib/chat-client";
 import { pipeline } from "@/lib/pipeline";
+
+async function streamOdysseus(prompt: string, onChunk: (c: string) => void): Promise<string> {
+  const resp = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: [{ role: "user", content: prompt }], stream: true }) });
+  if (!resp.ok || !resp.body) return "";
+  const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = "", full = "";
+  while (true) {
+    const { done, value } = await reader.read(); if (done) break;
+    buf += dec.decode(value, { stream: true }); const lines = buf.split("\n"); buf = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue; const raw = line.slice(6).trim(); if (!raw || raw === "[DONE]") continue;
+      try { const obj = JSON.parse(raw) as { content?: string; choices?: { delta?: { content?: string } }[] }; const c2 = obj.content ?? obj.choices?.[0]?.delta?.content ?? ""; if (c2) { full += c2; onChunk(full); } } catch { /* ignore */ }
+    }
+  }
+  return full;
+}
 
 interface Props { open: boolean; onOpenChange: (v: boolean) => void; }
 
@@ -130,7 +144,7 @@ function NewsDisplay({ type }: { type: "world" | "finance" }) {
       ? "You are FRIDAY. Generate a world news briefing with 6 top global headlines. Format each as JSON object with source (BBC/CNN/Reuters/etc), title, and summary (1 sentence). Return a JSON array only."
       : "You are FRIDAY. Generate a finance & markets briefing with 6 top financial headlines. Format each as JSON object with source (Bloomberg/CNBC/FT/etc), title, and summary (1 sentence). Return a JSON array only.";
     let full = "";
-    await readChatText(prompt, c => full += c);
+    full = await streamOdysseus(prompt, () => {});
     try {
       const match = full.match(/\[[\s\S]*\]/);
       if (match) {
@@ -144,7 +158,7 @@ function NewsDisplay({ type }: { type: "world" | "finance" }) {
       setItems([{ source: "FRIDAY", title: full.slice(0, 100), summary: "" }]);
     }
     setLoading(false); setFetched(true);
-    pipeline.emit("FRIDAY", full);
+    pipeline.push({ source: "FRIDAY", sourceColor: "#00e5ff", label: "FRIDAY output", content: full });
   };
 
   const color = type === "world" ? "#00e5ff" : "#10b981";
@@ -222,12 +236,9 @@ function SearchDisplay() {
     if (!q.trim() || searching) return;
     setQuery(q); setSearching(true); setResults("");
     let full = "";
-    await readChatText(
-      `You are FRIDAY, Tony Stark's AI assistant performing a web intelligence search for: "${q}". Provide a comprehensive briefing with: Key Findings (3-5 bullet points), Sources (mention realistic source names), Recent Developments, and Analysis. Be specific, factual, and briefing-style. Boss prefers concise intelligence reports.`,
-      c => { full += c; setResults(full); }
-    );
+    full = await streamOdysseus(`You are FRIDAY, Tony Stark's AI assistant performing a web intelligence search for: "${q}". Provide a comprehensive briefing with: Key Findings (3-5 bullet points), Sources (mention realistic source names), Recent Developments, and Analysis. Be specific, factual, and briefing-style. Boss prefers concise intelligence reports.`, (full) => setResults(full));
     setSearching(false);
-    pipeline.emit("FRIDAY", full);
+    pipeline.push({ source: "FRIDAY", sourceColor: "#00e5ff", label: "FRIDAY output", content: full });
   };
 
   return (
@@ -291,16 +302,13 @@ function ChatDisplay() {
     setInput(""); setStreaming(true); setDraft("");
     setMsgs(m => [...m, { role: "user", text: msg }]);
     let full = "";
-    await readChatText(
-      `You are F.R.I.D.A.Y. — Tony Stark's AI assistant. You are calm, composed, precise, and occasionally dry. You speak like a trusted briefing officer — short responses (2-4 sentences), no bullet points, no markdown. Use "boss" naturally. Current time: ${new Date().toLocaleTimeString()}.
+    full = await streamOdysseus(`You are F.R.I.D.A.Y. — Tony Stark's AI assistant. You are calm, composed, precise, and occasionally dry. You speak like a trusted briefing officer — short responses (2-4 sentences), no bullet points, no markdown. Use "boss" naturally. Current time: ${new Date().toLocaleTimeString()}.
 
 User says: "${msg}"
 
-Respond as FRIDAY would — helpful, direct, Iron Man universe language.`,
-      c => { full += c; setDraft(full); }
-    );
+Respond as FRIDAY would — helpful, direct, Iron Man universe language.`, (full) => setDraft(full));
     setMsgs(m => [...m, { role: "friday", text: full }]);
-    pipeline.emit("FRIDAY", full);
+    pipeline.push({ source: "FRIDAY", sourceColor: "#00e5ff", label: "FRIDAY output", content: full });
     setStreaming(false); setDraft("");
   }, [input, streaming]);
 

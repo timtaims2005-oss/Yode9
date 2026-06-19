@@ -254,7 +254,7 @@ export default function AgentFourModal({ open, onOpenChange }: Props) {
   const [phase, setPhase] = useState("");
   const [copied, setCopied] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
-  const { language } = useStore(s => ({ language: s.language }));
+  const { state: _af4State } = useStore(); const language = _af4State.settings?.language ?? "en";
 
   const activeMode = MODES.find(m => m.id === mode)!;
   const activeFeature = FEATURES.find(f => f.id === feature)!;

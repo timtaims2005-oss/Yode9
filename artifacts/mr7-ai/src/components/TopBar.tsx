@@ -970,7 +970,7 @@ function OperationModeBtn3D() {
 function HUDBtn({
   icon: Icon, label, color, onClick, badge, shortLabel, title: tip, active, iconOnly,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   label: string;
   color: string;
   onClick: () => void;
@@ -1375,18 +1375,25 @@ function PinnedShortcutsBar({
   };
 
   return (
-    <div className="relative flex items-center gap-1 px-2 overflow-x-auto"
+    <div className="relative flex items-center gap-1.5 px-3 overflow-x-auto"
       style={{
-        height: 28,
-        background: "rgba(4,3,9,0.98)",
-        borderTop: "1px solid rgba(255,255,255,0.03)",
+        height: 34,
+        background: "linear-gradient(180deg, rgba(6,4,12,0.99) 0%, rgba(4,3,9,0.99) 100%)",
+        borderTop: "1px solid rgba(226,18,39,0.08)",
         scrollbarWidth: "none",
       }}>
-      {/* Left scan glow */}
-      <div className="absolute inset-y-0 left-0 w-3 pointer-events-none z-10"
-        style={{ background: "linear-gradient(90deg,rgba(226,18,39,0.12),transparent)" }} />
+      {/* Travelling scan line */}
+      <motion.div className="absolute inset-y-0 w-20 pointer-events-none z-10"
+        style={{ background: "linear-gradient(90deg,transparent,rgba(226,18,39,0.07),transparent)" }}
+        animate={{ x: ["-10%", "110%"] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "linear" }} />
 
-      {pinned.map(id => {
+      {/* Left scan glow */}
+      <div className="absolute inset-y-0 left-0 w-6 pointer-events-none z-10"
+        style={{ background: "linear-gradient(90deg,rgba(226,18,39,0.14),transparent)" }} />
+
+      {/* Pinned buttons */}
+      {pinned.map((id, idx) => {
         const def = SHORTCUT_DEFS.find(d => d.id === id);
         if (!def) return null;
         return (
@@ -1394,18 +1401,36 @@ function PinnedShortcutsBar({
             key={id}
             onClick={actionMap[id]}
             onContextMenu={e => { e.preventDefault(); savePinned(pinned.filter(p => p !== id)); }}
-            className="flex-shrink-0 flex items-center gap-1 px-2 rounded text-[7.5px] font-bold tracking-wide whitespace-nowrap"
+            className="flex-shrink-0 relative flex items-center gap-1.5 px-2.5 rounded-lg text-[8.5px] font-black tracking-wide whitespace-nowrap overflow-hidden"
             style={{
-              height: 18,
+              height: 22,
               color: def.color,
-              background: def.color + "14",
+              background: `${def.color}12`,
               border: `1px solid ${def.color}28`,
+              boxShadow: `0 0 8px ${def.color}14`,
             }}
-            whileHover={{ background: def.color + "26", scale: 1.04 }}
-            whileTap={{ scale: 0.94 }}
-            title={`${def.label} (右键取消固定)`}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: idx * 0.04 }}
+            whileHover={{
+              background: `${def.color}22`,
+              borderColor: `${def.color}55`,
+              boxShadow: `0 0 16px ${def.color}30, 0 0 32px ${def.color}10`,
+              scale: 1.05, y: -0.5,
+            }}
+            whileTap={{ scale: 0.93 }}
+            title={`${def.label} (كليك يمين لإلغاء التثبيت)`}
           >
-            <span className="font-black" style={{ fontSize: 7, opacity: 0.8 }}>{def.icon}</span>
+            {/* Shimmer sweep */}
+            <motion.span className="absolute inset-y-0 pointer-events-none"
+              style={{ width: 20, background: `linear-gradient(90deg,transparent,${def.color}22,transparent)` }}
+              animate={{ x: ["-100%", "300%"] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "linear", delay: idx * 0.2 }} />
+            {/* Active dot */}
+            <motion.span className="w-1 h-1 rounded-full flex-shrink-0"
+              style={{ background: def.color, boxShadow: `0 0 5px ${def.color}` }}
+              animate={{ opacity: [1, 0.3, 1] }}
+              transition={{ duration: 1.6, repeat: Infinity, delay: idx * 0.15 }} />
             {def.label}
           </motion.button>
         );
@@ -1415,67 +1440,84 @@ function PinnedShortcutsBar({
       <div className="relative flex-shrink-0">
         <motion.button
           onClick={() => setAddOpen(o => !o)}
-          className="flex items-center justify-center rounded"
+          className="flex items-center justify-center rounded-lg"
           style={{
-            width: 18, height: 18,
-            color: "rgba(255,255,255,0.3)",
+            width: 22, height: 22,
+            color: "rgba(255,255,255,0.28)",
             border: "1px dashed rgba(255,255,255,0.12)",
-            fontSize: 10,
+            fontSize: 11,
+            fontWeight: 900,
           }}
-          whileHover={{ color: "#e21227", borderColor: "rgba(226,18,39,0.4)", background: "rgba(226,18,39,0.08)" }}
+          whileHover={{ color: "#e21227", borderColor: "rgba(226,18,39,0.45)", background: "rgba(226,18,39,0.10)", scale: 1.06 }}
           whileTap={{ scale: 0.92 }}
           title="إضافة اختصار مثبّت"
         >+</motion.button>
+
         <AnimatePresence>
           {addOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -4, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4, scale: 0.95 }}
-              className="absolute top-6 left-0 z-50 rounded-xl overflow-hidden"
-              style={{
-                width: 160,
-                background: "rgba(10,8,20,0.98)",
-                border: "1px solid rgba(226,18,39,0.25)",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.8), 0 0 16px rgba(226,18,39,0.08)",
-              }}
-            >
-              <div className="px-3 py-1.5 text-[7px] font-bold tracking-widest uppercase"
-                style={{ color: "rgba(255,255,255,0.28)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                اختصارات مثبّتة
-              </div>
-              {SHORTCUT_DEFS.map(def => {
-                const isPinned = pinned.includes(def.id);
-                return (
-                  <button key={def.id}
-                    onClick={() => {
-                      const next = isPinned
-                        ? pinned.filter(p => p !== def.id)
-                        : [...pinned, def.id];
-                      savePinned(next);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[9px] font-bold text-left transition-all"
-                    style={{
-                      color: isPinned ? def.color : "rgba(255,255,255,0.5)",
-                      background: isPinned ? def.color + "10" : "transparent",
-                    }}
-                  >
-                    <span className="w-3.5 h-3.5 flex items-center justify-center rounded text-[7px] font-black flex-shrink-0"
-                      style={{ background: def.color + "20", color: def.color }}>
-                      {def.icon}
-                    </span>
-                    {def.label}
-                    {isPinned && <span className="ml-auto text-[7px]" style={{ color: def.color }}>✓</span>}
-                  </button>
-                );
-              })}
-            </motion.div>
+            <>
+              {/* Backdrop */}
+              <motion.div className="fixed inset-0 z-[9988]"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setAddOpen(false)} />
+              <motion.div
+                initial={{ opacity: 0, y: -6, scale: 0.93 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.93 }}
+                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute bottom-8 left-0 z-[9989] rounded-2xl overflow-hidden"
+                style={{
+                  width: 200,
+                  background: "linear-gradient(160deg, rgba(8,4,14,0.99), rgba(5,2,10,0.99))",
+                  border: "1px solid rgba(226,18,39,0.28)",
+                  boxShadow: "0 0 40px rgba(226,18,39,0.10), 0 16px 50px rgba(0,0,0,0.90)",
+                  backdropFilter: "blur(32px)",
+                }}
+              >
+                <div className="h-px w-full" style={{ background: "linear-gradient(90deg,transparent,#e21227,transparent)" }} />
+                <div className="px-3 py-2 text-[7.5px] font-black tracking-[0.4em] uppercase"
+                  style={{ color: "rgba(226,18,39,0.50)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                  اختصارات مثبّتة
+                </div>
+                {SHORTCUT_DEFS.map(def => {
+                  const isPinned = pinned.includes(def.id);
+                  return (
+                    <motion.button key={def.id}
+                      onClick={() => {
+                        const next = isPinned
+                          ? pinned.filter(p => p !== def.id)
+                          : [...pinned, def.id];
+                        savePinned(next);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 text-[9px] font-bold text-left relative overflow-hidden"
+                      style={{
+                        color: isPinned ? def.color : "rgba(255,255,255,0.45)",
+                        background: isPinned ? `${def.color}12` : "transparent",
+                      }}
+                      whileHover={{ background: `${def.color}16`, color: def.color }}
+                    >
+                      <span className="w-4 h-4 flex items-center justify-center rounded-md text-[7px] font-black flex-shrink-0"
+                        style={{ background: `${def.color}18`, border: `1px solid ${def.color}28`, color: def.color }}>
+                        {def.icon}
+                      </span>
+                      {def.label}
+                      {isPinned && (
+                        <motion.span className="ml-auto w-1 h-1 rounded-full"
+                          style={{ background: def.color, boxShadow: `0 0 4px ${def.color}` }}
+                          animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.5, repeat: Infinity }} />
+                      )}
+                    </motion.button>
+                  );
+                })}
+                <div className="h-px w-full" style={{ background: "linear-gradient(90deg,transparent,rgba(226,18,39,0.28),transparent)" }} />
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
       </div>
 
       {/* Right fade */}
-      <div className="absolute inset-y-0 right-0 w-4 pointer-events-none z-10"
+      <div className="absolute inset-y-0 right-0 w-6 pointer-events-none z-10"
         style={{ background: "linear-gradient(270deg,rgba(4,3,9,1),transparent)" }} />
     </div>
   );
@@ -1687,7 +1729,8 @@ export function TopBar({
         {onOpenAttackGraph          && <HUDBtn icon={Share2}      label="Atk. Graph"   color="#10b981" onClick={onOpenAttackGraph} />}
         {onOpenAutonomousDecisionEngine && <HUDBtn icon={BrainCircuit} label="AI Engine" shortLabel="ADE" color="#8b5cf6" onClick={onOpenAutonomousDecisionEngine} badge="NEW" />}
         {onOpenJARVISCommandCenter && <HUDBtn icon={Bot} label="JARVIS" shortLabel="JRV" color="#00d4ff" onClick={onOpenJARVISCommandCenter} badge="NEW" />}
-        {(onOpenWarRoom || onOpenDeepSearch || onOpenChainInvestigation || onOpenRedTeam || onOpenCognitiveWarfare || onOpenAutonomousOffense || onOpenAttackGraph || onOpenAutonomousDecisionEngine || onOpenJARVISCommandCenter) && <VDivider />}
+        {onOpenOmegaAgent && <HUDBtn icon={Cpu} label="Omega Agent" shortLabel="OMEGA" color="#e21227" onClick={onOpenOmegaAgent} badge="Ω" />}
+        {(onOpenWarRoom || onOpenDeepSearch || onOpenChainInvestigation || onOpenRedTeam || onOpenCognitiveWarfare || onOpenAutonomousOffense || onOpenAttackGraph || onOpenAutonomousDecisionEngine || onOpenJARVISCommandCenter || onOpenOmegaAgent) && <VDivider />}
 
         {/* ── GROUP 3 — Analytics & Intelligence ─────────────────────── */}
         {onOpenNeuralMatrix && <HUDBtn icon={Crosshair}   label="Neural Matrix" color="#e21227"  onClick={onOpenNeuralMatrix} />}
@@ -1720,19 +1763,42 @@ export function TopBar({
         {onOpenProviderSettings && (
           <motion.button
             onClick={onOpenProviderSettings}
-            className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1.5 rounded-lg"
-            style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.25)", color: "rgba(167,139,250,0.85)" }}
-            whileHover={{ scale: 1.04, background: "rgba(139,92,246,0.15)", borderColor: "rgba(139,92,246,0.5)" }}
-            whileTap={{ scale: 0.96 }}
+            className="flex-shrink-0 relative flex items-center gap-1.5 px-2.5 py-2 rounded-xl overflow-hidden"
+            style={{
+              background: "radial-gradient(circle at 35% 35%, rgba(139,92,246,0.20), rgba(0,0,0,0.88))",
+              border: "1px solid rgba(139,92,246,0.40)",
+              color: "#a78bfa",
+              boxShadow: "0 0 18px rgba(139,92,246,0.28), inset 0 0 10px rgba(139,92,246,0.06)",
+            }}
+            whileHover={{ scale: 1.06, y: -0.5, boxShadow: "0 0 28px rgba(139,92,246,0.45), inset 0 0 14px rgba(139,92,246,0.10)" }}
+            whileTap={{ scale: 0.94 }}
             title="إعدادات المزوّد"
           >
-            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "rgba(167,139,250,0.9)", boxShadow: "0 0 6px rgba(139,92,246,0.8)" }} />
-            <span className="hidden sm:block text-[10px] font-black tracking-wider uppercase">
-              {(state.activeProvider ?? "personal").slice(0, 8)}
-            </span>
+            {/* Pulse ring */}
+            <motion.span className="absolute inset-0 rounded-xl pointer-events-none"
+              style={{ border: "1px solid rgba(139,92,246,0.20)", margin: "-3px" }}
+              animate={{ opacity: [0.20, 0.50, 0.20], scale: [1, 1.05, 1] }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }} />
+            {/* Shimmer */}
+            <motion.span className="absolute inset-y-0 pointer-events-none"
+              style={{ width: 30, background: "linear-gradient(90deg,transparent,rgba(167,139,250,0.18),transparent)" }}
+              animate={{ x: ["-100%", "300%"] }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }} />
+            {/* Active dot */}
+            <motion.span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+              style={{ background: "#a78bfa", boxShadow: "0 0 6px rgba(139,92,246,0.9)" }}
+              animate={{ opacity: [1, 0.3, 1], scale: [1, 1.4, 1] }}
+              transition={{ duration: 1.8, repeat: Infinity }} />
+            <div className="hidden sm:flex flex-col items-start leading-none gap-0.5">
+              <span className="text-[7px] font-black tracking-[0.3em] uppercase" style={{ color: "rgba(167,139,250,0.55)" }}>PROVIDER</span>
+              <span className="text-[9px] font-black tracking-wide uppercase">
+                {(state.activeProvider ?? "personal").slice(0, 8)}
+              </span>
+            </div>
             {state.activeProviderModel && (
-              <span className="hidden md:block text-[9px] font-mono" style={{ color: "rgba(167,139,250,0.45)" }}>
-                /{state.activeProviderModel.split("/").pop()?.slice(0, 10)}
+              <span className="hidden md:block text-[8px] font-mono px-1 rounded"
+                style={{ color: "rgba(167,139,250,0.50)", background: "rgba(139,92,246,0.10)", border: "1px solid rgba(139,92,246,0.15)" }}>
+                {state.activeProviderModel.split("/").pop()?.slice(0, 8)}
               </span>
             )}
           </motion.button>
@@ -1740,27 +1806,58 @@ export function TopBar({
 
         <LocalModelQuickToggle onOpenLocalModel={onOpenLocalModel} />
 
+        {/* ── 3D POWER BUTTON ── */}
         <motion.button
           onClick={togglePower}
-          className="flex-shrink-0 flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg"
+          className="flex-shrink-0 relative flex items-center gap-1.5 px-2.5 py-2 rounded-xl overflow-visible"
           style={powerOn ? {
-            background: "rgba(226,18,39,0.18)", border: "1px solid rgba(226,18,39,0.65)", color: "#e21227",
-            boxShadow: "0 0 20px rgba(226,18,39,0.5), 0 0 40px rgba(226,18,39,0.18)",
+            background: "radial-gradient(circle at 38% 38%, rgba(226,18,39,0.28), rgba(0,0,0,0.92))",
+            border: "1px solid rgba(226,18,39,0.70)",
+            color: "#e21227",
+            boxShadow: "0 0 28px rgba(226,18,39,0.55), 0 0 60px rgba(226,18,39,0.20), inset 0 0 14px rgba(226,18,39,0.10)",
           } : {
-            background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(200,210,230,0.65)",
+            background: "radial-gradient(circle at 38% 38%, rgba(255,255,255,0.04), rgba(0,0,0,0.80))",
+            border: "1px solid rgba(255,255,255,0.14)",
+            color: "rgba(180,190,210,0.60)",
+            boxShadow: "none",
           }}
-          whileHover={{ scale: 1.05, y: -0.5 }} whileTap={{ scale: 0.94 }}
+          whileHover={{ scale: 1.08, y: -1 }} whileTap={{ scale: 0.92 }}
           aria-label={t("power.title")} title={t(powerOn ? "power.tooltipOn" : "power.tooltipOff")}
           transition={{ type: "spring", stiffness: 500, damping: 28 }}
         >
-          <motion.div animate={powerOn ? { rotate: [0, 5, -5, 0] } : {}} transition={{ duration: 3, repeat: Infinity }}>
-            <Zap className={`w-3.5 h-3.5 ${powerOn ? "fill-current" : ""}`} />
-          </motion.div>
-          <span className="hidden sm:block text-[10px] font-black tracking-widest uppercase">{t("power.title")}</span>
+          {/* Pulse rings when powered ON */}
           {powerOn && (
-            <motion.span className="text-[7px] font-black px-1 py-0.5 rounded"
-              style={{ background: "rgba(226,18,39,0.3)", color: "#ff5577" }}
-              animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.2, repeat: Infinity }}>
+            <>
+              <motion.span className="absolute inset-0 rounded-xl pointer-events-none"
+                style={{ border: "1px solid rgba(226,18,39,0.30)", margin: "-4px" }}
+                animate={{ opacity: [0.30, 0.65, 0.30], scale: [1, 1.06, 1] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }} />
+              <motion.span className="absolute inset-0 rounded-xl pointer-events-none"
+                style={{ border: "1px dashed rgba(226,18,39,0.15)", margin: "-9px" }}
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "linear" }} />
+            </>
+          )}
+          {/* Shimmer sweep */}
+          <motion.span className="absolute inset-y-0 pointer-events-none"
+            style={{ width: 36, background: `linear-gradient(90deg,transparent,rgba(226,18,39,${powerOn ? 0.22 : 0.08}),transparent)` }}
+            animate={{ x: ["-120%", "300%"] }}
+            transition={{ duration: powerOn ? 1.8 : 3.5, repeat: Infinity, ease: "linear" }} />
+
+          <motion.div
+            animate={powerOn ? { rotate: [0, 6, -6, 0], filter: ["drop-shadow(0 0 4px rgba(226,18,39,0.8))", "drop-shadow(0 0 10px rgba(226,18,39,1))", "drop-shadow(0 0 4px rgba(226,18,39,0.8))"] } : {}}
+            transition={{ duration: 2.5, repeat: Infinity }}
+          >
+            <Zap className={`w-4 h-4 ${powerOn ? "fill-current" : ""}`} />
+          </motion.div>
+          <div className="hidden sm:flex flex-col items-start leading-none gap-0.5">
+            <span className="text-[7px] font-black tracking-[0.25em] uppercase" style={{ color: powerOn ? "rgba(226,18,39,0.70)" : "rgba(255,255,255,0.28)" }}>POWER</span>
+            <span className="text-[9px] font-black tracking-wide">{t("power.title")}</span>
+          </div>
+          {powerOn && (
+            <motion.span className="text-[7px] font-black px-1 py-0.5 rounded flex-shrink-0"
+              style={{ background: "rgba(226,18,39,0.28)", color: "#ff5577", border: "1px solid rgba(226,18,39,0.40)" }}
+              animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.0, repeat: Infinity }}>
               ON
             </motion.span>
           )}
