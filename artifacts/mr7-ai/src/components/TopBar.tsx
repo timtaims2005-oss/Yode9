@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useContext, createContext, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { useT } from "@/lib/i18n";
@@ -456,6 +457,102 @@ function HealthOrb3D({ health }: { health: LocalHealth }) {
   return <canvas ref={canvasRef} style={{ width: 28, height: 28, display: "block", flexShrink: 0 }} />;
 }
 
+// ── 3D Drag Handle — futuristic floating window header ────────────────────────
+function DragHandle3D({
+  title, color, onMouseDown, onTouchStart, onClose,
+}: {
+  title: string; color: string;
+  onMouseDown: (e: React.MouseEvent) => void;
+  onTouchStart: (e: React.TouchEvent) => void;
+  onClose: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      onMouseDown={onMouseDown}
+      onTouchStart={onTouchStart}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="relative flex items-center justify-between px-3 py-2 select-none overflow-hidden"
+      style={{ cursor: "grab", borderBottom: `1px solid ${color}22` }}
+    >
+      {/* Gradient base */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: `linear-gradient(135deg, ${color}18 0%, rgba(0,0,0,0.72) 60%, ${color}08 100%)` }} />
+
+      {/* Horizontal scan streak */}
+      <div className="absolute inset-y-0 pointer-events-none"
+        style={{
+          left: "-40%", width: "40%",
+          background: `linear-gradient(90deg, transparent, ${color}22, ${color}44, ${color}22, transparent)`,
+          animation: "topbar-travel 2.4s linear infinite",
+          opacity: hovered ? 1 : 0.5,
+          transition: "opacity 0.3s",
+        }} />
+
+      {/* Top edge glow */}
+      <div className="absolute top-0 inset-x-0 h-px pointer-events-none"
+        style={{ background: `linear-gradient(90deg, transparent, ${color}80, rgba(255,255,255,0.3), ${color}80, transparent)` }} />
+
+      {/* Left cluster */}
+      <div className="relative flex items-center gap-2.5 z-10">
+        {/* Grip dots 2×4 grid */}
+        <div className="grid grid-cols-4 gap-[3px]" style={{ opacity: hovered ? 0.9 : 0.4, transition: "opacity 0.2s" }}>
+          {[...Array(8)].map((_, i) => (
+            <motion.div key={i}
+              className="w-[3px] h-[3px] rounded-full"
+              style={{ background: color }}
+              animate={hovered ? { scale: [1, 1.6, 1], opacity: [0.6, 1, 0.6] } : { scale: 1, opacity: 0.5 }}
+              transition={{ duration: 0.7, delay: i * 0.06, repeat: hovered ? Infinity : 0, ease: "easeInOut" }}
+            />
+          ))}
+        </div>
+
+        {/* Window title */}
+        <div className="flex flex-col leading-none gap-0.5">
+          <span className="text-[6px] font-black tracking-[0.55em] uppercase" style={{ color: `${color}66` }}>KALIGPT</span>
+          <span className="text-[8px] font-black tracking-[0.3em] uppercase" style={{ color: `${color}cc` }}>{title}</span>
+        </div>
+      </div>
+
+      {/* Right cluster: status dot + close */}
+      <div className="relative flex items-center gap-2 z-10">
+        {/* Live pulse dot */}
+        <div className="flex items-center gap-1">
+          <motion.div className="w-1.5 h-1.5 rounded-full"
+            style={{ background: color, boxShadow: `0 0 6px ${color}` }}
+            animate={{ opacity: [1, 0.3, 1], scale: [1, 0.75, 1] }}
+            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <span className="text-[6px] font-black tracking-widest font-mono" style={{ color: `${color}88` }}>LIVE</span>
+        </div>
+
+        {/* Corner accent lines */}
+        <div className="w-px h-4 opacity-30" style={{ background: `linear-gradient(180deg, transparent, ${color}, transparent)` }} />
+
+        {/* Close button */}
+        <motion.button
+          onMouseDown={e => e.stopPropagation()}
+          onTouchStart={e => e.stopPropagation()}
+          onClick={onClose}
+          className="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black relative overflow-hidden"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.4)" }}
+          whileHover={{ background: "rgba(226,18,39,0.18)", borderColor: "rgba(226,18,39,0.5)", color: "#e21227", scale: 1.1 }}
+          whileTap={{ scale: 0.88 }}
+          title="إغلاق"
+        >
+          <span className="btn-shimmer-inner" style={{ background: "linear-gradient(90deg,transparent,rgba(226,18,39,0.3),transparent)" }} />
+          ×
+        </motion.button>
+      </div>
+
+      {/* 3-D bevel bottom shadow */}
+      <div className="absolute bottom-0 inset-x-0 h-[1px] pointer-events-none"
+        style={{ background: `linear-gradient(90deg, transparent, ${color}18, transparent)` }} />
+    </div>
+  );
+}
+
 // ── Local Model Quick Toggle ───────────────────────────────────────────────────
 function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => void }) {
   const { state, dispatch } = useStore();
@@ -464,21 +561,10 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
   const endpoint = state.settings.localEndpoint || "http://localhost:11434/v1";
   const [floatOpen, setFloatOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const { pos: dragPos, rootRef: dragRef, onDragMouseDown, onDragTouchStart } = useDraggable("mr7-local-win", { x: 20, y: 80 });
 
   const { health, latency, lastMs, ping } = useLocalModelHealth(endpoint, useLocal);
   const hColor = HEALTH_C[health];
-
-  function openFloat() {
-    if (btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect();
-      setPos({
-        top:  Math.min(r.bottom + 8, window.innerHeight - 380),
-        left: Math.min(r.left, window.innerWidth - 340),
-      });
-    }
-    setFloatOpen(o => !o);
-  }
 
   useEffect(() => {
     if (!floatOpen) return;
@@ -493,7 +579,7 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
     <>
       <motion.button
         ref={btnRef}
-        onClick={openFloat}
+        onClick={() => setFloatOpen(o => !o)}
         className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1.5 rounded-lg relative overflow-hidden"
         style={{
           color:      useLocal ? hColor : "rgba(255,80,80,0.65)",
@@ -542,9 +628,10 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
               onClick={() => setFloatOpen(false)} />
 
             <motion.div
+              ref={dragRef}
               className="fixed z-[1999] rounded-2xl"
               style={{
-                top: pos.top, left: pos.left, width: 320,
+                top: dragPos.y, left: dragPos.x, width: 320,
                 background: "linear-gradient(160deg, rgba(4,8,5,0.99) 0%, rgba(2,5,3,0.99) 100%)",
                 border: `1px solid ${hColor}40`,
                 boxShadow: `0 0 80px ${hColor}18, 0 0 30px ${hColor}0a, 0 28px 70px rgba(0,0,0,0.92), inset 0 1px 0 ${hColor}18`,
@@ -555,20 +642,19 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
               exit={{ opacity: 0, scale: 0.91, y: -8 }}
               transition={{ duration: 0.20, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="h-px w-full" style={{ background: `linear-gradient(90deg,transparent,${hColor},rgba(34,197,94,0.3),transparent)` }} />
+              <DragHandle3D color={hColor} title="LOCAL MODEL ENGINE" onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart} onClose={() => setFloatOpen(false)} />
 
               {/* Corner brackets */}
-              <span className="absolute top-2 left-2 w-3 h-3 border-t border-l pointer-events-none" style={{ borderColor: hColor + "66" }} />
-              <span className="absolute top-2 right-2 w-3 h-3 border-t border-r pointer-events-none" style={{ borderColor: hColor + "66" }} />
+              <span className="absolute top-10 left-2 w-3 h-3 border-t border-l pointer-events-none" style={{ borderColor: hColor + "66" }} />
+              <span className="absolute top-10 right-2 w-3 h-3 border-t border-r pointer-events-none" style={{ borderColor: hColor + "66" }} />
               <span className="absolute bottom-2 left-2 w-3 h-3 border-b border-l pointer-events-none" style={{ borderColor: hColor + "33" }} />
               <span className="absolute bottom-2 right-2 w-3 h-3 border-b border-r pointer-events-none" style={{ borderColor: hColor + "33" }} />
 
-              <div className="px-5 pt-4 pb-2">
-                {/* Header */}
+              <div className="px-5 pt-3 pb-2">
+                {/* Status sub-header */}
                 <div className="flex items-center gap-3 mb-3">
                   <HealthOrb3D health={health} />
                   <div className="flex-1 min-w-0">
-                    <div className="text-[7px] font-black tracking-[0.4em] uppercase" style={{ color: "rgba(255,255,255,0.22)" }}>LOCAL MODEL ENGINE</div>
                     <div className="text-[13px] font-black flex items-center gap-1.5" style={{ color: hColor }}>
                       {HEALTH_LBL[health]}
                       {latency != null && (
@@ -576,10 +662,6 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
                       )}
                     </div>
                   </div>
-                  <motion.button onClick={() => setFloatOpen(false)}
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-[13px]"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)" }}
-                    whileHover={{ background: "rgba(226,18,39,0.12)", color: "#e21227" }}>×</motion.button>
                 </div>
 
                 {/* Live latency bar */}
@@ -696,6 +778,7 @@ function OperationModeBtn3D() {
   const [wflowMode, setWflowMode] = useState<WorkflowMode>(() =>
     (localStorage.getItem(LS_WFLOW) as WorkflowMode) || "Smarter");
   const [open, setOpen] = useState(false);
+  const { pos: dragPos, rootRef: dragRef, onDragMouseDown, onDragTouchStart } = useDraggable("mr7-opmode-win", { x: 200, y: 100 });
 
   const perf  = PERF_DEFS.find(p => p.id === perfMode)!;
   const wflow = WFLOW_DEFS.find(w => w.id === wflowMode)!;
@@ -752,58 +835,43 @@ function OperationModeBtn3D() {
 
             {/* Window */}
             <motion.div
+              ref={dragRef}
               className="fixed z-[999] rounded-2xl overflow-hidden flex flex-col"
               style={{
-                top: "50%", left: "50%",
+                top: dragPos.y, left: dragPos.x,
                 width: "min(420px, 96vw)",
                 background: "linear-gradient(160deg, rgba(5,3,14,0.99) 0%, rgba(3,2,10,0.99) 100%)",
                 border: `1px solid ${perf.color}35`,
                 boxShadow: `0 0 80px ${perf.color}25, 0 0 40px rgba(0,0,0,0.9), 0 20px 60px rgba(0,0,0,0.7), inset 0 1px 0 ${perf.color}22`,
-                transformStyle: "preserve-3d",
               }}
-              initial={{ opacity: 0, scale: 0.82, x: "-50%", y: "-50%", rotateX: 8 }}
-              animate={{ opacity: 1, scale: 1,    x: "-50%", y: "-50%", rotateX: 0 }}
-              exit={{ opacity: 0, scale: 0.88,    x: "-50%", y: "-50%", rotateX: -4 }}
+              initial={{ opacity: 0, scale: 0.82, rotateX: 8 }}
+              animate={{ opacity: 1, scale: 1,    rotateX: 0 }}
+              exit={{ opacity: 0, scale: 0.88,    rotateX: -4 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             >
-              {/* Top glow line */}
-              <div className="h-px w-full" style={{ background: `linear-gradient(90deg,transparent,${perf.color},rgba(255,255,255,0.3),${perf.color},transparent)` }} />
+              <DragHandle3D color={perf.color} title="OPERATION CENTER" onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart} onClose={() => setOpen(false)} />
 
-              {/* Animated scan beam across window */}
+              {/* Animated scan beam */}
               <div className="absolute inset-x-0 top-0 h-full pointer-events-none breathe"
                 style={{ background: `linear-gradient(180deg,${perf.color}06,transparent 40%)`,
                   "--pulse-hi": "0.6", "--pulse-lo": "0.2" } as React.CSSProperties} />
 
               {/* Corner brackets */}
-              {[["top-2 left-2 border-t border-l","top"],["top-2 right-2 border-t border-r","top"],
-                ["bottom-2 left-2 border-b border-l","bot"],["bottom-2 right-2 border-b border-r","bot"]].map(([cls], i) => (
+              {[["top-10 left-2 border-t border-l"],["top-10 right-2 border-t border-r"],
+                ["bottom-2 left-2 border-b border-l"],["bottom-2 right-2 border-b border-r"]].map(([cls], i) => (
                 <span key={i} className={`absolute w-4 h-4 pointer-events-none ${cls}`} style={{ borderColor: perf.color + "60" }} />
               ))}
 
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 pt-4 pb-3 relative">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <motion.div className="w-8 h-8 rounded-xl flex items-center justify-center"
-                      style={{ background: `${perf.color}18`, border: `1px solid ${perf.color}45` }}>
-                      <div className="w-3 h-3 rounded-full pulse-dot"
-                        style={{ background: perf.color, boxShadow: `0 0 12px ${perf.color}`, animationDuration: "1.4s" }} />
-                    </motion.div>
-                  </div>
-                  <div>
-                    <div className="text-[9px] font-black tracking-[0.4em] uppercase" style={{ color: "rgba(255,255,255,0.25)" }}>OPERATION CENTER</div>
-                    <div className="text-[15px] font-black tracking-wide" style={{ color: perf.color }}>
-                      {perf.label} · {wflowMode.toUpperCase()}
-                    </div>
-                  </div>
+              {/* Sub-header: active state */}
+              <div className="flex items-center gap-3 px-5 pt-3 pb-2">
+                <motion.div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${perf.color}18`, border: `1px solid ${perf.color}45` }}>
+                  <div className="w-2.5 h-2.5 rounded-full pulse-dot"
+                    style={{ background: perf.color, boxShadow: `0 0 10px ${perf.color}`, animationDuration: "1.4s" }} />
+                </motion.div>
+                <div className="text-[13px] font-black tracking-wide" style={{ color: perf.color }}>
+                  {perf.label} · {wflowMode.toUpperCase()}
                 </div>
-                <motion.button
-                  onClick={() => setOpen(false)}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center text-[14px] font-bold"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.4)" }}
-                  whileHover={{ background: "rgba(226,18,39,0.15)", borderColor: "rgba(226,18,39,0.4)", color: "#e21227" }}
-                  whileTap={{ scale: 0.92 }}
-                >×</motion.button>
               </div>
 
               <div className="mx-5 h-px" style={{ background: `linear-gradient(90deg,transparent,${perf.color}30,transparent)` }} />
@@ -1024,16 +1092,8 @@ function ModelSelector3D({
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const btnRef = useRef<HTMLButtonElement>(null);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const { pos: dragPos, rootRef: dragRef, onDragMouseDown, onDragTouchStart } = useDraggable("mr7-model-win", { x: 20, y: 80 });
   const [modelOff, setModelOff] = useState(() => localStorage.getItem("mr7-model-off") === "1");
-
-  function openWindow() {
-    if (btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect();
-      setPos({ top: r.bottom + 8, left: Math.min(r.left, window.innerWidth - 346) });
-    }
-    setOpen(o => !o);
-  }
 
   useEffect(() => {
     if (!open) return;
@@ -1053,7 +1113,7 @@ function ModelSelector3D({
     <>
       <motion.button
         ref={btnRef}
-        onClick={openWindow}
+        onClick={() => setOpen(o => !o)}
         aria-label={`${t("top.switchModel")} — ${active.id}`}
         className="flex-shrink-0 flex items-center gap-2 px-2 py-1 rounded-xl relative overflow-hidden"
         style={{
@@ -1103,9 +1163,10 @@ function ModelSelector3D({
               onClick={() => setOpen(false)} />
 
             <motion.div
+              ref={dragRef}
               className="fixed z-[1997] rounded-2xl overflow-hidden"
               style={{
-                top: pos.top, left: pos.left,
+                top: dragPos.y, left: dragPos.x,
                 width: 338,
                 maxHeight: "min(76vh, 600px)",
                 background: "linear-gradient(160deg, rgba(6,4,14,0.99) 0%, rgba(4,2,10,0.99) 100%)",
@@ -1117,57 +1178,48 @@ function ModelSelector3D({
               exit={{ opacity: 0, scale: 0.92, y: -10 }}
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,#e21227,rgba(255,100,100,0.5),transparent)" }} />
+              <DragHandle3D color="#e21227" title="AI MODEL SELECT" onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart} onClose={() => setOpen(false)} />
+
               {/* Scan sweep */}
               <div className="absolute inset-x-0 top-0 h-full pointer-events-none breathe"
                 style={{ background: "linear-gradient(180deg,rgba(226,18,39,0.04),transparent 35%)",
                   "--pulse-hi": "0.7", "--pulse-lo": "0.3" } as React.CSSProperties} />
               {/* Corner brackets */}
-              {[["top-2 left-2 border-t border-l"],["top-2 right-2 border-t border-r"],["bottom-2 left-2 border-b border-l"],["bottom-2 right-2 border-b border-r"]].map(([cls], i) => (
+              {[["top-10 left-2 border-t border-l"],["top-10 right-2 border-t border-r"],["bottom-2 left-2 border-b border-l"],["bottom-2 right-2 border-b border-r"]].map(([cls], i) => (
                 <span key={i} className={`absolute w-3 h-3 pointer-events-none ${cls}`} style={{ borderColor: "rgba(226,18,39,0.45)" }} />
               ))}
 
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 pt-3 pb-2">
-                <div className="flex items-center gap-2">
-                  <div className="text-[8px] font-black tracking-[0.5em] uppercase" style={{ color: "rgba(226,18,39,0.5)" }}>AI MODEL SELECT</div>
-                  {/* OFF toggle button */}
-                  <motion.button
-                    onClick={() => {
-                      const next = !modelOff;
-                      setModelOff(next);
-                      localStorage.setItem("mr7-model-off", next ? "1" : "0");
-                      toast({ description: next ? "AI Model disabled — responses paused." : "AI Model enabled." });
-                    }}
-                    className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[8px] font-black tracking-widest relative overflow-hidden"
-                    style={{
-                      background: modelOff ? "rgba(255,45,85,0.18)" : "rgba(34,197,94,0.12)",
-                      border: `1px solid ${modelOff ? "rgba(255,45,85,0.5)" : "rgba(34,197,94,0.4)"}`,
-                      color: modelOff ? "#ff2d55" : "#22c55e",
-                      boxShadow: modelOff ? "0 0 12px rgba(255,45,85,0.3), inset 0 0 8px rgba(255,45,85,0.1)" : "0 0 10px rgba(34,197,94,0.25), inset 0 0 6px rgba(34,197,94,0.08)",
-                    }}
-                    whileHover={{ scale: 1.08 }}
-                    whileTap={{ scale: 0.92 }}
-                    title={modelOff ? "Click to enable AI Model" : "Click to disable AI Model"}
+              {/* Sub-header: ON/OFF toggle */}
+              <div className="flex items-center gap-2 px-4 pt-2 pb-2">
+                <motion.button
+                  onClick={() => {
+                    const next = !modelOff;
+                    setModelOff(next);
+                    localStorage.setItem("mr7-model-off", next ? "1" : "0");
+                    toast({ description: next ? "AI Model disabled — responses paused." : "AI Model enabled." });
+                  }}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[8px] font-black tracking-widest relative overflow-hidden"
+                  style={{
+                    background: modelOff ? "rgba(255,45,85,0.18)" : "rgba(34,197,94,0.12)",
+                    border: `1px solid ${modelOff ? "rgba(255,45,85,0.5)" : "rgba(34,197,94,0.4)"}`,
+                    color: modelOff ? "#ff2d55" : "#22c55e",
+                    boxShadow: modelOff ? "0 0 12px rgba(255,45,85,0.3)" : "0 0 10px rgba(34,197,94,0.25)",
+                  }}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
+                  title={modelOff ? "Click to enable AI Model" : "Click to disable AI Model"}
+                >
+                  <motion.svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    className="w-2.5 h-2.5"
+                    animate={modelOff ? { opacity: [1, 0.4, 1] } : { opacity: 1 }}
+                    transition={{ duration: 1.2, repeat: modelOff ? Infinity : 0 }}
                   >
-                    {/* Power icon */}
-                    <motion.svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                      className="w-2.5 h-2.5"
-                      animate={modelOff ? { opacity: [1, 0.4, 1] } : { opacity: 1 }}
-                      transition={{ duration: 1.2, repeat: modelOff ? Infinity : 0 }}
-                    >
-                      <path d="M18.36 6.64a9 9 0 1 1-12.73 0" /><line x1="12" y1="2" x2="12" y2="12" />
-                    </motion.svg>
-                    {modelOff ? "OFF" : "ON"}
-                    {/* Shimmer sweep — CSS */}
-                    <span className="btn-shimmer-inner"
-                      style={{ background: `linear-gradient(90deg,transparent,${modelOff ? "rgba(255,45,85,0.3)" : "rgba(34,197,94,0.3)"},transparent)`, animationDuration: "1.8s" }} />
-                  </motion.button>
-                </div>
-                <motion.button onClick={() => setOpen(false)}
-                  className="w-6 h-6 rounded-lg flex items-center justify-center text-[12px]"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)" }}
-                  whileHover={{ background: "rgba(226,18,39,0.12)", color: "#e21227" }}>×</motion.button>
+                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0" /><line x1="12" y1="2" x2="12" y2="12" />
+                  </motion.svg>
+                  {modelOff ? "OFF" : "ON"}
+                  <span className="btn-shimmer-inner"
+                    style={{ background: `linear-gradient(90deg,transparent,${modelOff ? "rgba(255,45,85,0.3)" : "rgba(34,197,94,0.3)"},transparent)`, animationDuration: "1.8s" }} />
+                </motion.button>
               </div>
               {/* Model disabled overlay banner */}
               {modelOff && (
