@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
+import { PERSONA_PRESETS } from "./modals/PersonaEditorModal";
 
 // ── QUANTUM PERSONA 3D — Maximum Quality Neural Brain Orb v3 ──────────────────
 // 88-node fibonacci sphere + DNA helix spine + 8 orbital rings
@@ -489,74 +490,243 @@ interface QuantumPersona3DProps {
   onOpenPersonaManager?: () => void;
 }
 
+const PERSONA_CAT_COLORS: Record<string, string> = {
+  general:    "#22c55e",
+  uncensored: "#f59e0b",
+  security:   "#e21227",
+  specialist: "#6366f1",
+  mastero:    "#a78bfa",
+};
+
 export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps) {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const [hover, setHover] = useState(false);
-  const [open,  setOpen]  = useState(false);
+  const [showPanel, setShowPanel] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const activePersona = state.activePersona ?? "default";
-  const PERSONA_COLORS: Record<string, string> = {
-    general:    "#22c55e",
-    uncensored: "#f59e0b",
-    security:   "#e21227",
-    specialist: "#6366f1",
-    mastero:    "#a78bfa",
-  };
-  const activeColor = PERSONA_COLORS[activePersona] ?? "#a78bfa";
+  const activePresetId = state.settings?.activePersonaPreset ?? "default";
+  const activePreset = PERSONA_PRESETS.find(p => p.id === activePresetId) ?? PERSONA_PRESETS[0];
+  const activeColor = PERSONA_CAT_COLORS[activePersona] ?? PERSONA_CAT_COLORS[activePreset?.category ?? ""] ?? "#a78bfa";
 
-  function handleClick() {
-    setOpen(o => !o);
-    if (onOpenPersonaManager) onOpenPersonaManager();
-  }
+  useEffect(() => {
+    if (!showPanel) return;
+    const h = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setShowPanel(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [showPanel]);
+
+  useEffect(() => {
+    if (!showPanel) return;
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") setShowPanel(false); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [showPanel]);
+
+  const topPresets = PERSONA_PRESETS.slice(0, 10);
 
   return (
-    <motion.div
-      onClick={handleClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      className="relative flex-shrink-0 rounded-full cursor-pointer select-none"
-      style={{
-        width: 36, height: 36,
-        boxShadow: hover || open
-          ? `0 0 22px ${activeColor}80, 0 0 44px ${activeColor}35, 0 0 10px ${activeColor}55, inset 0 0 8px ${activeColor}18`
-          : `0 0 12px ${activeColor}35, 0 0 24px ${activeColor}15`,
-        border: `2px solid ${hover || open ? activeColor+"99" : activeColor+"35"}`,
-        borderRadius: "50%",
-        background: `radial-gradient(circle at 38% 38%, ${activeColor}22, rgba(3,3,10,0.95))`,
-        transition: "box-shadow 0.22s, border-color 0.22s",
-      }}
-      whileHover={{ scale: 1.10, y: -2 }}
-      whileTap={{ scale: 0.88 }}
-      transition={{ type: "spring", stiffness: 540, damping: 24 }}
-      title={`مدير الشخصيات — ${activePersona}`}
-      aria-label="مدير الشخصيات"
-    >
-      <QuantumBrain3D open={open} hover={hover} activeColor={activeColor} />
-
-      {/* Active indicator — dual ring pulse */}
+    <div ref={panelRef} className="relative flex-shrink-0">
       <motion.div
-        className="absolute bottom-0.5 right-0.5 w-2 h-2 rounded-full"
-        style={{ background: activeColor, boxShadow: `0 0 10px ${activeColor}` }}
-        animate={{ opacity: [1, 0.30, 1], scale: [1, 1.45, 1] }}
-        transition={{ duration: 1.8, repeat: Infinity }}
-      />
-      <motion.div
-        className="absolute bottom-0 right-0 w-3 h-3 rounded-full border"
-        style={{ borderColor: activeColor + "60" }}
-        animate={{ opacity: [0.6, 0, 0.6], scale: [1, 1.8, 1] }}
-        transition={{ duration: 1.8, repeat: Infinity, delay: 0.4 }}
-      />
-
-      {/* Hover tooltip */}
-      <motion.div
-        initial={{ opacity: 0, y: 5, scale: 0.88 }}
-        animate={{ opacity: hover ? 1 : 0, y: hover ? 0 : 5, scale: hover ? 1 : 0.88 }}
-        transition={{ duration: 0.16 }}
-        className="absolute -bottom-6 left-1/2 -translate-x-1/2 pointer-events-none whitespace-nowrap"
-        style={{ fontSize: 8, fontWeight: 900, color: activeColor, letterSpacing: "0.12em", textShadow: `0 0 12px ${activeColor}` }}
+        onClick={() => setShowPanel(o => !o)}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        className="relative flex-shrink-0 rounded-full cursor-pointer select-none flex items-center justify-center"
+        style={{
+          width: 44, height: 44,
+          boxShadow: hover || showPanel
+            ? `0 0 28px ${activeColor}90, 0 0 56px ${activeColor}40, 0 0 12px ${activeColor}60, inset 0 0 10px ${activeColor}20`
+            : `0 0 16px ${activeColor}40, 0 0 32px ${activeColor}18`,
+          border: `2px solid ${hover || showPanel ? activeColor + "aa" : activeColor + "40"}`,
+          borderRadius: "50%",
+          background: `radial-gradient(circle at 38% 38%, ${activeColor}25, rgba(3,3,10,0.96))`,
+          transition: "box-shadow 0.22s, border-color 0.22s",
+        }}
+        whileHover={{ scale: 1.10, y: -2 }}
+        whileTap={{ scale: 0.88 }}
+        transition={{ type: "spring", stiffness: 540, damping: 24 }}
+        title={`شخصية AI — ${activePreset?.nameAr ?? activePersona}`}
+        aria-label="شخصية AI"
       >
-        PERSONA
+        <QuantumBrain3D open={showPanel} hover={hover} activeColor={activeColor} />
+
+        {/* Active indicator — dual ring pulse */}
+        <motion.div
+          className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 rounded-full"
+          style={{ background: activeColor, boxShadow: `0 0 10px ${activeColor}` }}
+          animate={{ opacity: [1, 0.30, 1], scale: [1, 1.45, 1] }}
+          transition={{ duration: 1.8, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border"
+          style={{ borderColor: activeColor + "60" }}
+          animate={{ opacity: [0.6, 0, 0.6], scale: [1, 1.8, 1] }}
+          transition={{ duration: 1.8, repeat: Infinity, delay: 0.4 }}
+        />
+
+        {/* Hover tooltip */}
+        <motion.div
+          initial={{ opacity: 0, y: 5, scale: 0.88 }}
+          animate={{ opacity: hover && !showPanel ? 1 : 0, y: hover && !showPanel ? 0 : 5, scale: hover && !showPanel ? 1 : 0.88 }}
+          transition={{ duration: 0.16 }}
+          className="absolute -bottom-7 left-1/2 -translate-x-1/2 pointer-events-none whitespace-nowrap"
+          style={{ fontSize: 8, fontWeight: 900, color: activeColor, letterSpacing: "0.12em", textShadow: `0 0 12px ${activeColor}` }}
+        >
+          PERSONA
+        </motion.div>
       </motion.div>
-    </motion.div>
+
+      {/* ── FLOATING PERSONA PANEL ── */}
+      <AnimatePresence>
+        {showPanel && (
+          <>
+            <motion.div
+              className="fixed inset-0 z-[9988]"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              style={{ background: "rgba(0,0,0,0.50)", backdropFilter: "blur(3px)" }}
+              onClick={() => setShowPanel(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: -14 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: -12 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                position: "fixed",
+                top: "5vh",
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 9989,
+                width: "clamp(320px, 38vw, 480px)",
+                maxHeight: "82vh",
+                background: "linear-gradient(160deg, rgba(4,2,14,0.99) 0%, rgba(2,1,8,0.99) 60%, rgba(6,2,16,0.99) 100%)",
+                border: `1px solid ${activeColor}40`,
+                borderRadius: 20,
+                boxShadow: `0 0 120px ${activeColor}20, 0 0 50px ${activeColor}10, 0 32px 80px rgba(0,0,0,0.96), inset 0 1px 0 ${activeColor}18`,
+                backdropFilter: "blur(40px)",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {/* Top accent */}
+              <div className="h-[2px]" style={{ background: `linear-gradient(90deg, transparent, ${activeColor}, transparent)` }} />
+              {/* Corner brackets */}
+              <span className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 pointer-events-none rounded-tl" style={{ borderColor: `${activeColor}70` }} />
+              <span className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 pointer-events-none rounded-tr" style={{ borderColor: `${activeColor}70` }} />
+              <span className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 pointer-events-none rounded-bl" style={{ borderColor: `${activeColor}40` }} />
+              <span className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 pointer-events-none rounded-br" style={{ borderColor: `${activeColor}40` }} />
+
+              {/* Header */}
+              <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: `1px solid ${activeColor}12` }}>
+                <div>
+                  <div className="text-[10px] font-black tracking-[0.28em] uppercase font-mono" style={{ color: `${activeColor}cc` }}>QUANTUM PERSONA</div>
+                  <div className="text-sm font-bold text-white mt-0.5">اختر شخصية AI</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <motion.div className="w-2 h-2 rounded-full" style={{ background: activeColor, boxShadow: `0 0 8px ${activeColor}` }}
+                    animate={{ opacity: [0.5, 1], scale: [0.9, 1.1] }} transition={{ duration: 1.2, repeat: Infinity, repeatType: "reverse" }} />
+                  <span className="text-[8px] font-mono mr-1" style={{ color: `${activeColor}80` }}>LIVE</span>
+                  <motion.button onClick={() => setShowPanel(false)}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center ml-2"
+                    style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)" }}
+                    whileHover={{ background: "rgba(255,255,255,0.12)" }}>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  </motion.button>
+                </div>
+              </div>
+
+              {/* Active persona card */}
+              <div className="mx-4 mt-3 mb-2 rounded-2xl p-3 flex items-center gap-3"
+                style={{ background: `${activeColor}10`, border: `1px solid ${activeColor}28` }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${activeColor}18`, border: `1px solid ${activeColor}30` }}>
+                  <QuantumBrain3D open={true} hover={false} activeColor={activeColor} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[9px] font-bold tracking-widest uppercase mb-0.5" style={{ color: `${activeColor}80` }}>{activePreset?.category ?? activePersona} · نشط</div>
+                  <div className="text-sm font-black text-white truncate">{activePreset?.nameAr ?? activePersona}</div>
+                  <div className="text-[10px] text-white/40 truncate mt-0.5">{activePreset?.descAr?.slice(0, 42) ?? "الشخصية الافتراضية"}…</div>
+                </div>
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: activeColor, boxShadow: `0 0 8px ${activeColor}` }} />
+              </div>
+
+              {/* Presets grid */}
+              <div className="px-4 pb-1">
+                <div className="text-[8px] font-bold tracking-[0.22em] uppercase mb-2" style={{ color: "rgba(255,255,255,0.28)" }}>تبديل سريع</div>
+                <div className="grid grid-cols-2 gap-1.5 max-h-[40vh] overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: `${activeColor}30 transparent` }}>
+                  {topPresets.map(preset => {
+                    const pc = PERSONA_CAT_COLORS[preset.category] ?? "#a78bfa";
+                    const isActive = preset.id === activePresetId;
+                    const Icon = preset.icon;
+                    return (
+                      <motion.button
+                        key={preset.id}
+                        onClick={() => {
+                          dispatch({ type: "SET_SETTINGS", patch: { activePersonaPreset: preset.id } } as Parameters<typeof dispatch>[0]);
+                          setShowPanel(false);
+                        }}
+                        className="flex items-center gap-2 px-2.5 py-2 rounded-xl text-left"
+                        style={{
+                          background: isActive ? `${pc}1e` : "rgba(255,255,255,0.03)",
+                          border: `1px solid ${isActive ? pc + "45" : "rgba(255,255,255,0.07)"}`,
+                          boxShadow: isActive ? `0 0 14px ${pc}25` : "none",
+                        }}
+                        whileHover={{ scale: 1.02, background: `${pc}12` }}
+                        whileTap={{ scale: 0.97 }}
+                      >
+                        <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{ background: `${pc}20`, border: `1px solid ${pc}30` }}>
+                          <Icon className="w-3.5 h-3.5" style={{ color: `${pc}e0` }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[10px] font-bold truncate" style={{ color: isActive ? pc : "rgba(255,255,255,0.65)" }}>
+                            {preset.nameAr.slice(0, 14)}
+                          </div>
+                          <div className="text-[8px] truncate mt-0.5" style={{ color: "rgba(255,255,255,0.28)" }}>
+                            {preset.category}
+                          </div>
+                        </div>
+                        {isActive && <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: pc, boxShadow: `0 0 6px ${pc}` }} />}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="px-4 py-3 flex gap-2 mt-1" style={{ borderTop: `1px solid ${activeColor}10` }}>
+                {onOpenPersonaManager && (
+                  <motion.button
+                    onClick={() => { setShowPanel(false); onOpenPersonaManager(); }}
+                    className="flex-1 rounded-xl py-2.5 text-[10px] font-black tracking-wider flex items-center justify-center gap-1.5"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(226,18,39,0.18), rgba(226,18,39,0.08))",
+                      border: "1px solid rgba(226,18,39,0.35)",
+                      color: "#e21227",
+                    }}
+                    whileHover={{ scale: 1.02, boxShadow: "0 0 24px rgba(226,18,39,0.25)" }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
+                      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                      <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    مدير الشخصيات
+                  </motion.button>
+                )}
+              </div>
+
+              {/* Bottom stripe */}
+              <div className="h-px" style={{ background: `linear-gradient(90deg, transparent, ${activeColor}50, transparent)` }} />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

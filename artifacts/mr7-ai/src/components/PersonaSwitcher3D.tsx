@@ -112,7 +112,7 @@ interface PersonaSwitcher3DProps {
 }
 
 export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }: PersonaSwitcher3DProps) {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const [showPanel, setShowPanel] = useState(false);
   const [hoverPreset, setHoverPreset] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -162,14 +162,14 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
         onClick={openPanel}
         className="relative flex items-center justify-center rounded-full transition-all"
         style={{
-          width: 36, height: 36,
+          width: 44, height: 44,
           background: showPanel || isCustomActive
-            ? `radial-gradient(circle at 38% 38%, rgba(${cr},${cg},${cb},0.28), rgba(0,0,0,0.92))`
-            : `radial-gradient(circle at 38% 38%, rgba(${cr},${cg},${cb},0.10), rgba(0,0,0,0.85))`,
-          border: `2px solid rgba(${cr},${cg},${cb},${showPanel || isCustomActive ? 0.65 : 0.25})`,
+            ? `radial-gradient(circle at 38% 38%, rgba(${cr},${cg},${cb},0.32), rgba(0,0,0,0.95))`
+            : `radial-gradient(circle at 38% 38%, rgba(${cr},${cg},${cb},0.14), rgba(0,0,0,0.88))`,
+          border: `2px solid rgba(${cr},${cg},${cb},${showPanel || isCustomActive ? 0.75 : 0.30})`,
           boxShadow: showPanel || isCustomActive
-            ? `0 0 22px rgba(${cr},${cg},${cb},0.40), 0 0 50px rgba(${cr},${cg},${cb},0.14), inset 0 0 10px rgba(${cr},${cg},${cb},0.09)`
-            : `0 0 12px rgba(${cr},${cg},${cb},0.18), 0 0 24px rgba(${cr},${cg},${cb},0.07)`,
+            ? `0 0 28px rgba(${cr},${cg},${cb},0.50), 0 0 60px rgba(${cr},${cg},${cb},0.18), inset 0 0 14px rgba(${cr},${cg},${cb},0.10)`
+            : `0 0 16px rgba(${cr},${cg},${cb},0.22), 0 0 32px rgba(${cr},${cg},${cb},0.08)`,
         }}
         whileHover={{ scale: 1.10, y: -1 }}
         whileTap={{ scale: 0.90 }}
@@ -282,8 +282,8 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
                       onMouseEnter={() => setHoverPreset(preset.id)}
                       onMouseLeave={() => setHoverPreset(null)}
                       onClick={() => {
+                        dispatch({ type: "SET_SETTINGS", patch: { activePersonaPreset: preset.id } } as Parameters<typeof dispatch>[0]);
                         setShowPanel(false);
-                        onOpenPersonaEditor();
                       }}
                       className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left transition-all"
                       style={{

@@ -1134,21 +1134,31 @@ export function AIQuickSetupButton() {
           });
         }}
         style={{
-          width: 36, height: 36,
+          width: 44, height: 44,
           x: magPos.x, y: magPos.y,
           background: open
-            ? "radial-gradient(circle at 38% 38%, rgba(0,255,136,0.28), rgba(0,18,14,0.95))"
-            : "radial-gradient(circle at 38% 38%, rgba(0,255,136,0.12), rgba(0,10,8,0.90))",
-          border: `2px solid rgba(0,255,136,${open ? 0.68 : 0.30})`,
+            ? "radial-gradient(circle at 38% 38%, rgba(0,255,136,0.32), rgba(0,18,14,0.97))"
+            : "radial-gradient(circle at 38% 38%, rgba(0,255,136,0.15), rgba(0,10,8,0.92))",
+          border: `2px solid rgba(0,255,136,${open ? 0.78 : 0.38})`,
           boxShadow: open
-            ? "0 0 28px rgba(0,255,136,0.45), 0 0 56px rgba(0,229,255,0.14), inset 0 0 10px rgba(0,255,136,0.10)"
-            : "0 0 14px rgba(0,255,136,0.25), 0 0 28px rgba(0,229,255,0.07)",
+            ? "0 0 36px rgba(0,255,136,0.55), 0 0 70px rgba(0,229,255,0.18), inset 0 0 14px rgba(0,255,136,0.12)"
+            : "0 0 18px rgba(0,255,136,0.30), 0 0 36px rgba(0,229,255,0.09)",
           cursor: phase === "scanning" ? "wait" : "pointer",
         }}
         whileHover={{ scale: 1.10, y: -1 }}
         whileTap={{ scale: 0.90 }}
         aria-label="إعداد الذكاء الاصطناعي تلقائياً"
       >
+        {/* Idle outer orbit ring */}
+        <motion.span className="absolute inset-0 rounded-full pointer-events-none"
+          style={{ border: "1px solid rgba(0,255,136,0.22)", margin: "-5px" }}
+          animate={{ opacity: [0.22, 0.55, 0.22], scale: [1, 1.08, 1] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }} />
+        {/* Second orbit ring */}
+        <motion.span className="absolute inset-0 rounded-full pointer-events-none"
+          style={{ border: "1px dashed rgba(0,229,255,0.14)", margin: "-10px" }}
+          animate={{ rotate: [0, 360] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }} />
         {phase === "scanning" && (
           <motion.span className="absolute inset-0 rounded-full pointer-events-none"
             style={{ border: "1px solid rgba(0,229,255,0.9)" }}
@@ -1178,7 +1188,7 @@ export function AIQuickSetupButton() {
               left: "16px",
               top: "5vh",
               zIndex: 9999,
-              width: "clamp(220px, 28vw, 340px)",
+              width: "clamp(280px, 34vw, 420px)",
               maxHeight: "78vh",
               perspective: "1400px",
               transformStyle: "preserve-3d",

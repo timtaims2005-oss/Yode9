@@ -1162,19 +1162,29 @@ export function ProviderHealthBadge3D() {
           });
         }}
         style={{
-          width: 36, height: 36,
+          width: 44, height: 44,
           x: magPos2.x, y: magPos2.y,
           background: open
-            ? "radial-gradient(circle at 38% 38%, rgba(139,92,246,0.28), rgba(10,4,28,0.96))"
-            : "radial-gradient(circle at 38% 38%, rgba(139,92,246,0.14), rgba(8,4,20,0.92))",
-          border: `2px solid rgba(139,92,246,${open ? 0.72 : 0.35})`,
+            ? "radial-gradient(circle at 38% 38%, rgba(139,92,246,0.32), rgba(10,4,28,0.97))"
+            : "radial-gradient(circle at 38% 38%, rgba(139,92,246,0.18), rgba(8,4,20,0.94))",
+          border: `2px solid rgba(139,92,246,${open ? 0.82 : 0.42})`,
           boxShadow: open
-            ? "0 0 32px rgba(139,92,246,0.50), 0 0 64px rgba(167,139,250,0.18), inset 0 0 12px rgba(167,139,250,0.10)"
-            : "0 0 16px rgba(139,92,246,0.28), 0 0 32px rgba(167,139,250,0.09)",
+            ? "0 0 40px rgba(139,92,246,0.60), 0 0 80px rgba(167,139,250,0.22), inset 0 0 16px rgba(167,139,250,0.12)"
+            : "0 0 20px rgba(139,92,246,0.35), 0 0 40px rgba(167,139,250,0.12)",
         }}
         whileHover={{ scale: 1.10, y: -1 }} whileTap={{ scale: 0.90 }}
         aria-label="حالة اتصال المزوّد"
       >
+        {/* Idle outer orbit ring */}
+        <motion.span className="absolute inset-0 rounded-full pointer-events-none"
+          style={{ border: `1px solid rgba(139,92,246,${health === "healthy" ? 0.28 : health === "error" ? 0.0 : 0.18})`, margin: "-5px" }}
+          animate={{ opacity: [0.25, 0.60, 0.25], scale: [1, 1.08, 1] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }} />
+        {/* Health-status outer ring */}
+        <motion.span className="absolute inset-0 rounded-full pointer-events-none"
+          style={{ border: `1px dashed rgba(${health === "healthy" ? "34,197,94" : health === "error" ? "226,18,39" : "245,158,11"},0.20)`, margin: "-10px" }}
+          animate={{ rotate: [0, 360] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "linear" }} />
         <QuantumPlanet3D health={health} latency={latency} open={open} hover={planetHover} />
       </motion.button>
 
@@ -1198,7 +1208,7 @@ export function ProviderHealthBadge3D() {
               right: "16px",
               top: "5vh",
               zIndex: 9999,
-              width: "clamp(220px, 28vw, 340px)",
+              width: "clamp(280px, 34vw, 420px)",
               maxHeight: "78vh",
               perspective: "1400px",
               transformStyle: "preserve-3d",

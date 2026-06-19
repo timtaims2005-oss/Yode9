@@ -356,6 +356,45 @@ export default function LandingPage() {
           0%, 49% { opacity: 1; }
           50%, 100% { opacity: 0; }
         }
+        @keyframes cyberSweep {
+          0% { transform: translateX(-100%); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateX(100vw); opacity: 0; }
+        }
+        @keyframes floatOrb3D {
+          0%, 100% { transform: translateY(-50%) scale(1) rotateY(0deg); }
+          33% { transform: translateY(calc(-50% - 18px)) scale(1.02) rotateY(5deg); }
+          66% { transform: translateY(calc(-50% - 8px)) scale(0.99) rotateY(-3deg); }
+        }
+        @keyframes shimmerLine {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        @keyframes statsGlow {
+          0%, 100% { text-shadow: 0 0 20px rgba(226,18,39,0.4), 0 0 40px rgba(226,18,39,0.2); }
+          50% { text-shadow: 0 0 40px rgba(226,18,39,0.7), 0 0 80px rgba(226,18,39,0.3), 0 0 120px rgba(226,18,39,0.1); }
+        }
+        @keyframes borderGlow {
+          0%, 100% { box-shadow: 0 0 20px rgba(226,18,39,0.2), inset 0 0 20px rgba(226,18,39,0.05); }
+          50% { box-shadow: 0 0 40px rgba(226,18,39,0.4), 0 0 80px rgba(226,18,39,0.15), inset 0 0 30px rgba(226,18,39,0.08); }
+        }
+        @keyframes heroTitlePulse {
+          0%, 100% { filter: drop-shadow(0 0 20px rgba(226,18,39,0.5)); }
+          50% { filter: drop-shadow(0 0 40px rgba(226,18,39,0.8)) drop-shadow(0 0 80px rgba(226,18,39,0.3)); }
+        }
+        @keyframes neuralPulse {
+          0% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.05); }
+          100% { opacity: 0.3; transform: scale(1); }
+        }
+        .hero-orb-desktop {
+          animation: floatOrb3D 8s ease-in-out infinite;
+        }
+        @media (max-width: 1100px) {
+          .hero-orb-desktop { display: none !important; }
+          .hero-data-stream { display: none !important; }
+        }
         .neon-text-red {
           color: #e21227;
           text-shadow: 0 0 10px rgba(226,18,39,0.8), 0 0 30px rgba(226,18,39,0.4), 0 0 60px rgba(226,18,39,0.2);
@@ -515,13 +554,12 @@ export default function LandingPage() {
         {/* HoloCoreOrb — floating right side desktop */}
         <div style={{
           position: "absolute",
-          right: "clamp(2%, 6%, 120px)",
+          right: "clamp(2%, 6%, 100px)",
           top: "50%",
           transform: "translateY(-50%)",
           zIndex: 3,
-          opacity: 0.9,
+          opacity: 0.92,
           pointerEvents: "none",
-          display: "none",
         }} className="hero-orb-desktop">
           <HoloCoreOrb
             size={320}
@@ -749,22 +787,52 @@ export default function LandingPage() {
         {/* Stats */}
         <div style={{
           display: "flex",
-          gap: "40px",
+          gap: "0",
           marginTop: "60px",
           justifyContent: "center",
           flexWrap: "wrap",
+          background: "linear-gradient(135deg, rgba(226,18,39,0.05) 0%, rgba(0,0,0,0.4) 50%, rgba(226,18,39,0.05) 100%)",
+          border: "1px solid rgba(226,18,39,0.12)",
+          borderRadius: "20px",
+          backdropFilter: "blur(20px)",
+          padding: "6px",
+          maxWidth: "600px",
+          animation: "borderGlow 4s ease-in-out infinite",
         }}>
           {[
-            { value: counter.users.toLocaleString(), label: "باحث أمني نشط", icon: Activity },
-            { value: `${counter.attacks.toLocaleString()}+`, label: "هجوم محاكَى", icon: Crosshair },
-            { value: `${counter.uptime}%`, label: "وقت تشغيل", icon: Cpu },
-          ].map(({ value, label, icon: Icon }, i) => (
-            <div key={i} style={{ textAlign: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", marginBottom: "4px" }}>
-                <Icon style={{ width: "14px", height: "14px", color: "#e21227" }} />
-                <span style={{ fontSize: "clamp(22px, 4vw, 32px)", fontWeight: 800, color: "#fff", letterSpacing: "-1px" }}>{value}</span>
+            { value: counter.users.toLocaleString(), label: "باحث أمني", sublabel: "مستخدم نشط", icon: Activity, color: "#e21227" },
+            { value: `${counter.attacks.toLocaleString()}+`, label: "هجوم محاكَى", sublabel: "هذا الشهر", icon: Crosshair, color: "#ff6b35" },
+            { value: `${counter.uptime}%`, label: "وقت التشغيل", sublabel: "SLA مضمون", icon: Cpu, color: "#22c55e" },
+          ].map(({ value, label, sublabel, icon: Icon, color }, i) => (
+            <div key={i} style={{
+              flex: "1 1 160px",
+              textAlign: "center",
+              padding: "20px 24px",
+              borderRight: i < 2 ? "1px solid rgba(226,18,39,0.08)" : "none",
+              position: "relative",
+            }}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", marginBottom: "6px",
+              }}>
+                <div style={{
+                  width: "28px", height: "28px", borderRadius: "8px",
+                  background: `${color}15`,
+                  border: `1px solid ${color}30`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Icon style={{ width: "13px", height: "13px", color }} />
+                </div>
+                <span style={{
+                  fontSize: "clamp(20px, 3.5vw, 30px)",
+                  fontWeight: 900,
+                  color: "#fff",
+                  letterSpacing: "-1px",
+                  animation: "statsGlow 3s ease-in-out infinite",
+                  animationDelay: `${i * 0.5}s`,
+                }}>{value}</span>
               </div>
-              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.5px" }}>{label}</span>
+              <div style={{ fontSize: "12px", fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.3px" }}>{label}</div>
+              <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.22)", marginTop: "2px", fontFamily: "monospace" }}>{sublabel}</div>
             </div>
           ))}
         </div>
