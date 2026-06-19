@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useReducer, useState, useCallback } from "react";
+import { BootScreen } from "./components/BootScreen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -297,6 +298,7 @@ function AppContent() {
   const { t } = useT();
   const konamiRef = useRef<string[]>([]);
   const [godMode, setGodMode] = useState(false);
+  const [bootDone, setBootDone] = useState(false);
   const debounceMemRef = useRef<ReturnType<typeof setTimeout>|null>(null);
   const debouncePrefRef = useRef<ReturnType<typeof setTimeout>|null>(null);
 
@@ -542,6 +544,8 @@ function AppContent() {
   }
 
   return (
+    <>
+    {!bootDone && <BootScreen onDone={() => setBootDone(true)} />}
     <div className="flex h-[100dvh] w-full overflow-hidden text-foreground selection:bg-primary/30 dark">
       <Sidebar
         isOpen={modals.sidebar}
@@ -880,6 +884,7 @@ function AppContent() {
       {/* ── OMEGA AGENT — Autonomous Neural Command Center ── */}
       <OmegaAgentModal open={modals.omegaAgent} onOpenChange={(v) => mDispatch({type:'SET',id:'omegaAgent',value:v})} />
     </div>
+    </>
   );
 }
 

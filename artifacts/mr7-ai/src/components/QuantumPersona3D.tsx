@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { PERSONA_PRESETS } from "./modals/PersonaEditorModal";
@@ -504,7 +505,8 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
   const [showPanel, setShowPanel] = useState(false);
   const [qpTab, setQpTab] = useState<"neural"|"matrix"|"sync"|"config">("neural");
   const [qpSearch, setQpSearch] = useState("");
-  const panelRef = useRef<HTMLDivElement>(null);
+  const clickOutRef = useRef<HTMLDivElement>(null);
+  const { pos: dragPos, rootRef: panelRef, onDragMouseDown: onPanelDragDown } = useDraggable("mr7-qp3d-win", { x: Math.max(8, (window.innerWidth - 560) / 2), y: 50 });
 
   const activePersona = state.activePersona ?? "default";
   const activePresetId = state.settings?.activePersonaPreset ?? "default";
@@ -514,7 +516,7 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
   useEffect(() => {
     if (!showPanel) return;
     const h = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setShowPanel(false);
+      if (clickOutRef.current && !clickOutRef.current.contains(e.target as Node)) setShowPanel(false);
     };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
@@ -580,21 +582,17 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
         </motion.div>
       </motion.div>
 
-      {/* ── FLOATING PERSONA PANEL — QUANTUM v5 ── */}
+      {/* ── FLOATING PERSONA PANEL — QUANTUM v5 — Draggable Window ── */}
       <AnimatePresence>
         {showPanel && (
-          <>
-            <motion.div className="fixed inset-0 z-[9988]"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              style={{ background: "rgba(0,0,0,0.60)", backdropFilter: "blur(8px)" }}
-              onClick={() => setShowPanel(false)} />
             <motion.div
+              ref={panelRef as React.Ref<HTMLDivElement>}
               initial={{ opacity: 0, scale: 0.88, y: -20, rotateX: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
               exit={{ opacity: 0, scale: 0.90, y: -14, rotateX: 6 }}
               transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
               style={{
-                position: "fixed", top: "4vh", left: "50%", transform: "translateX(-50%)",
+                position: "fixed", top: dragPos.y, left: dragPos.x,
                 zIndex: 9989,
                 width: "clamp(360px, 44vw, 560px)", maxHeight: "88vh",
                 background: "linear-gradient(160deg, rgba(3,1,12,0.99) 0%, rgba(2,1,8,0.99) 60%, rgba(4,1,14,0.99) 100%)",
@@ -620,8 +618,8 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
               {/* Top accent */}
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg,transparent,${activeColor},#ffffff33,${activeColor},transparent)` }} />
 
-              {/* Header */}
-              <div className="px-5 py-3.5 flex items-center justify-between" style={{ borderBottom: `1px solid ${activeColor}14` }}>
+              {/* Header — drag handle */}
+              <div className="px-5 py-3.5 flex items-center justify-between cursor-move select-none" style={{ borderBottom: `1px solid ${activeColor}14` }} onMouseDown={onPanelDragDown}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: `${activeColor}18`, border: `1px solid ${activeColor}35` }}>
@@ -862,7 +860,6 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
               {/* Bottom stripe */}
               <div className="h-px" style={{ background: `linear-gradient(90deg,transparent,${activeColor}60,transparent)` }} />
             </motion.div>
-          </>
         )}
       </AnimatePresence>
     </div>

@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
+import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
 
@@ -1046,6 +1047,7 @@ export function ProviderHealthBadge3D() {
   const [history,  setHistory]   = useState<number[]>([]);
   const [checks,   setChecks]    = useState(0);
   const [open,     setOpen]      = useState(false);
+  const { pos: dragPos, rootRef: winRef, onDragMouseDown: onWinDragDown } = useDraggable("mr7-health-win", { x: Math.max(8, window.innerWidth - 440), y: Math.round(window.innerHeight * 0.05) });
   const [activeTab, setActiveTab] = useState<"status" | "matrix" | "shield" | "net" | "log" | "bench" | "pulse" | "globe">("status");
   const [eventLog,  setEventLog]  = useState<{ ts: number; msg: string; color: string }[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -1188,25 +1190,19 @@ export function ProviderHealthBadge3D() {
         <QuantumPlanet3D health={health} latency={latency} open={open} hover={planetHover} />
       </motion.button>
 
-      {/* ── POPUP PANEL ── */}
-      {open && (
-        <div
-          className="fixed inset-0 z-[9990]"
-          style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(2px)" }}
-          onClick={() => setOpen(false)}
-        />
-      )}
+      {/* ── DRAGGABLE POPUP WINDOW ── */}
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={winRef as React.Ref<HTMLDivElement>}
             initial={{ opacity: 0, x: 32, scale: 0.93 }}
             animate={{ opacity: 1, x: 0,  scale: 1    }}
             exit   ={{ opacity: 0, x: 32, scale: 0.94 }}
             transition={{ duration: 0.30, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: "fixed",
-              right: "16px",
-              top: "5vh",
+              left: dragPos.x,
+              top: dragPos.y,
               zIndex: 9999,
               width: "clamp(280px, 34vw, 420px)",
               maxHeight: "78vh",
@@ -1226,9 +1222,9 @@ export function ProviderHealthBadge3D() {
               }}>
               <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,#8b5cf6,#c084fc,transparent)" }} />
 
-              {/* Header */}
-              <div className="px-4 py-3 flex items-center justify-between"
-                style={{ borderBottom: "1px solid rgba(139,92,246,0.09)" }}>
+              {/* Header — drag handle */}
+              <div className="px-4 py-3 flex items-center justify-between cursor-move select-none"
+                style={{ borderBottom: "1px solid rgba(139,92,246,0.09)" }} onMouseDown={onWinDragDown}>
                 <div>
                   <div className="text-[10px] font-black tracking-[0.22em] uppercase font-mono"
                     style={{ color: "rgba(167,139,250,0.9)" }}>NEXUS HEALTH</div>

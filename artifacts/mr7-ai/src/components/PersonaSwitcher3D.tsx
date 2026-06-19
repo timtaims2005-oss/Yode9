@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { PERSONA_PRESETS, type PersonaPreset } from "./modals/PersonaEditorModal";
@@ -229,6 +230,7 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
   const [psSearch, setPsSearch] = useState("");
   const [psCategory, setPsCategory] = useState<"all"|"general"|"security"|"uncensored"|"specialist">("all");
   const ref = useRef<HTMLDivElement>(null);
+  const { pos: dragPos, rootRef: panelRef, onDragMouseDown } = useDraggable("mr7-ps3d-win", { x: Math.max(8, window.innerWidth - 580), y: 60 });
 
   const activePresetId = state.settings.activePersonaPreset ?? "default";
   const activePreset = PERSONA_PRESETS.find(p => p.id === activePresetId) ?? PERSONA_PRESETS[0];
@@ -300,27 +302,19 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
         )}
       </motion.button>
 
-      {/* 3D External Floating Window — UPGRADED v4 */}
+      {/* 3D External Draggable Window — UPGRADED v4 */}
       <AnimatePresence>
         {showPanel && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              className="fixed inset-0 z-[1994]"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
-              onClick={() => setShowPanel(false)}
-            />
-
           <motion.div
+            ref={panelRef as React.Ref<HTMLDivElement>}
             initial={{ opacity: 0, scale: 0.90, y: -18, rotateX: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
             exit={{ opacity: 0, scale: 0.90, y: -14, rotateX: 6 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: "fixed",
-              top: Math.max(8, Math.min(panelPos.top, window.innerHeight - 620)),
-              left: Math.max(8, Math.min(panelPos.left - 100, window.innerWidth - 560)),
+              top: dragPos.y,
+              left: dragPos.x,
               zIndex: 1995,
               width: "clamp(340px, 40vw, 560px)",
               background: "linear-gradient(160deg, rgba(4,2,12,0.99) 0%, rgba(2,1,8,0.99) 55%, rgba(5,2,14,0.99) 100%)",
@@ -349,9 +343,10 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
             <div className="h-[2px] w-full"
               style={{ background: `linear-gradient(90deg, transparent, rgba(${cr},${cg},${cb},0.9), rgba(255,255,255,0.3), rgba(${cr},${cg},${cb},0.9), transparent)` }} />
 
-            {/* Header */}
-            <div className="px-4 pt-3 pb-2.5 flex items-center justify-between"
-              style={{ borderBottom: `1px solid rgba(${cr},${cg},${cb},0.10)` }}>
+            {/* Header — drag handle */}
+            <div className="px-4 pt-3 pb-2.5 flex items-center justify-between cursor-move select-none"
+              style={{ borderBottom: `1px solid rgba(${cr},${cg},${cb},0.10)` }}
+              onMouseDown={onDragMouseDown}>
               <div className="flex items-center gap-3">
                 <PersonaOrb color={color} pulse={true} size={36} />
                 <div>
@@ -639,7 +634,6 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
             {/* Bottom stripe */}
             <div className="h-px w-full" style={{ background: `linear-gradient(90deg, transparent, rgba(${cr},${cg},${cb},0.55), transparent)` }} />
           </motion.div>
-          </>
         )}
       </AnimatePresence>
     </div>

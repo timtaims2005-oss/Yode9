@@ -1089,22 +1089,91 @@ const ALL_DESTINATIONS = [
   { label: "Chat", value: "CHAT", color: "#e21227" },
 ];
 
+// ─── Chain Builder 3D — Visual Node Graph Pipeline Editor ─────────────────────
+
+const GRAPH_NODES = [
+  { id: "KALIAGENT",    label: "KaliAgent",    color: "#ff4d4d", x: 80,  y: 60  },
+  { id: "NEXUS",        label: "NEXUS",         color: "#fbbf24", x: 80,  y: 160 },
+  { id: "JARVIS",       label: "JARVIS",         color: "#00e5ff", x: 80,  y: 260 },
+  { id: "PARSELTONGUE", label: "Parseltongue",  color: "#00ff41", x: 80,  y: 360 },
+  { id: "RAGFLOW",      label: "RAGFlow",        color: "#3b82f6", x: 80,  y: 460 },
+  { id: "TEAMAGENT",    label: "TeamAgent",      color: "#f97316", x: 320, y: 60  },
+  { id: "SKILLSLIBRARY",label: "SkillsLib",      color: "#10b981", x: 320, y: 160 },
+  { id: "AGENTIDE",     label: "OpenGravity",   color: "#a78bfa", x: 320, y: 260 },
+  { id: "HERMES",       label: "Hermes",         color: "#fbbf24", x: 320, y: 360 },
+  { id: "GRAPHIFY",     label: "Graphify",       color: "#a78bfa", x: 320, y: 460 },
+  { id: "CHAT",         label: "Chat",           color: "#e21227", x: 560, y: 180 },
+  { id: "GEMINI",       label: "GeminiCLI",      color: "#6366f1", x: 560, y: 340 },
+] as const;
+
+interface NodePos { x: number; y: number }
+
 function ChainBuilderTab() {
   const [rules, setRules] = useState<ChainRule[]>(() => pipeline.getRules());
+  const [nodePos, setNodePos] = useState<Record<string, NodePos>>(() =>
+    Object.fromEntries(GRAPH_NODES.map(n => [n.id, { x: n.x, y: n.y }]))
+  );
+  const [draggingNode, setDraggingNode] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState({ dx: 0, dy: 0 });
+  const [drawingFrom, setDrawingFrom] = useState<string | null>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    sourceModule: "*",
-    destinationModule: "KALIAGENT",
-    destinationColor: "#ff4d4d",
-    triggerKeyword: "",
-    enabled: true,
-  });
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [form, setForm] = useState({ name: "", sourceModule: "*", destinationModule: "KALIAGENT", destinationColor: "#ff4d4d", triggerKeyword: "", enabled: true });
+  const svgRef = useRef<SVGSVGElement>(null);
+  const animRef = useRef(0);
+  const particlePhase = useRef(0);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => pipeline.subscribeRules(() => setRules(pipeline.getRules())), []);
 
   useEffect(() => {
-    return pipeline.subscribeRules(() => setRules(pipeline.getRules()));
+    let raf = 0;
+    function loop() {
+      particlePhase.current = (particlePhase.current + 0.012) % 1;
+      setTick(t => t + 1);
+      raf = requestAnimationFrame(loop);
+    }
+    raf = requestAnimationFrame(loop);
+    animRef.current = raf;
+    return () => cancelAnimationFrame(raf);
   }, []);
+
+  const getSVGPos = (e: React.MouseEvent) => {
+    const svg = svgRef.current;
+    if (!svg) return { x: 0, y: 0 };
+    const rect = svg.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  };
+
+  const onNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
+    e.stopPropagation();
+    if (e.button === 2) { setDrawingFrom(nodeId); return; }
+    const pos = getSVGPos(e);
+    const np = nodePos[nodeId] ?? { x: 0, y: 0 };
+    setDraggingNode(nodeId);
+    setDragOffset({ dx: pos.x - np.x, dy: pos.y - np.y });
+  };
+
+  const onSVGMouseMove = (e: React.MouseEvent) => {
+    const pos = getSVGPos(e);
+    setMousePos(pos);
+    if (draggingNode) {
+      setNodePos(np => ({ ...np, [draggingNode]: { x: pos.x - dragOffset.dx, y: pos.y - dragOffset.dy } }));
+    }
+  };
+
+  const onSVGMouseUp = (e: React.MouseEvent) => {
+    if (drawingFrom && hoveredNode && hoveredNode !== drawingFrom) {
+      const src = GRAPH_NODES.find(n => n.id === drawingFrom);
+      const dst = GRAPH_NODES.find(n => n.id === hoveredNode);
+      if (src && dst) {
+        pipeline.addRule({ name: `${src.label} → ${dst.label}`, sourceModule: drawingFrom, destinationModule: hoveredNode, destinationColor: dst.color, triggerKeyword: "", enabled: true });
+      }
+    }
+    setDraggingNode(null);
+    setDrawingFrom(null);
+  };
 
   function saveRule() {
     if (!form.name.trim()) return;
@@ -1113,98 +1182,90 @@ function ChainBuilderTab() {
     setForm({ name: "", sourceModule: "*", destinationModule: "KALIAGENT", destinationColor: "#ff4d4d", triggerKeyword: "", enabled: true });
   }
 
-  function deleteRule(id: string) { pipeline.deleteRule(id); }
-  function toggleRule(id: string, enabled: boolean) { pipeline.updateRule(id, { enabled }); }
+  const getBezierPath = (x1: number, y1: number, x2: number, y2: number) => {
+    const mx = (x1 + x2) / 2;
+    return `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+  };
+
+  const getPointOnBezier = (x1: number, y1: number, x2: number, y2: number, t: number) => {
+    const mx = (x1 + x2) / 2;
+    const mt = 1 - t;
+    const x = mt*mt*mt*x1 + 3*mt*mt*t*mx + 3*mt*t*t*mx + t*t*t*x2;
+    const y = mt*mt*mt*y1 + 3*mt*mt*t*y1 + 3*mt*t*t*y2 + t*t*t*y2;
+    return { x, y };
+  };
+
+  const phase = particlePhase.current;
 
   return (
-    <div className="p-4 space-y-3">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-[12px] font-bold" style={{ color: "#00e5cc" }}>Automation Rules</div>
-          <div className="text-[10px] mt-0.5" style={{ color: "#444" }}>
-            When a module produces output matching your rule, it automatically routes to the destination module.
+    <div className="flex flex-col" style={{ height: "70vh" }}>
+      {/* ── Top bar ── */}
+      <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid rgba(0,229,204,0.10)", background: "rgba(0,0,0,0.30)" }}>
+        <div className="flex items-center gap-3">
+          <div>
+            <div className="text-[11px] font-black font-mono" style={{ color: "#00e5cc" }}>CHAIN BUILDER 3D</div>
+            <div className="text-[8px] font-mono mt-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>
+              سحب العقدة للتحريك · كليك يمين + سحب لإنشاء اتصال · {rules.length} قاعدة نشطة
+            </div>
           </div>
         </div>
-        <button
-          onClick={() => setShowForm((v) => !v)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border flex-shrink-0 transition-all"
-          style={{ background: showForm ? "rgba(226,18,39,0.1)" : "rgba(0,229,204,0.08)", borderColor: showForm ? "rgba(226,18,39,0.3)" : "rgba(0,229,204,0.3)", color: showForm ? "#e21227" : "#00e5cc" }}
-        >
-          {showForm ? <><X className="w-3 h-3" /> Cancel</> : <><Plus className="w-3 h-3" /> New Rule</>}
-        </button>
+        <div className="flex items-center gap-2">
+          <motion.div className="w-1.5 h-1.5 rounded-full" style={{ background: "#00e5cc", boxShadow: "0 0 8px #00e5cc" }}
+            animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.2, repeat: Infinity }} />
+          <span className="text-[7px] font-mono" style={{ color: "#00e5cc44" }}>PIPELINE LIVE</span>
+          <button onClick={() => setShowForm(v => !v)}
+            className="flex items-center gap-1 px-3 py-1 rounded-lg text-[9px] font-black border transition-all"
+            style={{ background: showForm ? "rgba(226,18,39,0.10)" : "rgba(0,229,204,0.07)", borderColor: showForm ? "rgba(226,18,39,0.30)" : "rgba(0,229,204,0.28)", color: showForm ? "#e21227" : "#00e5cc" }}>
+            {showForm ? <><X className="w-2.5 h-2.5" /> إلغاء</> : <><Plus className="w-2.5 h-2.5" /> قاعدة جديدة</>}
+          </button>
+        </div>
       </div>
 
-      {/* New rule form */}
+      {/* ── New rule form ── */}
       <AnimatePresence>
         {showForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="rounded-xl p-4 space-y-3" style={{ background: "rgba(0,229,204,0.04)", border: "1px solid rgba(0,229,204,0.15)" }}>
-              <div className="text-[10px] font-bold font-mono" style={{ color: "#00e5cc" }}>NEW CHAIN RULE</div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[9px] font-mono mb-1 block" style={{ color: "#444" }}>Rule Name</label>
-                  <input
-                    type="text" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                    placeholder="e.g. Parseltongue → KaliAgent"
-                    className="w-full bg-transparent border rounded-lg px-2.5 py-1.5 text-[11px] outline-none"
-                    style={{ borderColor: "rgba(255,255,255,0.1)", color: "#ccc" }}
-                  />
-                </div>
-                <div>
-                  <label className="text-[9px] font-mono mb-1 block" style={{ color: "#444" }}>Trigger Keyword (optional)</label>
-                  <input
-                    type="text" value={form.triggerKeyword} onChange={(e) => setForm((f) => ({ ...f, triggerKeyword: e.target.value }))}
-                    placeholder="e.g. exploit, CVE, payload…"
-                    className="w-full bg-transparent border rounded-lg px-2.5 py-1.5 text-[11px] outline-none"
-                    style={{ borderColor: "rgba(255,255,255,0.1)", color: "#ccc" }}
-                  />
-                </div>
-                <div>
-                  <label className="text-[9px] font-mono mb-1 block" style={{ color: "#444" }}>Source Module</label>
-                  <select
-                    value={form.sourceModule}
-                    onChange={(e) => setForm((f) => ({ ...f, sourceModule: e.target.value }))}
-                    className="w-full border rounded-lg px-2.5 py-1.5 text-[11px] outline-none"
-                    style={{ background: "#0d0d0d", borderColor: "rgba(255,255,255,0.1)", color: "#ccc" }}
-                  >
-                    <option value="*">Any Module</option>
-                    {ALL_SOURCES.filter((s) => s !== "*").map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[9px] font-mono mb-1 block" style={{ color: "#444" }}>Destination Module</label>
-                  <select
-                    value={form.destinationModule}
-                    onChange={(e) => {
-                      const dest = ALL_DESTINATIONS.find((d) => d.value === e.target.value);
-                      setForm((f) => ({ ...f, destinationModule: e.target.value, destinationColor: dest?.color ?? "#00e5cc" }));
-                    }}
-                    className="w-full border rounded-lg px-2.5 py-1.5 text-[11px] outline-none"
-                    style={{ background: "#0d0d0d", borderColor: "rgba(255,255,255,0.1)", color: "#ccc" }}
-                  >
-                    {ALL_DESTINATIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
-                  </select>
-                </div>
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden flex-shrink-0" style={{ borderBottom: "1px solid rgba(0,229,204,0.10)" }}>
+            <div className="p-3 grid grid-cols-2 gap-2 text-[9px]" style={{ background: "rgba(0,229,204,0.03)" }}>
+              <div>
+                <label className="font-mono block mb-1" style={{ color: "#555" }}>اسم القاعدة</label>
+                <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="مثال: Parseltongue → KaliAgent" dir="rtl"
+                  className="w-full bg-transparent border rounded-lg px-2 py-1.5 text-[9px] outline-none"
+                  style={{ borderColor: "rgba(255,255,255,0.1)", color: "#ccc" }} />
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="text-[10px] font-mono" style={{ color: "#555" }}>
-                    {form.sourceModule === "*" ? "Any output" : form.sourceModule}
-                    {form.triggerKeyword ? ` containing "${form.triggerKeyword}"` : ""}
-                    {" → "}
-                    <span style={{ color: form.destinationColor }}>{form.destinationModule}</span>
-                  </div>
+              <div>
+                <label className="font-mono block mb-1" style={{ color: "#555" }}>كلمة مفتاح (اختياري)</label>
+                <input type="text" value={form.triggerKeyword} onChange={e => setForm(f => ({ ...f, triggerKeyword: e.target.value }))}
+                  placeholder="exploit, CVE, payload…"
+                  className="w-full bg-transparent border rounded-lg px-2 py-1.5 text-[9px] outline-none"
+                  style={{ borderColor: "rgba(255,255,255,0.1)", color: "#ccc" }} />
+              </div>
+              <div>
+                <label className="font-mono block mb-1" style={{ color: "#555" }}>المصدر</label>
+                <select value={form.sourceModule} onChange={e => setForm(f => ({ ...f, sourceModule: e.target.value }))}
+                  className="w-full border rounded-lg px-2 py-1.5 text-[9px] outline-none"
+                  style={{ background: "#0d0d0d", borderColor: "rgba(255,255,255,0.1)", color: "#ccc" }}>
+                  <option value="*">أي وحدة</option>
+                  {ALL_SOURCES.filter(s => s !== "*").map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="font-mono block mb-1" style={{ color: "#555" }}>الوجهة</label>
+                <select value={form.destinationModule} onChange={e => { const d = ALL_DESTINATIONS.find(x => x.value === e.target.value); setForm(f => ({ ...f, destinationModule: e.target.value, destinationColor: d?.color ?? "#00e5cc" })); }}
+                  className="w-full border rounded-lg px-2 py-1.5 text-[9px] outline-none"
+                  style={{ background: "#0d0d0d", borderColor: "rgba(255,255,255,0.1)", color: "#ccc" }}>
+                  {ALL_DESTINATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                </select>
+              </div>
+              <div className="col-span-2 flex items-center justify-between">
+                <div className="text-[8px] font-mono" style={{ color: "#444" }}>
+                  {form.sourceModule === "*" ? "أي مخرجات" : form.sourceModule}{form.triggerKeyword ? ` يحتوي على "${form.triggerKeyword}"` : ""} → <span style={{ color: form.destinationColor }}>{form.destinationModule}</span>
                 </div>
-                <button
-                  onClick={saveRule}
-                  disabled={!form.name.trim()}
-                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[10px] font-bold border disabled:opacity-30"
-                  style={{ background: "rgba(0,229,204,0.1)", borderColor: "rgba(0,229,204,0.3)", color: "#00e5cc" }}
-                >
-                  Save Rule
+                <button onClick={saveRule} disabled={!form.name.trim()}
+                  className="px-4 py-1 rounded-lg text-[9px] font-black border disabled:opacity-30"
+                  style={{ background: "rgba(0,229,204,0.10)", borderColor: "rgba(0,229,204,0.30)", color: "#00e5cc" }}>
+                  حفظ القاعدة
                 </button>
               </div>
             </div>
@@ -1212,74 +1273,237 @@ function ChainBuilderTab() {
         )}
       </AnimatePresence>
 
-      {/* Rules list */}
-      {rules.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center border" style={{ background: "rgba(0,229,204,0.04)", borderColor: "rgba(0,229,204,0.12)" }}>
-            <Link2 className="w-6 h-6" style={{ color: "#1a3a38" }} />
-          </div>
-          <div className="text-[11px] font-mono" style={{ color: "#333" }}>No chain rules defined yet</div>
-          <div className="text-[10px] text-center max-w-xs" style={{ color: "#222" }}>
-            Create rules to automatically route module outputs to other modules in the pipeline
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {rules.map((rule) => {
-            const isExpanded = expandedId === rule.id;
-            return (
-              <motion.div key={rule.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                className="rounded-xl overflow-hidden" style={{ border: `1px solid ${rule.enabled ? "rgba(0,229,204,0.2)" : "rgba(255,255,255,0.06)"}`, background: rule.enabled ? "rgba(0,229,204,0.04)" : "#0a0a0a" }}>
-                <div className="flex items-center gap-2 p-3">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <div className="text-[11px] font-bold truncate" style={{ color: rule.enabled ? "#ccc" : "#444" }}>{rule.name}</div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <span className="text-[8px] font-mono px-1.5 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.04)", color: "#444" }}>
-                        {rule.sourceModule === "*" ? "ANY" : rule.sourceModule}
-                      </span>
-                      <ArrowRight className="w-3 h-3" style={{ color: "#333" }} />
-                      <span className="text-[8px] font-mono px-1.5 py-0.5 rounded" style={{ background: `${rule.destinationColor}15`, color: rule.destinationColor }}>
-                        {rule.destinationModule}
-                      </span>
-                    </div>
-                    {rule.execCount > 0 && (
-                      <span className="text-[8px] font-mono" style={{ color: "#00e5cc" }}>{rule.execCount}x fired</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <button onClick={() => toggleRule(rule.id, !rule.enabled)}>
-                      {rule.enabled
-                        ? <ToggleRight className="w-4 h-4" style={{ color: "#00e5cc" }} />
-                        : <ToggleLeft className="w-4 h-4" style={{ color: "#333" }} />
-                      }
-                    </button>
-                    <button onClick={() => setExpandedId(isExpanded ? null : rule.id)}>
-                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" style={{ color: "#444" }} /> : <ChevronDown className="w-3.5 h-3.5" style={{ color: "#444" }} />}
-                    </button>
-                    <button onClick={() => deleteRule(rule.id)}>
-                      <Trash2 className="w-3.5 h-3.5" style={{ color: "#333" }} />
-                    </button>
-                  </div>
-                </div>
-                <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-                      <div className="px-3 py-2.5 grid grid-cols-2 gap-2 text-[9px] font-mono" style={{ color: "#444" }}>
-                        <div>Source: <span style={{ color: "#666" }}>{rule.sourceModule === "*" ? "Any Module" : rule.sourceModule}</span></div>
-                        <div>Destination: <span style={{ color: rule.destinationColor }}>{rule.destinationModule}</span></div>
-                        <div>Keyword: <span style={{ color: "#666" }}>{rule.triggerKeyword || "none"}</span></div>
-                        <div>Created: <span style={{ color: "#666" }}>{new Date(rule.createdAt).toLocaleDateString()}</span></div>
-                        <div>Exec count: <span style={{ color: "#00e5cc" }}>{rule.execCount}</span></div>
-                        <div>Status: <span style={{ color: rule.enabled ? "#10b981" : "#e21227" }}>{rule.enabled ? "active" : "disabled"}</span></div>
-                      </div>
-                    </motion.div>
+      {/* ── Main split: SVG canvas left, rules list right ── */}
+      <div className="flex flex-1 min-h-0">
+        {/* SVG Canvas */}
+        <div className="flex-1 relative overflow-hidden" style={{ background: "radial-gradient(ellipse at 40% 50%, rgba(0,229,204,0.04) 0%, rgba(0,0,0,0.95) 70%)" }}>
+          {/* Grid overlay */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none">
+            <defs>
+              <pattern id="cb-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0,229,204,0.04)" strokeWidth="1"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#cb-grid)" />
+          </svg>
+
+          {/* Main SVG */}
+          <svg ref={svgRef} className="absolute inset-0 w-full h-full"
+            style={{ cursor: draggingNode ? "grabbing" : drawingFrom ? "crosshair" : "default" }}
+            onMouseMove={onSVGMouseMove}
+            onMouseUp={onSVGMouseUp}
+            onContextMenu={e => e.preventDefault()}>
+            <defs>
+              {rules.map(rule => (
+                <marker key={`arrow-${rule.id}`} id={`arrow-${rule.id}`} markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                  <path d="M 0 0 L 8 3 L 0 6 Z" style={{ fill: rule.destinationColor }} />
+                </marker>
+              ))}
+              <marker id="arrow-drawing" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M 0 0 L 8 3 L 0 6 Z" fill="rgba(0,229,204,0.8)" />
+              </marker>
+              <filter id="glow-cyan">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="glow-red">
+                <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+
+            {/* Connection edges */}
+            {rules.map(rule => {
+              const srcNode = GRAPH_NODES.find(n => n.id === rule.sourceModule) ?? GRAPH_NODES.find(n => n.id === "CHAT");
+              const dstNode = GRAPH_NODES.find(n => n.id === rule.destinationModule);
+              if (!srcNode || !dstNode) return null;
+              const sp = nodePos[srcNode.id] ?? { x: srcNode.x, y: srcNode.y };
+              const dp = nodePos[dstNode.id] ?? { x: dstNode.x, y: dstNode.y };
+              const x1 = sp.x + 70, y1 = sp.y + 24;
+              const x2 = dp.x, y2 = dp.y + 24;
+              const pathD = getBezierPath(x1, y1, x2, y2);
+              const color = rule.enabled ? (rule.destinationColor || "#00e5cc") : "rgba(255,255,255,0.12)";
+
+              const numParticles = 3;
+              const particles = rule.enabled ? Array.from({ length: numParticles }, (_, i) => {
+                const t = ((phase + i / numParticles) % 1);
+                return getPointOnBezier(x1, y1, x2, y2, t);
+              }) : [];
+
+              return (
+                <g key={rule.id}>
+                  {/* Glow path */}
+                  <path d={pathD} fill="none" stroke={color} strokeWidth="2" strokeOpacity={rule.enabled ? 0.7 : 0.2}
+                    markerEnd={`url(#arrow-${rule.id})`} style={{ filter: rule.enabled ? `drop-shadow(0 0 4px ${color})` : "none" }} />
+                  {/* Particles flowing along path */}
+                  {particles.map((pt, i) => (
+                    <circle key={i} cx={pt.x} cy={pt.y} r={3} fill={color} opacity={0.9}
+                      style={{ filter: `drop-shadow(0 0 4px ${color})` }} />
+                  ))}
+                  {/* Exec count label */}
+                  {rule.execCount > 0 && (
+                    <text x={(x1 + x2) / 2} y={(y1 + y2) / 2 - 8} textAnchor="middle" fontSize="8" fill={color} opacity={0.7} fontFamily="monospace">
+                      {rule.execCount}x
+                    </text>
                   )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
+                </g>
+              );
+            })}
+
+            {/* Drawing line */}
+            {drawingFrom && (() => {
+              const src = GRAPH_NODES.find(n => n.id === drawingFrom);
+              if (!src) return null;
+              const sp = nodePos[src.id] ?? { x: src.x, y: src.y };
+              return (
+                <path d={getBezierPath(sp.x + 70, sp.y + 24, mousePos.x, mousePos.y)}
+                  fill="none" stroke="rgba(0,229,204,0.6)" strokeWidth="1.5" strokeDasharray="6,3"
+                  markerEnd="url(#arrow-drawing)" />
+              );
+            })()}
+
+            {/* Module nodes */}
+            {GRAPH_NODES.map(node => {
+              const pos2 = nodePos[node.id] ?? { x: node.x, y: node.y };
+              const isHovered = hoveredNode === node.id;
+              const isDrawSrc = drawingFrom === node.id;
+              const nodeColor = node.color;
+              const hasRules = rules.some(r => r.sourceModule === node.id || r.destinationModule === node.id);
+
+              return (
+                <g key={node.id}
+                  transform={`translate(${pos2.x}, ${pos2.y})`}
+                  style={{ cursor: draggingNode === node.id ? "grabbing" : "grab" }}
+                  onMouseDown={e => onNodeMouseDown(e, node.id)}
+                  onMouseEnter={() => { setHoveredNode(node.id); if (drawingFrom) setHoveredNode(node.id); }}
+                  onMouseLeave={() => setHoveredNode(null)}>
+                  {/* Glow */}
+                  {(isHovered || isDrawSrc || hasRules) && (
+                    <rect x="-4" y="-4" width="148" height="56" rx="14" fill="none"
+                      stroke={nodeColor} strokeWidth="1" strokeOpacity="0.4"
+                      style={{ filter: `drop-shadow(0 0 8px ${nodeColor})` }} />
+                  )}
+                  {/* Node bg */}
+                  <rect x="0" y="0" width="140" height="48" rx="12"
+                    fill={`url(#node-grad-${node.id})`}
+                    stroke={nodeColor} strokeWidth={isHovered ? "1.5" : "0.8"} strokeOpacity={isHovered ? "0.8" : "0.35"} />
+                  <defs>
+                    <linearGradient id={`node-grad-${node.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor={nodeColor} stopOpacity="0.16" />
+                      <stop offset="100%" stopColor="#000000" stopOpacity="0.85" />
+                    </linearGradient>
+                  </defs>
+                  {/* Top accent line */}
+                  <line x1="20" y1="0" x2="120" y2="0" stroke={nodeColor} strokeWidth="1.5" strokeOpacity="0.7" />
+                  {/* Icon circle */}
+                  <circle cx="22" cy="24" r="10" fill={nodeColor} fillOpacity="0.18" stroke={nodeColor} strokeWidth="0.8" strokeOpacity="0.5" />
+                  <text x="22" y="28" textAnchor="middle" fontSize="10" fill={nodeColor} fontFamily="monospace" fontWeight="bold">
+                    {node.label[0]}
+                  </text>
+                  {/* Label */}
+                  <text x="40" y="19" fontSize="9" fill="white" fontFamily="system-ui" fontWeight="bold" fillOpacity="0.85">{node.label}</text>
+                  <text x="40" y="32" fontSize="7" fill={nodeColor} fontFamily="monospace" fillOpacity="0.55">{node.id}</text>
+                  {/* Port indicator */}
+                  <circle cx="140" cy="24" r="4" fill={nodeColor} fillOpacity="0.35" stroke={nodeColor} strokeWidth="0.8" />
+                  {/* Active pulse */}
+                  {hasRules && (
+                    <circle cx="130" cy="10" r="3" fill={nodeColor} fillOpacity="0.9"
+                      style={{ filter: `drop-shadow(0 0 4px ${nodeColor})` }} />
+                  )}
+                </g>
+              );
+            })}
+          </svg>
+
+          {/* Legend */}
+          <div className="absolute bottom-2 left-3 flex items-center gap-3">
+            {[
+              { color: "#ff4d4d", label: "Agent" },
+              { color: "#00e5ff", label: "Intel" },
+              { color: "#10b981", label: "Tools" },
+              { color: "#fbbf24", label: "AI" },
+            ].map(l => (
+              <div key={l.label} className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full" style={{ background: l.color, boxShadow: `0 0 4px ${l.color}` }} />
+                <span className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>{l.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      )}
+
+        {/* Rules List sidebar */}
+        <div className="w-52 flex-shrink-0 flex flex-col overflow-hidden" style={{ borderLeft: "1px solid rgba(0,229,204,0.08)", background: "rgba(0,0,0,0.40)" }}>
+          <div className="px-3 py-2 flex-shrink-0" style={{ borderBottom: "1px solid rgba(0,229,204,0.07)" }}>
+            <div className="text-[8px] font-black tracking-widest uppercase font-mono" style={{ color: "rgba(0,229,204,0.50)" }}>
+              ACTIVE RULES · {rules.length}
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(0,229,204,0.12) transparent" }}>
+            {rules.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 px-3 text-center">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-2"
+                  style={{ background: "rgba(0,229,204,0.04)", border: "1px solid rgba(0,229,204,0.12)" }}>
+                  <Link2 className="w-4 h-4" style={{ color: "#1a3a38" }} />
+                </div>
+                <div className="text-[8px] font-mono" style={{ color: "#333" }}>لا توجد قواعد بعد</div>
+                <div className="text-[7px] mt-1" style={{ color: "#222" }}>أنشئ قاعدة أو اسحب بين العقد</div>
+              </div>
+            ) : (
+              <div className="p-2 space-y-1.5">
+                {rules.map(rule => (
+                  <motion.div key={rule.id} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
+                    className="rounded-xl overflow-hidden"
+                    style={{ background: rule.enabled ? "rgba(0,229,204,0.04)" : "#0a0a0a", border: `1px solid ${rule.enabled ? "rgba(0,229,204,0.18)" : "rgba(255,255,255,0.05)"}` }}>
+                    <div className="p-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="text-[8px] font-bold truncate" style={{ color: rule.enabled ? "#ccc" : "#333" }}>{rule.name}</div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button onClick={() => pipeline.updateRule(rule.id, { enabled: !rule.enabled })}>
+                            {rule.enabled
+                              ? <ToggleRight className="w-3.5 h-3.5" style={{ color: "#00e5cc" }} />
+                              : <ToggleLeft className="w-3.5 h-3.5" style={{ color: "#333" }} />}
+                          </button>
+                          <button onClick={() => pipeline.deleteRule(rule.id)}>
+                            <Trash2 className="w-3 h-3" style={{ color: "#333" }} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[6px] font-mono px-1 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.04)", color: "#444" }}>
+                          {rule.sourceModule === "*" ? "ANY" : rule.sourceModule.slice(0, 8)}
+                        </span>
+                        <ArrowRight className="w-2.5 h-2.5 flex-shrink-0" style={{ color: "#333" }} />
+                        <span className="text-[6px] font-mono px-1 py-0.5 rounded" style={{ background: `${rule.destinationColor}14`, color: rule.destinationColor }}>
+                          {rule.destinationModule.slice(0, 8)}
+                        </span>
+                      </div>
+                      {rule.execCount > 0 && (
+                        <div className="mt-1 text-[6px] font-mono" style={{ color: "#00e5cc" }}>{rule.execCount}× نُفِّذ</div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Stats footer */}
+          <div className="px-3 py-2 flex-shrink-0" style={{ borderTop: "1px solid rgba(0,229,204,0.07)" }}>
+            <div className="grid grid-cols-2 gap-1.5">
+              {[
+                { label: "نشط", val: rules.filter(r => r.enabled).length, color: "#00e5cc" },
+                { label: "مُنجز", val: rules.reduce((s, r) => s + r.execCount, 0), color: "#22c55e" },
+              ].map(s => (
+                <div key={s.label} className="rounded-lg p-1.5 text-center" style={{ background: "rgba(255,255,255,0.025)" }}>
+                  <div className="text-[14px] font-black font-mono" style={{ color: s.color }}>{s.val}</div>
+                  <div className="text-[6px] font-mono uppercase" style={{ color: "rgba(255,255,255,0.25)" }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

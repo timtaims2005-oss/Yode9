@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore, ProviderName } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -992,6 +993,7 @@ export function AIQuickSetupButton() {
   const { toast }                 = useToast();
   const [phase, setPhase]         = useState<Phase>("idle");
   const [open, setOpen]           = useState(false);
+  const { pos: dragPos, rootRef: winRef, onDragMouseDown: onWinDragDown } = useDraggable("mr7-setup-win", { x: 16, y: Math.round(window.innerHeight * 0.05) });
   const [scanProgress, setScanProgress] = useState(0);
   const [scanMsg, setScanMsg]     = useState("");
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>({});
@@ -1168,25 +1170,19 @@ export function AIQuickSetupButton() {
         <QuantumAtom3D phase={phase} open={open} hover={atomHover} />
       </motion.button>
 
-      {/* ── POPUP PANEL ── */}
-      {open && (
-        <div
-          className="fixed inset-0 z-[9990]"
-          style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(2px)" }}
-          onClick={() => setOpen(false)}
-        />
-      )}
+      {/* ── DRAGGABLE POPUP WINDOW ── */}
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={winRef as React.Ref<HTMLDivElement>}
             initial={{ opacity: 0, x: -32, scale: 0.93 }}
             animate={{ opacity: 1, x: 0,   scale: 1    }}
             exit   ={{ opacity: 0, x: -32, scale: 0.94 }}
             transition={{ duration: 0.30, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: "fixed",
-              left: "16px",
-              top: "5vh",
+              left: dragPos.x,
+              top: dragPos.y,
               zIndex: 9999,
               width: "clamp(280px, 34vw, 420px)",
               maxHeight: "78vh",
@@ -1206,9 +1202,9 @@ export function AIQuickSetupButton() {
               }}>
               <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(0,255,136,0.85),rgba(0,229,255,0.5),transparent)" }} />
 
-              {/* Header */}
-              <div className="px-4 py-3 flex items-center justify-between"
-                style={{ borderBottom: "1px solid rgba(0,255,136,0.07)" }}>
+              {/* Header — drag handle */}
+              <div className="px-4 py-3 flex items-center justify-between cursor-move select-none"
+                style={{ borderBottom: "1px solid rgba(0,255,136,0.07)" }} onMouseDown={onWinDragDown}>
                 <div>
                   <div className="text-[11px] font-black tracking-[0.22em] uppercase font-mono"
                     style={{ color: "rgba(0,255,136,0.9)" }}>AI NEXUS SETUP</div>
