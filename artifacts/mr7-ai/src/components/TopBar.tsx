@@ -14,7 +14,7 @@ import { AI_MODELS, getModel } from "@/lib/ai-config";
 import { tierAtLeast } from "@/lib/subscription";
 import {
   Menu, Sparkles, Coins, LayoutGrid, HelpCircle, Search, Zap, Server, Bot,
-  Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronLeft, ChevronRight,
+  Hexagon, Shield, Columns3, Crosshair, BarChart2,
   Target, GitBranch, Bug, Activity, DollarSign, GitMerge, ShieldAlert, ShieldCheck,
   BrainCircuit, Gauge, Globe, AlertTriangle, Network, Cpu, Lock,
   Flame, Share2, PanelLeftClose, PanelLeftOpen,
@@ -752,7 +752,6 @@ function OperationModeBtn3D() {
               style={{
                 top: "50%", left: "50%",
                 width: "min(420px, 96vw)",
-                maxHeight: "88vh",
                 background: "linear-gradient(160deg, rgba(5,3,14,0.99) 0%, rgba(3,2,10,0.99) 100%)",
                 border: `1px solid ${perf.color}35`,
                 boxShadow: `0 0 80px ${perf.color}25, 0 0 40px rgba(0,0,0,0.9), 0 20px 60px rgba(0,0,0,0.7), inset 0 1px 0 ${perf.color}22`,
@@ -805,8 +804,8 @@ function OperationModeBtn3D() {
 
               <div className="mx-5 h-px" style={{ background: `linear-gradient(90deg,transparent,${perf.color}30,transparent)` }} />
 
-              {/* Scrollable content */}
-              <div className="overflow-y-auto flex-1" style={{ scrollbarWidth: "thin", scrollbarColor: `${perf.color}40 transparent` }}>
+              {/* Content */}
+              <div>
 
               {/* Performance section */}
               <div className="px-5 pt-4 pb-3">
@@ -1333,12 +1332,11 @@ function PinnedShortcutsBar({
   };
 
   return (
-    <div className="relative flex items-center gap-1.5 px-3 overflow-x-auto"
+    <div className="relative flex items-center gap-1.5 px-3 overflow-hidden flex-wrap"
       style={{
-        height: 34,
+        minHeight: 34,
         background: "linear-gradient(180deg, rgba(6,4,12,0.99) 0%, rgba(4,3,9,0.99) 100%)",
         borderTop: "1px solid rgba(226,18,39,0.08)",
-        scrollbarWidth: "none",
       }}>
       {/* Travelling scan line — CSS-only */}
       <span className="scan-line-anim" />
@@ -1495,23 +1493,6 @@ export function TopBar({
   const { toast } = useToast();
   const powerOn = state.settings.powerMode;
 
-  const scrollRef  = useRef<HTMLDivElement>(null);
-  const [canScrollLeft,  setCanScrollLeft]  = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-
-  function checkScroll() {
-    const el = scrollRef.current; if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 4);
-    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
-  }
-  useEffect(() => {
-    const el = scrollRef.current; if (!el) return;
-    checkScroll();
-    el.addEventListener("scroll", checkScroll, { passive: true });
-    const ro = new ResizeObserver(checkScroll); ro.observe(el);
-    return () => { el.removeEventListener("scroll", checkScroll); ro.disconnect(); };
-  }, []);
-  function scrollBy(d: number) { scrollRef.current?.scrollBy({ left: d, behavior: "smooth" }); }
 
   function togglePower() {
     const next = !powerOn;
@@ -1560,29 +1541,9 @@ export function TopBar({
           animation: "topbar-travel 3.5s linear infinite",
         }} />
 
-      {/* ── LEFT scroll arrow — outside scrollable zone ──────────── */}
-      <AnimatePresence>
-        {canScrollLeft && (
-          <motion.button
-            initial={{ opacity: 0, width: 0 }}
-            animate={{ opacity: 1, width: "auto" }}
-            exit={{ opacity: 0, width: 0 }}
-            onClick={() => scrollBy(-220)}
-            className="flex-shrink-0 p-1 rounded-lg z-20 relative"
-            style={{ color: "rgba(226,18,39,0.8)", background: "rgba(226,18,39,0.1)", border: "1px solid rgba(226,18,39,0.25)" }}
-            whileHover={{ background: "rgba(226,18,39,0.2)" }}
-            aria-label="تمرير لليسار"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      {/* ── SINGLE SCROLLABLE STRIP — left + center + right ─────── */}
+      {/* ── MAIN STRIP — left + center + right ─────────────────── */}
       <div
-        ref={scrollRef}
-        className="flex-1 flex items-center gap-1.5 overflow-x-auto relative z-10 px-1"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
+        className="flex-1 flex items-center gap-1.5 overflow-hidden relative z-10 px-1"
       >
         {/* Mobile hamburger */}
         <motion.button
@@ -1841,25 +1802,7 @@ export function TopBar({
         <ThemePopover />
         <TokensPopover onUpgrade={onOpenPricing} />
 
-      </div>{/* end scrollable strip */}
-
-      {/* ── RIGHT scroll arrow — outside scrollable zone ─────────── */}
-      <AnimatePresence>
-        {canScrollRight && (
-          <motion.button
-            initial={{ opacity: 0, width: 0 }}
-            animate={{ opacity: 1, width: "auto" }}
-            exit={{ opacity: 0, width: 0 }}
-            onClick={() => scrollBy(220)}
-            className="flex-shrink-0 p-1 rounded-lg z-20 relative"
-            style={{ color: "rgba(226,18,39,0.8)", background: "rgba(226,18,39,0.1)", border: "1px solid rgba(226,18,39,0.25)" }}
-            whileHover={{ background: "rgba(226,18,39,0.2)" }}
-            aria-label="تمرير لليمين"
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      </div>{/* end main strip */}
 
       </div>{/* end h-14 main row */}
 
