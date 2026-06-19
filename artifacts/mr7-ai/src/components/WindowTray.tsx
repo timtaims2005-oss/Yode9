@@ -246,17 +246,6 @@ export function WindowTray({ onOpenLocalEngineHub, onOpenBenchmark, onOpenLocalA
           </div>
 
           {/* Quick action buttons */}
-          {onOpenLocalAINexus && (
-            <button
-              onClick={onOpenLocalAINexus}
-              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-bold transition-all hover:scale-105 shrink-0"
-              style={{ background: "rgba(0,229,255,0.12)", color: "#00e5ff", border: "1px solid rgba(0,229,255,0.35)", boxShadow: "0 0 10px rgba(0,229,255,0.15)" }}
-              title="LOCAL AI MODEL NEXUS"
-            >
-              <Server size={9} /> LOCAL AI
-            </button>
-          )}
-
           {onOpenLocalEngineHub && (
             <button
               onClick={onOpenLocalEngineHub}

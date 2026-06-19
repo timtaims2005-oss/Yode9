@@ -288,6 +288,65 @@ router.post("/local-engines/install/:id", (req, res) => {
   res.end();
 });
 
+router.post("/local-engines/pull-model", async (req, res) => {
+  const { model } = req.body as { model?: string };
+  if (!model) return res.status(400).json({ error: "model required" });
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  const send = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+  try {
+    const check = await fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(3000) });
+    if (!check.ok) { send({ type: "error", message: "Ollama غير مشغّل" }); return res.end(); }
+
+    send({ type: "start", model, message: `بدء تحميل ${model}...` });
+
+    const pullRes = await fetch("http://localhost:11434/api/pull", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: model, stream: true }),
+      signal: AbortSignal.timeout(600000),
+    });
+
+    if (!pullRes.ok || !pullRes.body) {
+      send({ type: "error", message: `فشل Ollama pull: ${pullRes.status}` });
+      return res.end();
+    }
+
+    const reader = pullRes.body.getReader();
+    const decoder = new TextDecoder();
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const text = decoder.decode(value, { stream: true });
+      for (const line of text.split("\n")) {
+        if (!line.trim()) continue;
+        try {
+          const obj = JSON.parse(line) as {
+            status?: string; total?: number; completed?: number; error?: string;
+          };
+          if (obj.error) { send({ type: "error", message: obj.error }); res.end(); return; }
+          const pct = obj.total && obj.total > 0
+            ? Math.round(((obj.completed ?? 0) / obj.total) * 100)
+            : null;
+          send({ type: "progress", status: obj.status, total: obj.total, completed: obj.completed, pct: pct ?? 0 });
+        } catch { /* skip malformed line */ }
+      }
+    }
+
+    send({ type: "success", message: `${model} تم التحميل` });
+    res.end();
+  } catch (err: unknown) {
+    send({ type: "error", message: String(err) });
+    res.end();
+  }
+});
+
 router.get("/local-engines/guide/:id", (_req, res) => {
   const id = _req.params.id as EngineId;
   const GUIDES: Record<string, { url: string; steps: string[] }> = {
