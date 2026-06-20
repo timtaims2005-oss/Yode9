@@ -6,6 +6,9 @@ import {
   Globe, RefreshCw, Terminal, ChevronRight, CheckCircle2,
   Loader2, HardDrive, WifiOff, Play, MemoryStick,
   Network, Layers, Atom,
+  BarChart3, Wifi, Shield, FlaskConical, GitCompare,
+  Gauge, Trophy, Timer, TrendingUp, Copy, Check, AlertTriangle,
+  Bolt,
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -393,10 +396,17 @@ function useNeuralScene(
   }, [activeModels]);
 }
 
+/* ── Benchmark types ────────────────────────────────────────────────── */
+interface BenchRun { tps: number; ttft: number; totalMs: number; tokens: number; }
+interface BenchModelResult {
+  name: string; runs: BenchRun[];
+  avgTps: number; avgTtft: number; minTps: number; maxTps: number;
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════════════ */
-type Tab = "dashboard" | "library" | "chat" | "hf";
+type Tab = "dashboard" | "library" | "chat" | "hf" | "groq" | "bench" | "compare";
 
 export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -425,6 +435,41 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
 
   /* Background download tracker */
   const [dlStatus, setDlStatus] = useState<{ done: boolean; binExists: boolean; log: string }>({ done: false, binExists: false, log: "" });
+
+  /* ── Feature 3: System stats (RAM / Disk) ────────────── */
+  const [sysInfo, setSysInfo] = useState<{
+    totalRam: number; freeRam: number; usedRam: number;
+    diskUsed: number; diskTotal: number; modelsDirSize: number;
+    runningModels: unknown[];
+  } | null>(null);
+
+  /* ── Feature 8: Test connection ──────────────────────── */
+  const [testConn, setTestConn] = useState<{ testing: boolean; ok: boolean | null; latencyMs: number | null; modelCount: number | null; error?: string }>({ testing: false, ok: null, latencyMs: null, modelCount: null });
+
+  /* ── Feature 1 & 2: Groq provider ────────────────────── */
+  const [groqKey,       setGroqKey]       = useState(() => localStorage.getItem("mr7-ai-p-key-groq") || "");
+  const [groqKeyInput,  setGroqKeyInput]  = useState(() => localStorage.getItem("mr7-ai-p-key-groq") || "");
+  const [groqSaved,     setGroqSaved]     = useState(false);
+  const [groqTestRes,   setGroqTestRes]   = useState<{ ok: boolean; ms: number } | null>(null);
+  const [groqTesting,   setGroqTesting]   = useState(false);
+
+  /* ── Feature 7: Benchmark ────────────────────────────── */
+  const [benchPrompt,   setBenchPrompt]   = useState("Explain neural networks in 2 sentences.");
+  const [benchRuns,     setBenchRuns]     = useState(3);
+  const [benchModels,   setBenchModels]   = useState<string[]>([]);
+  const [benchResults,  setBenchResults]  = useState<BenchModelResult[]>([]);
+  const [benchRunning,  setBenchRunning]  = useState(false);
+  const [benchProgress, setBenchProgress] = useState("");
+
+  /* ── Feature 9: Side-by-side compare ────────────────── */
+  const [cmpModelA,  setCmpModelA]  = useState("");
+  const [cmpModelB,  setCmpModelB]  = useState("");
+  const [cmpPrompt,  setCmpPrompt]  = useState("What is quantum computing?");
+  const [cmpResA,    setCmpResA]    = useState("");
+  const [cmpResB,    setCmpResB]    = useState("");
+  const [cmpLoadA,   setCmpLoadA]   = useState(false);
+  const [cmpLoadB,   setCmpLoadB]   = useState(false);
+  const [cmpCopied,  setCmpCopied]  = useState<"A"|"B"|null>(null);
 
   /* ── Auto-pull queue ─────────────────────────────────── */
   const [autoPullActive,  setAutoPullActive]  = useState(false);
@@ -475,14 +520,157 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
     } catch { /* skip */ }
   }, []);
 
+  /* ── Feature 3: Fetch system RAM/Disk stats ──────────── */
+  const fetchSysInfo = useCallback(async () => {
+    try {
+      const r = await fetch("/api/ollama/sysinfo");
+      if (r.ok) setSysInfo(await r.json());
+    } catch { /* skip */ }
+  }, []);
+
+  /* ── Feature 8: Test Ollama connection ───────────────── */
+  const handleTestConnection = useCallback(async () => {
+    setTestConn(s => ({ ...s, testing: true, ok: null }));
+    try {
+      const r = await fetch("/api/ollama/test-connection");
+      const d = await r.json() as { ok: boolean; latencyMs: number; modelCount: number; version: string; error?: string };
+      setTestConn({ testing: false, ok: d.ok, latencyMs: d.latencyMs, modelCount: d.modelCount, error: d.error });
+    } catch (e) {
+      setTestConn({ testing: false, ok: false, latencyMs: null, modelCount: null, error: String(e) });
+    }
+  }, []);
+
+  /* ── Feature 1: Save Groq API key ─────────────────────── */
+  const handleSaveGroqKey = useCallback(() => {
+    localStorage.setItem("mr7-ai-p-key-groq", groqKeyInput);
+    setGroqKey(groqKeyInput);
+    setGroqSaved(true);
+    setTimeout(() => setGroqSaved(false), 2500);
+  }, [groqKeyInput]);
+
+  /* ── Feature 1: Test Groq connection ─────────────────── */
+  const handleTestGroq = useCallback(async () => {
+    if (!groqKeyInput.trim()) return;
+    setGroqTesting(true);
+    setGroqTestRes(null);
+    const t0 = Date.now();
+    try {
+      const r = await fetch("https://api.groq.com/openai/v1/models", {
+        headers: { Authorization: `Bearer ${groqKeyInput}` },
+        signal: AbortSignal.timeout(8000),
+      });
+      setGroqTestRes({ ok: r.ok, ms: Date.now() - t0 });
+    } catch {
+      setGroqTestRes({ ok: false, ms: Date.now() - t0 });
+    } finally { setGroqTesting(false); }
+  }, [groqKeyInput]);
+
+  /* ── Feature 7: Statistical benchmark ───────────────── */
+  const handleBenchmark = useCallback(async () => {
+    if (!status.running || benchModels.length === 0) return;
+    setBenchRunning(true);
+    setBenchResults([]);
+    const modelsCopy = [...benchModels];
+    const results: BenchModelResult[] = [];
+
+    for (const modelName of modelsCopy) {
+      const runs: { tps: number; ttft: number; totalMs: number; tokens: number }[] = [];
+      for (let i = 0; i < benchRuns; i++) {
+        setBenchProgress(`${modelName} — run ${i + 1}/${benchRuns}`);
+        const t0 = Date.now();
+        let ttft = 0;
+        let tokenCount = 0;
+        let firstToken = true;
+        try {
+          const r = await fetch("/api/ollama/chat/stream", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ model: modelName, messages: [{ role: "user", content: benchPrompt }] }),
+            signal: AbortSignal.timeout(60_000),
+          });
+          if (!r.body) throw new Error("no body");
+          const reader = r.body.getReader();
+          const dec = new TextDecoder();
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            for (const line of dec.decode(value).split("\n").filter(l => l.startsWith("data:"))) {
+              try {
+                const d = JSON.parse(line.slice(5));
+                if (d.message?.content) {
+                  tokenCount += d.message.content.split(/\s+/).length;
+                  if (firstToken) { ttft = Date.now() - t0; firstToken = false; }
+                }
+              } catch { /* skip */ }
+            }
+          }
+        } catch { /* skip */ }
+        const totalMs = Date.now() - t0;
+        const tps = totalMs > 0 ? Math.round((tokenCount / totalMs) * 1000) : 0;
+        runs.push({ tps, ttft, totalMs, tokens: tokenCount });
+      }
+      const avgTps  = runs.reduce((s, r) => s + r.tps, 0) / (runs.length || 1);
+      const avgTtft = runs.reduce((s, r) => s + r.ttft, 0) / (runs.length || 1);
+      const minTps  = Math.min(...runs.map(r => r.tps));
+      const maxTps  = Math.max(...runs.map(r => r.tps));
+      results.push({ name: modelName, runs, avgTps: Math.round(avgTps), avgTtft: Math.round(avgTtft), minTps, maxTps });
+      setBenchResults([...results]);
+    }
+    setBenchProgress("");
+    setBenchRunning(false);
+  }, [status.running, benchModels, benchRuns, benchPrompt]);
+
+  /* ── Feature 9: Side-by-side compare ────────────────── */
+  const handleCompare = useCallback(async () => {
+    if (!status.running || (!cmpModelA && !cmpModelB)) return;
+    setCmpResA(""); setCmpResB("");
+    const runModel = async (
+      model: string,
+      setRes: (v: string) => void,
+      setLoad: (v: boolean) => void,
+    ) => {
+      if (!model) return;
+      setLoad(true);
+      let buf = "";
+      try {
+        const r = await fetch("/api/ollama/chat/stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model, messages: [{ role: "user", content: cmpPrompt }] }),
+          signal: AbortSignal.timeout(60_000),
+        });
+        if (!r.body) throw new Error("no body");
+        const reader = r.body.getReader();
+        const dec = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          for (const line of dec.decode(value).split("\n").filter(l => l.startsWith("data:"))) {
+            try {
+              const d = JSON.parse(line.slice(5));
+              if (d.message?.content) { buf += d.message.content; setRes(buf); }
+            } catch { /* skip */ }
+          }
+        }
+      } catch { /* skip */ }
+      finally { setLoad(false); }
+    };
+    await Promise.all([
+      runModel(cmpModelA, setCmpResA, setCmpLoadA),
+      runModel(cmpModelB, setCmpResB, setCmpLoadB),
+    ]);
+  }, [status.running, cmpModelA, cmpModelB, cmpPrompt]);
+
   useEffect(() => {
     if (!open) return;
     fetchStatus();
     fetchDlStatus();
+    fetchSysInfo();
     const iv1 = setInterval(fetchStatus,   10_000);
     const iv2 = setInterval(fetchDlStatus, 5_000);
-    return () => { clearInterval(iv1); clearInterval(iv2); };
-  }, [open, fetchStatus, fetchDlStatus]);
+    const iv3 = setInterval(fetchSysInfo,  15_000);
+    return () => { clearInterval(iv1); clearInterval(iv2); clearInterval(iv3); };
+  }, [open, fetchStatus, fetchDlStatus, fetchSysInfo]);
 
   /* ── Auto-scroll chat ───────────────────────────────── */
   useEffect(() => {
@@ -717,6 +905,16 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
           <div className="px-2.5 py-1 rounded-full border border-violet-700/30 bg-violet-950/30 text-[9px] font-mono text-violet-400">
             {status.models.length}/7 MODELS · {running.length} ACTIVE
           </div>
+          {/* ── Feature 8: Test Connection button ── */}
+          <button onClick={handleTestConnection} disabled={testConn.testing}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all disabled:opacity-50 ${
+              testConn.ok === true  ? "border border-emerald-600/40 bg-emerald-950/40 text-emerald-400" :
+              testConn.ok === false ? "border border-red-700/40 bg-red-950/30 text-red-400" :
+              "border border-cyan-700/40 bg-cyan-950/30 text-cyan-400"
+            }`}>
+            {testConn.testing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wifi className="w-3 h-3" />}
+            {testConn.testing ? "TESTING..." : testConn.ok === true ? `OK ${testConn.latencyMs}ms` : testConn.ok === false ? "FAIL" : "TEST"}
+          </button>
           <button onClick={fetchStatus}
             className="p-1.5 rounded-lg border border-violet-800/30 text-violet-500 hover:text-violet-300 hover:border-violet-600/50 transition-all">
             <RefreshCw className="w-3.5 h-3.5" />
@@ -741,18 +939,24 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
       ══════════════════════════════════════════════════ */}
       <div className="relative z-10 flex items-center gap-1 px-5 pt-2 pb-0 flex-shrink-0"
         style={{ borderBottom: "1px solid rgba(124,58,237,0.15)" }}>
-        {(["dashboard","library","chat","hf"] as Tab[]).map(t => {
+        {(["dashboard","library","chat","hf","groq","bench","compare"] as Tab[]).map(t => {
           const icons: Record<Tab, React.ReactNode> = {
-            dashboard: <Network className="w-3 h-3" />,
-            library:   <Layers  className="w-3 h-3" />,
-            chat:      <Terminal className="w-3 h-3" />,
-            hf:        <Globe   className="w-3 h-3" />,
+            dashboard: <Network   className="w-3 h-3" />,
+            library:   <Layers    className="w-3 h-3" />,
+            chat:      <Terminal  className="w-3 h-3" />,
+            hf:        <Globe     className="w-3 h-3" />,
+            groq:      <Bolt      className="w-3 h-3" />,
+            bench:     <BarChart3 className="w-3 h-3" />,
+            compare:   <GitCompare className="w-3 h-3" />,
           };
           const labels: Record<Tab, string> = {
             dashboard: "NEURAL CORE",
             library:   "MODEL LIBRARY",
             chat:      "LOCAL CHAT",
             hf:        "HF SPACES",
+            groq:      "GROQ ARENA",
+            bench:     "BENCHMARK",
+            compare:   "COMPARE",
           };
           return (
             <button key={t} onClick={() => setTab(t)}
@@ -1047,11 +1251,63 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
                 )}
               </div>
 
+              {/* ── Feature 3 & 5: RAM/Disk stats bar ── */}
+              {sysInfo && sysInfo.totalRam > 0 && (
+                <div className="rounded-xl border border-violet-700/20 bg-violet-950/10 p-3 space-y-2">
+                  <div className="text-[9px] font-mono text-violet-500/50 tracking-widest">SYSTEM RESOURCES</div>
+                  <div className="space-y-1.5">
+                    {/* RAM bar */}
+                    <div className="flex items-center gap-2">
+                      <MemoryStick className="w-3 h-3 text-violet-400/60 flex-shrink-0" />
+                      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+                        <div className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${(sysInfo.usedRam / sysInfo.totalRam) * 100}%`,
+                            background: sysInfo.usedRam / sysInfo.totalRam > 0.85 ? "#ef4444" :
+                              sysInfo.usedRam / sysInfo.totalRam > 0.65 ? "#f59e0b" : "#8b5cf6",
+                          }} />
+                      </div>
+                      <span className="text-[8px] font-mono text-white/30 w-20 text-right">
+                        {Math.round(sysInfo.usedRam / 1024 / 1024)}MB / {Math.round(sysInfo.totalRam / 1024 / 1024)}MB
+                      </span>
+                    </div>
+                    {/* Disk bar */}
+                    <div className="flex items-center gap-2">
+                      <HardDrive className="w-3 h-3 text-cyan-400/60 flex-shrink-0" />
+                      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+                        <div className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: sysInfo.diskTotal > 0 ? `${(sysInfo.diskUsed / sysInfo.diskTotal) * 100}%` : "0%",
+                            background: sysInfo.diskUsed / sysInfo.diskTotal > 0.9 ? "#ef4444" : "#06b6d4",
+                          }} />
+                      </div>
+                      <span className="text-[8px] font-mono text-white/30 w-20 text-right">
+                        {Math.round(sysInfo.diskUsed / 1024 / 1024 / 1024 * 10) / 10}GB / {Math.round(sysInfo.diskTotal / 1024 / 1024 / 1024 * 10) / 10}GB
+                      </span>
+                    </div>
+                    {/* Models dir */}
+                    {sysInfo.modelsDirSize > 0 && (
+                      <div className="text-[8px] font-mono text-violet-700/50">
+                        Models: {Math.round(sysInfo.modelsDirSize / 1024 / 1024)}MB on disk
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {REPLIT_MODELS.map((m, idx) => {
                 const installed = installedNames.has(m.name);
                 const isPulling  = m.name in pulling;
                 const pct        = pulling[m.name] ?? 0;
                 const log        = pullLog[m.name] ?? "";
+                // ── Feature 4 & 5: RAM compatibility & size warnings ──
+                const modelRamMB = parseInt(m.ram.replace(/[^0-9.]/g, "")) || 0;
+                const freeRamMB  = sysInfo ? Math.round(sysInfo.freeRam / 1024 / 1024) : 0;
+                const ramCompat  = !sysInfo ? "unknown" :
+                  freeRamMB >= modelRamMB * 1.3 ? "green" :
+                  freeRamMB >= modelRamMB * 0.8  ? "yellow" : "red";
+                const ramCompatColor = ramCompat === "green" ? "#10b981" : ramCompat === "yellow" ? "#f59e0b" : "#ef4444";
+                const ramCompatLabel = ramCompat === "green" ? "RAM OK" : ramCompat === "yellow" ? "RAM LOW" : "RAM WARN";
                 return (
                   <motion.div key={m.name}
                     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}
@@ -1074,20 +1330,28 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                           <span className="font-bold text-sm text-white">{m.label}</span>
-                          {!m.ok && <span className="text-[8px] px-1 rounded border border-amber-600/30 text-amber-500">HEAVY</span>}
-                          {m.ok && <span className="text-[8px] px-1 rounded border border-emerald-700/30 text-emerald-500">REPLIT OK</span>}
+                          {!m.ok && <span className="text-[8px] px-1 rounded border border-amber-600/30 text-amber-500 flex items-center gap-0.5"><AlertTriangle className="w-2 h-2" /> HEAVY</span>}
+                          {m.ok  && <span className="text-[8px] px-1 rounded border border-emerald-700/30 text-emerald-500">REPLIT OK</span>}
+                          {/* ── Feature 4: RAM compat badge ── */}
+                          {sysInfo && (
+                            <span className="text-[8px] px-1.5 py-0.5 rounded font-bold flex items-center gap-0.5"
+                              style={{ backgroundColor: `${ramCompatColor}15`, color: ramCompatColor, border: `1px solid ${ramCompatColor}35` }}>
+                              <MemoryStick className="w-2 h-2" />
+                              {ramCompatLabel}
+                            </span>
+                          )}
                         </div>
                         <div className="text-[9px] font-mono text-white/35">{m.name}</div>
-                        <div className="flex items-center gap-3 mt-1">
+                        <div className="flex items-center gap-3 mt-1 flex-wrap">
                           <div className="flex items-center gap-1">
                             <HardDrive className="w-2.5 h-2.5" style={{ color: m.color }} />
                             <span className="text-[9px] font-mono" style={{ color: m.color }}>{m.size}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <MemoryStick className="w-2.5 h-2.5 text-white/30" />
-                            <span className="text-[9px] font-mono text-white/30">{m.ram}</span>
+                            <MemoryStick className="w-2.5 h-2.5" style={{ color: ramCompat === "unknown" ? "rgba(255,255,255,0.3)" : ramCompatColor }} />
+                            <span className="text-[9px] font-mono font-bold" style={{ color: ramCompat === "unknown" ? "rgba(255,255,255,0.3)" : ramCompatColor }}>{m.ram}</span>
                           </div>
                           <span className="text-[8px] font-bold px-1.5 py-0.5 rounded"
                             style={{ backgroundColor: `${m.color}15`, color: m.color }}>
@@ -1341,6 +1605,459 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* ═══ GROQ ARENA TAB ═══ */}
+          {tab === "groq" && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Header */}
+              <div className="relative rounded-2xl border overflow-hidden p-5"
+                style={{ borderColor: "rgba(251,191,36,0.25)", background: "linear-gradient(135deg, rgba(251,191,36,0.06) 0%, rgba(0,0,0,0.8) 100%)" }}>
+                <motion.div
+                  animate={{ opacity: [0.15, 0.35, 0.15] }} transition={{ repeat: Infinity, duration: 3 }}
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ background: "radial-gradient(ellipse at top right, rgba(251,191,36,0.2) 0%, transparent 70%)" }} />
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="relative w-10 h-10">
+                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
+                      className="absolute inset-0 rounded-full"
+                      style={{ border: "1px solid rgba(251,191,36,0.5)", borderTopColor: "#fbbf24", borderRightColor: "transparent" }} />
+                    <div className="absolute inset-2 rounded-full flex items-center justify-center"
+                      style={{ background: "rgba(251,191,36,0.1)" }}>
+                      <Bolt className="w-4 h-4 text-amber-400" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-base font-black tracking-widest text-amber-300">GROQ ARENA</div>
+                    <div className="text-[9px] font-mono text-amber-600/60 tracking-widest">GPU-SPEED FREE INFERENCE ENGINE</div>
+                  </div>
+                  <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[9px] font-bold"
+                    style={{ borderColor: "rgba(251,191,36,0.35)", color: "#fbbf24", background: "rgba(251,191,36,0.08)" }}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                    FREE TIER
+                  </div>
+                </div>
+                <p className="text-[10px] text-amber-500/60 font-mono leading-relaxed">
+                  Groq runs LLaMA 3, Mistral, Mixtral at real GPU speed — free, no GPU required on your side.
+                  Get your free API key at console.groq.com
+                </p>
+              </div>
+
+              {/* API Key input */}
+              <div className="rounded-xl border p-4 space-y-3"
+                style={{ borderColor: "rgba(251,191,36,0.2)", background: "rgba(251,191,36,0.03)" }}>
+                <label className="text-[9px] font-mono text-amber-600/60 tracking-widest">GROQ API KEY</label>
+                <div className="flex gap-2">
+                  <input
+                    value={groqKeyInput} onChange={e => setGroqKeyInput(e.target.value)}
+                    type="password"
+                    placeholder="gsk_xxxxxxxxxxxxxxxxxxxx"
+                    className="flex-1 px-3 py-2 rounded-lg text-xs font-mono placeholder-amber-900/40 focus:outline-none"
+                    style={{ background: "rgba(0,0,0,0.6)", border: "1px solid rgba(251,191,36,0.3)", color: "#fde68a" }}
+                  />
+                  <button onClick={handleSaveGroqKey}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all hover:scale-105"
+                    style={{ background: groqSaved ? "rgba(16,185,129,0.2)" : "rgba(251,191,36,0.15)", color: groqSaved ? "#34d399" : "#fbbf24", border: `1px solid ${groqSaved ? "rgba(16,185,129,0.4)" : "rgba(251,191,36,0.35)"}` }}>
+                    {groqSaved ? <><Check className="w-3 h-3" /> SAVED</> : "SAVE"}
+                  </button>
+                  <button onClick={handleTestGroq} disabled={groqTesting || !groqKeyInput}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all disabled:opacity-40"
+                    style={{ background: "rgba(0,229,255,0.1)", color: "#00e5ff", border: "1px solid rgba(0,229,255,0.3)" }}>
+                    {groqTesting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wifi className="w-3 h-3" />}
+                    TEST
+                  </button>
+                </div>
+                {groqTestRes && (
+                  <div className={`flex items-center gap-2 text-[10px] font-mono ${groqTestRes.ok ? "text-emerald-400" : "text-red-400"}`}>
+                    {groqTestRes.ok ? <CheckCircle2 className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                    {groqTestRes.ok ? `Connection OK — ${groqTestRes.ms}ms` : `Connection FAILED — ${groqTestRes.ms}ms`}
+                  </div>
+                )}
+                {groqKey && !groqTestRes && (
+                  <div className="flex items-center gap-2 text-[9px] font-mono text-amber-500/50">
+                    <CheckCircle2 className="w-3 h-3 text-amber-500" /> Key saved — {groqKey.slice(0, 8)}***
+                  </div>
+                )}
+              </div>
+
+              {/* Groq model cards */}
+              <div className="text-[9px] font-mono text-amber-600/40 tracking-widest mb-2">FREE MODELS — INSTANT GPU SPEED</div>
+              <div className="space-y-2.5">
+                {[
+                  { id: "llama-3.1-8b-instant", label: "LLaMA 3.1 8B Instant", desc: "Ultra-fast, best for real-time apps", tps: "800+", ctx: "128K", badge: "FASTEST", badgeColor: "#00e5ff" },
+                  { id: "llama-3.3-70b-versatile", label: "LLaMA 3.3 70B Versatile", desc: "Premium quality, large reasoning capacity", tps: "150+", ctx: "128K", badge: "SMARTEST", badgeColor: "#fbbf24" },
+                  { id: "mixtral-8x7b-32768", label: "Mixtral 8×7B 32K", desc: "MoE architecture, long context window", tps: "400+", ctx: "32K", badge: "BALANCED", badgeColor: "#a78bfa" },
+                  { id: "gemma2-9b-it", label: "Gemma2 9B IT", desc: "Google's instruction-tuned model", tps: "500+", ctx: "8K", badge: "EFFICIENT", badgeColor: "#10b981" },
+                  { id: "deepseek-r1-distill-llama-70b", label: "DeepSeek R1 70B", desc: "Chain-of-thought reasoning specialist", tps: "130+", ctx: "128K", badge: "REASONING", badgeColor: "#f97316" },
+                ].map((m, i) => (
+                  <motion.div key={m.id}
+                    initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
+                    className="relative rounded-xl border overflow-hidden group"
+                    style={{ borderColor: `${m.badgeColor}22`, background: `linear-gradient(135deg, ${m.badgeColor}06 0%, transparent 100%)` }}>
+                    <motion.div animate={{ opacity: [0.1, 0.25, 0.1] }} transition={{ repeat: Infinity, duration: 3 + i * 0.5 }}
+                      className="absolute inset-0 pointer-events-none"
+                      style={{ background: `radial-gradient(ellipse at left, ${m.badgeColor}12 0%, transparent 65%)` }} />
+                    <div className="flex items-center gap-3 p-3.5">
+                      <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-[8px] font-black"
+                        style={{ background: `${m.badgeColor}15`, border: `1px solid ${m.badgeColor}40`, color: m.badgeColor }}>
+                        <Bolt className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-bold text-sm text-white">{m.label}</span>
+                          <span className="text-[8px] px-1.5 py-0.5 rounded font-black tracking-wider"
+                            style={{ backgroundColor: `${m.badgeColor}18`, color: m.badgeColor, border: `1px solid ${m.badgeColor}35` }}>
+                            {m.badge}
+                          </span>
+                        </div>
+                        <div className="text-[9px] font-mono text-white/35">{m.id}</div>
+                        <div className="flex items-center gap-3 mt-1">
+                          <div className="flex items-center gap-1">
+                            <Gauge className="w-2.5 h-2.5" style={{ color: m.badgeColor }} />
+                            <span className="text-[9px] font-mono font-bold" style={{ color: m.badgeColor }}>{m.tps} tok/s</span>
+                          </div>
+                          <span className="text-[9px] font-mono text-white/30">CTX {m.ctx}</span>
+                          <span className="text-[9px] text-white/25 italic">{m.desc}</span>
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0 flex flex-col gap-1">
+                        <div className="px-2 py-1 rounded-lg text-[8px] font-bold text-emerald-400 border border-emerald-700/30 bg-emerald-950/30">
+                          FREE
+                        </div>
+                        <div className="px-2 py-1 rounded-lg text-[8px] font-bold text-amber-400/60 border border-amber-800/20 bg-amber-950/20">
+                          GPU
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Stats comparison */}
+              <div className="rounded-xl border border-amber-800/20 bg-amber-950/10 p-4">
+                <h3 className="text-[10px] font-bold text-amber-300 tracking-widest mb-3">LOCAL vs GROQ SPEED</h3>
+                <div className="space-y-2">
+                  {[
+                    { name: "Groq LLaMA 3.1 8B", tps: 800, color: "#fbbf24" },
+                    { name: "Groq Mixtral 8×7B", tps: 400, color: "#a78bfa" },
+                    { name: "Local phi3:mini", tps: 35, color: "#60a5fa" },
+                    { name: "Local gemma:2b", tps: 18, color: "#34d399" },
+                    { name: "Local tinyllama", tps: 22, color: "#f97316" },
+                  ].map(item => (
+                    <div key={item.name} className="flex items-center gap-2">
+                      <div className="w-24 text-[9px] font-mono text-white/40 truncate">{item.name}</div>
+                      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, (item.tps / 800) * 100)}%` }}
+                          transition={{ delay: 0.3, duration: 0.8 }}
+                          className="h-full rounded-full"
+                          style={{ backgroundColor: item.color }}
+                        />
+                      </div>
+                      <div className="w-16 text-[9px] font-mono text-right" style={{ color: item.color }}>
+                        {item.tps} t/s
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Get key link */}
+              <div className="rounded-xl border border-amber-800/20 p-3 flex items-center gap-3 bg-amber-950/10">
+                <Shield className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="text-[10px] font-bold text-amber-300">Get Free API Key</div>
+                  <div className="text-[9px] font-mono text-amber-600/50">console.groq.com → API Keys → Create Key</div>
+                </div>
+                <a href="https://console.groq.com" target="_blank" rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all hover:scale-105"
+                  style={{ background: "rgba(251,191,36,0.15)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.3)" }}>
+                  OPEN →
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* ═══ BENCHMARK TAB ═══ */}
+          {tab === "bench" && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Config */}
+              <div className="rounded-xl border border-cyan-700/25 bg-cyan-950/10 p-4 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <BarChart3 className="w-4 h-4 text-cyan-400" />
+                  <span className="text-[10px] font-bold text-cyan-300 tracking-widest">BENCHMARK CONFIGURATION</span>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[9px] font-mono text-cyan-600/50 tracking-widest">PROMPT</label>
+                  <textarea
+                    value={benchPrompt} onChange={e => setBenchPrompt(e.target.value)}
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-lg text-xs font-mono focus:outline-none resize-none"
+                    style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(6,182,212,0.3)", color: "#a5f3fc" }}
+                  />
+                </div>
+                <div className="flex gap-3 items-end">
+                  <div className="space-y-1 flex-1">
+                    <label className="text-[9px] font-mono text-cyan-600/50 tracking-widest">RUNS PER MODEL</label>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 5, 10].map(n => (
+                        <button key={n} onClick={() => setBenchRuns(n)}
+                          className={`px-2.5 py-1 rounded text-[10px] font-bold transition-all ${benchRuns === n ? "text-cyan-200" : "text-cyan-700 hover:text-cyan-400"}`}
+                          style={{ background: benchRuns === n ? "rgba(6,182,212,0.2)" : "transparent", border: `1px solid ${benchRuns === n ? "rgba(6,182,212,0.5)" : "rgba(6,182,212,0.1)"}` }}>
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={benchRunning ? undefined : handleBenchmark}
+                    disabled={benchRunning || benchModels.length === 0 || !status.running}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs tracking-wider transition-all disabled:opacity-40 hover:scale-105"
+                    style={{ background: "linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)", color: "white" }}>
+                    {benchRunning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FlaskConical className="w-3.5 h-3.5" />}
+                    {benchRunning ? "RUNNING..." : "RUN BENCHMARK"}
+                  </button>
+                </div>
+
+                {/* Model checkboxes */}
+                <div>
+                  <label className="text-[9px] font-mono text-cyan-600/50 tracking-widest mb-2 block">SELECT MODELS TO BENCHMARK</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {status.models.map(m => {
+                      const sel = benchModels.includes(m.name);
+                      const match = REPLIT_MODELS.find(r => r.name === m.name);
+                      const color = match?.color ?? "#00e5ff";
+                      return (
+                        <button key={m.name}
+                          onClick={() => setBenchModels(prev => sel ? prev.filter(x => x !== m.name) : [...prev, m.name])}
+                          className="px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all hover:scale-105"
+                          style={{
+                            background: sel ? `${color}20` : "rgba(255,255,255,0.04)",
+                            color: sel ? color : "rgba(255,255,255,0.3)",
+                            border: `1px solid ${sel ? color + "40" : "rgba(255,255,255,0.08)"}`,
+                          }}>
+                          {m.name}
+                        </button>
+                      );
+                    })}
+                    {status.models.length === 0 && (
+                      <span className="text-[9px] font-mono text-white/25">No installed models — pull from Library tab first</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress */}
+              {benchRunning && benchProgress && (
+                <div className="flex items-center gap-2 text-[10px] font-mono text-cyan-400 animate-pulse">
+                  <Loader2 className="w-3 h-3 animate-spin" /> {benchProgress}
+                </div>
+              )}
+
+              {/* Results */}
+              {benchResults.length > 0 && (
+                <div className="space-y-3">
+                  <div className="text-[9px] font-mono text-cyan-600/50 tracking-widest">BENCHMARK RESULTS — {benchRuns} RUNS</div>
+                  {benchResults.map((res, idx) => {
+                    const match = REPLIT_MODELS.find(r => r.name === res.name);
+                    const color = match?.color ?? "#00e5ff";
+                    const maxTps = Math.max(...benchResults.map(r => r.avgTps), 1);
+                    return (
+                      <motion.div key={res.name}
+                        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.07 }}
+                        className="rounded-xl border p-4 space-y-3"
+                        style={{ borderColor: `${color}25`, background: `linear-gradient(135deg, ${color}06 0%, transparent 100%)` }}>
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-sm text-white">{res.name}</span>
+                          <div className="flex items-center gap-2">
+                            {idx === 0 && benchResults.length > 1 && (
+                              <span className="flex items-center gap-1 text-[8px] font-black text-amber-400">
+                                <Trophy className="w-3 h-3" /> FASTEST
+                              </span>
+                            )}
+                            <span className="text-[10px] font-black font-mono" style={{ color }}>
+                              {res.avgTps} tok/s avg
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* TPS bar */}
+                        <div>
+                          <div className="flex justify-between text-[8px] font-mono text-white/30 mb-1">
+                            <span>TPS (tokens/sec)</span>
+                            <span>min {res.minTps} — max {res.maxTps}</span>
+                          </div>
+                          <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.04)" }}>
+                            <motion.div
+                              initial={{ width: 0 }} animate={{ width: `${(res.avgTps / maxTps) * 100}%` }}
+                              transition={{ duration: 0.8 }}
+                              className="h-full rounded-full" style={{ background: `linear-gradient(90deg, ${color}cc 0%, ${color} 100%)` }} />
+                          </div>
+                        </div>
+
+                        {/* Stats grid */}
+                        <div className="grid grid-cols-4 gap-2">
+                          {[
+                            { label: "AVG TPS", value: `${res.avgTps}`, icon: <TrendingUp className="w-2.5 h-2.5" /> },
+                            { label: "AVG TTFT", value: `${res.avgTtft}ms`, icon: <Timer className="w-2.5 h-2.5" /> },
+                            { label: "RUNS", value: `${res.runs.length}`, icon: <FlaskConical className="w-2.5 h-2.5" /> },
+                            { label: "CONSISTENCY", value: res.maxTps > 0 ? `${Math.round((1 - (res.maxTps - res.minTps) / res.maxTps) * 100)}%` : "N/A", icon: <Activity className="w-2.5 h-2.5" /> },
+                          ].map(s => (
+                            <div key={s.label} className="rounded-lg p-2 text-center"
+                              style={{ background: `${color}08`, border: `1px solid ${color}18` }}>
+                              <div className="flex justify-center mb-0.5" style={{ color }}>
+                                {s.icon}
+                              </div>
+                              <div className="text-[11px] font-black font-mono" style={{ color }}>{s.value}</div>
+                              <div className="text-[7px] font-mono text-white/25 tracking-wider">{s.label}</div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Per-run details */}
+                        <details className="group">
+                          <summary className="text-[9px] font-mono text-white/25 cursor-pointer hover:text-white/50 transition-colors">
+                            Per-run details ▶
+                          </summary>
+                          <div className="mt-2 space-y-1">
+                            {res.runs.map((r, ri) => (
+                              <div key={ri} className="flex gap-3 text-[8px] font-mono">
+                                <span className="text-white/30">Run {ri + 1}</span>
+                                <span style={{ color }}>TPS: {r.tps}</span>
+                                <span className="text-white/30">TTFT: {r.ttft}ms</span>
+                                <span className="text-white/25">Total: {r.totalMs}ms</span>
+                                <span className="text-white/20">Tokens: ~{r.tokens}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      </motion.div>
+                    );
+                  })}
+
+                  {/* Comparison bar */}
+                  {benchResults.length > 1 && (
+                    <div className="rounded-xl border border-violet-700/25 bg-violet-950/10 p-4">
+                      <div className="text-[9px] font-mono text-violet-400/50 tracking-widest mb-3">SIDE-BY-SIDE TPS COMPARISON</div>
+                      <div className="space-y-2">
+                        {[...benchResults].sort((a, b) => b.avgTps - a.avgTps).map((res, i) => {
+                          const color = REPLIT_MODELS.find(r => r.name === res.name)?.color ?? "#00e5ff";
+                          const maxT  = benchResults[0]?.avgTps ?? 1;
+                          return (
+                            <div key={res.name} className="flex items-center gap-2">
+                              <div className="w-4 text-[8px] font-black text-white/30">#{i+1}</div>
+                              <div className="w-24 text-[9px] font-mono text-white/40 truncate">{res.name.split(":")[0]}</div>
+                              <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.04)" }}>
+                                <motion.div initial={{ width: 0 }} animate={{ width: `${(res.avgTps / (maxT || 1)) * 100}%` }}
+                                  transition={{ delay: i * 0.1, duration: 0.7 }}
+                                  className="h-full rounded-full" style={{ backgroundColor: color }} />
+                              </div>
+                              <div className="w-14 text-right text-[9px] font-mono font-bold" style={{ color }}>{res.avgTps} t/s</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══ COMPARE TAB ═══ */}
+          {tab === "compare" && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Config */}
+              <div className="rounded-xl border border-rose-700/25 bg-rose-950/10 p-4 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <GitCompare className="w-4 h-4 text-rose-400" />
+                  <span className="text-[10px] font-bold text-rose-300 tracking-widest">SIDE-BY-SIDE MODEL COMPARE</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-mono text-rose-600/50 tracking-widest">MODEL A</label>
+                    <select value={cmpModelA} onChange={e => setCmpModelA(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg text-xs font-mono focus:outline-none"
+                      style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(244,63,94,0.3)", color: "#fda4af" }}>
+                      <option value="">— Select —</option>
+                      {status.models.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-mono text-rose-600/50 tracking-widest">MODEL B</label>
+                    <select value={cmpModelB} onChange={e => setCmpModelB(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg text-xs font-mono focus:outline-none"
+                      style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(244,63,94,0.3)", color: "#fda4af" }}>
+                      <option value="">— Select —</option>
+                      {status.models.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-mono text-rose-600/50 tracking-widest">PROMPT</label>
+                  <textarea
+                    value={cmpPrompt} onChange={e => setCmpPrompt(e.target.value)}
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-lg text-xs font-mono focus:outline-none resize-none"
+                    style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(244,63,94,0.3)", color: "#fda4af" }}
+                  />
+                </div>
+                <button onClick={handleCompare}
+                  disabled={cmpLoadA || cmpLoadB || (!cmpModelA && !cmpModelB) || !status.running}
+                  className="w-full py-2.5 rounded-xl font-black text-xs tracking-wider transition-all hover:scale-[1.02] disabled:opacity-40"
+                  style={{ background: "linear-gradient(135deg, #f43f5e 0%, #be123c 100%)", color: "white" }}>
+                  {(cmpLoadA || cmpLoadB) ? "COMPARING..." : "RUN COMPARISON"}
+                </button>
+              </div>
+
+              {/* Side-by-side results */}
+              {(cmpResA || cmpResB || cmpLoadA || cmpLoadB) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: cmpModelA || "Model A", res: cmpResA, load: cmpLoadA, side: "A" as const, color: "#f43f5e" },
+                    { label: cmpModelB || "Model B", res: cmpResB, load: cmpLoadB, side: "B" as const, color: "#a78bfa" },
+                  ].map(({ label, res, load, side, color }) => (
+                    <div key={side} className="rounded-xl border overflow-hidden flex flex-col"
+                      style={{ borderColor: `${color}25`, background: `${color}06` }}>
+                      <div className="flex items-center justify-between px-3 py-2 border-b"
+                        style={{ borderColor: `${color}20`, background: `${color}10` }}>
+                        <div className="flex items-center gap-1.5">
+                          {load && <Loader2 className="w-3 h-3 animate-spin" style={{ color }} />}
+                          <span className="text-[10px] font-bold truncate" style={{ color }}>{label}</span>
+                        </div>
+                        {res && (
+                          <button onClick={async () => {
+                            await navigator.clipboard.writeText(res);
+                            setCmpCopied(side);
+                            setTimeout(() => setCmpCopied(null), 1500);
+                          }} className="p-1 rounded text-white/30 hover:text-white/70 transition-colors">
+                            {cmpCopied === side ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex-1 p-3 text-[10px] font-mono text-white/70 leading-relaxed min-h-[120px] max-h-64 overflow-y-auto whitespace-pre-wrap">
+                        {res || (load ? <span className="animate-pulse" style={{ color }}>Generating...</span> : <span className="text-white/20 italic">Awaiting response...</span>)}
+                        {load && <span className="animate-pulse" style={{ color }}>▊</span>}
+                      </div>
+                      {res && (
+                        <div className="px-3 py-1.5 border-t flex gap-3 text-[8px] font-mono"
+                          style={{ borderColor: `${color}15`, color: `${color}60` }}>
+                          <span>{res.split(/\s+/).filter(Boolean).length} words</span>
+                          <span>{res.length} chars</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {status.models.length < 2 && (
+                <div className="text-center py-8 text-white/25 text-sm font-mono">
+                  Install at least 2 models from the Library tab to compare
+                </div>
+              )}
             </div>
           )}
         </div>

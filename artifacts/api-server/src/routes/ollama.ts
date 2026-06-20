@@ -295,6 +295,64 @@ router.post("/ollama/install", async (_req, res) => {
   res.end();
 });
 
+// ── Feature 3 & 8: System RAM/Disk stats + per-model memory ──────────────
+router.get("/ollama/sysinfo", async (_req, res) => {
+  try {
+    let totalRam = 0, freeRam = 0;
+    try {
+      const meminfo = fs.readFileSync("/proc/meminfo", "utf8");
+      const total     = meminfo.match(/MemTotal:\s+(\d+)/)?.[1];
+      const available = meminfo.match(/MemAvailable:\s+(\d+)/)?.[1];
+      totalRam = total     ? parseInt(total)     * 1024 : 0;
+      freeRam  = available ? parseInt(available) * 1024 : 0;
+    } catch { /* skip */ }
+
+    let diskUsed = 0, diskTotal = 0;
+    try {
+      const { stdout } = await execAsync("df -B1 /home/runner 2>/dev/null | tail -1", { timeout: 4000 });
+      const parts = stdout.trim().split(/\s+/);
+      diskTotal = parseInt(parts[1]) || 0;
+      diskUsed  = parseInt(parts[2]) || 0;
+    } catch { /* skip */ }
+
+    let modelsDirSize = 0;
+    try {
+      const { stdout } = await execAsync("du -sb /home/runner/.ollama/models/blobs 2>/dev/null || echo 0", { timeout: 4000 });
+      modelsDirSize = parseInt(stdout.split(/\s+/)[0]) || 0;
+    } catch { /* skip */ }
+
+    let runningModels: unknown[] = [];
+    try {
+      const ps = await ollamaFetch("/api/ps");
+      if (ps.ok) {
+        const d = await ps.json() as { models?: unknown[] };
+        runningModels = d.models ?? [];
+      }
+    } catch { /* skip */ }
+
+    return res.json({ totalRam, freeRam, usedRam: totalRam - freeRam, diskUsed, diskTotal, modelsDirSize, runningModels });
+  } catch {
+    return res.json({ totalRam: 0, freeRam: 0, usedRam: 0, diskUsed: 0, diskTotal: 0, modelsDirSize: 0, runningModels: [] });
+  }
+});
+
+// ── Feature 8: Test Ollama connection ────────────────────────────────────
+router.get("/ollama/test-connection", async (_req, res) => {
+  const t0 = Date.now();
+  try {
+    const [tagsRes, versionRes] = await Promise.all([
+      ollamaFetch("/api/tags"),
+      ollamaFetch("/api/version"),
+    ]);
+    if (!tagsRes.ok) return res.json({ ok: false, latencyMs: Date.now() - t0, error: "not responding" });
+    const tags    = await tagsRes.json() as { models?: unknown[] };
+    const version = await versionRes.json() as { version?: string };
+    return res.json({ ok: true, latencyMs: Date.now() - t0, modelCount: (tags.models ?? []).length, version: version.version ?? null });
+  } catch (e) {
+    return res.json({ ok: false, latencyMs: Date.now() - t0, error: String(e) });
+  }
+});
+
 // Background download status
 router.get("/ollama/dl-status", (_req, res) => {
   try {

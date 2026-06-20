@@ -1,18 +1,27 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { FullPageOverlay } from "@/components/FullPageOverlay";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Trophy, Activity, X, RotateCcw, Copy, Check, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Zap, Trophy, Activity, X, RotateCcw, Copy, Check, ChevronDown, ChevronUp, Loader2, Bolt, BarChart3, Timer, TrendingUp, FlaskConical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const ENGINES = [
-  { id: "ollama",    label: "Ollama",      color: "#00e5ff", icon: "🦙", port: 11434 },
-  { id: "lmstudio", label: "LM Studio",   color: "#a78bfa", icon: "🎨", port: 1234  },
-  { id: "jan",       label: "Jan",          color: "#34d399", icon: "🤖", port: 1337  },
-  { id: "gpt4all",  label: "GPT4All",      color: "#f97316", icon: "🧠", port: 4891  },
-  { id: "openwebui", label: "Open WebUI",  color: "#06d6a0", icon: "🌐", port: 3000  },
-  { id: "llamafile", label: "Llamafile",   color: "#fbbf24", icon: "📄", port: 8081  },
-  { id: "kobold",   label: "KoboldCPP",   color: "#f72585", icon: "⚔️", port: 5001  },
+// ── Feature 12 & 13: Add Groq engines to race ─────────────────────────────
+const LOCAL_ENGINES = [
+  { id: "ollama",    label: "Ollama",      color: "#00e5ff", icon: "🦙", port: 11434, groq: false },
+  { id: "lmstudio", label: "LM Studio",   color: "#a78bfa", icon: "🎨", port: 1234,  groq: false },
+  { id: "jan",       label: "Jan",          color: "#34d399", icon: "🤖", port: 1337,  groq: false },
+  { id: "gpt4all",  label: "GPT4All",      color: "#f97316", icon: "🧠", port: 4891,  groq: false },
+  { id: "openwebui", label: "Open WebUI",  color: "#06d6a0", icon: "🌐", port: 3000,  groq: false },
+  { id: "llamafile", label: "Llamafile",   color: "#fbbf24", icon: "📄", port: 8081,  groq: false },
+  { id: "kobold",   label: "KoboldCPP",   color: "#f72585", icon: "⚔️", port: 5001,  groq: false },
 ] as const;
+
+const GROQ_ENGINES = [
+  { id: "groq-llama3-8b",  label: "Groq LLaMA3 8B",   color: "#fbbf24", icon: "⚡", port: 0, groq: true, model: "llama-3.1-8b-instant"   },
+  { id: "groq-mixtral",    label: "Groq Mixtral 8×7B", color: "#c084fc", icon: "⚡", port: 0, groq: true, model: "mixtral-8x7b-32768"      },
+  { id: "groq-gemma2",     label: "Groq Gemma2 9B",    color: "#34d399", icon: "⚡", port: 0, groq: true, model: "gemma2-9b-it"            },
+] as const;
+
+const ENGINES = [...LOCAL_ENGINES, ...GROQ_ENGINES] as const;
 type EngineId = typeof ENGINES[number]["id"];
 
 interface EngineResult {
@@ -186,8 +195,14 @@ function EngineCard({
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[11px] font-bold" style={{ color: eng.color }}>{eng.label}</span>
+            {'groq' in eng && eng.groq && (
+              <span className="text-[7px] px-1 py-0.5 rounded font-black tracking-wider"
+                style={{ background: "rgba(251,191,36,0.18)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.35)" }}>
+                GROQ GPU
+              </span>
+            )}
             {rank !== null && (
               <span className="text-[8px] px-1.5 py-0.5 rounded font-mono"
                 style={{ background: eng.color + "22", color: eng.color }}>
@@ -344,6 +359,62 @@ export function MultiModelRaceModal({ open, onOpenChange }: Props) {
     setFinishOrder([]);
   }, []);
 
+  // ── Feature 14: Groq race runner ─────────────────────────────────────────
+  const runGroqEngine = useCallback(async (
+    engId: EngineId,
+    model: string,
+    groqApiKey: string,
+    signal: AbortSignal,
+  ) => {
+    const t0 = Date.now();
+    let firstToken = true;
+    let buf = "";
+    try {
+      setResults(prev => prev.map(r => r.id === engId ? { ...r, status: "streaming" } : r));
+      const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${groqApiKey}` },
+        body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], stream: true, max_tokens: 512 }),
+        signal,
+      });
+      if (!resp.ok || !resp.body) throw new Error(`Groq ${resp.status}`);
+      const reader = resp.body.getReader();
+      const dec    = new TextDecoder();
+      let raw = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        raw += dec.decode(value, { stream: true });
+        const lines = raw.split("\n");
+        raw = lines.pop() ?? "";
+        for (const ln of lines) {
+          const d = ln.replace(/^data:\s*/, "").trim();
+          if (!d || d === "[DONE]") continue;
+          try {
+            const chunk = JSON.parse(d) as { choices?: { delta?: { content?: string } }[] };
+            const token = chunk.choices?.[0]?.delta?.content ?? "";
+            if (token) {
+              if (firstToken) {
+                firstToken = false;
+                setResults(prev => prev.map(r => r.id === engId ? { ...r, latencyMs: Date.now() - t0 } : r));
+              }
+              buf += token;
+              setResults(prev => prev.map(r => r.id === engId ? { ...r, text: r.text + token } : r));
+            }
+          } catch { /* skip */ }
+        }
+      }
+      const elapsed = Date.now() - t0;
+      const words   = buf.split(/\s+/).filter(Boolean).length;
+      setFinishOrder(fo => fo.includes(engId) ? fo : [...fo, engId]);
+      setResults(prev => prev.map(r => r.id === engId
+        ? { ...r, status: "done", elapsedMs: elapsed, tokensEst: words, wordsPerSec: elapsed > 0 ? Math.round(words / elapsed * 1000) : 0 }
+        : r));
+    } catch {
+      setResults(prev => prev.map(r => r.id === engId ? { ...r, status: "error" } : r));
+    }
+  }, [prompt]);
+
   const startRace = useCallback(async () => {
     if (racing) { abortRef.current?.abort(); return; }
     if (!prompt.trim()) { toast({ title: "Enter a prompt first" }); return; }
@@ -354,74 +425,87 @@ export function MultiModelRaceModal({ open, onOpenChange }: Props) {
     startTime.current = Date.now();
 
     abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
 
-    try {
-      const resp = await fetch("/api/lb/race", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [{ role: "user", content: prompt }] }),
-        signal: abortRef.current.signal,
-      });
+    // ── Groq engines run in parallel via direct Groq API ─────────────────
+    const groqKey = localStorage.getItem("mr7-ai-p-key-groq") ?? "";
+    const groqPromises = GROQ_ENGINES.map(e =>
+      groqKey
+        ? runGroqEngine(e.id, e.model, groqKey, signal)
+        : Promise.resolve(setResults(prev => prev.map(r => r.id === e.id ? { ...r, status: "error" } : r)))
+    );
 
-      if (!resp.body) throw new Error("No body");
+    // ── Local engines via lb/race SSE ─────────────────────────────────────
+    const localRace = (async () => {
+      try {
+        const resp = await fetch("/api/lb/race", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: [{ role: "user", content: prompt }] }),
+          signal,
+        });
 
-      const reader = resp.body.getReader();
-      const dec    = new TextDecoder();
-      let buf      = "";
+        if (!resp.body) throw new Error("No body");
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        const parts = buf.split("\n\n");
-        buf = parts.pop() ?? "";
+        const reader = resp.body.getReader();
+        const dec    = new TextDecoder();
+        let buf      = "";
 
-        for (const part of parts) {
-          const line = part.replace(/^data:\s*/, "").trim();
-          if (!line) continue;
-          try {
-            const d = JSON.parse(line) as {
-              type: string; engine?: string; content?: string;
-              elapsedMs?: number; tokensEst?: number; latencyMs?: number;
-              message?: string; totalText?: string;
-            };
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          const parts = buf.split("\n\n");
+          buf = parts.pop() ?? "";
 
-            const eid = d.engine as EngineId | undefined;
+          for (const part of parts) {
+            const line = part.replace(/^data:\s*/, "").trim();
+            if (!line) continue;
+            try {
+              const d = JSON.parse(line) as {
+                type: string; engine?: string; content?: string;
+                elapsedMs?: number; tokensEst?: number; latencyMs?: number;
+                message?: string; totalText?: string;
+              };
 
-            setResults(prev => prev.map(r => {
-              if (!eid || r.id !== eid) return r;
-              switch (d.type) {
-                case "engine_start":
-                  return { ...r, status: "streaming", latencyMs: d.latencyMs ?? null };
-                case "engine_chunk":
-                  return { ...r, status: "streaming", text: r.text + (d.content ?? "") };
-                case "engine_done":
-                  setFinishOrder(fo => fo.includes(eid) ? fo : [...fo, eid]);
-                  return {
-                    ...r, status: "done",
-                    text: d.totalText ?? r.text,
-                    elapsedMs: d.elapsedMs ?? null,
-                    tokensEst: d.tokensEst ?? 0,
-                  };
-                case "engine_error":
-                  return { ...r, status: "error" };
-                default:
-                  return r;
-              }
-            }));
+              const eid = d.engine as EngineId | undefined;
 
-            if (d.type === "race_done") { setRacing(false); break; }
-          } catch { /* ignore */ }
+              setResults(prev => prev.map(r => {
+                if (!eid || r.id !== eid) return r;
+                switch (d.type) {
+                  case "engine_start":
+                    return { ...r, status: "streaming", latencyMs: d.latencyMs ?? null };
+                  case "engine_chunk":
+                    return { ...r, status: "streaming", text: r.text + (d.content ?? "") };
+                  case "engine_done":
+                    setFinishOrder(fo => fo.includes(eid) ? fo : [...fo, eid]);
+                    return {
+                      ...r, status: "done",
+                      text: d.totalText ?? r.text,
+                      elapsedMs: d.elapsedMs ?? null,
+                      tokensEst: d.tokensEst ?? 0,
+                    };
+                  case "engine_error":
+                    return { ...r, status: "error" };
+                  default:
+                    return r;
+                }
+              }));
+
+              if (d.type === "race_done") break;
+            } catch { /* ignore */ }
+          }
+        }
+      } catch (e) {
+        if ((e as Error).name !== "AbortError") {
+          toast({ title: "Race error", description: (e as Error).message, variant: "destructive" });
         }
       }
-    } catch (e) {
-      if ((e as Error).name !== "AbortError") {
-        toast({ title: "Race error", description: (e as Error).message, variant: "destructive" });
-      }
-    } finally {
-      setRacing(false);
-    }
-  }, [racing, prompt, resetResults, toast]);
+    })();
+
+    await Promise.allSettled([localRace, ...groqPromises]);
+    setRacing(false);
+  }, [racing, prompt, resetResults, toast, runGroqEngine]);
 
   const toggleExpand = (id: EngineId) =>
     setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -466,10 +550,12 @@ export function MultiModelRaceModal({ open, onOpenChange }: Props) {
                 animate={racing ? { opacity: [1, 0.5, 1] } : {}}
                 transition={{ duration: 1, repeat: Infinity }}
               >
-                {racing ? "⚡ RACING" : `7 ENGINES`}
+                {racing ? "⚡ RACING" : `${ENGINES.length} ENGINES`}
               </motion.span>
             </h2>
-            <p className="text-[11px] text-white/35 mt-0.5">أرسل prompt واحداً لجميع النماذج في وقت واحد</p>
+            <p className="text-[11px] text-white/35 mt-0.5">
+            7 local engines + 3 Groq GPU engines · {localStorage.getItem("mr7-ai-p-key-groq") ? <span className="text-amber-400">Groq key configured</span> : <span className="text-white/25">Set Groq key in Ollama Hub → GROQ ARENA</span>}
+          </p>
           </div>
 
           {/* Trophy count */}
