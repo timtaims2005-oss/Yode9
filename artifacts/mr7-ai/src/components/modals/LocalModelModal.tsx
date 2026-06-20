@@ -154,8 +154,16 @@ function RadarScan3D({ results, scanning }: { results: ScanResult[]; scanning: b
   );
 }
 
-type ModelTag = "UNCENSORED" | "FAST" | "POWERFUL" | "CODE" | "VISION" | "REASONING" | "MULTILINGUAL" | "TINY" | "EMBED";
-type ModelGroup = "Dolphin / Uncensored" | "Llama Family" | "Mistral Family" | "DeepSeek" | "Qwen" | "Phi / Small" | "Code Models" | "Vision Models" | "Arabic / Multilingual" | "Gemma" | "Security Specialist" | "Mixtral" | "Embedding Models";
+type ModelTag = "UNCENSORED" | "FAST" | "POWERFUL" | "CODE" | "VISION" | "REASONING" | "MULTILINGUAL" | "TINY" | "EMBED" | "MATH" | "MEDICAL" | "AGENT" | "ROLEPLAY" | "SECURITY" | "RERANK" | "REPLIT";
+type ModelGroup =
+  | "Dolphin / Uncensored" | "Llama Family" | "Mistral Family" | "DeepSeek" | "Qwen" | "Phi / Small"
+  | "Code Models" | "Vision Models" | "Arabic / Multilingual" | "Gemma" | "Security Specialist"
+  | "Mixtral" | "Embedding Models" | "WizardLM Family" | "Yi / 01-AI" | "Falcon Family"
+  | "Command R Family" | "Math Models" | "Medical / Science" | "Japanese / CJK"
+  | "Russian / Slavic" | "Agent / Tool Use" | "Roleplay / Chat" | "Hermes / OpenHermes"
+  | "Vicuna / Alpaca / Orca" | "StableLM / StableCode" | "InternLM Family"
+  | "Quantized Giants" | "Reranking Models" | "Solar / Eeve" | "Granite Family"
+  | "Llama Guard / Safety" | "NuExtract / Structured" | "Replit / Dev";
 
 const QUICK_MODELS: {
   id: string; label: string; tag: ModelTag; group: ModelGroup;
@@ -289,6 +297,469 @@ const QUICK_MODELS: {
   { id: "bge-m3", label: "BGE-M3 Multilingual", tag: "EMBED", group: "Embedding Models", size: "1.2GB", ctx: "8K" },
   { id: "all-minilm:22m", label: "All-MiniLM 22M", tag: "EMBED", group: "Embedding Models", size: "45MB", ctx: "512" },
   { id: "snowflake-arctic-embed:22m", label: "Snowflake Arctic Embed 22M", tag: "EMBED", group: "Embedding Models", size: "45MB", ctx: "512" },
+  { id: "snowflake-arctic-embed:33m", label: "Snowflake Arctic Embed 33M", tag: "EMBED", group: "Embedding Models", size: "67MB", ctx: "512" },
+  { id: "snowflake-arctic-embed:137m", label: "Snowflake Arctic Embed 137M", tag: "EMBED", group: "Embedding Models", size: "274MB", ctx: "512" },
+  { id: "snowflake-arctic-embed:335m", label: "Snowflake Arctic Embed 335M", tag: "EMBED", group: "Embedding Models", size: "670MB", ctx: "512" },
+  { id: "bge-large", label: "BGE Large EN", tag: "EMBED", group: "Embedding Models", size: "670MB", ctx: "512" },
+  { id: "bge-base", label: "BGE Base EN", tag: "EMBED", group: "Embedding Models", size: "274MB", ctx: "512" },
+  { id: "paraphrase-multilingual", label: "Paraphrase Multilingual", tag: "EMBED", group: "Embedding Models", size: "278MB", ctx: "128" },
+  { id: "all-minilm:l6-v2", label: "All-MiniLM L6 v2", tag: "EMBED", group: "Embedding Models", size: "44MB", ctx: "512" },
+  { id: "nomic-embed-text:v1.5", label: "Nomic Embed Text v1.5", tag: "EMBED", group: "Embedding Models", size: "274MB", ctx: "8K" },
+  { id: "mxbai-embed-large:335m", label: "MxBai Embed Large 335M", tag: "EMBED", group: "Embedding Models", size: "670MB", ctx: "512" },
+  { id: "granite-embedding:30m", label: "Granite Embedding 30M", tag: "EMBED", group: "Embedding Models", size: "60MB", ctx: "512" },
+  { id: "granite-embedding:278m", label: "Granite Embedding 278M", tag: "EMBED", group: "Embedding Models", size: "556MB", ctx: "512" },
+
+  // ── WizardLM Family ────────────────────────────────────────────────────────
+  { id: "wizardlm2:7b", label: "WizardLM-2 7B", tag: "FAST", group: "WizardLM Family", size: "4.1GB", ctx: "32K", hot: true },
+  { id: "wizardlm2:8x22b", label: "WizardLM-2 8x22B MoE", tag: "POWERFUL", group: "WizardLM Family", size: "80GB", ctx: "64K" },
+  { id: "wizard-vicuna-uncensored:7b", label: "Wizard Vicuna 7B (Uncensored)", tag: "UNCENSORED", group: "WizardLM Family", size: "3.8GB", ctx: "2K" },
+  { id: "wizard-vicuna-uncensored:13b", label: "Wizard Vicuna 13B (Uncensored)", tag: "UNCENSORED", group: "WizardLM Family", size: "7.3GB", ctx: "2K" },
+  { id: "wizard-vicuna-uncensored:30b", label: "Wizard Vicuna 30B (Uncensored)", tag: "UNCENSORED", group: "WizardLM Family", size: "18GB", ctx: "2K" },
+  { id: "wizardcoder:python-7b", label: "WizardCoder Python 7B", tag: "CODE", group: "WizardLM Family", size: "3.8GB", ctx: "4K" },
+  { id: "wizardcoder:python-13b", label: "WizardCoder Python 13B", tag: "CODE", group: "WizardLM Family", size: "7.3GB", ctx: "4K" },
+  { id: "wizardcoder:python-34b", label: "WizardCoder Python 34B", tag: "CODE", group: "WizardLM Family", size: "19GB", ctx: "4K" },
+  { id: "wizardmath:7b", label: "WizardMath 7B", tag: "MATH", group: "WizardLM Family", size: "3.8GB", ctx: "2K" },
+  { id: "wizardmath:13b", label: "WizardMath 13B", tag: "MATH", group: "WizardLM Family", size: "7.3GB", ctx: "2K" },
+  { id: "wizardmath:70b", label: "WizardMath 70B", tag: "MATH", group: "WizardLM Family", size: "39GB", ctx: "4K" },
+
+  // ── Yi / 01-AI Family ──────────────────────────────────────────────────────
+  { id: "yi:6b", label: "Yi 6B", tag: "FAST", group: "Yi / 01-AI", size: "3.5GB", ctx: "4K" },
+  { id: "yi:9b", label: "Yi 9B", tag: "FAST", group: "Yi / 01-AI", size: "5.0GB", ctx: "4K" },
+  { id: "yi:34b", label: "Yi 34B", tag: "POWERFUL", group: "Yi / 01-AI", size: "19GB", ctx: "4K", hot: true },
+  { id: "yi:34b-chat", label: "Yi 34B Chat", tag: "POWERFUL", group: "Yi / 01-AI", size: "19GB", ctx: "4K" },
+  { id: "yi-coder:1.5b", label: "Yi-Coder 1.5B", tag: "CODE", group: "Yi / 01-AI", size: "986MB", ctx: "128K" },
+  { id: "yi-coder:9b", label: "Yi-Coder 9B", tag: "CODE", group: "Yi / 01-AI", size: "5.0GB", ctx: "128K", hot: true },
+  { id: "yi:6b-chat", label: "Yi 6B Chat", tag: "FAST", group: "Yi / 01-AI", size: "3.5GB", ctx: "4K" },
+
+  // ── Falcon Family ──────────────────────────────────────────────────────────
+  { id: "falcon:7b", label: "Falcon 7B", tag: "FAST", group: "Falcon Family", size: "4.2GB", ctx: "2K" },
+  { id: "falcon:40b", label: "Falcon 40B", tag: "POWERFUL", group: "Falcon Family", size: "24GB", ctx: "2K" },
+  { id: "falcon:180b", label: "Falcon 180B", tag: "POWERFUL", group: "Falcon Family", size: "110GB", ctx: "2K" },
+  { id: "falcon2:11b", label: "Falcon2 11B", tag: "FAST", group: "Falcon Family", size: "6.4GB", ctx: "8K", hot: true },
+  { id: "falcon3:1b", label: "Falcon3 1B", tag: "TINY", group: "Falcon Family", size: "751MB", ctx: "32K" },
+  { id: "falcon3:3b", label: "Falcon3 3B", tag: "FAST", group: "Falcon Family", size: "1.9GB", ctx: "32K" },
+  { id: "falcon3:7b", label: "Falcon3 7B", tag: "FAST", group: "Falcon Family", size: "4.3GB", ctx: "32K", hot: true },
+  { id: "falcon3:10b", label: "Falcon3 10B", tag: "FAST", group: "Falcon Family", size: "5.9GB", ctx: "32K" },
+
+  // ── Command R Family ───────────────────────────────────────────────────────
+  { id: "command-r7b", label: "Command R 7B", tag: "FAST", group: "Command R Family", size: "4.7GB", ctx: "128K", hot: true },
+  { id: "command-r7b:12-2024", label: "Command R 7B (Dec 2024)", tag: "FAST", group: "Command R Family", size: "4.7GB", ctx: "128K" },
+  { id: "command-r:35b", label: "Command R 35B", tag: "POWERFUL", group: "Command R Family", size: "20GB", ctx: "128K" },
+  { id: "command-r-plus:104b", label: "Command R+ 104B", tag: "POWERFUL", group: "Command R Family", size: "59GB", ctx: "128K" },
+  { id: "command-r-plus", label: "Command R+ Latest", tag: "POWERFUL", group: "Command R Family", size: "59GB", ctx: "128K" },
+
+  // ── Math Models ────────────────────────────────────────────────────────────
+  { id: "mathstral:7b", label: "Mathstral 7B", tag: "MATH", group: "Math Models", size: "4.1GB", ctx: "32K", hot: true },
+  { id: "deepseek-r1:1.5b", label: "DeepSeek-R1 1.5B Math", tag: "MATH", group: "Math Models", size: "1.1GB", ctx: "128K" },
+  { id: "qwen2-math:1.5b", label: "Qwen2-Math 1.5B", tag: "MATH", group: "Math Models", size: "935MB", ctx: "4K" },
+  { id: "qwen2-math:7b", label: "Qwen2-Math 7B", tag: "MATH", group: "Math Models", size: "4.4GB", ctx: "4K", hot: true },
+  { id: "qwen2-math:72b", label: "Qwen2-Math 72B", tag: "MATH", group: "Math Models", size: "43GB", ctx: "4K" },
+  { id: "qwq:32b", label: "QwQ 32B Math Reasoning", tag: "MATH", group: "Math Models", size: "19GB", ctx: "32K", hot: true },
+  { id: "nemotron-mini:4b", label: "Nemotron Mini 4B", tag: "MATH", group: "Math Models", size: "2.7GB", ctx: "4K" },
+  { id: "nemotron:70b", label: "Nemotron 70B", tag: "MATH", group: "Math Models", size: "43GB", ctx: "128K" },
+
+  // ── Medical / Science ──────────────────────────────────────────────────────
+  { id: "medllama2:7b", label: "MedLlama2 7B", tag: "MEDICAL", group: "Medical / Science", size: "3.8GB", ctx: "4K" },
+  { id: "meditron:7b", label: "Meditron 7B", tag: "MEDICAL", group: "Medical / Science", size: "4.1GB", ctx: "2K", hot: true },
+  { id: "meditron:70b", label: "Meditron 70B", tag: "MEDICAL", group: "Medical / Science", size: "40GB", ctx: "2K" },
+  { id: "biomistral:7b", label: "BioMistral 7B", tag: "MEDICAL", group: "Medical / Science", size: "4.1GB", ctx: "8K" },
+  { id: "llama3-med42:8b", label: "Llama3 Med42 8B", tag: "MEDICAL", group: "Medical / Science", size: "4.7GB", ctx: "8K", hot: true },
+  { id: "llama3-med42:70b", label: "Llama3 Med42 70B", tag: "MEDICAL", group: "Medical / Science", size: "40GB", ctx: "8K" },
+  { id: "clinical-camel:70b", label: "Clinical Camel 70B", tag: "MEDICAL", group: "Medical / Science", size: "39GB", ctx: "4K" },
+
+  // ── Japanese / CJK ────────────────────────────────────────────────────────
+  { id: "llm-jp:13b", label: "LLM-jp 13B (日本語)", tag: "MULTILINGUAL", group: "Japanese / CJK", size: "7.3GB", ctx: "4K" },
+  { id: "qwen:7b", label: "Qwen 7B (中文)", tag: "MULTILINGUAL", group: "Japanese / CJK", size: "4.4GB", ctx: "8K" },
+  { id: "qwen:14b", label: "Qwen 14B (中文)", tag: "MULTILINGUAL", group: "Japanese / CJK", size: "8.2GB", ctx: "8K" },
+  { id: "qwen:72b", label: "Qwen 72B (中文)", tag: "MULTILINGUAL", group: "Japanese / CJK", size: "41GB", ctx: "32K" },
+  { id: "elyza:jp8b", label: "ELYZA-JP 8B (日本語)", tag: "MULTILINGUAL", group: "Japanese / CJK", size: "4.7GB", ctx: "8K", hot: true },
+  { id: "exaone3:7.8b", label: "Exaone3 7.8B (한국어)", tag: "MULTILINGUAL", group: "Japanese / CJK", size: "4.7GB", ctx: "4K", hot: true },
+  { id: "exaone3.5:7.8b", label: "Exaone3.5 7.8B", tag: "MULTILINGUAL", group: "Japanese / CJK", size: "4.7GB", ctx: "32K" },
+  { id: "exaone3.5:2.4b", label: "Exaone3.5 2.4B", tag: "MULTILINGUAL", group: "Japanese / CJK", size: "1.7GB", ctx: "32K" },
+  { id: "exaone3.5:32b", label: "Exaone3.5 32B", tag: "MULTILINGUAL", group: "Japanese / CJK", size: "19GB", ctx: "32K" },
+  { id: "internlm2:7b", label: "InternLM2 7B (中文)", tag: "MULTILINGUAL", group: "Japanese / CJK", size: "4.5GB", ctx: "32K" },
+  { id: "internlm2:20b", label: "InternLM2 20B (中文)", tag: "MULTILINGUAL", group: "Japanese / CJK", size: "11GB", ctx: "32K" },
+  { id: "qwen2.5:3b", label: "Qwen 2.5 3B", tag: "MULTILINGUAL", group: "Japanese / CJK", size: "1.9GB", ctx: "128K" },
+  { id: "qwen2.5:1.5b", label: "Qwen 2.5 1.5B", tag: "TINY", group: "Japanese / CJK", size: "986MB", ctx: "128K" },
+  { id: "qwen2.5:0.5b", label: "Qwen 2.5 0.5B (Tiny)", tag: "TINY", group: "Japanese / CJK", size: "397MB", ctx: "32K" },
+
+  // ── Russian / Slavic ──────────────────────────────────────────────────────
+  { id: "saiga:7b", label: "Saiga 7B (Russian)", tag: "MULTILINGUAL", group: "Russian / Slavic", size: "4.1GB", ctx: "8K", hot: true },
+  { id: "saiga:13b", label: "Saiga 13B (Russian)", tag: "MULTILINGUAL", group: "Russian / Slavic", size: "7.3GB", ctx: "8K" },
+  { id: "vikhr-7b", label: "Vikhr 7B (Russian)", tag: "MULTILINGUAL", group: "Russian / Slavic", size: "4.1GB", ctx: "8K", hot: true },
+  { id: "openchat:3.5", label: "OpenChat 3.5 (Multilingual)", tag: "MULTILINGUAL", group: "Russian / Slavic", size: "4.1GB", ctx: "8K" },
+
+  // ── Agent / Tool Use ──────────────────────────────────────────────────────
+  { id: "llama3-groq-tool-use:8b", label: "Llama3-Groq Tool Use 8B", tag: "AGENT", group: "Agent / Tool Use", size: "4.7GB", ctx: "8K", hot: true },
+  { id: "llama3-groq-tool-use:70b", label: "Llama3-Groq Tool Use 70B", tag: "AGENT", group: "Agent / Tool Use", size: "40GB", ctx: "8K" },
+  { id: "firefunction-v2", label: "FireFunction V2 (Tool)", tag: "AGENT", group: "Agent / Tool Use", size: "40GB", ctx: "32K" },
+  { id: "xlam:1b", label: "xLAM 1B (Tool Use)", tag: "AGENT", group: "Agent / Tool Use", size: "740MB", ctx: "32K" },
+  { id: "xlam:7b", label: "xLAM 7B (Tool Use)", tag: "AGENT", group: "Agent / Tool Use", size: "4.7GB", ctx: "32K", hot: true },
+  { id: "xlam:8x22b", label: "xLAM 8x22B (Tool Use)", tag: "AGENT", group: "Agent / Tool Use", size: "80GB", ctx: "64K" },
+  { id: "hammer2.1:1.5b", label: "Hammer2.1 1.5B (Function)", tag: "AGENT", group: "Agent / Tool Use", size: "986MB", ctx: "8K" },
+  { id: "hammer2.1:3b", label: "Hammer2.1 3B (Function)", tag: "AGENT", group: "Agent / Tool Use", size: "1.9GB", ctx: "8K" },
+  { id: "hammer2.1:7b", label: "Hammer2.1 7B (Function)", tag: "AGENT", group: "Agent / Tool Use", size: "4.1GB", ctx: "8K", hot: true },
+  { id: "mistral:7b-instruct", label: "Mistral 7B Instruct (Function)", tag: "AGENT", group: "Agent / Tool Use", size: "4.1GB", ctx: "32K" },
+  { id: "qwen2.5:7b-instruct", label: "Qwen2.5 7B Instruct (Tool)", tag: "AGENT", group: "Agent / Tool Use", size: "4.7GB", ctx: "128K" },
+
+  // ── Roleplay / Chat ───────────────────────────────────────────────────────
+  { id: "samantha-mistral:7b", label: "Samantha Mistral 7B", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "4.1GB", ctx: "8K" },
+  { id: "yarn-llama2:13b", label: "Yarn Llama2 13B (Long Context)", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "7.3GB", ctx: "128K" },
+  { id: "yarn-mistral:7b", label: "Yarn Mistral 7B (128K)", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "4.1GB", ctx: "128K" },
+  { id: "orca-mini:3b", label: "Orca Mini 3B", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "1.9GB", ctx: "2K" },
+  { id: "orca-mini:7b", label: "Orca Mini 7B", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "3.8GB", ctx: "2K" },
+  { id: "orca-mini:13b", label: "Orca Mini 13B", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "7.3GB", ctx: "2K" },
+  { id: "orca-mini:70b", label: "Orca Mini 70B", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "39GB", ctx: "2K" },
+  { id: "zephyr:7b", label: "Zephyr 7B Beta", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "4.1GB", ctx: "32K", hot: true },
+  { id: "zephyr:141b", label: "Zephyr 141B (MoE)", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "80GB", ctx: "64K" },
+  { id: "starling-lm:7b", label: "Starling LM 7B Beta", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "4.1GB", ctx: "8K" },
+  { id: "nous-hermes:7b", label: "Nous-Hermes Llama2 7B", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "3.8GB", ctx: "4K" },
+  { id: "openhermes:2.5", label: "OpenHermes 2.5 7B", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "4.1GB", ctx: "8K", hot: true },
+
+  // ── Hermes / OpenHermes ───────────────────────────────────────────────────
+  { id: "hermes3:3b", label: "Hermes 3 Llama 3.2 3B", tag: "UNCENSORED", group: "Hermes / OpenHermes", size: "2.0GB", ctx: "128K", hot: true },
+  { id: "hermes3:8b", label: "Hermes 3 Llama 3.1 8B", tag: "UNCENSORED", group: "Hermes / OpenHermes", size: "4.7GB", ctx: "128K", hot: true },
+  { id: "hermes3:70b", label: "Hermes 3 Llama 3.1 70B", tag: "UNCENSORED", group: "Hermes / OpenHermes", size: "40GB", ctx: "128K" },
+  { id: "hermes3:405b", label: "Hermes 3 Llama 3.1 405B", tag: "UNCENSORED", group: "Hermes / OpenHermes", size: "231GB", ctx: "128K" },
+  { id: "nous-hermes2", label: "Nous-Hermes2 Mixtral 8x7B", tag: "UNCENSORED", group: "Hermes / OpenHermes", size: "26GB", ctx: "32K" },
+  { id: "nous-hermes2:10.7b", label: "Nous-Hermes2 10.7B", tag: "UNCENSORED", group: "Hermes / OpenHermes", size: "6.1GB", ctx: "8K" },
+  { id: "nous-hermes2-mixtral:8x7b", label: "Nous-Hermes2 Mixtral 8x7B DPO", tag: "UNCENSORED", group: "Hermes / OpenHermes", size: "26GB", ctx: "32K" },
+  { id: "openhermes:2-mistral-7b", label: "OpenHermes 2 Mistral 7B", tag: "UNCENSORED", group: "Hermes / OpenHermes", size: "4.1GB", ctx: "8K" },
+  { id: "nexusraven:13b", label: "NexusRaven 13B (Function Calling)", tag: "AGENT", group: "Hermes / OpenHermes", size: "7.3GB", ctx: "16K" },
+
+  // ── Vicuna / Alpaca / Orca ────────────────────────────────────────────────
+  { id: "vicuna:7b", label: "Vicuna 7B v1.5", tag: "FAST", group: "Vicuna / Alpaca / Orca", size: "3.8GB", ctx: "4K" },
+  { id: "vicuna:13b", label: "Vicuna 13B v1.5", tag: "FAST", group: "Vicuna / Alpaca / Orca", size: "7.3GB", ctx: "4K" },
+  { id: "vicuna:33b", label: "Vicuna 33B v1.3", tag: "POWERFUL", group: "Vicuna / Alpaca / Orca", size: "19GB", ctx: "2K" },
+  { id: "alpaca:7b", label: "Stanford Alpaca 7B", tag: "FAST", group: "Vicuna / Alpaca / Orca", size: "3.8GB", ctx: "2K" },
+  { id: "orca2:7b", label: "Orca 2 7B", tag: "REASONING", group: "Vicuna / Alpaca / Orca", size: "3.8GB", ctx: "4K", hot: true },
+  { id: "orca2:13b", label: "Orca 2 13B", tag: "REASONING", group: "Vicuna / Alpaca / Orca", size: "7.3GB", ctx: "4K", hot: true },
+  { id: "solar:10.7b", label: "SOLAR 10.7B Instruct", tag: "FAST", group: "Vicuna / Alpaca / Orca", size: "6.1GB", ctx: "4K" },
+
+  // ── StableLM / StableCode ─────────────────────────────────────────────────
+  { id: "stablelm2:1.6b", label: "StableLM2 1.6B", tag: "TINY", group: "StableLM / StableCode", size: "983MB", ctx: "4K" },
+  { id: "stablelm2:12b", label: "StableLM2 12B", tag: "FAST", group: "StableLM / StableCode", size: "6.7GB", ctx: "4K" },
+  { id: "stablelm-zephyr:3b", label: "StableLM Zephyr 3B", tag: "TINY", group: "StableLM / StableCode", size: "1.9GB", ctx: "4K" },
+  { id: "stablecode:3b", label: "StableCode 3B", tag: "CODE", group: "StableLM / StableCode", size: "1.9GB", ctx: "16K" },
+  { id: "stable-code:3b", label: "Stable Code Instruct 3B", tag: "CODE", group: "StableLM / StableCode", size: "1.9GB", ctx: "16K" },
+
+  // ── InternLM Family ───────────────────────────────────────────────────────
+  { id: "internlm2:1.8b", label: "InternLM2 1.8B", tag: "TINY", group: "InternLM Family", size: "1.1GB", ctx: "32K" },
+  { id: "internlm2:7b", label: "InternLM2 7B", tag: "FAST", group: "InternLM Family", size: "4.5GB", ctx: "32K", hot: true },
+  { id: "internlm2:20b", label: "InternLM2 20B", tag: "POWERFUL", group: "InternLM Family", size: "11GB", ctx: "32K" },
+  { id: "internlm2.5:7b", label: "InternLM2.5 7B", tag: "FAST", group: "InternLM Family", size: "4.5GB", ctx: "1M", hot: true },
+  { id: "internlm2.5:20b", label: "InternLM2.5 20B", tag: "POWERFUL", group: "InternLM Family", size: "11GB", ctx: "1M" },
+
+  // ── Quantized Giants ──────────────────────────────────────────────────────
+  { id: "llama3.1:405b-fp16", label: "Llama 3.1 405B FP16", tag: "POWERFUL", group: "Quantized Giants", size: "810GB", ctx: "128K" },
+  { id: "llama3.1:70b-q2_K", label: "Llama 3.1 70B Q2_K", tag: "POWERFUL", group: "Quantized Giants", size: "26GB", ctx: "128K" },
+  { id: "llama3.1:70b-q4_0", label: "Llama 3.1 70B Q4_0", tag: "POWERFUL", group: "Quantized Giants", size: "40GB", ctx: "128K" },
+  { id: "llama3.3:70b-q4_K_M", label: "Llama 3.3 70B Q4_K_M", tag: "POWERFUL", group: "Quantized Giants", size: "43GB", ctx: "128K" },
+  { id: "deepseek-r1:70b-q4_K_M", label: "DeepSeek-R1 70B Q4_K_M", tag: "REASONING", group: "Quantized Giants", size: "43GB", ctx: "128K" },
+  { id: "mixtral:8x7b-q4_K_M", label: "Mixtral 8x7B Q4_K_M", tag: "POWERFUL", group: "Quantized Giants", size: "26GB", ctx: "32K" },
+  { id: "qwen2.5:72b-q4_K_M", label: "Qwen 2.5 72B Q4_K_M", tag: "POWERFUL", group: "Quantized Giants", size: "47GB", ctx: "128K" },
+  { id: "phi4:14b-q8_0", label: "Phi-4 14B Q8_0", tag: "POWERFUL", group: "Quantized Giants", size: "15GB", ctx: "16K" },
+  { id: "gemma2:27b-q4_K_M", label: "Gemma 2 27B Q4_K_M", tag: "POWERFUL", group: "Quantized Giants", size: "16GB", ctx: "8K" },
+  { id: "command-r-plus:104b-q2_K", label: "Command R+ 104B Q2_K", tag: "POWERFUL", group: "Quantized Giants", size: "39GB", ctx: "128K" },
+
+  // ── Reranking Models ──────────────────────────────────────────────────────
+  { id: "bge-reranker-v2-m3", label: "BGE Reranker V2 M3", tag: "RERANK", group: "Reranking Models", size: "568MB", ctx: "8K", hot: true },
+  { id: "jina-reranker-v2-base-multilingual", label: "Jina Reranker V2 Multilingual", tag: "RERANK", group: "Reranking Models", size: "278MB", ctx: "8K" },
+
+  // ── Solar / Eeve ──────────────────────────────────────────────────────────
+  { id: "solar-pro", label: "SOLAR Pro 22B", tag: "POWERFUL", group: "Solar / Eeve", size: "14GB", ctx: "4K", hot: true },
+  { id: "exaone3.5:7.8b-instruct", label: "Exaone3.5 7.8B Instruct", tag: "FAST", group: "Solar / Eeve", size: "4.7GB", ctx: "32K" },
+  { id: "eeve-korean:10.8b", label: "EEVE Korean 10.8B", tag: "MULTILINGUAL", group: "Solar / Eeve", size: "6.5GB", ctx: "4K" },
+
+  // ── Granite Family ────────────────────────────────────────────────────────
+  { id: "granite3.1-dense:2b", label: "Granite 3.1 Dense 2B", tag: "TINY", group: "Granite Family", size: "1.6GB", ctx: "128K" },
+  { id: "granite3.1-dense:8b", label: "Granite 3.1 Dense 8B", tag: "FAST", group: "Granite Family", size: "4.9GB", ctx: "128K", hot: true },
+  { id: "granite3.1-moe:1b", label: "Granite 3.1 MoE 1B", tag: "TINY", group: "Granite Family", size: "751MB", ctx: "128K" },
+  { id: "granite3.1-moe:3b", label: "Granite 3.1 MoE 3B", tag: "FAST", group: "Granite Family", size: "2.0GB", ctx: "128K" },
+  { id: "granite3-dense:2b", label: "Granite 3.0 Dense 2B", tag: "TINY", group: "Granite Family", size: "1.6GB", ctx: "128K" },
+  { id: "granite3-dense:8b", label: "Granite 3.0 Dense 8B", tag: "FAST", group: "Granite Family", size: "4.9GB", ctx: "128K" },
+  { id: "granite3-moe:1b", label: "Granite 3.0 MoE 1B", tag: "TINY", group: "Granite Family", size: "751MB", ctx: "128K" },
+  { id: "granite3-moe:3b", label: "Granite 3.0 MoE 3B", tag: "FAST", group: "Granite Family", size: "2.0GB", ctx: "128K" },
+  { id: "granite-code:3b", label: "Granite Code 3B", tag: "CODE", group: "Granite Family", size: "1.9GB", ctx: "128K" },
+  { id: "granite-code:8b", label: "Granite Code 8B", tag: "CODE", group: "Granite Family", size: "4.6GB", ctx: "128K", hot: true },
+  { id: "granite-code:20b", label: "Granite Code 20B", tag: "CODE", group: "Granite Family", size: "12GB", ctx: "128K" },
+  { id: "granite-code:34b", label: "Granite Code 34B", tag: "CODE", group: "Granite Family", size: "19GB", ctx: "128K" },
+  { id: "granite3.2-vision:2b", label: "Granite 3.2 Vision 2B", tag: "VISION", group: "Granite Family", size: "1.7GB", ctx: "128K" },
+
+  // ── Llama Guard / Safety ──────────────────────────────────────────────────
+  { id: "llama-guard3:1b", label: "Llama Guard 3 1B (Safety)", tag: "SECURITY", group: "Llama Guard / Safety", size: "1.3GB", ctx: "128K" },
+  { id: "llama-guard3:8b", label: "Llama Guard 3 8B (Safety)", tag: "SECURITY", group: "Llama Guard / Safety", size: "4.7GB", ctx: "128K", hot: true },
+  { id: "shieldgemma:2b", label: "ShieldGemma 2B (Content Safety)", tag: "SECURITY", group: "Llama Guard / Safety", size: "1.7GB", ctx: "8K" },
+  { id: "shieldgemma:9b", label: "ShieldGemma 9B (Content Safety)", tag: "SECURITY", group: "Llama Guard / Safety", size: "5.5GB", ctx: "8K" },
+  { id: "shieldgemma:27b", label: "ShieldGemma 27B (Content Safety)", tag: "SECURITY", group: "Llama Guard / Safety", size: "17GB", ctx: "8K" },
+  { id: "granite-guardian:2b", label: "Granite Guardian 2B", tag: "SECURITY", group: "Llama Guard / Safety", size: "1.6GB", ctx: "128K" },
+  { id: "granite-guardian:8b", label: "Granite Guardian 8B", tag: "SECURITY", group: "Llama Guard / Safety", size: "4.9GB", ctx: "128K", hot: true },
+
+  // ── NuExtract / Structured Output ─────────────────────────────────────────
+  { id: "nuextract:3.8b", label: "NuExtract 3.8B (JSON Extract)", tag: "AGENT", group: "NuExtract / Structured", size: "2.4GB", ctx: "4K", hot: true },
+  { id: "nuextract:1.5b", label: "NuExtract 1.5B (JSON Extract)", tag: "AGENT", group: "NuExtract / Structured", size: "986MB", ctx: "4K" },
+  { id: "nuextract:v1.5-smol", label: "NuExtract SmolLM (Tiny)", tag: "AGENT", group: "NuExtract / Structured", size: "986MB", ctx: "4K" },
+  { id: "reader-lm:0.5b", label: "Reader LM 0.5B (HTML→MD)", tag: "AGENT", group: "NuExtract / Structured", size: "397MB", ctx: "256K" },
+  { id: "reader-lm:1.5b", label: "Reader LM 1.5B (HTML→MD)", tag: "AGENT", group: "NuExtract / Structured", size: "986MB", ctx: "256K", hot: true },
+
+  // ── Replit / Dev ──────────────────────────────────────────────────────────
+  { id: "tinyllama:latest", label: "TinyLlama 1.1B (Installed)", tag: "REPLIT", group: "Replit / Dev", size: "638MB", ctx: "2K", hot: true },
+  { id: "phi3:mini", label: "Phi-3 Mini 3.8B (Replit OK)", tag: "REPLIT", group: "Replit / Dev", size: "2.3GB", ctx: "128K", hot: true },
+  { id: "gemma:2b", label: "Gemma 2B (Replit OK)", tag: "REPLIT", group: "Replit / Dev", size: "1.7GB", ctx: "8K", hot: true },
+  { id: "qwen2.5:1.5b", label: "Qwen 2.5 1.5B (Replit OK)", tag: "REPLIT", group: "Replit / Dev", size: "986MB", ctx: "128K" },
+  { id: "smollm2:135m", label: "SmolLM2 135M (Ultra-Tiny)", tag: "REPLIT", group: "Replit / Dev", size: "270MB", ctx: "2K", hot: true },
+  { id: "smollm2:360m", label: "SmolLM2 360M", tag: "REPLIT", group: "Replit / Dev", size: "720MB", ctx: "8K" },
+  { id: "moondream:latest", label: "Moondream2 1.4B (Vision)", tag: "REPLIT", group: "Replit / Dev", size: "829MB", ctx: "2K" },
+  { id: "codegemma:2b", label: "CodeGemma 2B (Code+Replit)", tag: "REPLIT", group: "Replit / Dev", size: "1.6GB", ctx: "8K" },
+  { id: "starcoder2:3b", label: "StarCoder2 3B (Code+Replit)", tag: "REPLIT", group: "Replit / Dev", size: "1.7GB", ctx: "16K" },
+  { id: "deepseek-r1:1.5b", label: "DeepSeek-R1 1.5B (Replit OK)", tag: "REPLIT", group: "Replit / Dev", size: "1.1GB", ctx: "128K" },
+  { id: "gemma3:1b", label: "Gemma 3 1B (Replit OK)", tag: "REPLIT", group: "Replit / Dev", size: "815MB", ctx: "32K" },
+  { id: "llama3.2:1b", label: "Llama 3.2 1B (Replit OK)", tag: "REPLIT", group: "Replit / Dev", size: "1.3GB", ctx: "128K" },
+
+  // ── Extended Llama Variants ────────────────────────────────────────────────
+  { id: "llama2:7b", label: "Llama 2 7B", tag: "FAST", group: "Llama Family", size: "3.8GB", ctx: "4K" },
+  { id: "llama2:13b", label: "Llama 2 13B", tag: "FAST", group: "Llama Family", size: "7.3GB", ctx: "4K" },
+  { id: "llama2:70b", label: "Llama 2 70B", tag: "POWERFUL", group: "Llama Family", size: "39GB", ctx: "4K" },
+  { id: "llama2-uncensored:7b", label: "Llama 2 Uncensored 7B", tag: "UNCENSORED", group: "Llama Family", size: "3.8GB", ctx: "4K" },
+  { id: "llama2-uncensored:70b", label: "Llama 2 Uncensored 70B", tag: "UNCENSORED", group: "Llama Family", size: "39GB", ctx: "4K" },
+  { id: "llama2-chinese:7b", label: "Llama 2 Chinese 7B", tag: "MULTILINGUAL", group: "Llama Family", size: "3.8GB", ctx: "4K" },
+  { id: "llama2-chinese:13b", label: "Llama 2 Chinese 13B", tag: "MULTILINGUAL", group: "Llama Family", size: "7.3GB", ctx: "4K" },
+  { id: "llama3:8b", label: "Llama 3 8B", tag: "FAST", group: "Llama Family", size: "4.7GB", ctx: "8K" },
+  { id: "llama3:70b", label: "Llama 3 70B", tag: "POWERFUL", group: "Llama Family", size: "40GB", ctx: "8K" },
+  { id: "llama3-chatqa:8b", label: "Llama3 ChatQA 8B (RAG)", tag: "AGENT", group: "Llama Family", size: "4.7GB", ctx: "8K", hot: true },
+  { id: "llama3-chatqa:70b", label: "Llama3 ChatQA 70B (RAG)", tag: "AGENT", group: "Llama Family", size: "40GB", ctx: "8K" },
+  { id: "llama4:maverick", label: "Llama 4 Maverick", tag: "POWERFUL", group: "Llama Family", size: "402GB", ctx: "1M", hot: true },
+  { id: "llama3.2:3b-instruct", label: "Llama 3.2 3B Instruct", tag: "FAST", group: "Llama Family", size: "2.0GB", ctx: "128K" },
+
+  // ── Extended Mistral Variants ─────────────────────────────────────────────
+  { id: "mistral:latest", label: "Mistral Latest", tag: "FAST", group: "Mistral Family", size: "4.1GB", ctx: "32K" },
+  { id: "mistral-openorca:7b", label: "Mistral OpenOrca 7B", tag: "FAST", group: "Mistral Family", size: "4.1GB", ctx: "8K" },
+  { id: "mistral-nemo:12b", label: "Mistral Nemo 12B", tag: "FAST", group: "Mistral Family", size: "7.1GB", ctx: "128K", hot: true },
+  { id: "mistral-large:123b", label: "Mistral Large 123B", tag: "POWERFUL", group: "Mistral Family", size: "69GB", ctx: "128K" },
+  { id: "codestral:22b", label: "Codestral 22B", tag: "CODE", group: "Mistral Family", size: "13GB", ctx: "32K", hot: true },
+  { id: "devstral:24b", label: "Devstral 24B (Mistral Agent)", tag: "CODE", group: "Mistral Family", size: "14GB", ctx: "128K", hot: true },
+  { id: "pixtral:12b", label: "Pixtral 12B (Vision)", tag: "VISION", group: "Mistral Family", size: "7.9GB", ctx: "128K", hot: true },
+
+  // ── Extended DeepSeek ─────────────────────────────────────────────────────
+  { id: "deepseek-coder:1.3b", label: "DeepSeek Coder 1.3B", tag: "CODE", group: "DeepSeek", size: "776MB", ctx: "16K" },
+  { id: "deepseek-coder:33b", label: "DeepSeek Coder 33B", tag: "CODE", group: "DeepSeek", size: "19GB", ctx: "16K" },
+  { id: "deepseek-llm:7b", label: "DeepSeek LLM 7B Chat", tag: "FAST", group: "DeepSeek", size: "4.0GB", ctx: "4K" },
+  { id: "deepseek-llm:67b", label: "DeepSeek LLM 67B Chat", tag: "POWERFUL", group: "DeepSeek", size: "37GB", ctx: "4K" },
+  { id: "deepseek-r1:8b", label: "DeepSeek-R1 8B", tag: "REASONING", group: "DeepSeek", size: "4.9GB", ctx: "128K", hot: true },
+  { id: "deepseek-v2:16b", label: "DeepSeek-V2 16B", tag: "POWERFUL", group: "DeepSeek", size: "8.9GB", ctx: "128K" },
+  { id: "deepseek-v2:236b", label: "DeepSeek-V2 236B", tag: "POWERFUL", group: "DeepSeek", size: "133GB", ctx: "128K" },
+  { id: "deepseek-v2.5:236b", label: "DeepSeek-V2.5 236B", tag: "POWERFUL", group: "DeepSeek", size: "133GB", ctx: "128K" },
+
+  // ── Extended Qwen ─────────────────────────────────────────────────────────
+  { id: "qwen2:0.5b", label: "Qwen2 0.5B (Tiny)", tag: "TINY", group: "Qwen", size: "352MB", ctx: "32K" },
+  { id: "qwen2:1.5b", label: "Qwen2 1.5B", tag: "TINY", group: "Qwen", size: "934MB", ctx: "32K" },
+  { id: "qwen2:57b-a14b", label: "Qwen2 57B A14B MoE", tag: "POWERFUL", group: "Qwen", size: "33GB", ctx: "64K" },
+  { id: "qwen2.5-coder:0.5b", label: "Qwen2.5-Coder 0.5B", tag: "CODE", group: "Qwen", size: "397MB", ctx: "32K" },
+  { id: "qwen2.5-coder:1.5b", label: "Qwen2.5-Coder 1.5B", tag: "CODE", group: "Qwen", size: "986MB", ctx: "32K" },
+  { id: "qwen2.5-coder:3b", label: "Qwen2.5-Coder 3B", tag: "CODE", group: "Qwen", size: "1.9GB", ctx: "32K" },
+  { id: "qwen2.5-coder:14b", label: "Qwen2.5-Coder 14B", tag: "CODE", group: "Qwen", size: "8.9GB", ctx: "128K", hot: true },
+  { id: "qwen2.5:72b-instruct", label: "Qwen 2.5 72B Instruct", tag: "POWERFUL", group: "Qwen", size: "47GB", ctx: "128K" },
+  { id: "qwq:32b-preview", label: "QwQ 32B Preview", tag: "REASONING", group: "Qwen", size: "19GB", ctx: "32K" },
+  { id: "qwen2.5vl:3b", label: "Qwen2.5-VL 3B (Vision)", tag: "VISION", group: "Qwen", size: "2.3GB", ctx: "128K" },
+  { id: "qwen2.5vl:32b", label: "Qwen2.5-VL 32B (Vision)", tag: "VISION", group: "Qwen", size: "20GB", ctx: "128K", hot: true },
+  { id: "qwen3:0.6b", label: "Qwen3 0.6B", tag: "TINY", group: "Qwen", size: "522MB", ctx: "32K", hot: true },
+  { id: "qwen3:1.7b", label: "Qwen3 1.7B", tag: "TINY", group: "Qwen", size: "1.4GB", ctx: "32K", hot: true },
+  { id: "qwen3:4b", label: "Qwen3 4B", tag: "FAST", group: "Qwen", size: "2.6GB", ctx: "128K", hot: true },
+  { id: "qwen3:8b", label: "Qwen3 8B", tag: "FAST", group: "Qwen", size: "5.2GB", ctx: "128K", hot: true },
+  { id: "qwen3:14b", label: "Qwen3 14B", tag: "FAST", group: "Qwen", size: "9.3GB", ctx: "128K", hot: true },
+  { id: "qwen3:32b", label: "Qwen3 32B", tag: "POWERFUL", group: "Qwen", size: "20GB", ctx: "128K", hot: true },
+  { id: "qwen3:30b-a3b", label: "Qwen3 30B A3B (MoE)", tag: "POWERFUL", group: "Qwen", size: "19GB", ctx: "128K", hot: true },
+  { id: "qwen3:235b-a22b", label: "Qwen3 235B A22B (MoE)", tag: "POWERFUL", group: "Qwen", size: "142GB", ctx: "128K", hot: true },
+
+  // ── Extended Phi / Small ──────────────────────────────────────────────────
+  { id: "phi", label: "Phi-1.5 1.3B", tag: "TINY", group: "Phi / Small", size: "1.6GB", ctx: "2K" },
+  { id: "phi3:3.8b", label: "Phi-3 Mini 3.8B", tag: "FAST", group: "Phi / Small", size: "2.3GB", ctx: "128K", hot: true },
+  { id: "phi3:14b", label: "Phi-3 Medium 14B", tag: "POWERFUL", group: "Phi / Small", size: "7.9GB", ctx: "128K" },
+  { id: "phi3.5:3.8b", label: "Phi-3.5 Mini 3.8B", tag: "FAST", group: "Phi / Small", size: "2.2GB", ctx: "128K" },
+  { id: "phi3.5:22b-vision", label: "Phi-3.5 Vision 22B", tag: "VISION", group: "Phi / Small", size: "14GB", ctx: "128K" },
+  { id: "smollm2:1.7b", label: "SmolLM2 1.7B", tag: "TINY", group: "Phi / Small", size: "1.0GB", ctx: "8K" },
+  { id: "smollm:135m", label: "SmolLM 135M (Ultra-Tiny)", tag: "TINY", group: "Phi / Small", size: "91MB", ctx: "2K" },
+  { id: "smollm:360m", label: "SmolLM 360M", tag: "TINY", group: "Phi / Small", size: "232MB", ctx: "2K" },
+  { id: "smollm:1.7b", label: "SmolLM 1.7B", tag: "TINY", group: "Phi / Small", size: "1.0GB", ctx: "2K" },
+  { id: "phi4-mini:3.8b", label: "Phi-4 Mini 3.8B Instruct", tag: "FAST", group: "Phi / Small", size: "2.5GB", ctx: "128K", hot: true },
+  { id: "phi4-reasoning:14b", label: "Phi-4 Reasoning 14B", tag: "REASONING", group: "Phi / Small", size: "8.9GB", ctx: "16K", hot: true },
+  { id: "phi4-reasoning:plus", label: "Phi-4 Reasoning Plus", tag: "REASONING", group: "Phi / Small", size: "8.9GB", ctx: "16K" },
+
+  // ── Extended Code Models ──────────────────────────────────────────────────
+  { id: "codellama:7b-instruct", label: "Code Llama 7B Instruct", tag: "CODE", group: "Code Models", size: "3.8GB", ctx: "16K" },
+  { id: "codellama:13b", label: "Code Llama 13B", tag: "CODE", group: "Code Models", size: "7.3GB", ctx: "16K" },
+  { id: "codellama:13b-instruct", label: "Code Llama 13B Instruct", tag: "CODE", group: "Code Models", size: "7.3GB", ctx: "16K" },
+  { id: "codellama:70b", label: "Code Llama 70B", tag: "CODE", group: "Code Models", size: "38GB", ctx: "4K" },
+  { id: "codellama:70b-instruct", label: "Code Llama 70B Instruct", tag: "CODE", group: "Code Models", size: "38GB", ctx: "4K" },
+  { id: "codegemma:7b-code", label: "CodeGemma 7B Code Only", tag: "CODE", group: "Code Models", size: "5.0GB", ctx: "8K" },
+  { id: "starcoder:7b", label: "StarCoder 7B", tag: "CODE", group: "Code Models", size: "4.3GB", ctx: "8K" },
+  { id: "starcoder:15.5b", label: "StarCoder 15.5B", tag: "CODE", group: "Code Models", size: "9.0GB", ctx: "8K" },
+  { id: "starcoder2:7b", label: "StarCoder2 7B", tag: "CODE", group: "Code Models", size: "4.0GB", ctx: "16K" },
+  { id: "starcoder2:15b", label: "StarCoder2 15B", tag: "CODE", group: "Code Models", size: "9.1GB", ctx: "16K", hot: true },
+  { id: "magicoder:7b", label: "MagiCoder 7B", tag: "CODE", group: "Code Models", size: "3.8GB", ctx: "4K" },
+  { id: "opencoder:1.5b", label: "OpenCoder 1.5B", tag: "CODE", group: "Code Models", size: "986MB", ctx: "4K" },
+  { id: "opencoder:8b", label: "OpenCoder 8B", tag: "CODE", group: "Code Models", size: "4.7GB", ctx: "4K", hot: true },
+  { id: "codeqwen:7b", label: "CodeQwen 7B", tag: "CODE", group: "Code Models", size: "4.2GB", ctx: "64K", hot: true },
+  { id: "replit-code:3b", label: "Replit Code 3B", tag: "CODE", group: "Code Models", size: "1.9GB", ctx: "4K" },
+  { id: "sqlcoder:7b", label: "SQLCoder 7B", tag: "CODE", group: "Code Models", size: "3.8GB", ctx: "4K", hot: true },
+  { id: "sqlcoder:15b", label: "SQLCoder 15B", tag: "CODE", group: "Code Models", size: "9.0GB", ctx: "4K" },
+  { id: "codebooga:34b", label: "CodeBooga 34B", tag: "CODE", group: "Code Models", size: "19GB", ctx: "4K" },
+  { id: "stable-code:3b-code", label: "Stable Code 3B (FIM)", tag: "CODE", group: "Code Models", size: "1.9GB", ctx: "16K" },
+
+  // ── Extended Vision Models ────────────────────────────────────────────────
+  { id: "bakllava:7b", label: "BakLLaVA 7B", tag: "VISION", group: "Vision Models", size: "4.7GB", ctx: "4K" },
+  { id: "llava-llama3:8b", label: "LLaVA Llama3 8B", tag: "VISION", group: "Vision Models", size: "5.5GB", ctx: "8K" },
+  { id: "llava-phi3:3.8b", label: "LLaVA Phi3 3.8B", tag: "VISION", group: "Vision Models", size: "2.9GB", ctx: "4K" },
+  { id: "llava:7b-v1.6", label: "LLaVA 1.6 7B", tag: "VISION", group: "Vision Models", size: "4.7GB", ctx: "4K" },
+  { id: "llava:13b-v1.6", label: "LLaVA 1.6 13B", tag: "VISION", group: "Vision Models", size: "8.0GB", ctx: "4K" },
+  { id: "llava:34b-v1.6", label: "LLaVA 1.6 34B", tag: "VISION", group: "Vision Models", size: "20GB", ctx: "4K" },
+  { id: "olmovision-7b", label: "OLMoVision 7B", tag: "VISION", group: "Vision Models", size: "4.7GB", ctx: "8K" },
+  { id: "internvl2:1b", label: "InternVL2 1B (Vision)", tag: "VISION", group: "Vision Models", size: "923MB", ctx: "8K" },
+  { id: "internvl2:2b", label: "InternVL2 2B (Vision)", tag: "VISION", group: "Vision Models", size: "1.7GB", ctx: "8K" },
+  { id: "internvl2:8b", label: "InternVL2 8B (Vision)", tag: "VISION", group: "Vision Models", size: "4.7GB", ctx: "8K", hot: true },
+  { id: "internvl2:26b", label: "InternVL2 26B (Vision)", tag: "VISION", group: "Vision Models", size: "16GB", ctx: "8K" },
+  { id: "deepseek-janus-pro:7b", label: "DeepSeek Janus-Pro 7B", tag: "VISION", group: "Vision Models", size: "8.2GB", ctx: "4K", hot: true },
+  { id: "qwen2-vl:2b", label: "Qwen2-VL 2B (Vision)", tag: "VISION", group: "Vision Models", size: "2.0GB", ctx: "32K" },
+  { id: "qwen2-vl:7b", label: "Qwen2-VL 7B (Vision)", tag: "VISION", group: "Vision Models", size: "4.7GB", ctx: "32K", hot: true },
+  { id: "qwen2-vl:72b", label: "Qwen2-VL 72B (Vision)", tag: "VISION", group: "Vision Models", size: "46GB", ctx: "32K" },
+  { id: "granite3.2-vision:11b", label: "Granite 3.2 Vision 11B", tag: "VISION", group: "Vision Models", size: "7.0GB", ctx: "128K" },
+  { id: "gemma3:4b-vision", label: "Gemma 3 4B Vision", tag: "VISION", group: "Vision Models", size: "3.3GB", ctx: "128K" },
+  { id: "gemma3:12b-vision", label: "Gemma 3 12B Vision", tag: "VISION", group: "Vision Models", size: "8.1GB", ctx: "128K", hot: true },
+  { id: "gemma3:27b-vision", label: "Gemma 3 27B Vision", tag: "VISION", group: "Vision Models", size: "17GB", ctx: "128K" },
+
+  // ── Extended Arabic / Multilingual ────────────────────────────────────────
+  { id: "aya:8b", label: "Aya 8B Cohere (عربي)", tag: "MULTILINGUAL", group: "Arabic / Multilingual", size: "4.8GB", ctx: "8K", hot: true },
+  { id: "aya:35b", label: "Aya 35B Cohere (عربي)", tag: "MULTILINGUAL", group: "Arabic / Multilingual", size: "19GB", ctx: "8K" },
+  { id: "allam:7b", label: "ALLaM 7B SDAIA (عربي)", tag: "MULTILINGUAL", group: "Arabic / Multilingual", size: "4.7GB", ctx: "32K", hot: true },
+  { id: "silma-v1:9b", label: "SILMA 9B (عربي)", tag: "MULTILINGUAL", group: "Arabic / Multilingual", size: "5.5GB", ctx: "8K" },
+  { id: "jais:13b", label: "JAIS 13B (عربي)", tag: "MULTILINGUAL", group: "Arabic / Multilingual", size: "7.3GB", ctx: "2K", hot: true },
+  { id: "jais:30b", label: "JAIS 30B (عربي)", tag: "MULTILINGUAL", group: "Arabic / Multilingual", size: "17GB", ctx: "2K" },
+  { id: "arabicllama3.1:8b", label: "Arabic Llama 3.1 8B", tag: "MULTILINGUAL", group: "Arabic / Multilingual", size: "4.7GB", ctx: "128K", hot: true },
+  { id: "seallm:7b", label: "SeaLLM 7B (SE Asia)", tag: "MULTILINGUAL", group: "Arabic / Multilingual", size: "4.2GB", ctx: "32K" },
+  { id: "tiger-gemma-9b-v1", label: "Tiger Gemma 9B (Multilingual)", tag: "MULTILINGUAL", group: "Arabic / Multilingual", size: "5.4GB", ctx: "8K" },
+  { id: "eureka:8b", label: "Eureka 8B (European)", tag: "MULTILINGUAL", group: "Arabic / Multilingual", size: "4.7GB", ctx: "8K" },
+
+  // ── Extended Gemma ────────────────────────────────────────────────────────
+  { id: "gemma:2b", label: "Gemma 2B (Original)", tag: "TINY", group: "Gemma", size: "1.7GB", ctx: "8K" },
+  { id: "gemma:7b", label: "Gemma 7B (Original)", tag: "FAST", group: "Gemma", size: "5.0GB", ctx: "8K" },
+  { id: "codegemma:7b-it", label: "CodeGemma 7B IT", tag: "CODE", group: "Gemma", size: "5.0GB", ctx: "8K" },
+  { id: "gemma2:2b-instruct", label: "Gemma 2 2B Instruct", tag: "TINY", group: "Gemma", size: "1.6GB", ctx: "8K", hot: true },
+  { id: "gemma2:9b-instruct", label: "Gemma 2 9B Instruct", tag: "FAST", group: "Gemma", size: "5.4GB", ctx: "8K" },
+  { id: "gemma3:4b", label: "Gemma 3 4B", tag: "FAST", group: "Gemma", size: "2.7GB", ctx: "128K", hot: true },
+  { id: "gemma3n:e2b", label: "Gemma 3N E2B (Nano)", tag: "TINY", group: "Gemma", size: "3.5GB", ctx: "32K", hot: true },
+  { id: "gemma3n:e4b", label: "Gemma 3N E4B (Nano)", tag: "TINY", group: "Gemma", size: "6.5GB", ctx: "32K", hot: true },
+
+  // ── Extended Security Specialist ──────────────────────────────────────────
+  { id: "gorilla-openfunctions-v2", label: "Gorilla OpenFunctions V2", tag: "AGENT", group: "Security Specialist", size: "3.8GB", ctx: "4K" },
+  { id: "lucie-7b", label: "LUCIE 7B (French Uncensored)", tag: "UNCENSORED", group: "Security Specialist", size: "4.1GB", ctx: "4K" },
+  { id: "benevolentjoker-nsfwmonika:7b", label: "BenevolentJoker Monika 7B", tag: "UNCENSORED", group: "Security Specialist", size: "3.8GB", ctx: "4K" },
+  { id: "everythinglm:13b", label: "EverythingLM 13B", tag: "UNCENSORED", group: "Security Specialist", size: "7.3GB", ctx: "16K" },
+  { id: "everythinglm:65b", label: "EverythingLM 65B", tag: "UNCENSORED", group: "Security Specialist", size: "36GB", ctx: "16K" },
+  { id: "tigergemma-9b-v3", label: "TigerGemma 9B v3 (Uncensored)", tag: "UNCENSORED", group: "Security Specialist", size: "5.4GB", ctx: "8K" },
+  { id: "codeup-llama2:13b", label: "CodeUp Llama2 13B (Security)", tag: "CODE", group: "Security Specialist", size: "7.3GB", ctx: "4K" },
+
+  // ── Misc Powerful Models ──────────────────────────────────────────────────
+  { id: "olmo2:7b", label: "OLMo 2 7B (Allen AI)", tag: "FAST", group: "Llama Family", size: "4.7GB", ctx: "4K" },
+  { id: "olmo2:13b", label: "OLMo 2 13B (Allen AI)", tag: "FAST", group: "Llama Family", size: "7.8GB", ctx: "4K" },
+  { id: "glm4:9b", label: "GLM-4 9B Chat", tag: "FAST", group: "Japanese / CJK", size: "5.5GB", ctx: "128K", hot: true },
+  { id: "chatglm3:6b", label: "ChatGLM3 6B", tag: "FAST", group: "Japanese / CJK", size: "3.6GB", ctx: "32K" },
+  { id: "bespoke-minicheck:7b", label: "Bespoke MiniCheck 7B (Fact)", tag: "AGENT", group: "NuExtract / Structured", size: "4.1GB", ctx: "32K" },
+  { id: "tulu3:8b", label: "Tulu 3 8B (Allen AI)", tag: "FAST", group: "Llama Family", size: "4.7GB", ctx: "8K", hot: true },
+  { id: "tulu3:70b", label: "Tulu 3 70B (Allen AI)", tag: "POWERFUL", group: "Llama Family", size: "40GB", ctx: "8K" },
+  { id: "granite3-guardian:2b", label: "Granite Guardian 2B Safety", tag: "SECURITY", group: "Llama Guard / Safety", size: "1.6GB", ctx: "128K" },
+  { id: "reflection:70b", label: "Reflection 70B", tag: "REASONING", group: "Llama Family", size: "43GB", ctx: "4K", hot: true },
+  { id: "marco-o1:7b", label: "Marco-o1 7B (Reasoning)", tag: "REASONING", group: "Math Models", size: "4.7GB", ctx: "4K", hot: true },
+  { id: "r1-1776:70b", label: "R1-1776 70B (DeepSeek fork)", tag: "REASONING", group: "DeepSeek", size: "43GB", ctx: "128K" },
+  { id: "sky-t1:32b", label: "Sky-T1 32B (Reasoning)", tag: "REASONING", group: "Math Models", size: "19GB", ctx: "32K", hot: true },
+  { id: "phi4-mini-reasoning:3.8b", label: "Phi-4 Mini Reasoning 3.8B", tag: "MATH", group: "Math Models", size: "2.5GB", ctx: "16K", hot: true },
+  { id: "cogito:3b", label: "Cogito 3B (Reasoning)", tag: "REASONING", group: "DeepSeek", size: "1.9GB", ctx: "128K" },
+  { id: "cogito:8b", label: "Cogito 8B (Reasoning)", tag: "REASONING", group: "DeepSeek", size: "4.7GB", ctx: "128K", hot: true },
+  { id: "cogito:14b", label: "Cogito 14B (Reasoning)", tag: "REASONING", group: "DeepSeek", size: "9.0GB", ctx: "128K" },
+  { id: "cogito:32b", label: "Cogito 32B (Reasoning)", tag: "REASONING", group: "DeepSeek", size: "19GB", ctx: "128K" },
+  { id: "cogito:70b", label: "Cogito 70B (Reasoning)", tag: "REASONING", group: "DeepSeek", size: "43GB", ctx: "128K" },
+  { id: "granite3.3:2b", label: "Granite 3.3 2B", tag: "TINY", group: "Granite Family", size: "1.6GB", ctx: "128K", hot: true },
+  { id: "granite3.3:8b", label: "Granite 3.3 8B", tag: "FAST", group: "Granite Family", size: "4.9GB", ctx: "128K", hot: true },
+  { id: "mistral3:7b", label: "Mistral 3 7B (2025)", tag: "FAST", group: "Mistral Family", size: "4.1GB", ctx: "128K", hot: true },
+  { id: "llama3.1:8b-instruct", label: "Llama 3.1 8B Instruct", tag: "FAST", group: "Llama Family", size: "4.7GB", ctx: "128K" },
+  { id: "llama3.2-vision:90b", label: "Llama 3.2 Vision 90B", tag: "VISION", group: "Vision Models", size: "55GB", ctx: "128K" },
+  { id: "mistral-nemo:latest", label: "Mistral Nemo Latest", tag: "FAST", group: "Mistral Family", size: "7.1GB", ctx: "128K" },
+
+  // ── Extended Agent / Tool ─────────────────────────────────────────────────
+  { id: "qwen2.5-coder:32b-instruct", label: "Qwen2.5-Coder 32B Instruct", tag: "CODE", group: "Code Models", size: "19GB", ctx: "128K", hot: true },
+  { id: "granite3.1-dense:2b-instruct", label: "Granite 3.1 2B Instruct", tag: "AGENT", group: "Agent / Tool Use", size: "1.6GB", ctx: "128K" },
+  { id: "granite3.1-dense:8b-instruct", label: "Granite 3.1 8B Instruct", tag: "AGENT", group: "Agent / Tool Use", size: "4.9GB", ctx: "128K", hot: true },
+  { id: "functionary-small-v3.2:8b", label: "Functionary Small 3.2 8B", tag: "AGENT", group: "Agent / Tool Use", size: "4.7GB", ctx: "8K", hot: true },
+  { id: "functionary:8x22b", label: "Functionary 8x22B MoE", tag: "AGENT", group: "Agent / Tool Use", size: "80GB", ctx: "32K" },
+  { id: "firefunction-v1", label: "FireFunction V1", tag: "AGENT", group: "Agent / Tool Use", size: "26GB", ctx: "32K" },
+  { id: "meetkai-functionary-small:v2.4", label: "Functionary Small v2.4", tag: "AGENT", group: "Agent / Tool Use", size: "4.1GB", ctx: "8K" },
+
+  // ── Extended Embedding ────────────────────────────────────────────────────
+  { id: "snowflake-arctic-embed2", label: "Snowflake Arctic Embed2", tag: "EMBED", group: "Embedding Models", size: "1.2GB", ctx: "8K", hot: true },
+  { id: "jina-embeddings-v2-base-en", label: "Jina Embeddings v2 Base EN", tag: "EMBED", group: "Embedding Models", size: "274MB", ctx: "8K" },
+  { id: "e5-mistral-7b-instruct", label: "E5 Mistral 7B Instruct (Embed)", tag: "EMBED", group: "Embedding Models", size: "4.1GB", ctx: "32K" },
+  { id: "gte-qwen2-1.5b-instruct", label: "GTE Qwen2 1.5B Instruct", tag: "EMBED", group: "Embedding Models", size: "986MB", ctx: "32K" },
+  { id: "gte-qwen2-7b-instruct", label: "GTE Qwen2 7B Instruct", tag: "EMBED", group: "Embedding Models", size: "4.7GB", ctx: "128K" },
+
+  // ── Roleplay / Chat Extended ──────────────────────────────────────────────
+  { id: "solar-pro:22b", label: "SOLAR Pro 22B Chat", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "14GB", ctx: "4K" },
+  { id: "openchat:3.5-0106", label: "OpenChat 3.5 0106", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "4.1GB", ctx: "8K" },
+  { id: "openchat:7b", label: "OpenChat 7B", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "4.1GB", ctx: "8K", hot: true },
+  { id: "neural-chat:7b", label: "Neural Chat 7B (Intel)", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "4.1GB", ctx: "4K" },
+  { id: "nous-hermes:13b", label: "Nous Hermes Llama2 13B", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "7.3GB", ctx: "4K" },
+  { id: "nous-hermes:34b", label: "Nous Hermes Llama2 34B", tag: "ROLEPLAY", group: "Roleplay / Chat", size: "19GB", ctx: "4K" },
+  { id: "spicyboros:13b", label: "SpicyBoros 13B Uncensored", tag: "UNCENSORED", group: "Roleplay / Chat", size: "7.3GB", ctx: "4K" },
+  { id: "spicyboros:33b", label: "SpicyBoros 33B Uncensored", tag: "UNCENSORED", group: "Roleplay / Chat", size: "19GB", ctx: "4K" },
+  { id: "megadolphin:120b", label: "MegaDolphin 120B (Uncensored)", tag: "UNCENSORED", group: "Roleplay / Chat", size: "67GB", ctx: "4K" },
+
+  // ── StableLM Extended ─────────────────────────────────────────────────────
+  { id: "stablelm-zephyr:3b", label: "StableLM Zephyr 3B Chat", tag: "TINY", group: "StableLM / StableCode", size: "1.9GB", ctx: "4K", hot: true },
+  { id: "stablelm2:zephyr-1.6b", label: "StableLM2 Zephyr 1.6B", tag: "TINY", group: "StableLM / StableCode", size: "983MB", ctx: "4K" },
+  { id: "stablecode:3b-code-16k", label: "StableCode 3B 16K Context", tag: "CODE", group: "StableLM / StableCode", size: "1.9GB", ctx: "16K" },
+
+  // ── Medical Extended ──────────────────────────────────────────────────────
+  { id: "dragonfly-med:8b", label: "Dragonfly Med 8B", tag: "MEDICAL", group: "Medical / Science", size: "4.7GB", ctx: "8K", hot: true },
+  { id: "llama3.1-8b-med", label: "Llama3.1 8B Medical Fine-tune", tag: "MEDICAL", group: "Medical / Science", size: "4.7GB", ctx: "128K" },
+  { id: "med42:8b", label: "Med42 8B (MBZUAI)", tag: "MEDICAL", group: "Medical / Science", size: "4.7GB", ctx: "8K", hot: true },
+  { id: "med42:70b", label: "Med42 70B (MBZUAI)", tag: "MEDICAL", group: "Medical / Science", size: "40GB", ctx: "8K" },
+
+  // ── Math Extended ─────────────────────────────────────────────────────────
+  { id: "deepseek-r1:14b-qwen", label: "DeepSeek-R1 14B Qwen-based", tag: "MATH", group: "Math Models", size: "9.0GB", ctx: "128K" },
+  { id: "deepseek-r1:7b-qwen", label: "DeepSeek-R1 7B Qwen-based", tag: "MATH", group: "Math Models", size: "4.7GB", ctx: "128K", hot: true },
+  { id: "numind-ner:8b", label: "NuMind NER 8B (Structured)", tag: "AGENT", group: "NuExtract / Structured", size: "4.7GB", ctx: "8K" },
+  { id: "alfred:40b", label: "Alfred 40B (Reasoning)", tag: "REASONING", group: "Math Models", size: "23GB", ctx: "8K" },
+  { id: "openthinker:7b", label: "OpenThinker 7B", tag: "REASONING", group: "Math Models", size: "4.7GB", ctx: "32K", hot: true },
+  { id: "openthinker:32b", label: "OpenThinker 32B", tag: "REASONING", group: "Math Models", size: "19GB", ctx: "32K" },
+
+  // ── Security Extended ─────────────────────────────────────────────────────
+  { id: "secgpt:7b", label: "SecGPT 7B (Cybersecurity)", tag: "SECURITY", group: "Security Specialist", size: "3.8GB", ctx: "4K", hot: true },
+  { id: "granite-guardian:3b", label: "Granite Guardian 3B", tag: "SECURITY", group: "Llama Guard / Safety", size: "2.0GB", ctx: "128K" },
+  { id: "llama-guard3:11b-vision", label: "Llama Guard 3 Vision 11B", tag: "SECURITY", group: "Llama Guard / Safety", size: "7.0GB", ctx: "128K" },
+
+  // ── Misc Tiny / Edge ──────────────────────────────────────────────────────
+  { id: "gemma3n:e2b-it", label: "Gemma 3N E2B IT (Edge)", tag: "TINY", group: "Gemma", size: "3.5GB", ctx: "32K", hot: true },
+  { id: "moondream:1.8b", label: "Moondream 1.8B Vision", tag: "VISION", group: "Vision Models", size: "1.5GB", ctx: "2K" },
+  { id: "smolvlm2:2.2b", label: "SmolVLM2 2.2B (Vision)", tag: "VISION", group: "Vision Models", size: "1.7GB", ctx: "8K", hot: true },
+  { id: "smolvlm2:256m", label: "SmolVLM2 256M (Tiny Vision)", tag: "VISION", group: "Vision Models", size: "500MB", ctx: "8K" },
+  { id: "smolvlm2:500m", label: "SmolVLM2 500M (Vision)", tag: "VISION", group: "Vision Models", size: "600MB", ctx: "8K" },
+  { id: "moondream2", label: "Moondream2 (Latest)", tag: "VISION", group: "Vision Models", size: "829MB", ctx: "2K", hot: true },
+  { id: "tinydolphin:1.1b", label: "TinyDolphin 1.1B (Uncensored Tiny)", tag: "UNCENSORED", group: "Dolphin / Uncensored", size: "638MB", ctx: "2K", hot: true },
+  { id: "dolphin3:latest", label: "Dolphin 3 Latest", tag: "UNCENSORED", group: "Dolphin / Uncensored", size: "4.9GB", ctx: "128K", hot: true },
+  { id: "dolphin-mistral:7b", label: "Dolphin Mistral 7B", tag: "UNCENSORED", group: "Dolphin / Uncensored", size: "4.1GB", ctx: "8K" },
+  { id: "dolphin2.9:latest", label: "Dolphin 2.9 Llama3 8B", tag: "UNCENSORED", group: "Dolphin / Uncensored", size: "4.7GB", ctx: "8K" },
+  { id: "dolphin2.8:mistral-7b", label: "Dolphin 2.8 Mistral 7B", tag: "UNCENSORED", group: "Dolphin / Uncensored", size: "4.1GB", ctx: "32K" },
+  { id: "qwen3:72b", label: "Qwen3 72B", tag: "POWERFUL", group: "Qwen", size: "47GB", ctx: "128K", hot: true },
+  { id: "qwen3:72b-a22b", label: "Qwen3 72B A22B MoE", tag: "POWERFUL", group: "Qwen", size: "47GB", ctx: "128K" },
+  { id: "llama3.2:3b", label: "Llama 3.2 3B", tag: "FAST", group: "Llama Family", size: "2.0GB", ctx: "128K" },
+  { id: "nemotron-mini:4b-instruct", label: "Nemotron Mini 4B Instruct", tag: "FAST", group: "Math Models", size: "2.7GB", ctx: "4K", hot: true },
+  { id: "llama3.1:8b-q4_K_M", label: "Llama 3.1 8B Q4_K_M", tag: "FAST", group: "Quantized Giants", size: "4.7GB", ctx: "128K" },
+  { id: "phi4:14b-q4_K_M", label: "Phi-4 14B Q4_K_M", tag: "POWERFUL", group: "Quantized Giants", size: "8.9GB", ctx: "16K", hot: true },
+  { id: "olmo2:1b", label: "OLMo 2 1B (Allen AI)", tag: "TINY", group: "Llama Family", size: "751MB", ctx: "4K" },
+  { id: "aya-expanse:8b", label: "Aya Expanse 8B (Multilingual)", tag: "MULTILINGUAL", group: "Arabic / Multilingual", size: "4.8GB", ctx: "128K", hot: true },
+  { id: "deepscaler:1.5b", label: "DeepScaler 1.5B (Math)", tag: "MATH", group: "Math Models", size: "986MB", ctx: "32K", hot: true },
+  { id: "granite3.2:3b", label: "Granite 3.2 3B", tag: "FAST", group: "Granite Family", size: "2.0GB", ctx: "128K", hot: true },
+  { id: "granite3.2:8b", label: "Granite 3.2 8B", tag: "FAST", group: "Granite Family", size: "4.9GB", ctx: "128K", hot: true },
+  { id: "command-a:111b", label: "Command A 111B", tag: "POWERFUL", group: "Command R Family", size: "62GB", ctx: "256K", hot: true },
+  { id: "mistral-small3.2:24b", label: "Mistral Small 3.2 24B", tag: "POWERFUL", group: "Mistral Family", size: "15GB", ctx: "128K", hot: true },
 ];
 
 type TestStatus = "idle" | "testing" | "ok" | "fail";
@@ -808,8 +1279,14 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
       VISION: "border-pink-500/40 text-pink-400 bg-pink-400/10",
       REASONING: "border-amber-500/40 text-amber-400 bg-amber-400/10",
       MULTILINGUAL: "border-emerald-500/40 text-emerald-400 bg-emerald-400/10",
-      TINY: "border-slate-500/40 text-slate-400 bg-slate-400/10",
-      REPLIT: "border-orange-500/50 text-orange-400 bg-orange-400/10",
+      TINY:        "border-slate-500/40  text-slate-400  bg-slate-400/10",
+      REPLIT:      "border-orange-500/50 text-orange-400 bg-orange-400/10",
+      MATH:        "border-yellow-500/40 text-yellow-400 bg-yellow-400/10",
+      MEDICAL:     "border-red-500/40    text-red-400    bg-red-400/10",
+      AGENT:       "border-sky-500/40    text-sky-400    bg-sky-400/10",
+      ROLEPLAY:    "border-fuchsia-500/40 text-fuchsia-400 bg-fuchsia-400/10",
+      SECURITY:    "border-rose-500/40   text-rose-400   bg-rose-400/10",
+      RERANK:      "border-teal-500/40   text-teal-400   bg-teal-400/10",
     };
     return map[tag] ?? "border-border text-muted-foreground";
   };
@@ -819,6 +1296,8 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
       UNCENSORED: Shield, FAST: Zap, POWERFUL: Brain,
       CODE: Code2, VISION: Eye, REASONING: Brain,
       MULTILINGUAL: Globe, TINY: Cpu, REPLIT: Zap,
+      MATH: Brain, MEDICAL: Activity, AGENT: Cpu,
+      ROLEPLAY: Globe, SECURITY: Shield, RERANK: BarChart2, EMBED: Database,
     };
     const Icon = map[tag] ?? Cpu;
     return <Icon className="w-2.5 h-2.5" />;
