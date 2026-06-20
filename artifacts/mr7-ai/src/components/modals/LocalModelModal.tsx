@@ -292,6 +292,247 @@ const QUICK_MODELS: {
 ];
 
 type TestStatus = "idle" | "testing" | "ok" | "fail";
+
+// ── 3D Neural Probe — animates during connection test ─────────────────────────
+function NeuralTestProbe3D({
+  status, latencyMs, modelCount, endpoint,
+}: {
+  status: TestStatus; latencyMs: number | null; modelCount: number; endpoint: string;
+}) {
+  const cvRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef(0);
+  const frameRef = useRef(0);
+
+  useEffect(() => {
+    const cv = cvRef.current; if (!cv) return;
+    const ctx = cv.getContext("2d")!;
+    const W = (cv.width = 440), H = (cv.height = 130);
+    const cx = W / 2, cy = H / 2;
+
+    const COL = () =>
+      status === "testing" ? "#fbbf24"
+        : status === "ok"  ? "#22c55e"
+        : status === "fail"? "#ef4444"
+        : "#00e5ff";
+
+    // Particles in orbit
+    const pts = Array.from({ length: 40 }, (_, i) => ({
+      a: (i / 40) * Math.PI * 2,
+      r: 28 + (i % 3) * 14,
+      spd: 0.008 + (i % 5) * 0.003,
+      sz: 0.8 + (i % 3) * 0.7,
+      ph: Math.random() * Math.PI * 2,
+    }));
+
+    // Data stream dots flowing left→right
+    const streams = Array.from({ length: 6 }, (_, i) => ({
+      t: i / 6, y: 28 + i * 12, spd: 0.003 + i * 0.001,
+      col: ["#00e5ff","#22c55e","#a78bfa","#fbbf24","#ec4899","#06b6d4"][i],
+    }));
+
+    let live = true;
+    const draw = () => {
+      if (!live) return;
+      frameRef.current++;
+      const f = frameRef.current;
+      const col = COL();
+
+      ctx.clearRect(0, 0, W, H);
+      // Background
+      const bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, "#030508");
+      bg.addColorStop(1, "#050810");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      // Left panel — connection target info
+      ctx.save();
+      ctx.fillStyle = "rgba(0,229,255,0.04)";
+      ctx.strokeStyle = "rgba(0,229,255,0.08)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(8, 8, 110, H - 16, 8);
+      ctx.fill(); ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = "rgba(255,255,255,0.25)";
+      ctx.font = "bold 7px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText("ENDPOINT", 16, 24);
+      ctx.fillStyle = col + "bb";
+      ctx.font = "6.5px monospace";
+      const ep = endpoint.replace(/^https?:\/\//, "").slice(0, 18);
+      ctx.fillText(ep, 16, 38);
+
+      ctx.fillStyle = "rgba(255,255,255,0.2)";
+      ctx.font = "bold 7px monospace";
+      ctx.fillText("STATUS", 16, 58);
+      const statusLabel = status === "idle" ? "READY" : status === "testing" ? "PROBING" : status === "ok" ? "ONLINE" : "OFFLINE";
+      ctx.fillStyle = col;
+      ctx.font = "bold 9px monospace";
+      ctx.fillText(statusLabel, 16, 74);
+
+      if (status === "ok") {
+        ctx.fillStyle = "rgba(255,255,255,0.2)";
+        ctx.font = "bold 7px monospace";
+        ctx.fillText("LATENCY", 16, 94);
+        ctx.fillStyle = (latencyMs ?? 999) < 50 ? "#22c55e" : (latencyMs ?? 999) < 200 ? "#fbbf24" : "#ef4444";
+        ctx.font = "bold 10px monospace";
+        ctx.fillText(`${latencyMs}ms`, 16, 108);
+      }
+
+      // Right panel — model count / stats
+      ctx.save();
+      ctx.fillStyle = "rgba(167,139,250,0.04)";
+      ctx.strokeStyle = "rgba(167,139,250,0.1)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(W - 118, 8, 110, H - 16, 8);
+      ctx.fill(); ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = "rgba(255,255,255,0.25)";
+      ctx.font = "bold 7px monospace";
+      ctx.textAlign = "right";
+      ctx.fillText("MODELS FOUND", W - 16, 24);
+      ctx.fillStyle = status === "ok" ? "#a78bfa" : "rgba(255,255,255,0.18)";
+      ctx.font = "bold 22px monospace";
+      ctx.fillText(status === "ok" ? String(modelCount) : "—", W - 16, 56);
+      ctx.fillStyle = "rgba(255,255,255,0.18)";
+      ctx.font = "6.5px monospace";
+      ctx.fillText("available", W - 16, 68);
+
+      if (status === "testing") {
+        const dots = ".".repeat(1 + (f % 60 < 20 ? 0 : f % 60 < 40 ? 1 : 2));
+        ctx.fillStyle = "#fbbf24" + "aa";
+        ctx.font = "bold 8px monospace";
+        ctx.fillText(`SCANNING${dots}`, W - 16, 94);
+        // progress bar
+        const pct = (f % 80) / 80;
+        ctx.fillStyle = "rgba(251,191,36,0.1)";
+        ctx.beginPath(); ctx.roundRect(W - 110, 100, 94, 5, 2); ctx.fill();
+        ctx.fillStyle = "#fbbf24";
+        ctx.beginPath(); ctx.roundRect(W - 110, 100, 94 * pct, 5, 2); ctx.fill();
+      }
+
+      // ── Center 3D Orb ─────────────────────────────────────────────────────
+      const pulse = 1 + Math.sin(f * 0.08) * (status === "testing" ? 0.35 : 0.12);
+
+      // Outer scanning rings
+      [52, 38, 26].forEach((r, ri) => {
+        const phase = f * (status === "testing" ? 0.07 : 0.025) + ri * 1.1;
+        const alpha = (0.08 + Math.abs(Math.sin(phase)) * 0.18) * (status === "idle" ? 0.4 : 1);
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * pulse, 0, Math.PI * 2);
+        ctx.strokeStyle = col + Math.round(alpha * 255).toString(16).padStart(2, "0");
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      });
+
+      // Scanning beam (testing only)
+      if (status === "testing") {
+        const angle = (f * 0.07) % (Math.PI * 2);
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
+        const sg = ctx.createRadialGradient(0, 0, 0, 0, 0, 52);
+        sg.addColorStop(0, "#fbbf2444");
+        sg.addColorStop(1, "#fbbf2400");
+        ctx.fillStyle = sg;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, 52, -0.55, 0.55);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "#fbbf24cc";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(52, 0); ctx.stroke();
+        ctx.restore();
+      }
+
+      // Success burst
+      if (status === "ok") {
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2 + f * 0.01;
+          const r = 52 + Math.sin(f * 0.04 + i) * 6;
+          const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+          ctx.beginPath();
+          ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = "#22c55e" + Math.round((0.4 + Math.sin(f * 0.06 + i) * 0.3) * 255).toString(16).padStart(2, "0");
+          ctx.fill();
+        }
+      }
+
+      // Orbiting particles
+      pts.forEach((p, i) => {
+        p.a += p.spd;
+        const x = cx + Math.cos(p.a) * p.r;
+        const y = cy + Math.sin(p.a) * p.r;
+        const alpha = 0.25 + Math.sin(f * 0.05 + p.ph) * 0.35;
+        const pg = ctx.createRadialGradient(x, y, 0, x, y, p.sz * 3);
+        pg.addColorStop(0, col + Math.round(Math.max(0.1, alpha) * 255).toString(16).padStart(2, "0"));
+        pg.addColorStop(1, col + "00");
+        ctx.fillStyle = pg;
+        ctx.beginPath(); ctx.arc(x, y, p.sz * 2.5, 0, Math.PI * 2); ctx.fill();
+        void i;
+      });
+
+      // Data streams
+      streams.forEach(s => {
+        s.t = (s.t + s.spd) % 1;
+        if (status === "idle") return;
+        const x = 128 + s.t * (W - 260);
+        const ag = ctx.createRadialGradient(x, s.y, 0, x, s.y, 8);
+        ag.addColorStop(0, s.col + "cc");
+        ag.addColorStop(1, s.col + "00");
+        ctx.fillStyle = ag;
+        ctx.beginPath(); ctx.arc(x, s.y, 8, 0, Math.PI * 2); ctx.fill();
+        // Trail
+        for (let t = 1; t <= 5; t++) {
+          const tx = x - t * 12;
+          if (tx < 128) break;
+          ctx.globalAlpha = (1 - t / 5) * 0.25;
+          ctx.fillStyle = s.col;
+          ctx.beginPath(); ctx.arc(tx, s.y, 3 - t * 0.4, 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      });
+
+      // Center orb
+      const orbR = 18 * pulse;
+      const og = ctx.createRadialGradient(cx, cy, 0, cx, cy, orbR);
+      og.addColorStop(0, "#ffffff");
+      og.addColorStop(0.25, col + "ff");
+      og.addColorStop(0.7, col + "44");
+      og.addColorStop(1, col + "00");
+      ctx.fillStyle = og;
+      ctx.shadowColor = col;
+      ctx.shadowBlur = 24 * pulse;
+      ctx.beginPath(); ctx.arc(cx, cy, orbR, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Scanline
+      const slY = ((f * 0.8) % (H + 2)) - 1;
+      const slG = ctx.createLinearGradient(0, slY, 0, slY + 2);
+      slG.addColorStop(0, "rgba(0,229,255,0)");
+      slG.addColorStop(0.5, "rgba(0,229,255,0.07)");
+      slG.addColorStop(1, "rgba(0,229,255,0)");
+      ctx.fillStyle = slG;
+      ctx.fillRect(0, slY, W, 2);
+
+      rafRef.current = requestAnimationFrame(draw);
+    };
+    rafRef.current = requestAnimationFrame(draw);
+    return () => { live = false; cancelAnimationFrame(rafRef.current); };
+  }, [status, latencyMs, modelCount, endpoint]);
+
+  return (
+    <canvas ref={cvRef} width={440} height={130}
+      className="w-full rounded-2xl"
+      style={{ border: "1px solid rgba(0,229,255,0.1)", imageRendering: "crisp-edges" }}
+    />
+  );
+}
 type VramProfile = "4gb" | "8gb" | "12gb" | "16gb" | "24gb" | "48gb+";
 
 const VRAM_PROFILES: { id: VramProfile; label: string; ram: string; recommended: string[] }[] = [
@@ -318,6 +559,8 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
   const [model, setModel] = useState(state.settings.localModel || "dolphin-mixtral");
   const [testStatus, setTestStatus] = useState<TestStatus>("idle");
   const [testMsg, setTestMsg] = useState("");
+  const [testLatency, setTestLatency] = useState<number | null>(null);
+  const [testModelCount, setTestModelCount] = useState(0);
   const [detectedModels, setDetectedModels] = useState<string[]>([]);
   const [detecting, setDetecting] = useState(false);
   const [search, setSearch] = useState("");
@@ -528,18 +771,24 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
   async function testConnection() {
     setTestStatus("testing");
     setTestMsg("");
+    setTestLatency(null);
+    setTestModelCount(0);
     const base = endpoint.trim().replace(/\/$/, "");
+    const t0 = Date.now();
     try {
       const res = await fetch(`${base}/models`, {
         headers: { "Authorization": "Bearer ollama" },
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(6000),
       });
+      const latMs = Date.now() - t0;
       if (res.ok) {
         const data = await res.json().catch(() => ({}));
-        const count = Array.isArray(data?.data) ? data.data.length : "?";
+        const models = Array.isArray(data?.data) ? data.data.map((m: { id: string }) => m.id) : [];
         setTestStatus("ok");
-        setTestMsg(`متصل! ${count} نموذج متاح.`);
-        setDetectedModels(Array.isArray(data?.data) ? data.data.map((m: { id: string }) => m.id) : []);
+        setTestLatency(latMs);
+        setTestModelCount(models.length);
+        setTestMsg(`متصل! ${models.length} نموذج متاح • ${latMs}ms`);
+        setDetectedModels(models);
       } else {
         setTestStatus("fail");
         setTestMsg(`فشل: ${res.status} ${res.statusText}`);
@@ -1072,27 +1321,105 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={testConnection}
-            disabled={testStatus === "testing"}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background/60 hover:bg-accent disabled:opacity-50 text-[12px] font-semibold transition-colors"
-          >
-            {testStatus === "testing" ? <Wifi className="w-3.5 h-3.5 animate-pulse text-primary" /> : <Wifi className="w-3.5 h-3.5 text-muted-foreground" />}
-            اختبار الاتصال
-          </button>
-          <button
-            onClick={detectModels}
-            disabled={detecting}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background/60 hover:bg-accent disabled:opacity-50 text-[12px] font-semibold transition-colors"
-          >
-            {detecting ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" /> : <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />}
-            اكتشاف النماذج
-          </button>
-          {testStatus === "ok" && <div className="flex items-center gap-1 text-[12px] text-green-400"><CheckCircle2 className="w-3.5 h-3.5" />{testMsg}</div>}
-          {testStatus === "fail" && <div className="flex items-center gap-1 text-[12px] text-red-400"><AlertCircle className="w-3.5 h-3.5" />{testMsg}</div>}
-          {testStatus === "testing" && <div className="text-[12px] text-muted-foreground animate-pulse">جارٍ الاختبار...</div>}
+        {/* ── 3D Neural Connection Probe ─────────────────────────────────────── */}
+        <div className="rounded-2xl overflow-hidden" style={{
+          background: "linear-gradient(135deg,#030508,#06090f)",
+          border: testStatus === "ok"  ? "1px solid rgba(34,197,94,0.25)"
+                : testStatus === "fail"? "1px solid rgba(239,68,68,0.25)"
+                : testStatus === "testing" ? "1px solid rgba(251,191,36,0.25)"
+                : "1px solid rgba(0,229,255,0.12)",
+          boxShadow: testStatus === "ok"  ? "0 0 30px rgba(34,197,94,0.08)"
+                   : testStatus === "fail"? "0 0 30px rgba(239,68,68,0.08)"
+                   : testStatus === "testing" ? "0 0 30px rgba(251,191,36,0.08)"
+                   : "0 0 20px rgba(0,229,255,0.04)",
+          transition: "border-color 0.4s, box-shadow 0.4s",
+        }}>
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+            <div className="flex items-center gap-2">
+              <motion.div
+                className="w-2 h-2 rounded-full"
+                style={{
+                  background: testStatus === "ok" ? "#22c55e" : testStatus === "fail" ? "#ef4444" : testStatus === "testing" ? "#fbbf24" : "#00e5ff",
+                  boxShadow: `0 0 8px ${testStatus === "ok" ? "#22c55e" : testStatus === "fail" ? "#ef4444" : testStatus === "testing" ? "#fbbf24" : "#00e5ff"}`,
+                }}
+                animate={testStatus === "testing" ? { scale: [0.7, 1.3, 0.7], opacity: [0.5, 1, 0.5] } : { scale: [0.9, 1.1, 0.9] }}
+                transition={{ duration: testStatus === "testing" ? 0.6 : 2, repeat: Infinity }}
+              />
+              <span className="text-[11px] font-black tracking-widest uppercase" style={{
+                color: testStatus === "ok" ? "#22c55e" : testStatus === "fail" ? "#ef4444" : testStatus === "testing" ? "#fbbf24" : "rgba(0,229,255,0.8)",
+              }}>
+                {testStatus === "idle" ? "NEURAL CONNECTION PROBE" : testStatus === "testing" ? "PROBING ENDPOINT..." : testStatus === "ok" ? "CONNECTION ESTABLISHED" : "CONNECTION FAILED"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[8px] font-mono px-2 py-0.5 rounded-full" style={{
+                background: "rgba(0,229,255,0.06)", border: "1px solid rgba(0,229,255,0.12)", color: "rgba(0,229,255,0.5)"
+              }}>
+                v2 / 3D-HUD
+              </span>
+            </div>
+          </div>
+
+          {/* 3D Canvas */}
+          <div className="px-3 pt-3 pb-1">
+            <NeuralTestProbe3D
+              status={testStatus}
+              latencyMs={testLatency}
+              modelCount={testModelCount}
+              endpoint={endpoint}
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 px-3 py-3">
+            <motion.button
+              onClick={testConnection}
+              disabled={testStatus === "testing"}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-black tracking-wider uppercase transition-all disabled:opacity-50"
+              style={{
+                background: testStatus === "testing" ? "rgba(251,191,36,0.12)" : "rgba(0,229,255,0.1)",
+                border: testStatus === "testing" ? "1px solid rgba(251,191,36,0.3)" : "1px solid rgba(0,229,255,0.25)",
+                color: testStatus === "testing" ? "#fbbf24" : "#00e5ff",
+              }}
+              whileHover={{ scale: testStatus === "testing" ? 1 : 1.02, background: "rgba(0,229,255,0.18)" }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {testStatus === "testing"
+                ? <><motion.div animate={{ rotate: 360 }} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}><Wifi className="w-3.5 h-3.5" /></motion.div> جارٍ المسح...</>
+                : <><Wifi className="w-3.5 h-3.5" /> اختبار الاتصال</>}
+            </motion.button>
+
+            <motion.button
+              onClick={detectModels}
+              disabled={detecting}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-black tracking-wider uppercase transition-all disabled:opacity-50"
+              style={{
+                background: "rgba(167,139,250,0.08)",
+                border: "1px solid rgba(167,139,250,0.2)",
+                color: "#a78bfa",
+              }}
+              whileHover={{ scale: detecting ? 1 : 1.02, background: "rgba(167,139,250,0.16)" }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {detecting
+                ? <><motion.div animate={{ rotate: 360 }} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}><RefreshCw className="w-3.5 h-3.5" /></motion.div> مسح...</>
+                : <><RefreshCw className="w-3.5 h-3.5" /> اكتشاف النماذج</>}
+            </motion.button>
+          </div>
+
+          {/* Status message */}
+          {testMsg && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+              className="px-4 pb-3 text-[11px] font-mono flex items-center gap-2"
+              style={{ color: testStatus === "ok" ? "#22c55e" : testStatus === "fail" ? "#ef4444" : "#fbbf24" }}
+            >
+              {testStatus === "ok" ? <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+               : testStatus === "fail" ? <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> : null}
+              {testMsg}
+            </motion.div>
+          )}
         </div>
 
         {/* Save Button */}

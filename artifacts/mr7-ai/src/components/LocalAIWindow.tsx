@@ -28,7 +28,7 @@ const ENG_COLOR: Record<string, string> = {
   textgenwebui: OR, gpt4all: A, llamafile: PK, kobold: IN,
 };
 
-type Tab = "engines" | "models" | "perf";
+type Tab = "engines" | "models" | "perf" | "duel";
 
 export function LocalAIWindow({
   open, onClose, onOpenNexus, onOpenHub, onOpenBench,
@@ -50,6 +50,19 @@ export function LocalAIWindow({
   const [pullModel,  setPullModel]  = useState("");
   const [pulling,    setPulling]    = useState(false);
   const [pullLog,    setPullLog]    = useState("");
+
+  // ── DUEL tab state ────────────────────────────────────────────────────────
+  const [duelModel1,   setDuelModel1]   = useState("");
+  const [duelModel2,   setDuelModel2]   = useState("");
+  const [duelPrompt,   setDuelPrompt]   = useState("");
+  const [duelOut1,     setDuelOut1]     = useState("");
+  const [duelOut2,     setDuelOut2]     = useState("");
+  const [duelRunning1, setDuelRunning1] = useState(false);
+  const [duelRunning2, setDuelRunning2] = useState(false);
+  const [duelTps1,     setDuelTps1]     = useState(0);
+  const [duelTps2,     setDuelTps2]     = useState(0);
+  const duelAbort1 = useRef<AbortController | null>(null);
+  const duelAbort2 = useRef<AbortController | null>(null);
 
   const mainCanvasRef = useRef<HTMLCanvasElement>(null);
   const gaugeCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -482,6 +495,79 @@ export function LocalAIWindow({
     }});
   };
 
+  // ── DUEL: stream one model ───────────────────────────────────────────────
+  const streamDuelSide = async (
+    modelName: string,
+    prompt: string,
+    setOut: (v: string | ((p: string) => string)) => void,
+    setRunning: (v: boolean) => void,
+    setTps: (v: number) => void,
+    abortRef: React.MutableRefObject<AbortController | null>,
+  ) => {
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+    setOut(""); setRunning(true); setTps(0);
+
+    const endpoint = engines.find(e => e.id === "ollama")?.online
+      ? "http://localhost:11434/v1"
+      : state.settings.localEndpoint || "http://localhost:11434/v1";
+
+    const t0 = Date.now();
+    let tokens = 0;
+    try {
+      const resp = await fetch("/api/local-proxy/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: ac.signal,
+        body: JSON.stringify({
+          endpoint,
+          model: modelName,
+          messages: [{ role: "user", content: prompt }],
+          stream: true,
+        }),
+      });
+      if (!resp.body) throw new Error("No stream");
+      const reader = resp.body.getReader();
+      const dec = new TextDecoder();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const text = dec.decode(value);
+        for (const line of text.split("\n")) {
+          if (!line.startsWith("data:")) continue;
+          const chunk = line.slice(5).trim();
+          if (chunk === "[DONE]") break;
+          try {
+            const json = JSON.parse(chunk);
+            const delta = json.choices?.[0]?.delta?.content ?? "";
+            if (delta) {
+              tokens++;
+              setOut(prev => prev + delta);
+              setTps(Math.round(tokens / ((Date.now() - t0) / 1000)));
+            }
+          } catch { /* skip */ }
+        }
+      }
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") {
+        setOut(prev => prev + `\n\n[خطأ: ${(e as Error).message}]`);
+      }
+    }
+    setRunning(false);
+  };
+
+  const fireDuel = () => {
+    if (!duelPrompt.trim() || (!duelModel1 && !duelModel2)) return;
+    if (duelModel1) streamDuelSide(duelModel1, duelPrompt, setDuelOut1, setDuelRunning1, setDuelTps1, duelAbort1);
+    if (duelModel2) streamDuelSide(duelModel2, duelPrompt, setDuelOut2, setDuelRunning2, setDuelTps2, duelAbort2);
+  };
+
+  const stopDuel = () => {
+    duelAbort1.current?.abort(); duelAbort2.current?.abort();
+    setDuelRunning1(false); setDuelRunning2(false);
+  };
+
   if (!open) return null;
 
   const placeholder7 = Array.from({ length: 7 }, (_, i) => ({
@@ -604,20 +690,24 @@ export function LocalAIWindow({
             ["engines", "ENGINES", <Server size={9} key="s" />],
             ["models",  "MODELS",  <Database size={9} key="d" />],
             ["perf",    "PERF",    <Activity size={9} key="a" />],
-          ] as [Tab, string, React.ReactNode][]).map(([t, label, icon]) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className="flex-1 py-2 flex items-center justify-center gap-1.5 text-[8.5px] font-black tracking-widest uppercase transition-all"
-              style={{
-                color: tab === t ? C : "rgba(255,255,255,0.28)",
-                borderBottom: tab === t ? `2px solid ${C}` : "2px solid transparent",
-                background:   tab === t ? C + "06" : "transparent",
-              }}
-            >
-              {icon} {label}
-            </button>
-          ))}
+            ["duel",    "DUEL",    <Zap size={9} key="z" />],
+          ] as [Tab, string, React.ReactNode][]).map(([t, label, icon]) => {
+            const tabCol = t === "duel" ? V : C;
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className="flex-1 py-2 flex items-center justify-center gap-1.5 text-[8.5px] font-black tracking-widest uppercase transition-all"
+                style={{
+                  color: tab === t ? tabCol : "rgba(255,255,255,0.28)",
+                  borderBottom: tab === t ? `2px solid ${tabCol}` : "2px solid transparent",
+                  background:   tab === t ? tabCol + "06" : "transparent",
+                }}
+              >
+                {icon} {label}
+              </button>
+            );
+          })}
         </div>
 
         {/* ── Tab Content ── */}
@@ -835,6 +925,238 @@ export function LocalAIWindow({
               )}
             </div>
           )}
+
+          {/* DUEL TAB ─────────────────────────────────────────────────────── */}
+          {tab === "duel" && (() => {
+            const allModels = engines.flatMap(e => e.online ? e.models.map(m => ({ m, label: e.label, col: ENG_COLOR[e.id] ?? C })) : []);
+            const isDueling = duelRunning1 || duelRunning2;
+
+            const ModelSelector = ({ value, onChange, exclude, side }: {
+              value: string; onChange: (v: string) => void; exclude?: string; side: 1 | 2;
+            }) => {
+              const col = side === 1 ? C : V;
+              return (
+                <select
+                  value={value}
+                  onChange={e => onChange(e.target.value)}
+                  className="w-full rounded-lg px-2 py-1.5 text-[9px] font-mono outline-none appearance-none cursor-pointer transition-all"
+                  style={{
+                    background: "rgba(0,0,0,0.5)",
+                    border: `1px solid ${col}25`,
+                    color: value ? col : "rgba(255,255,255,0.3)",
+                  }}
+                >
+                  <option value="">— اختر نموذجاً —</option>
+                  {allModels.filter(x => x.m !== exclude).map(({ m, label }) => (
+                    <option key={m} value={m}>{m} ({label})</option>
+                  ))}
+                </select>
+              );
+            };
+
+            const TpsBar = ({ tps, running, col }: { tps: number; running: boolean; col: string }) => {
+              const pct = Math.min((tps / 60) * 100, 100);
+              return (
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="text-[7px] font-mono uppercase tracking-widest shrink-0" style={{ color: "rgba(255,255,255,0.22)" }}>TPS</span>
+                  <div className="flex-1 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{ background: col, boxShadow: running ? `0 0 6px ${col}` : "none" }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.4 }}
+                    />
+                  </div>
+                  <span className="text-[8px] font-mono w-8 text-right" style={{ color: running && tps > 0 ? col : "rgba(255,255,255,0.25)" }}>
+                    {running && tps > 0 ? `${tps}` : "—"}
+                  </span>
+                </div>
+              );
+            };
+
+            const OutputPanel = ({
+              output, running, model, col, tps,
+            }: { output: string; running: boolean; model: string; col: string; tps: number }) => (
+              <div className="flex-1 min-w-0 flex flex-col" style={{ minHeight: 180 }}>
+                {/* Panel header */}
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-t-xl" style={{
+                  background: col + "10", borderTop: `1px solid ${col}22`,
+                  borderLeft: `1px solid ${col}22`, borderRight: `1px solid ${col}22`,
+                }}>
+                  <motion.div
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: col, boxShadow: running ? `0 0 6px ${col}` : "none" }}
+                    animate={running ? { scale: [0.8, 1.2, 0.8], opacity: [0.5, 1, 0.5] } : {}}
+                    transition={{ duration: 0.7, repeat: Infinity }}
+                  />
+                  <span className="text-[8px] font-black truncate flex-1" style={{ color: col }}>
+                    {model || "—"}
+                  </span>
+                  {running && (
+                    <motion.span
+                      className="text-[7px] font-mono px-1 rounded"
+                      style={{ background: col + "18", color: col }}
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 0.8, repeat: Infinity }}
+                    >
+                      LIVE
+                    </motion.span>
+                  )}
+                </div>
+
+                {/* Output area */}
+                <div
+                  className="flex-1 px-2.5 py-2 text-[9.5px] font-mono leading-relaxed overflow-y-auto scrollbar-none"
+                  style={{
+                    background: col + "04",
+                    border: `1px solid ${col}14`,
+                    borderTop: "none",
+                    borderBottomLeftRadius: 10,
+                    borderBottomRightRadius: 10,
+                    color: "rgba(255,255,255,0.72)",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                    minHeight: 140,
+                  }}
+                >
+                  {output || (
+                    <span style={{ color: "rgba(255,255,255,0.15)" }}>
+                      {model ? "في انتظار الإطلاق..." : "اختر نموذجاً أعلاه"}
+                    </span>
+                  )}
+                  {running && (
+                    <motion.span
+                      style={{ display: "inline-block", width: 6, height: 12, background: col, borderRadius: 1, marginLeft: 2, verticalAlign: "middle" }}
+                      animate={{ opacity: [1, 0, 1] }}
+                      transition={{ duration: 0.5, repeat: Infinity }}
+                    />
+                  )}
+                </div>
+
+                {/* TPS bar */}
+                <div className="px-1 pt-1">
+                  <TpsBar tps={tps} running={running} col={col} />
+                </div>
+              </div>
+            );
+
+            return (
+              <div className="p-2.5 flex flex-col gap-2.5">
+                {/* Title */}
+                <div className="text-center">
+                  <div className="text-[8px] font-black tracking-[0.3em] uppercase" style={{ color: V + "77" }}>
+                    DUAL MODEL ARENA
+                  </div>
+                  <div className="text-[6.5px] font-mono mt-0.5" style={{ color: "rgba(255,255,255,0.2)" }}>
+                    شغّل نفس البرومبت على نموذجين بالتوازي وقارن المخرجات
+                  </div>
+                </div>
+
+                {/* Model selectors */}
+                <div className="flex gap-2">
+                  <div className="flex-1 space-y-1">
+                    <div className="text-[7px] font-black tracking-widest uppercase px-0.5" style={{ color: C + "77" }}>
+                      CONTENDER A
+                    </div>
+                    <ModelSelector value={duelModel1} onChange={setDuelModel1} exclude={duelModel2} side={1} />
+                  </div>
+                  <div className="flex items-end justify-center pb-0.5">
+                    <span className="text-[10px] font-black" style={{ color: "rgba(255,255,255,0.2)" }}>VS</span>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <div className="text-[7px] font-black tracking-widest uppercase px-0.5" style={{ color: V + "77" }}>
+                      CONTENDER B
+                    </div>
+                    <ModelSelector value={duelModel2} onChange={setDuelModel2} exclude={duelModel1} side={2} />
+                  </div>
+                </div>
+
+                {/* Prompt input */}
+                <div className="space-y-1">
+                  <div className="text-[7px] font-black tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.25)" }}>
+                    PROMPT
+                  </div>
+                  <textarea
+                    value={duelPrompt}
+                    onChange={e => setDuelPrompt(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !isDueling) { e.preventDefault(); fireDuel(); } }}
+                    placeholder="اكتب السؤال وسيُرسل للنموذجين في آن واحد... (Enter للإرسال)"
+                    rows={2}
+                    className="w-full rounded-xl px-3 py-2 text-[10px] font-mono outline-none resize-none scrollbar-none"
+                    style={{
+                      background: "rgba(0,0,0,0.4)",
+                      border: `1px solid rgba(255,255,255,0.08)`,
+                      color: "rgba(255,255,255,0.8)",
+                      caretColor: V,
+                    }}
+                  />
+                </div>
+
+                {/* Fire / Stop button */}
+                <div className="flex gap-1.5">
+                  <motion.button
+                    onClick={isDueling ? stopDuel : fireDuel}
+                    disabled={!isDueling && (!duelPrompt.trim() || (!duelModel1 && !duelModel2))}
+                    className="flex-1 py-2 rounded-xl text-[9px] font-black tracking-widest uppercase flex items-center justify-center gap-1.5 transition-all disabled:opacity-35"
+                    style={{
+                      background: isDueling ? R + "18" : V + "18",
+                      border: `1px solid ${isDueling ? R + "35" : V + "35"}`,
+                      color: isDueling ? R : V,
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    {isDueling ? (
+                      <>
+                        <motion.div style={{ width: 7, height: 7, background: R, borderRadius: 1 }} />
+                        إيقاف
+                      </>
+                    ) : (
+                      <>
+                        <Zap size={9} />
+                        إطلاق الدوري
+                      </>
+                    )}
+                  </motion.button>
+                  <button
+                    onClick={() => { setDuelOut1(""); setDuelOut2(""); setDuelTps1(0); setDuelTps2(0); }}
+                    disabled={isDueling}
+                    className="px-3 py-2 rounded-xl text-[8px] font-black uppercase transition-all disabled:opacity-30"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.3)" }}
+                  >
+                    مسح
+                  </button>
+                </div>
+
+                {/* Dual output panels */}
+                <div className="flex gap-2" style={{ minHeight: 200 }}>
+                  <OutputPanel output={duelOut1} running={duelRunning1} model={duelModel1} col={C} tps={duelTps1} />
+
+                  {/* 3D Divider */}
+                  <div className="flex flex-col items-center justify-center gap-1" style={{ width: 16, flexShrink: 0 }}>
+                    {Array.from({ length: 8 }, (_, i) => (
+                      <motion.div
+                        key={i}
+                        className="w-0.5 rounded-full"
+                        style={{ height: 16, background: V }}
+                        animate={{ opacity: [0.12, 0.55, 0.12], scaleY: [0.7, 1.2, 0.7] }}
+                        transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.12 }}
+                      />
+                    ))}
+                  </div>
+
+                  <OutputPanel output={duelOut2} running={duelRunning2} model={duelModel2} col={V} tps={duelTps2} />
+                </div>
+
+                {allModels.length === 0 && (
+                  <div className="text-center py-2" style={{ color: "rgba(255,255,255,0.2)" }}>
+                    <div className="text-[9px] font-mono">لا توجد محركات متصلة</div>
+                    <div className="text-[8px] mt-0.5 opacity-60">افتح تبويب ENGINES وشغّل Ollama أولاً</div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* PERF TAB */}
           {tab === "perf" && (
