@@ -227,12 +227,21 @@ router.post("/ollama/generate", async (req, res) => {
   }
 });
 
+/** Poll until Ollama responds or timeout elapses. */
+async function waitForOllama(timeoutMs = 5000, intervalMs = 300): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await isOllamaRunning()) return true;
+    await new Promise(r => setTimeout(r, intervalMs));
+  }
+  return false;
+}
+
 router.post("/ollama/start", async (_req, res) => {
   if (await isOllamaRunning()) return res.json({ ok: true, already: true });
   const started = startDaemon();
   if (!started) return res.status(404).json({ ok: false, error: "Ollama binary not found. Use /install first." });
-  await new Promise(r => setTimeout(r, 3000));
-  const nowRunning = await isOllamaRunning();
+  const nowRunning = await waitForOllama(5000);
   return res.json({ ok: nowRunning, started: true });
 });
 
@@ -253,8 +262,7 @@ router.post("/ollama/install", async (_req, res) => {
   if (fs.existsSync(bin)) {
     send("Binary found — starting Ollama...");
     startDaemon();
-    await new Promise(r => setTimeout(r, 3000));
-    const running = await isOllamaRunning();
+    const running = await waitForOllama(5000);
     send(running ? "Ollama is running on :11434!" : "Server didn't respond. Check logs.");
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
     res.end(); return;
@@ -284,8 +292,7 @@ router.post("/ollama/install", async (_req, res) => {
 
     send("Starting Ollama server...");
     startDaemon();
-    await new Promise(r => setTimeout(r, 3500));
-    const running = await isOllamaRunning();
+    const running = await waitForOllama(5000);
     send(running ? "Ollama is running on :11434!" : "Started — may need a few more seconds.");
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
