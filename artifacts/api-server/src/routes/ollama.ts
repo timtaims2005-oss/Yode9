@@ -10,7 +10,9 @@ const router = Router();
 const OLLAMA_BASE = process.env.OLLAMA_HOST || "http://localhost:11434";
 
 // Workspace-persistent binary (survives container restarts)
-const OLLAMA_BIN_WORKSPACE = path.join(process.cwd(), ".ollama-bin", "ollama");
+// api-server cwd is artifacts/api-server — go up 2 levels to workspace root
+const WORKSPACE_ROOT       = path.resolve(process.cwd(), "..", "..");
+const OLLAMA_BIN_WORKSPACE = path.join(WORKSPACE_ROOT, ".ollama-bin", "ollama");
 const OLLAMA_BIN_HOME      = "/home/runner/.ollama-bin/ollama";
 const OLLAMA_BIN = process.env.OLLAMA_BIN ||
   (fs.existsSync(OLLAMA_BIN_WORKSPACE) ? OLLAMA_BIN_WORKSPACE : OLLAMA_BIN_HOME);
@@ -33,7 +35,7 @@ function getBin(): string {
   return OLLAMA_BIN;
 }
 
-const OLLAMA_LIB_PATH = path.join(process.cwd(), ".ollama-bin", "lib", "ollama");
+const OLLAMA_LIB_PATH = path.join(WORKSPACE_ROOT, ".ollama-bin", "lib", "ollama");
 
 function startDaemon() {
   const bin = getBin();
