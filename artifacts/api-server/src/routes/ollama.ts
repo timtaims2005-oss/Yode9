@@ -19,7 +19,11 @@ const OLLAMA_BIN = process.env.OLLAMA_BIN ||
 
 async function ollamaFetch(endpoint: string, options?: RequestInit) {
   const url = `${OLLAMA_BASE}${endpoint}`;
-  const res  = await fetch(url, { ...options, signal: AbortSignal.timeout(30_000) });
+  const res  = await fetch(url, {
+    ...options,
+    headers: { Connection: "keep-alive", ...(options?.headers ?? {}) },
+    signal: options?.signal ?? AbortSignal.timeout(30_000),
+  });
   return res;
 }
 
@@ -304,40 +308,38 @@ router.post("/ollama/install", async (_req, res) => {
   res.end();
 });
 
-// ── Feature 3 & 8: System RAM/Disk stats + per-model memory ──────────────
+// ── Feature 3 & 8: System RAM/Disk stats + per-model memory — fully parallel ──
 router.get("/ollama/sysinfo", async (_req, res) => {
   try {
-    let totalRam = 0, freeRam = 0;
-    try {
-      const meminfo = fs.readFileSync("/proc/meminfo", "utf8");
-      const total     = meminfo.match(/MemTotal:\s+(\d+)/)?.[1];
-      const available = meminfo.match(/MemAvailable:\s+(\d+)/)?.[1];
-      totalRam = total     ? parseInt(total)     * 1024 : 0;
-      freeRam  = available ? parseInt(available) * 1024 : 0;
-    } catch { /* skip */ }
+    const [memResult, diskResult, modelsResult, psResult] = await Promise.allSettled([
+      /* 1 — Memory (sync read, wrap in promise for allSettled) */
+      Promise.resolve().then(() => {
+        const meminfo   = fs.readFileSync("/proc/meminfo", "utf8");
+        const total     = meminfo.match(/MemTotal:\s+(\d+)/)?.[1];
+        const available = meminfo.match(/MemAvailable:\s+(\d+)/)?.[1];
+        return {
+          totalRam: total     ? parseInt(total)     * 1024 : 0,
+          freeRam:  available ? parseInt(available) * 1024 : 0,
+        };
+      }),
+      /* 2 — Disk */
+      execAsync("df -B1 /home/runner 2>/dev/null | tail -1", { timeout: 4000 }).then(({ stdout }) => {
+        const p = stdout.trim().split(/\s+/);
+        return { diskTotal: parseInt(p[1]) || 0, diskUsed: parseInt(p[2]) || 0 };
+      }),
+      /* 3 — Models dir size */
+      execAsync("du -sb /home/runner/.ollama/models/blobs 2>/dev/null || echo 0", { timeout: 4000 }).then(
+        ({ stdout }) => ({ modelsDirSize: parseInt(stdout.split(/\s+/)[0]) || 0 }),
+      ),
+      /* 4 — Running models via Ollama /api/ps */
+      ollamaFetch("/api/ps").then(r => r.ok ? r.json() as Promise<{ models?: unknown[] }> : { models: [] }),
+    ]);
 
-    let diskUsed = 0, diskTotal = 0;
-    try {
-      const { stdout } = await execAsync("df -B1 /home/runner 2>/dev/null | tail -1", { timeout: 4000 });
-      const parts = stdout.trim().split(/\s+/);
-      diskTotal = parseInt(parts[1]) || 0;
-      diskUsed  = parseInt(parts[2]) || 0;
-    } catch { /* skip */ }
-
-    let modelsDirSize = 0;
-    try {
-      const { stdout } = await execAsync("du -sb /home/runner/.ollama/models/blobs 2>/dev/null || echo 0", { timeout: 4000 });
-      modelsDirSize = parseInt(stdout.split(/\s+/)[0]) || 0;
-    } catch { /* skip */ }
-
-    let runningModels: unknown[] = [];
-    try {
-      const ps = await ollamaFetch("/api/ps");
-      if (ps.ok) {
-        const d = await ps.json() as { models?: unknown[] };
-        runningModels = d.models ?? [];
-      }
-    } catch { /* skip */ }
+    const { totalRam = 0, freeRam = 0 } = memResult.status   === "fulfilled" ? memResult.value   : {};
+    const { diskTotal = 0, diskUsed = 0} = diskResult.status  === "fulfilled" ? diskResult.value  : {};
+    const { modelsDirSize = 0 }          = modelsResult.status=== "fulfilled" ? modelsResult.value: {};
+    const runningModels = psResult.status === "fulfilled"
+      ? ((psResult.value as { models?: unknown[] }).models ?? []) : [];
 
     return res.json({ totalRam, freeRam, usedRam: totalRam - freeRam, diskUsed, diskTotal, modelsDirSize, runningModels });
   } catch {
@@ -360,6 +362,85 @@ router.get("/ollama/test-connection", async (_req, res) => {
   } catch (e) {
     return res.json({ ok: false, latencyMs: Date.now() - t0, error: String(e) });
   }
+});
+
+// ── Cleanup: detect & delete stuck partial blob downloads ────────────────
+const BLOBS_DIR = "/home/runner/.ollama/models/blobs";
+
+function getStuckBlobs(): { name: string; size: number; path: string }[] {
+  try {
+    if (!fs.existsSync(BLOBS_DIR)) return [];
+    return fs.readdirSync(BLOBS_DIR)
+      .filter(f => f.endsWith(".part") || f.endsWith("-part"))
+      .map(f => {
+        const p    = path.join(BLOBS_DIR, f);
+        const size = fs.statSync(p).size;
+        return { name: f, size, path: p };
+      });
+  } catch { return []; }
+}
+
+router.get("/ollama/cleanup-blobs", (_req, res) => {
+  const files = getStuckBlobs();
+  return res.json({ files: files.map(f => ({ name: f.name, size: f.size })), count: files.length });
+});
+
+router.delete("/ollama/cleanup-blobs", (_req, res) => {
+  const files = getStuckBlobs();
+  let deleted = 0;
+  const errors: string[] = [];
+  for (const f of files) {
+    try { fs.unlinkSync(f.path); deleted++; }
+    catch (e) { errors.push(String(e)); }
+  }
+  return res.json({ ok: true, deleted, errors });
+});
+
+// ── Parallel model compare: run two models simultaneously ────────────────
+router.post("/ollama/compare/stream", async (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  const { modelA, modelB, prompt } = req.body as { modelA: string; modelB: string; prompt: string };
+  if (!modelA && !modelB) {
+    res.write(`data: ${JSON.stringify({ error: "models required" })}\n\n`); res.end(); return;
+  }
+
+  const messages = [{ role: "user", content: prompt }];
+
+  async function streamModel(model: string, side: "A" | "B") {
+    if (!model) return;
+    try {
+      const r = await fetch(`${OLLAMA_BASE}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Connection: "keep-alive" },
+        body: JSON.stringify({ model, messages, stream: true }),
+        signal: AbortSignal.timeout(90_000),
+      });
+      if (!r.body) return;
+      const reader  = r.body.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const lines = decoder.decode(value).split("\n").filter(Boolean);
+        for (const line of lines) {
+          try {
+            const d = JSON.parse(line);
+            res.write(`data: ${JSON.stringify({ side, ...d })}\n\n`);
+          } catch { /* skip */ }
+        }
+      }
+    } catch (err) {
+      res.write(`data: ${JSON.stringify({ side, error: String(err) })}\n\n`);
+    } finally {
+      res.write(`data: ${JSON.stringify({ side, done: true })}\n\n`);
+    }
+  }
+
+  // Run both models in TRUE parallel — both streams write to same SSE response
+  await Promise.all([streamModel(modelA, "A"), streamModel(modelB, "B")]);
+  res.write(`data: ${JSON.stringify({ allDone: true })}\n\n`);
+  res.end();
 });
 
 // Background download status

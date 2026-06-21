@@ -426,6 +426,226 @@ interface BenchModelResult {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   COMPARE RACE CANVAS — Live 3D-style racing bar with particle trail
+══════════════════════════════════════════════════════════════════════ */
+function CompareRaceCanvas({
+  tpsA, tpsB, tokensA, tokensB, loadA, loadB, doneA, doneB, ttftA, ttftB,
+}: {
+  tpsA: number; tpsB: number; tokensA: number; tokensB: number;
+  loadA: boolean; loadB: boolean; doneA: boolean; doneB: boolean;
+  ttftA: number | null; ttftB: number | null;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef    = useRef(0);
+  const tRef      = useRef(0);
+
+  const tpsARef    = useRef(tpsA);
+  const tpsBRef    = useRef(tpsB);
+  const tokARef    = useRef(tokensA);
+  const tokBRef    = useRef(tokensB);
+  const doneARef   = useRef(doneA);
+  const doneBRef   = useRef(doneB);
+  const histARef   = useRef<number[]>(Array(50).fill(0));
+  const histBRef   = useRef<number[]>(Array(50).fill(0));
+  const sparksRef  = useRef<{ x:number; y:number; vx:number; vy:number; life:number; color:string }[]>([]);
+  const lastTickRef= useRef(0);
+
+  useEffect(() => { tpsARef.current = tpsA; }, [tpsA]);
+  useEffect(() => { tpsBRef.current = tpsB; }, [tpsB]);
+  useEffect(() => { tokARef.current = tokensA; }, [tokensA]);
+  useEffect(() => { tokBRef.current = tokensB; }, [tokensB]);
+  useEffect(() => { doneARef.current = doneA; }, [doneA]);
+  useEffect(() => { doneBRef.current = doneB; }, [doneB]);
+
+  useEffect(() => {
+    const cv = canvasRef.current;
+    if (!cv) return;
+    const W = 560, H = 200;
+    const DPR = Math.min(window.devicePixelRatio * 2, 4);
+    cv.width  = W * DPR;
+    cv.height = H * DPR;
+    const ctx = cv.getContext("2d", { alpha: true })!;
+    ctx.scale(DPR, DPR);
+
+    const COL_A = "#f43f5e", COL_B = "#a78bfa";
+    const BAR_Y_A = 68, BAR_Y_B = 118, BAR_H = 28;
+    const BAR_X0 = 64, BAR_MAX_W = W - 80;
+
+    const draw = (ts: number) => {
+      tRef.current = ts * 0.001;
+      const t = tRef.current;
+      ctx.clearRect(0, 0, W, H);
+
+      /* ── Background grid ── */
+      ctx.strokeStyle = "rgba(255,255,255,0.025)";
+      ctx.lineWidth   = 0.5;
+      for (let x = BAR_X0; x < W - 16; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 30); ctx.lineTo(x, H - 30); ctx.stroke();
+      }
+
+      /* Update history ~200ms */
+      if (ts - lastTickRef.current > 200) {
+        histARef.current.push(tpsARef.current);
+        histBRef.current.push(tpsBRef.current);
+        if (histARef.current.length > 50) histARef.current.shift();
+        if (histBRef.current.length > 50) histBRef.current.shift();
+        lastTickRef.current = ts;
+        /* Sparks on new tokens */
+        if (tpsARef.current > 0) {
+          for (let i = 0; i < 3; i++) sparksRef.current.push({
+            x: BAR_X0 + Math.min(tpsARef.current / Math.max(tpsBRef.current, tpsARef.current, 1), 1) * BAR_MAX_W,
+            y: BAR_Y_A + BAR_H / 2, vx: (Math.random() + 0.5) * 2.5, vy: (Math.random() - 0.5) * 2,
+            life: 1, color: COL_A,
+          });
+        }
+        if (tpsBRef.current > 0) {
+          for (let i = 0; i < 3; i++) sparksRef.current.push({
+            x: BAR_X0 + Math.min(tpsBRef.current / Math.max(tpsBRef.current, tpsARef.current, 1), 1) * BAR_MAX_W,
+            y: BAR_Y_B + BAR_H / 2, vx: (Math.random() + 0.5) * 2.5, vy: (Math.random() - 0.5) * 2,
+            life: 1, color: COL_B,
+          });
+        }
+      }
+
+      const maxTps = Math.max(tpsARef.current, tpsBRef.current, 1);
+
+      /* Draw bars */
+      [[COL_A, tpsARef.current, BAR_Y_A, histARef.current, "MODEL A"] as const,
+       [COL_B, tpsBRef.current, BAR_Y_B, histBRef.current, "MODEL B"] as const
+      ].forEach(([col, tps, barY, hist, label]) => {
+        const frac = tps / maxTps;
+        const bw   = BAR_MAX_W * frac;
+
+        /* Track */
+        ctx.fillStyle = "rgba(255,255,255,0.03)";
+        ctx.beginPath();
+        ctx.roundRect(BAR_X0, barY, BAR_MAX_W, BAR_H, 6);
+        ctx.fill();
+
+        /* Bar with gradient */
+        if (bw > 0) {
+          const grad = ctx.createLinearGradient(BAR_X0, 0, BAR_X0 + bw, 0);
+          grad.addColorStop(0,   `${col}50`);
+          grad.addColorStop(0.6, `${col}cc`);
+          grad.addColorStop(1,   col);
+          ctx.fillStyle = grad;
+          ctx.shadowColor = col; ctx.shadowBlur = 14;
+          ctx.beginPath();
+          ctx.roundRect(BAR_X0, barY, bw, BAR_H, 6);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          /* Animated sheen */
+          const sheenX = ((t * 60 + (col === COL_A ? 0 : 100)) % (bw + 40)) - 20;
+          const sheenGrad = ctx.createLinearGradient(BAR_X0 + sheenX - 10, 0, BAR_X0 + sheenX + 10, 0);
+          sheenGrad.addColorStop(0,   "rgba(255,255,255,0)");
+          sheenGrad.addColorStop(0.5, "rgba(255,255,255,0.18)");
+          sheenGrad.addColorStop(1,   "rgba(255,255,255,0)");
+          ctx.fillStyle = sheenGrad;
+          ctx.beginPath();
+          ctx.roundRect(BAR_X0, barY, bw, BAR_H, 6);
+          ctx.fill();
+        }
+
+        /* Micro-history waveform overlay */
+        const maxH2 = Math.max(...hist, 1);
+        ctx.globalAlpha = 0.35;
+        ctx.strokeStyle = col;
+        ctx.lineWidth   = 1;
+        ctx.beginPath();
+        hist.forEach((v, i) => {
+          const x = BAR_X0 + (i / hist.length) * BAR_MAX_W;
+          const y = barY + BAR_H - (v / maxH2) * BAR_H * 0.8;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        /* Label */
+        ctx.font      = "bold 8px monospace";
+        ctx.fillStyle = `${col}80`;
+        ctx.textAlign = "left";
+        ctx.fillText(label, BAR_X0, barY - 5);
+
+        /* TPS value */
+        ctx.font      = `bold ${tps >= 100 ? "13" : "15"}px monospace`;
+        ctx.fillStyle = col;
+        ctx.textAlign = "right";
+        ctx.shadowColor = col; ctx.shadowBlur = 10;
+        ctx.fillText(`${tps} t/s`, BAR_X0 - 4, barY + BAR_H / 2 + 5);
+        ctx.shadowBlur = 0;
+      });
+
+      /* ── VS divider ── */
+      ctx.textAlign   = "center";
+      ctx.font        = "bold 10px monospace";
+      ctx.fillStyle   = `rgba(255,255,255,${0.5 + 0.2 * Math.sin(t * 3)})`;
+      ctx.shadowColor = "white"; ctx.shadowBlur = 8;
+      ctx.fillText("VS", W / 2, H / 2 + 2);
+      ctx.shadowBlur  = 0;
+
+      /* Token counts */
+      ctx.font      = "8px monospace";
+      ctx.fillStyle = `${COL_A}70`;
+      ctx.textAlign = "left";
+      ctx.fillText(`${tokARef.current} tokens`, BAR_X0, BAR_Y_A + BAR_H + 12);
+      ctx.fillStyle = `${COL_B}70`;
+      ctx.fillText(`${tokBRef.current} tokens`, BAR_X0, BAR_Y_B + BAR_H + 12);
+
+      /* ── Finish line ── */
+      if (doneARef.current || doneBRef.current) {
+        ctx.strokeStyle = "rgba(255,255,255,0.15)";
+        ctx.lineWidth   = 1;
+        ctx.setLineDash([3, 5]);
+        ctx.beginPath();
+        ctx.moveTo(BAR_X0 + BAR_MAX_W - 1, 30);
+        ctx.lineTo(BAR_X0 + BAR_MAX_W - 1, H - 30);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font      = "bold 7px monospace";
+        ctx.fillStyle = "rgba(255,255,255,0.3)";
+        ctx.textAlign = "right";
+        ctx.fillText("DONE", W - 4, 40);
+      }
+
+      /* ── Sparks ── */
+      sparksRef.current = sparksRef.current.filter(s => s.life > 0.02);
+      sparksRef.current.forEach(s => {
+        s.x += s.vx; s.y += s.vy; s.vy += 0.05; s.life *= 0.84;
+        ctx.globalAlpha = s.life;
+        ctx.fillStyle   = s.color;
+        ctx.shadowColor = s.color; ctx.shadowBlur = 4;
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.life * 1.8, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur  = 0;
+        ctx.globalAlpha = 1;
+      });
+
+      /* ── Animated border ── */
+      const borderAlpha = 0.2 + 0.12 * Math.sin(t * 2);
+      const borderGrad  = ctx.createLinearGradient(0, 0, W, 0);
+      borderGrad.addColorStop(0,   `rgba(244,63,94,${borderAlpha})`);
+      borderGrad.addColorStop(0.5, `rgba(255,255,255,${borderAlpha * 0.4})`);
+      borderGrad.addColorStop(1,   `rgba(167,139,250,${borderAlpha})`);
+      ctx.strokeStyle = borderGrad;
+      ctx.lineWidth   = 0.8;
+      ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+
+      rafRef.current = requestAnimationFrame(draw);
+    };
+
+    rafRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ width: "100%", height: 200, display: "block", borderRadius: 14 }}
+    />
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════════════ */
 type Tab = "dashboard" | "library" | "chat" | "hf" | "groq" | "bench" | "compare" | "history";
@@ -504,6 +724,24 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
   const [autoPullDone,    setAutoPullDone]    = useState<string[]>([]);
   const autoPullAbort = useRef(false);
 
+  /* ── Cleanup (stuck blobs) ───────────────────────────── */
+  const [cleanupFiles,   setCleanupFiles]   = useState<{ name: string; size: number }[]>([]);
+  const [cleanupLoading, setCleanupLoading] = useState(false);
+  const [cleanupDone,    setCleanupDone]    = useState(false);
+
+  /* ── Compare real-time metrics ───────────────────────── */
+  const [cmpTpsA,    setCmpTpsA]    = useState(0);
+  const [cmpTpsB,    setCmpTpsB]    = useState(0);
+  const [cmpTokensA, setCmpTokensA] = useState(0);
+  const [cmpTokensB, setCmpTokensB] = useState(0);
+  const [cmpTtftA,   setCmpTtftA]   = useState<number | null>(null);
+  const [cmpTtftB,   setCmpTtftB]   = useState<number | null>(null);
+  const [cmpDoneA,   setCmpDoneA]   = useState(false);
+  const [cmpDoneB,   setCmpDoneB]   = useState(false);
+  const [cmpElapsedA, setCmpElapsedA] = useState(0);
+  const [cmpElapsedB, setCmpElapsedB] = useState(0);
+  const [cmpWinner,  setCmpWinner]  = useState<"A" | "B" | "tie" | null>(null);
+
   const activeModels = useMemo(
     () => status.models.map(m => m.name),
     [status.models],
@@ -553,6 +791,29 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
       if (r.ok) setSysInfo(await r.json());
     } catch { /* skip */ }
   }, []);
+
+  /* ── Cleanup: scan & delete stuck partial downloads ─── */
+  const handleScanCleanup = useCallback(async () => {
+    setCleanupLoading(true);
+    setCleanupDone(false);
+    try {
+      const r = await fetch("/api/ollama/cleanup-blobs");
+      const d = await r.json() as { files: { name: string; size: number }[] };
+      setCleanupFiles(d.files ?? []);
+    } catch { setCleanupFiles([]); }
+    finally { setCleanupLoading(false); }
+  }, []);
+
+  const handleDoCleanup = useCallback(async () => {
+    setCleanupLoading(true);
+    try {
+      await fetch("/api/ollama/cleanup-blobs", { method: "DELETE" });
+      setCleanupFiles([]);
+      setCleanupDone(true);
+      await fetchSysInfo();
+    } catch { /* skip */ }
+    finally { setCleanupLoading(false); }
+  }, [fetchSysInfo]);
 
   /* ── Feature 8: Test Ollama connection ───────────────── */
   const handleTestConnection = useCallback(async () => {
@@ -660,45 +921,90 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
     }
   }, [status.running, benchModels, benchRuns, benchPrompt]);
 
-  /* ── Feature 9: Side-by-side compare ────────────────── */
+  /* ── Feature 9: Side-by-side compare — parallel with live TPS ─── */
   const handleCompare = useCallback(async () => {
     if (!status.running || (!cmpModelA && !cmpModelB)) return;
     setCmpResA(""); setCmpResB("");
+    setCmpTpsA(0); setCmpTpsB(0);
+    setCmpTokensA(0); setCmpTokensB(0);
+    setCmpTtftA(null); setCmpTtftB(null);
+    setCmpDoneA(false); setCmpDoneB(false);
+    setCmpElapsedA(0); setCmpElapsedB(0);
+    setCmpWinner(null);
+
     const runModel = async (
       model: string,
       setRes: (v: string) => void,
       setLoad: (v: boolean) => void,
-    ) => {
-      if (!model) return;
+      setTps: (v: number) => void,
+      setTokens: (v: number) => void,
+      setTtft: (v: number) => void,
+      setDone: (v: boolean) => void,
+      setElapsed: (v: number) => void,
+    ): Promise<{ finalTps: number; totalTokens: number; totalMs: number }> => {
+      if (!model) return { finalTps: 0, totalTokens: 0, totalMs: 0 };
       setLoad(true);
-      let buf = "";
+      let buf = "", tokenCount = 0, firstToken = true, ttft = 0;
+      const t0 = Date.now();
+      const tpsWin: { ts: number; tokens: number }[] = [];
+
+      const elapsedIv = setInterval(() => setElapsed(Date.now() - t0), 100);
+
       try {
         const r = await fetch("/api/ollama/chat/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ model, messages: [{ role: "user", content: cmpPrompt }] }),
-          signal: AbortSignal.timeout(60_000),
+          signal: AbortSignal.timeout(90_000),
         });
         if (!r.body) throw new Error("no body");
         const reader = r.body.getReader();
-        const dec = new TextDecoder();
+        const dec    = new TextDecoder();
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           for (const line of dec.decode(value).split("\n").filter(l => l.startsWith("data:"))) {
             try {
               const d = JSON.parse(line.slice(5));
-              if (d.message?.content) { buf += d.message.content; setRes(buf); }
+              if (d.message?.content) {
+                const words = d.message.content.split(/\s+/).filter(Boolean).length || 1;
+                tokenCount += words;
+                buf        += d.message.content;
+                setRes(buf);
+                setTokens(tokenCount);
+
+                if (firstToken) { ttft = Date.now() - t0; setTtft(ttft); firstToken = false; }
+
+                const now = Date.now();
+                tpsWin.push({ ts: now, tokens: words });
+                const cut = now - 3000;
+                while (tpsWin.length > 0 && tpsWin[0].ts < cut) tpsWin.shift();
+                const totTok = tpsWin.reduce((s, e) => s + e.tokens, 0);
+                const spanMs = tpsWin.length > 1 ? tpsWin[tpsWin.length - 1].ts - tpsWin[0].ts : 1000;
+                setTps(Math.round((totTok / spanMs) * 1000));
+              }
             } catch { /* skip */ }
           }
         }
       } catch { /* skip */ }
-      finally { setLoad(false); }
+      finally {
+        clearInterval(elapsedIv);
+        setLoad(false);
+        setDone(true);
+      }
+      const totalMs = Date.now() - t0;
+      const finalTps = tokenCount > 0 && totalMs > 0 ? Math.round((tokenCount / totalMs) * 1000) : 0;
+      return { finalTps, totalTokens: tokenCount, totalMs };
     };
-    await Promise.all([
-      runModel(cmpModelA, setCmpResA, setCmpLoadA),
-      runModel(cmpModelB, setCmpResB, setCmpLoadB),
+
+    const [resA, resB] = await Promise.all([
+      runModel(cmpModelA, setCmpResA, setCmpLoadA, setCmpTpsA, setCmpTokensA, v => setCmpTtftA(v), setCmpDoneA, setCmpElapsedA),
+      runModel(cmpModelB, setCmpResB, setCmpLoadB, setCmpTpsB, setCmpTokensB, v => setCmpTtftB(v), setCmpDoneB, setCmpElapsedB),
     ]);
+
+    if (resA.finalTps > resB.finalTps + 2)      setCmpWinner("A");
+    else if (resB.finalTps > resA.finalTps + 2)  setCmpWinner("B");
+    else                                          setCmpWinner("tie");
   }, [status.running, cmpModelA, cmpModelB, cmpPrompt]);
 
   useEffect(() => {
@@ -1325,6 +1631,68 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* ── Auto-Cleanup: Stuck Partial Downloads ── */}
+              <div className="rounded-xl border overflow-hidden"
+                style={{ borderColor: cleanupDone ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.2)", background: cleanupDone ? "rgba(16,185,129,0.04)" : "rgba(239,68,68,0.03)" }}>
+                <div className="flex items-center justify-between px-4 py-2.5">
+                  <div className="flex items-center gap-2">
+                    <motion.div
+                      animate={cleanupLoading ? { rotate: 360 } : { rotate: 0 }}
+                      transition={{ repeat: cleanupLoading ? Infinity : 0, duration: 1.2, ease: "linear" }}>
+                      <RefreshCw className="w-3.5 h-3.5" style={{ color: cleanupDone ? "#10b981" : "#ef4444" }} />
+                    </motion.div>
+                    <span className="text-[10px] font-bold tracking-widest" style={{ color: cleanupDone ? "#10b981" : "#ef4444" }}>
+                      {cleanupDone ? "CLEANUP COMPLETE" : "BLOB CLEANUP SCANNER"}
+                    </span>
+                    {cleanupFiles.length > 0 && !cleanupDone && (
+                      <span className="text-[8px] px-1.5 py-0.5 rounded font-black"
+                        style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)" }}>
+                        {cleanupFiles.length} stuck
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={handleScanCleanup} disabled={cleanupLoading}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all disabled:opacity-40 hover:scale-105"
+                      style={{ background: "rgba(0,229,255,0.1)", color: "#00e5ff", border: "1px solid rgba(0,229,255,0.25)" }}>
+                      {cleanupLoading ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Activity className="w-2.5 h-2.5" />}
+                      SCAN
+                    </button>
+                    {cleanupFiles.length > 0 && (
+                      <button onClick={handleDoCleanup} disabled={cleanupLoading}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all disabled:opacity-40 hover:scale-105"
+                        style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)" }}>
+                        <Trash2 className="w-2.5 h-2.5" /> DELETE ALL
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <AnimatePresence>
+                  {cleanupFiles.length > 0 && !cleanupDone && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                      className="px-4 pb-3 space-y-1 border-t" style={{ borderColor: "rgba(239,68,68,0.15)" }}>
+                      <div className="text-[8px] font-mono text-white/25 mt-2 mb-1 tracking-widest">STUCK PARTIAL FILES</div>
+                      {cleanupFiles.map(f => (
+                        <div key={f.name} className="flex items-center justify-between text-[9px] font-mono">
+                          <span className="text-red-400/70 truncate flex-1">{f.name}</span>
+                          <span className="text-white/25 ml-3">{(f.size / 1024 / 1024).toFixed(1)} MB</span>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                  {cleanupDone && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 pb-3">
+                      <p className="text-[9px] font-mono text-emerald-400/60">✓ All stuck downloads cleared — pull will work cleanly now</p>
+                    </motion.div>
+                  )}
+                  {cleanupFiles.length === 0 && !cleanupDone && !cleanupLoading && (
+                    <div className="px-4 pb-3">
+                      <p className="text-[9px] font-mono text-white/20">Scan to detect stuck .part files that block model downloads</p>
+                    </div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* ── Feature 3 & 5: RAM/Disk stats bar ── */}
@@ -2042,66 +2410,135 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
             </div>
           )}
 
-          {/* ═══ COMPARE TAB ═══ */}
+          {/* ═══ COMPARE TAB — Maximum Live 3D Race ═══ */}
           {tab === "compare" && (
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {/* Config */}
-              <div className="rounded-xl border border-rose-700/25 bg-rose-950/10 p-4 space-y-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <GitCompare className="w-4 h-4 text-rose-400" />
-                  <span className="text-[10px] font-bold text-rose-300 tracking-widest">SIDE-BY-SIDE MODEL COMPARE</span>
+
+              {/* Header */}
+              <div className="relative rounded-2xl border overflow-hidden p-4"
+                style={{ borderColor: "rgba(244,63,94,0.25)", background: "linear-gradient(135deg, rgba(244,63,94,0.07) 0%, rgba(167,139,250,0.05) 100%)" }}>
+                <motion.div animate={{ opacity: [0.1, 0.25, 0.1] }} transition={{ repeat: Infinity, duration: 3 }}
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ background: "radial-gradient(ellipse at top left, rgba(244,63,94,0.18) 0%, transparent 60%)" }} />
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(244,63,94,0.15)", border: "1px solid rgba(244,63,94,0.4)" }}>
+                    <GitCompare className="w-4.5 h-4.5 text-rose-400" />
+                  </div>
+                  <div>
+                    <div className="font-black tracking-widest text-rose-300">ARENA COMPARE</div>
+                    <div className="text-[9px] font-mono text-rose-700/60 tracking-widest">LIVE TPS RACE — PARALLEL STREAMING</div>
+                  </div>
+                  {cmpWinner && (
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300 }}
+                      className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black"
+                      style={{
+                        background: cmpWinner === "tie" ? "rgba(251,191,36,0.15)" : cmpWinner === "A" ? "rgba(244,63,94,0.2)" : "rgba(167,139,250,0.2)",
+                        color: cmpWinner === "tie" ? "#fbbf24" : cmpWinner === "A" ? "#f43f5e" : "#a78bfa",
+                        border: `1px solid ${cmpWinner === "tie" ? "rgba(251,191,36,0.4)" : cmpWinner === "A" ? "rgba(244,63,94,0.4)" : "rgba(167,139,250,0.4)"}`,
+                      }}>
+                      <Trophy className="w-3 h-3" />
+                      {cmpWinner === "tie" ? "TIE" : `MODEL ${cmpWinner} WINS`}
+                    </motion.div>
+                  )}
                 </div>
+              </div>
+
+              {/* Config */}
+              <div className="rounded-xl border border-rose-800/20 bg-rose-950/08 p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-mono text-rose-600/50 tracking-widest">MODEL A</label>
-                    <select value={cmpModelA} onChange={e => setCmpModelA(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg text-xs font-mono focus:outline-none"
-                      style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(244,63,94,0.3)", color: "#fda4af" }}>
-                      <option value="">— Select —</option>
-                      {status.models.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-mono text-rose-600/50 tracking-widest">MODEL B</label>
-                    <select value={cmpModelB} onChange={e => setCmpModelB(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg text-xs font-mono focus:outline-none"
-                      style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(244,63,94,0.3)", color: "#fda4af" }}>
-                      <option value="">— Select —</option>
-                      {status.models.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
-                    </select>
-                  </div>
+                  {(["A", "B"] as const).map(side => (
+                    <div key={side} className="space-y-1">
+                      <label className="text-[9px] font-mono tracking-widest" style={{ color: side === "A" ? "rgba(244,63,94,0.6)" : "rgba(167,139,250,0.6)" }}>
+                        MODEL {side}
+                      </label>
+                      <select
+                        value={side === "A" ? cmpModelA : cmpModelB}
+                        onChange={e => side === "A" ? setCmpModelA(e.target.value) : setCmpModelB(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg text-xs font-mono focus:outline-none"
+                        style={{
+                          background: "rgba(0,0,0,0.5)",
+                          border: `1px solid ${side === "A" ? "rgba(244,63,94,0.3)" : "rgba(167,139,250,0.3)"}`,
+                          color: side === "A" ? "#fda4af" : "#c4b5fd",
+                        }}>
+                        <option value="">— Select —</option>
+                        {status.models.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
+                      </select>
+                    </div>
+                  ))}
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-mono text-rose-600/50 tracking-widest">PROMPT</label>
+                  <label className="text-[9px] font-mono text-rose-600/40 tracking-widest">PROMPT</label>
                   <textarea
                     value={cmpPrompt} onChange={e => setCmpPrompt(e.target.value)}
                     rows={2}
                     className="w-full px-3 py-2 rounded-lg text-xs font-mono focus:outline-none resize-none"
-                    style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(244,63,94,0.3)", color: "#fda4af" }}
+                    style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(244,63,94,0.25)", color: "#fda4af" }}
                   />
                 </div>
                 <button onClick={handleCompare}
                   disabled={cmpLoadA || cmpLoadB || (!cmpModelA && !cmpModelB) || !status.running}
-                  className="w-full py-2.5 rounded-xl font-black text-xs tracking-wider transition-all hover:scale-[1.02] disabled:opacity-40"
-                  style={{ background: "linear-gradient(135deg, #f43f5e 0%, #be123c 100%)", color: "white" }}>
-                  {(cmpLoadA || cmpLoadB) ? "COMPARING..." : "RUN COMPARISON"}
+                  className="w-full py-2.5 rounded-xl font-black text-xs tracking-widest transition-all hover:scale-[1.02] disabled:opacity-40 flex items-center justify-center gap-2"
+                  style={{ background: "linear-gradient(135deg, #f43f5e 0%, #9333ea 100%)", color: "white" }}>
+                  {(cmpLoadA || cmpLoadB)
+                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> RACING...</>
+                    : <><Zap className="w-3.5 h-3.5" /> LAUNCH RACE</>}
                 </button>
               </div>
 
-              {/* Side-by-side results */}
-              {(cmpResA || cmpResB || cmpLoadA || cmpLoadB) && (
+              {/* Live race canvas */}
+              {(cmpLoadA || cmpLoadB || cmpResA || cmpResB) && (
+                <div className="rounded-2xl overflow-hidden border" style={{ borderColor: "rgba(244,63,94,0.2)", background: "rgba(0,0,0,0.7)" }}>
+                  <div className="px-4 py-2 border-b flex items-center justify-between"
+                    style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                    <div className="flex items-center gap-4 text-[9px] font-mono">
+                      <span className="flex items-center gap-1" style={{ color: "#f43f5e" }}>
+                        <span className="w-2 h-2 rounded-full inline-block" style={{ background: "#f43f5e" }} />
+                        {cmpModelA || "A"} — {cmpTpsA} t/s
+                        {cmpTtftA != null && <span className="text-white/30">TTFT {cmpTtftA}ms</span>}
+                      </span>
+                      <span className="flex items-center gap-1" style={{ color: "#a78bfa" }}>
+                        <span className="w-2 h-2 rounded-full inline-block" style={{ background: "#a78bfa" }} />
+                        {cmpModelB || "B"} — {cmpTpsB} t/s
+                        {cmpTtftB != null && <span className="text-white/30">TTFT {cmpTtftB}ms</span>}
+                      </span>
+                    </div>
+                    <div className="text-[8px] font-mono text-white/25">
+                      {cmpLoadA || cmpLoadB ? "LIVE" : "DONE"}
+                    </div>
+                  </div>
+                  <CompareRaceCanvas
+                    tpsA={cmpTpsA} tpsB={cmpTpsB}
+                    tokensA={cmpTokensA} tokensB={cmpTokensB}
+                    loadA={cmpLoadA} loadB={cmpLoadB}
+                    doneA={cmpDoneA} doneB={cmpDoneB}
+                    ttftA={cmpTtftA} ttftB={cmpTtftB}
+                  />
+                </div>
+              )}
+
+              {/* Live metrics grid */}
+              {(cmpLoadA || cmpLoadB || cmpDoneA || cmpDoneB) && (
                 <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { label: cmpModelA || "Model A", res: cmpResA, load: cmpLoadA, side: "A" as const, color: "#f43f5e" },
-                    { label: cmpModelB || "Model B", res: cmpResB, load: cmpLoadB, side: "B" as const, color: "#a78bfa" },
-                  ].map(({ label, res, load, side, color }) => (
-                    <div key={side} className="rounded-xl border overflow-hidden flex flex-col"
+                  {([
+                    { side: "A" as const, model: cmpModelA, res: cmpResA, load: cmpLoadA, done: cmpDoneA, tps: cmpTpsA, tokens: cmpTokensA, ttft: cmpTtftA, elapsed: cmpElapsedA, color: "#f43f5e" },
+                    { side: "B" as const, model: cmpModelB, res: cmpResB, load: cmpLoadB, done: cmpDoneB, tps: cmpTpsB, tokens: cmpTokensB, ttft: cmpTtftB, elapsed: cmpElapsedB, color: "#a78bfa" },
+                  ]).map(({ side, model, res, load, done, tps, tokens, ttft, elapsed, color }) => (
+                    <motion.div key={side}
+                      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                      className="rounded-xl border overflow-hidden flex flex-col"
                       style={{ borderColor: `${color}25`, background: `${color}06` }}>
+                      {/* Header */}
                       <div className="flex items-center justify-between px-3 py-2 border-b"
                         style={{ borderColor: `${color}20`, background: `${color}10` }}>
                         <div className="flex items-center gap-1.5">
-                          {load && <Loader2 className="w-3 h-3 animate-spin" style={{ color }} />}
-                          <span className="text-[10px] font-bold truncate" style={{ color }}>{label}</span>
+                          {load
+                            ? <Loader2 className="w-3 h-3 animate-spin" style={{ color }} />
+                            : done
+                              ? <CheckCircle2 className="w-3 h-3" style={{ color }} />
+                              : <div className="w-2 h-2 rounded-full" style={{ background: color, opacity: 0.4 }} />}
+                          <span className="text-[10px] font-bold truncate" style={{ color }}>
+                            {model || `Model ${side}`}
+                          </span>
                         </div>
                         {res && (
                           <button onClick={async () => {
@@ -2113,25 +2550,48 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
                           </button>
                         )}
                       </div>
-                      <div className="flex-1 p-3 text-[10px] font-mono text-white/70 leading-relaxed min-h-[120px] max-h-64 overflow-y-auto whitespace-pre-wrap">
-                        {res || (load ? <span className="animate-pulse" style={{ color }}>Generating...</span> : <span className="text-white/20 italic">Awaiting response...</span>)}
-                        {load && <span className="animate-pulse" style={{ color }}>▊</span>}
-                      </div>
-                      {res && (
-                        <div className="px-3 py-1.5 border-t flex gap-3 text-[8px] font-mono"
-                          style={{ borderColor: `${color}15`, color: `${color}60` }}>
-                          <span>{res.split(/\s+/).filter(Boolean).length} words</span>
-                          <span>{res.length} chars</span>
+
+                      {/* Live stats row */}
+                      {(load || done) && (
+                        <div className="grid grid-cols-3 gap-0 border-b" style={{ borderColor: `${color}12` }}>
+                          {[
+                            { label: "TPS", value: tps },
+                            { label: "TOKENS", value: tokens },
+                            { label: ttft != null ? `TTFT` : "TIME", value: ttft != null ? `${ttft}ms` : `${(elapsed / 1000).toFixed(1)}s` },
+                          ].map(s => (
+                            <div key={s.label} className="px-2 py-1.5 text-center border-r last:border-r-0" style={{ borderColor: `${color}10` }}>
+                              <div className="text-[11px] font-black font-mono" style={{ color }}>{s.value}</div>
+                              <div className="text-[7px] font-mono text-white/25">{s.label}</div>
+                            </div>
+                          ))}
                         </div>
                       )}
-                    </div>
+
+                      {/* Response text */}
+                      <div className="flex-1 p-3 text-[10px] font-mono text-white/70 leading-relaxed min-h-[100px] max-h-52 overflow-y-auto whitespace-pre-wrap">
+                        {res || (load
+                          ? <span className="animate-pulse" style={{ color }}>Streaming...</span>
+                          : <span className="text-white/20 italic">Awaiting...</span>)}
+                        {load && <span className="animate-pulse" style={{ color }}>▊</span>}
+                      </div>
+
+                      {/* Footer stats */}
+                      {res && (
+                        <div className="px-3 py-1.5 border-t flex gap-3 text-[8px] font-mono"
+                          style={{ borderColor: `${color}15`, color: `${color}50` }}>
+                          <span>{res.split(/\s+/).filter(Boolean).length} words</span>
+                          <span>{res.length} chars</span>
+                          {done && elapsed > 0 && <span>{(elapsed / 1000).toFixed(1)}s total</span>}
+                        </div>
+                      )}
+                    </motion.div>
                   ))}
                 </div>
               )}
 
-              {status.models.length < 2 && (
-                <div className="text-center py-8 text-white/25 text-sm font-mono">
-                  Install at least 2 models from the Library tab to compare
+              {status.models.length < 2 && !cmpLoadA && !cmpLoadB && !cmpResA && !cmpResB && (
+                <div className="text-center py-10 text-white/25 text-sm font-mono">
+                  Install ≥ 2 models from the Library tab to race them
                 </div>
               )}
             </div>
