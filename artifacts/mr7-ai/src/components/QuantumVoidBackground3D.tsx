@@ -34,11 +34,10 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
   useEffect(() => {
     if (!canvasRef.current) return;
     const cv = canvasRef.current as HTMLCanvasElement;
-    const ctx = cv.getContext("2d", { alpha: true })!;
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+    const ctx = cv.getContext("2d", { alpha: true, desynchronized: true })!;
+    ctx.imageSmoothingEnabled = false;
 
-    const DPR = Math.min(window.devicePixelRatio * 1.5, 3);
+    const DPR = Math.min(window.devicePixelRatio, 1.5);
     const parseHex = (h: string) => ({
       r: parseInt(h.slice(1,3),16), g: parseInt(h.slice(3,5),16), b: parseInt(h.slice(5,7),16),
     });
@@ -543,10 +542,21 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
     }
 
-    function loop() {
+    const TARGET_FPS = 30;
+    const FRAME_BUDGET = 1000 / TARGET_FPS;
+    let lastLoopTs = 0;
+    let paused = false;
+
+    function onVisibility() { paused = document.hidden; }
+    document.addEventListener("visibilitychange", onVisibility);
+
+    function loop(now: number) {
+      rafRef.current = requestAnimationFrame(loop);
+      if (paused) return;
+      if (now - lastLoopTs < FRAME_BUDGET) return;
+      lastLoopTs = now;
       tRef.current += 0.016;
       drawFrame(tRef.current);
-      rafRef.current = requestAnimationFrame(loop);
     }
 
     resize();
@@ -555,6 +565,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [accentColor]);
 
@@ -562,7 +573,14 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
     <canvas
       ref={canvasRef}
       className="absolute inset-0 pointer-events-none"
-      style={{ opacity, zIndex: 0, display: "block" }}
+      style={{
+        opacity,
+        zIndex: 0,
+        display: "block",
+        willChange: "transform",
+        transform: "translateZ(0)",
+        contain: "strict",
+      }}
     />
   );
 }

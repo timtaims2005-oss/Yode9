@@ -450,9 +450,14 @@ export function FuturisticBackground3D({
 
     // ── Main loop ─────────────────────────────────────────────────────────
     let lastFrameTs = 0;
+    let _paused = false;
+    function _onVis() { _paused = document.hidden; }
+    document.addEventListener("visibilitychange", _onVis);
+
     function draw(now: number) {
       rafRef.current = requestAnimationFrame(draw);
-      if (now - lastFrameTs < 42) return; // ~24fps cap
+      if (_paused) return;
+      if (now - lastFrameTs < 33) return; // ~30fps cap
       lastFrameTs = now;
       timeRef.current += 0.011;
       const t = timeRef.current;
@@ -473,6 +478,7 @@ export function FuturisticBackground3D({
     return () => {
       cancelAnimationFrame(rafRef.current);
       ro.disconnect();
+      document.removeEventListener("visibilitychange", _onVis);
     };
   }, [accentColor, opacity]);
 
@@ -486,6 +492,9 @@ export function FuturisticBackground3D({
         height: "100%",
         pointerEvents: "none",
         zIndex: 0,
+        willChange: "transform",
+        transform: "translateZ(0)",
+        contain: "strict",
       }}
     />
   );

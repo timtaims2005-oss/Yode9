@@ -102,9 +102,14 @@ export function NeuralPulseBackground() {
       });
     }
 
+    let _paused = false;
+    function _onVis() { _paused = document.hidden; }
+    document.addEventListener("visibilitychange", _onVis);
+
     function draw(now: number) {
       frameRef.current = requestAnimationFrame(draw);
-      if (now - lastFrameRef.current < 42) return;
+      if (_paused) return;
+      if (now - lastFrameRef.current < 33) return;
       lastFrameRef.current = now;
       timeRef.current += 0.012;
       const t = timeRef.current;
@@ -224,6 +229,7 @@ export function NeuralPulseBackground() {
       cancelAnimationFrame(frameRef.current);
       ro.disconnect();
       canvas.removeEventListener("mousemove", onMouse);
+      document.removeEventListener("visibilitychange", _onVis);
     };
   }, []);
 
@@ -238,6 +244,9 @@ export function NeuralPulseBackground() {
         pointerEvents: "none",
         zIndex: 0,
         opacity: 0.55,
+        willChange: "transform",
+        transform: "translateZ(0)",
+        contain: "strict",
       }}
     />
   );

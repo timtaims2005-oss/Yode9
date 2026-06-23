@@ -1,7 +1,15 @@
 export type QualityLevel = "high" | "medium" | "low";
 
+/** True when the user has requested less motion in OS settings */
+export function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 function detect(): QualityLevel {
   if (typeof window === "undefined") return "high";
+  if (prefersReducedMotion()) return "low";
+
   const mem = (navigator as unknown as { deviceMemory?: number }).deviceMemory ?? 8;
   const cores = navigator.hardwareConcurrency ?? 4;
   const dpr = window.devicePixelRatio ?? 1;
@@ -26,16 +34,17 @@ export function getQualityLevel(): QualityLevel {
 
 export function getCanvasConfig() {
   const q = getQualityLevel();
+  const safeDpr = Math.min(window.devicePixelRatio || 1, 1.5);
   return {
-    nodeCount:     q === "high" ? 22 : q === "medium" ? 14 : 8,
-    particleCount: q === "high" ? 40 : q === "medium" ? 22 : 10,
-    gridCols:      q === "high" ? 24 : q === "medium" ? 16 : 10,
-    gridRows:      q === "high" ? 20 : q === "medium" ? 14 : 8,
+    nodeCount:     q === "high" ? 20 : q === "medium" ? 12 : 6,
+    particleCount: q === "high" ? 35 : q === "medium" ? 18 : 8,
+    gridCols:      q === "high" ? 20 : q === "medium" ? 14 : 8,
+    gridRows:      q === "high" ? 16 : q === "medium" ? 12 : 6,
     glitchEnabled: q === "high",
     beamEnabled:   q !== "low",
-    dpr:           q === "high" ? (window.devicePixelRatio || 1) : 1,
-    targetFps:     q === "high" ? _detectedRefreshRate : q === "medium" ? Math.min(_detectedRefreshRate, 60) : 30,
-    frameBudgetMs: q === "high" ? (1000 / _detectedRefreshRate) : q === "medium" ? 22 : 33,
+    dpr:           q === "high" ? safeDpr : 1,
+    targetFps:     q === "high" ? Math.min(_detectedRefreshRate, 60) : 30,
+    frameBudgetMs: q === "high" ? 16.7 : 33,
   };
 }
 

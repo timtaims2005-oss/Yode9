@@ -5,12 +5,17 @@
 *, *::before, *::after { box-sizing: border-box; }
 body { overflow-x: hidden; }
 
-/* ── Maximum GPU acceleration for 240fps ── */
-canvas,
+/* ── GPU acceleration for animated layers ── */
 [data-framer-component-type],
 .CHAT-GPT-topbar,
 .CHAT-GPT-sidebar {
   will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ── Canvas GPU compositing ── */
+canvas {
   transform: translateZ(0);
   backface-visibility: hidden;
   image-rendering: auto;
@@ -22,6 +27,28 @@ canvas,
   transform: translateZ(0);
   backface-visibility: hidden;
 }
+
+/* ── CSS containment for isolated background panels ── */
+.bg-layer-container {
+  contain: layout paint;
+  isolation: isolate;
+}
+
+/* ── Smooth font rendering ── */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeSpeed;
+}
+
+/* ── Respect reduced-motion preference ── */
+@media (prefers-reduced-motion: reduce) {
+  canvas { display: none !important; }
+  [data-animated] { animation: none !important; transition: none !important; }
+}
+
+/* ── Prevent layout thrashing from scrollbars ── */
+html { scrollbar-gutter: stable; }
 
 /* ── Mobile sidebar never overflows ── */
 @media (max-width: 767px) {

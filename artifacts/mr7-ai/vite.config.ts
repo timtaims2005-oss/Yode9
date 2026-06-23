@@ -57,9 +57,13 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
-    target: "es2020",
-    chunkSizeWarningLimit: 800,
+    target: "es2022",
+    chunkSizeWarningLimit: 900,
+    minify: "esbuild",
+    cssMinify: true,
+    reportCompressedSize: false,
     rollupOptions: {
+      treeshake: { moduleSideEffects: "no-external" },
       output: {
         manualChunks: {
           "vendor-react":    ["react", "react-dom"],
@@ -87,8 +91,10 @@ export default defineConfig({
     ],
   },
   esbuild: {
-    target: "es2020",
+    target: "es2022",
     logOverride: { "this-is-undefined-in-esm": "silent" },
+    legalComments: "none",
+    treeShaking: true,
   },
   server: {
     port,
