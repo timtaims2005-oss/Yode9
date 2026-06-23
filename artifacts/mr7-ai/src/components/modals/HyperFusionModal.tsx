@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useRef, useEffect } from "react";
 import {
   X, Zap, Brain, Play, Square, Copy, CheckCheck, RefreshCw,
@@ -480,7 +481,7 @@ export function HyperFusionModal({ open, onClose, initialMessages = [] }: Props)
                   </div>
                   <div className="flex items-center gap-3 mt-1 flex-wrap">
                     <div className="flex items-center gap-1">
-                      {(ModeIcon as any)({ className: "w-3 h-3", style: {color:selectedMode.color} })}
+                      {(React.createElement(ModeIcon, { className: "w-3 h-3", style: {color:selectedMode.color} }))}
                       <span className="text-[10px] font-bold" style={{color:selectedMode.color}}>{selectedMode.nameAr}</span>
                     </div>
                     <span className="text-[8px] font-mono" style={{color:"rgba(255,255,255,0.25)"}}>·</span>
@@ -587,7 +588,7 @@ export function HyperFusionModal({ open, onClose, initialMessages = [] }: Props)
                           <ModeAtom color={mode.color} active={isActive} />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1">
-                              {(Icon as any)({ className: "w-2.5 h-2.5 shrink-0", style: {color:mode.color} })}
+                              {(React.createElement(Icon, { className: "w-2.5 h-2.5 shrink-0", style: {color:mode.color} }))}
                               <p className="text-[10px] font-bold truncate" style={{color:isActive?mode.color:"rgba(255,255,255,0.75)"}}>{mode.nameAr}</p>
                               {mode.badge && <span className="text-[7px] px-1 rounded font-black shrink-0" style={{background:`${mode.color}22`,color:mode.color}}>{mode.badge}</span>}
                             </div>
@@ -651,7 +652,7 @@ export function HyperFusionModal({ open, onClose, initialMessages = [] }: Props)
               {/* Query */}
               <div className="space-y-1.5 border-t pt-3" style={{borderColor:"rgba(167,139,250,0.1)"}}>
                 <div className="flex items-center gap-2">
-                  {(ModeIcon as any)({ className: "w-4 h-4", style: {color:selectedMode.color} })}
+                  {(React.createElement(ModeIcon, { className: "w-4 h-4", style: {color:selectedMode.color} }))}
                   <span className="text-[12px] font-black">الاستعلام</span>
                   <span className="text-[10px] text-muted-foreground">وضع: {selectedMode.nameAr}</span>
                 </div>
@@ -671,7 +672,7 @@ export function HyperFusionModal({ open, onClose, initialMessages = [] }: Props)
                     className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-[12px] disabled:opacity-40 disabled:cursor-not-allowed"
                     style={{background:`linear-gradient(135deg,${selectedMode.color}aa,${selectedMode.color})`,color:"white",boxShadow:`0 0 25px ${selectedMode.color}44`}}
                     whileHover={{scale:1.02}} whileTap={{scale:0.98}}>
-                    {(ModeIcon as any)({ className: "w-4 h-4" })}
+                    {(ModeIcon ? React.createElement(ModeIcon, { className: "w-4 h-4" }) : null)}
                     {selectedMode.nameAr}
                     <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono">{selectedList.filter(m=>isModelAvailable(m)).length} نموذج</span>
                   </motion.button>

@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -295,7 +296,7 @@ function PersonaCard({
       <div className="p-3 flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 relative"
           style={{ background: `${catColor}18`, border: `1px solid ${catColor}33` }}>
-          {(Icon as any)({ className: "w-4.5 h-4.5", style: { color: catColor } })}
+          {(Icon ? React.createElement(Icon, { className: "w-4.5 h-4.5", style: { color: catColor } }) : null)}
           {isActive && (
             <motion.div className="absolute inset-0 rounded-xl"
               animate={{ opacity: [0.5, 0, 0.5] }}

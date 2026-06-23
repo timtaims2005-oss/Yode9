@@ -1,270 +1,844 @@
-import { useState, useRef, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback, type FC, type CSSProperties } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Users, Play, Brain, Shield, Crosshair, Activity, Search } from "lucide-react";
+import {
+  X, Play, Square, Search, Crosshair, Activity, Shield,
+  Code2, Eye, GitMerge, Cpu, ChevronRight, Brain, Zap,
+} from "lucide-react";
+import { streamAgent } from "@/lib/chat-client";
+import { useStore } from "@/lib/store";
 
 interface Props { open: boolean; onOpenChange: (v: boolean) => void; }
 
-interface Agent {
-  id: string; name: string; role: string; color: string;
-  icon: typeof Brain; status: "idle" | "running" | "done" | "error";
-  logs: string[]; findings: number;
+type AgentStatus = "idle" | "running" | "done" | "error";
+
+interface AgentNode {
+  id: string;
+  name: string;
+  subtitle: string;
+  focus: string;
+  color: string;
+  hex6: string;
+  x3: number; y3: number; z3: number;
+  status: AgentStatus;
+  output: string;
+  progress: number;
+  ping: number;
 }
 
-const buildAgents = (): Agent[] => [
-  { id: "recon", name: "RECON AGENT", role: "Open-Source Intelligence & Discovery", color: "#00e5ff", icon: Search, status: "idle", logs: [], findings: 0 },
-  { id: "exploit", name: "EXPLOIT AGENT", role: "Vulnerability Analysis & Exploitation", color: "#e21227", icon: Crosshair, status: "idle", logs: [], findings: 0 },
-  { id: "analyst", name: "ANALYST AGENT", role: "Behavioral Analysis & Threat Intelligence", color: "#fbbf24", icon: Activity, status: "idle", logs: [], findings: 0 },
-  { id: "defense", name: "DEFENSE AGENT", role: "Hardening Recommendations & Mitigation", color: "#4ade80", icon: Shield, status: "idle", logs: [], findings: 0 },
+interface Particle {
+  fromId: string;
+  toId: string;
+  t: number;
+  speed: number;
+  life: number;
+}
+
+const R = 200;
+const AGENTS_INIT: AgentNode[] = [
+  {
+    id: "orchestrator", name: "ORCHESTRATOR", subtitle: "Neural Coordinator",
+    focus: "You are the master orchestrator AI for a multi-agent cybersecurity system. Analyze the task holistically, identify key attack vectors, assign priorities, and later synthesize all specialist findings into one executive-level assessment. Be concise, structured, tactical.",
+    color: "#00e5ff", hex6: "#00e5ff", x3: 0, y3: -50, z3: 0,
+    status: "idle", output: "", progress: 0, ping: 0,
+  },
+  {
+    id: "recon", name: "RECON", subtitle: "OSINT & Surface Mapping",
+    focus: "You are the RECON specialist agent. Execute deep open-source intelligence: subdomain enum, DNS analysis, ASN lookup, social engineering surfaces, leaked credentials on GitHub/Pastebin, email patterns, and full external attack surface mapping. Be specific and technical.",
+    color: "#3b82f6", hex6: "#3b82f6", x3: R, y3: 30, z3: 0,
+    status: "idle", output: "", progress: 0, ping: 0,
+  },
+  {
+    id: "exploit", name: "EXPLOIT", subtitle: "Vulnerability & CVE Analysis",
+    focus: "You are the EXPLOIT specialist agent. Identify vulnerabilities, CVEs, misconfigurations, and exploitation paths. Enumerate attack chains, CVSS scores, affected components, PoC availability, and weaponization difficulty. Prioritize by exploitability and impact.",
+    color: "#e21227", hex6: "#e21227", x3: R * 0.5, y3: 30, z3: R * 0.866,
+    status: "idle", output: "", progress: 0, ping: 0,
+  },
+  {
+    id: "analyst", name: "ANALYST", subtitle: "Threat Intel & Attribution",
+    focus: "You are the ANALYST specialist agent. Correlate threat intelligence, map to MITRE ATT&CK TTPs, identify behavioral indicators, perform APT attribution analysis, timeline reconstruction, and lateral movement pattern analysis. Reference real threat groups where applicable.",
+    color: "#fbbf24", hex6: "#fbbf24", x3: -R * 0.5, y3: 30, z3: R * 0.866,
+    status: "idle", output: "", progress: 0, ping: 0,
+  },
+  {
+    id: "defense", name: "DEFENSE", subtitle: "Hardening & Mitigation",
+    focus: "You are the DEFENSE specialist agent. Generate prioritized hardening recommendations, patch schedules, WAF rules, network segmentation plans, MFA rollout, backup strategies, and incident response playbooks. Structure by urgency: immediate, 7-day, 30-day.",
+    color: "#4ade80", hex6: "#4ade80", x3: -R, y3: 30, z3: 0,
+    status: "idle", output: "", progress: 0, ping: 0,
+  },
+  {
+    id: "codex", name: "CODEX", subtitle: "Code & Binary Analysis",
+    focus: "You are the CODEX specialist agent. Perform static and dynamic code analysis, identify injection sinks, memory corruption vectors, insecure cryptography, hardcoded secrets, and provide secure code refactoring recommendations with PoC exploit snippets.",
+    color: "#a78bfa", hex6: "#a78bfa", x3: -R * 0.5, y3: 30, z3: -R * 0.866,
+    status: "idle", output: "", progress: 0, ping: 0,
+  },
+  {
+    id: "ghost", name: "GHOST", subtitle: "Stealth & Evasion",
+    focus: "You are the GHOST specialist agent. Develop stealth persistence mechanisms, AV/EDR evasion techniques, anti-forensics methods, living-off-the-land strategies, encrypted C2 channels, and detection bypass playbooks. Focus on operational security.",
+    color: "#f97316", hex6: "#f97316", x3: R * 0.5, y3: 30, z3: -R * 0.866,
+    status: "idle", output: "", progress: 0, ping: 0,
+  },
 ];
 
-const AGENT_LOGS: Record<string, string[]> = {
-  recon: [
-    "[*] Starting OSINT recon...",
-    "[>] Querying Shodan API...",
-    "[+] 3 subdomains discovered",
-    "[+] ASN: AS14618 (Amazon)",
-    "[>] Enumerating social media...",
-    "[+] 2 employee LinkedIn profiles found",
-    "[>] Searching Pastebin/GitHub for leaked creds...",
-    "[!] GitHub commit contains API key (leaked 2023-04-12)",
-    "[+] Email pattern identified: firstname@company.com",
-    "[>] Checking DNS records...",
-    "[+] MX: Google Workspace, SPF: misconfigured (soft fail)",
-    "[!] Recon phase complete — 14 intelligence items collected",
-  ],
-  exploit: [
-    "[*] Initializing vulnerability scanner...",
-    "[>] Running Nuclei templates (2,847 templates)...",
-    "[!] CRITICAL: Apache 2.4.41 — CVE-2021-41773 path traversal",
-    "[!] HIGH: MySQL 3306 exposed publicly",
-    "[>] Testing SQLi in login form...",
-    "[+] Time-based blind SQLi confirmed in username field",
-    "[>] Attempting authentication bypass...",
-    "[+] Admin panel accessible via ' OR 1=1-- -",
-    "[>] Testing file upload endpoint...",
-    "[!] PHP webshell upload successful",
-    "[+] RCE via webshell: uid=33(www-data)",
-    "[!] 4 critical vulns, 6 high, 12 medium identified",
-  ],
-  analyst: [
-    "[*] Loading threat intelligence feeds...",
-    "[>] Checking IOCs against VirusTotal...",
-    "[+] No malicious hashes in uploaded files",
-    "[>] Analyzing network traffic patterns...",
-    "[!] Anomalous outbound traffic to known C2 IP (185.220.101.x)",
-    "[>] Correlating with MITRE ATT&CK framework...",
-    "[+] Tactics detected: TA0001, TA0002, TA0003, TA0011",
-    "[>] Checking for lateral movement indicators...",
-    "[!] Suspicious SMB activity — WannaCry-like lateral spread",
-    "[>] Timeline reconstruction...",
-    "[+] Initial access: 2024-01-15 03:42 UTC",
-    "[!] Threat actor: Likely APT28 (confidence: 72%)",
-  ],
-  defense: [
-    "[*] Generating hardening recommendations...",
-    "[>] Analyzing current firewall rules...",
-    "[+] Recommendation: Block MySQL port 3306 from internet",
-    "[>] Checking patch status...",
-    "[+] Recommendation: Patch Apache CVE-2021-41773 immediately",
-    "[>] Reviewing authentication configuration...",
-    "[+] Recommendation: Enable MFA on all admin accounts",
-    "[>] Analyzing WAF configuration...",
-    "[+] Recommendation: Add WAF rule for path traversal patterns",
-    "[>] Checking backup integrity...",
-    "[+] Recommendation: Air-gap critical backups",
-    "[!] 18 hardening actions generated — priority ordered",
-  ],
+const ICON_MAP: Record<string, FC<{ size?: number; className?: string; style?: CSSProperties }>> = {
+  orchestrator: Brain, recon: Search, exploit: Crosshair,
+  analyst: Activity, defense: Shield, codex: Code2, ghost: Eye,
 };
 
-const SYNTHESIS_REPORT = `═══════════════════════════════════════════════════
-MULTI-AGENT SOC SYNTHESIS REPORT
-Generated by KaliGPT Neural Coordinator v3.0
-═══════════════════════════════════════════════════
+const CONNECTIONS: [string, string][] = [
+  ["orchestrator","recon"],["orchestrator","exploit"],["orchestrator","analyst"],
+  ["orchestrator","defense"],["orchestrator","codex"],["orchestrator","ghost"],
+  ["recon","exploit"],["analyst","defense"],["codex","ghost"],["exploit","analyst"],
+];
 
-EXECUTIVE SUMMARY:
-Target organization has critical security gaps across multiple attack surfaces. 
-Full compromise achievable in under 30 minutes by a skilled threat actor.
+function hexPath(cx: number, cy: number, r: number): Path2D {
+  const p = new Path2D();
+  for (let i = 0; i < 6; i++) {
+    const a = (Math.PI / 3) * i - Math.PI / 6;
+    const x = cx + r * Math.cos(a);
+    const y = cy + r * Math.sin(a);
+    i === 0 ? p.moveTo(x, y) : p.lineTo(x, y);
+  }
+  p.closePath();
+  return p;
+}
 
-CRITICAL FINDINGS (immediate action required):
-1. Apache CVE-2021-41773 — unauthenticated RCE via path traversal
-2. MySQL 3306 exposed to internet without authentication  
-3. GitHub API key leak (active, not rotated since April 2023)
-4. PHP webshell upload + execution confirmed
+function project(x: number, y: number, z: number, ry: number, cx: number, cy: number) {
+  const cos = Math.cos(ry), sin = Math.sin(ry);
+  const rx = x * cos + z * sin;
+  const rz = -x * sin + z * cos;
+  const fl = 750;
+  const d = fl + rz + 400;
+  if (d <= 0) return null;
+  const s = fl / d;
+  return { sx: cx + rx * s, sy: cy + y * s, sz: rz, scale: s };
+}
 
-THREAT ACTOR ASSESSMENT:
-- Likely APT28 (Fancy Bear / GRU) — 72% confidence
-- C2 infrastructure matches known APT28 patterns
-- Initial access vector: spear-phishing + 0-day
-
-ATTACK TIMELINE:
-03:42 UTC — Initial access via CVE-2021-41773
-03:47 UTC — Privilege escalation to root
-03:52 UTC — Lateral movement initiated
-04:15 UTC — Domain controller hit
-
-DEFENSE SCORE: 23/100 (CRITICAL)
-
-TOP PRIORITY ACTIONS:
-1. PATCH Apache immediately — 15 min fix
-2. FIREWALL MySQL port — 5 min fix  
-3. ROTATE leaked API keys — 10 min fix
-4. ENABLE MFA everywhere — 30 min fix
-5. SEGMENT network — 4 hours
-
-═══════════════════════════════════════════════════`;
+function lerpBezier(p0x: number, p0y: number, p1x: number, p1y: number, p2x: number, p2y: number, p3x: number, p3y: number, t: number) {
+  const mt = 1 - t;
+  return {
+    x: mt * mt * mt * p0x + 3 * mt * mt * t * p1x + 3 * mt * t * t * p2x + t * t * t * p3x,
+    y: mt * mt * mt * p0y + 3 * mt * mt * t * p1y + 3 * mt * t * t * p2y + t * t * t * p3y,
+  };
+}
 
 export function MultiAgentSOCModal({ open, onOpenChange }: Props) {
-  const [target, setTarget] = useState("target.company.com");
-  const [agents, setAgents] = useState<Agent[]>(buildAgents());
+  const { state } = useStore();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef(0);
+  const rotY = useRef(0);
+  const time = useRef(0);
+  const particlesRef = useRef<Particle[]>([]);
+  const agentsRef = useRef<AgentNode[]>(AGENTS_INIT.map(a => ({ ...a })));
+
+  const [agents, setAgents] = useState<AgentNode[]>(AGENTS_INIT.map(a => ({ ...a })));
+  const [task, setTask] = useState("");
   const [running, setRunning] = useState(false);
+  const [selected, setSelected] = useState<string | null>("orchestrator");
   const [synthesis, setSynthesis] = useState("");
-  const [showSynthesis, setShowSynthesis] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
-  const timersRef = useRef<ReturnType<typeof setInterval>[]>([]);
-  const synthRef = useRef<HTMLDivElement>(null);
+  const [phase, setPhase] = useState<"idle" | "dispatching" | "running" | "synthesizing" | "done">("idle");
+  const abortCtrls = useRef<AbortController[]>([]);
+  const flushTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const outputBufs = useRef<Map<string, string>>(new Map());
+  const synthBuf = useRef("");
+  const synthFlush = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => { if (synthRef.current) synthRef.current.scrollTop = synthRef.current.scrollHeight; }, [synthesis]);
+  const syncAgents = useCallback(() => {
+    setAgents(agentsRef.current.map(a => ({ ...a })));
+  }, []);
 
-  function launch() {
-    const fresh = buildAgents();
-    setAgents(fresh); setRunning(true); setSynthesis(""); setShowSynthesis(false); setSelectedAgent(null);
-    timersRef.current.forEach(clearInterval);
-    timersRef.current = [];
+  const patchAgent = useCallback((id: string, patch: Partial<AgentNode>) => {
+    agentsRef.current = agentsRef.current.map(a => a.id === id ? { ...a, ...patch } : a);
+  }, []);
 
-    fresh.forEach((agent, agentIdx) => {
-      const lines = AGENT_LOGS[agent.id];
-      let lineIdx = 0;
-      setAgents(prev => prev.map(a => a.id === agent.id ? { ...a, status: "running" } : a));
-      const t = setInterval(() => {
-        if (lineIdx >= lines.length) {
-          clearInterval(t);
-          setAgents(prev => prev.map(a => a.id === agent.id ? {
-            ...a, status: "done",
-            logs: lines, findings: Math.floor(Math.random() * 6) + 4
-          } : a));
-          if (agentIdx === 3) {
-            setTimeout(() => {
-              setRunning(false); setShowSynthesis(true);
-              let si = 0;
-              const st = setInterval(() => {
-                setSynthesis(SYNTHESIS_REPORT.slice(0, si));
-                si += 8;
-                if (si >= SYNTHESIS_REPORT.length) clearInterval(st);
-              }, 20);
-            }, 800);
-          }
-          return;
+  const flushOutput = useCallback((id: string) => {
+    const buf = outputBufs.current.get(id) ?? "";
+    patchAgent(id, { output: buf });
+    syncAgents();
+  }, [patchAgent, syncAgents]);
+
+  const scheduleFlush = useCallback((id: string) => {
+    const existing = flushTimers.current.get(id);
+    if (existing) return;
+    const t = setTimeout(() => {
+      flushTimers.current.delete(id);
+      flushOutput(id);
+    }, 48);
+    flushTimers.current.set(id, t);
+  }, [flushOutput]);
+
+  useEffect(() => {
+    agentsRef.current = agents;
+  }, [agents]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+
+    function resize() {
+      if (!canvas) return;
+      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    function draw() {
+      if (!canvas) return;
+      const W = canvas.offsetWidth;
+      const H = canvas.offsetHeight;
+      const cx = W / 2;
+      const cy = H / 2 + 20;
+
+      ctx.clearRect(0, 0, W, H);
+
+      rotY.current += 0.004;
+      time.current += 0.016;
+
+      // ── Background ─────────────────────────────────────────────────────────
+      const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.7);
+      bg.addColorStop(0, "#0a0a12");
+      bg.addColorStop(1, "#050508");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      // Scanline overlay
+      for (let y = 0; y < H; y += 3) {
+        ctx.fillStyle = `rgba(0,0,0,${0.08 + 0.04 * Math.sin(y * 0.05 + time.current)})`;
+        ctx.fillRect(0, y, W, 1);
+      }
+
+      // ── Grid floor ─────────────────────────────────────────────────────────
+      const gridY = cy + 100;
+      const vp = { x: cx, y: gridY };
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      for (let i = -8; i <= 8; i++) {
+        const x = cx + i * 40;
+        ctx.beginPath();
+        ctx.moveTo(x, gridY);
+        ctx.lineTo(vp.x, gridY - 180);
+        ctx.strokeStyle = "#e21227";
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+      for (let j = 0; j <= 7; j++) {
+        const pct = j / 7;
+        const y = gridY - pct * 180;
+        const spread = (1 - pct) * 320;
+        ctx.beginPath();
+        ctx.moveTo(cx - spread, y);
+        ctx.lineTo(cx + spread, y);
+        ctx.strokeStyle = `rgba(226,18,39,${0.3 - pct * 0.25})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // ── Project agents ──────────────────────────────────────────────────────
+      const cur = agentsRef.current;
+      const projected = cur.map(a => {
+        const p = project(a.x3, a.y3, a.z3, rotY.current, cx, cy);
+        return { agent: a, proj: p };
+      }).filter(d => d.proj !== null) as { agent: AgentNode; proj: NonNullable<ReturnType<typeof project>> }[];
+
+      projected.sort((a, b) => a.proj.sz - b.proj.sz);
+
+      // ── Connections ─────────────────────────────────────────────────────────
+      for (const [fromId, toId] of CONNECTIONS) {
+        const fd = projected.find(d => d.agent.id === fromId);
+        const td = projected.find(d => d.agent.id === toId);
+        if (!fd || !td) continue;
+
+        const isActive = fd.agent.status === "running" || td.agent.status === "running";
+        const isDone = fd.agent.status === "done" && td.agent.status === "done";
+
+        const alpha = isActive ? 0.55 : isDone ? 0.3 : 0.12;
+        const midX = (fd.proj.sx + td.proj.sx) / 2;
+        const midY = Math.min(fd.proj.sy, td.proj.sy) - 40;
+
+        const grad = ctx.createLinearGradient(fd.proj.sx, fd.proj.sy, td.proj.sx, td.proj.sy);
+        grad.addColorStop(0, fd.agent.color + "cc");
+        grad.addColorStop(1, td.agent.color + "cc");
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.moveTo(fd.proj.sx, fd.proj.sy);
+        ctx.quadraticCurveTo(midX, midY, td.proj.sx, td.proj.sy);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = isActive ? 1.5 : 0.8;
+        if (isActive) {
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = fd.agent.color;
         }
-        setAgents(prev => prev.map(a => a.id === agent.id ? { ...a, logs: [...a.logs, lines[lineIdx]] } : a));
-        lineIdx++;
-      }, 400 + agentIdx * 150);
-      timersRef.current.push(t);
-    });
-  }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      }
 
-  const active = selectedAgent ? agents.find(a => a.id === selectedAgent.id) ?? selectedAgent : null;
+      // ── Particles ──────────────────────────────────────────────────────────
+      const deadParts: number[] = [];
+      particlesRef.current.forEach((p, idx) => {
+        p.t += p.speed;
+        p.life -= 0.01;
+        if (p.t > 1 || p.life <= 0) { deadParts.push(idx); return; }
+
+        const fd = projected.find(d => d.agent.id === p.fromId);
+        const td = projected.find(d => d.agent.id === p.toId);
+        if (!fd || !td) { deadParts.push(idx); return; }
+
+        const midX = (fd.proj.sx + td.proj.sx) / 2;
+        const midY = Math.min(fd.proj.sy, td.proj.sy) - 40;
+
+        const { x, y } = lerpBezier(
+          fd.proj.sx, fd.proj.sy, midX, midY, midX, midY, td.proj.sx, td.proj.sy, p.t
+        );
+
+        const fromColor = fd.agent.color;
+        ctx.save();
+        ctx.globalAlpha = p.life * 0.9;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = fromColor;
+        ctx.fillStyle = fromColor;
+        ctx.beginPath();
+        ctx.arc(x, y, 3 * fd.proj.scale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      });
+      for (let i = deadParts.length - 1; i >= 0; i--) {
+        particlesRef.current.splice(deadParts[i], 1);
+      }
+
+      // Spawn particles for active connections
+      if (Math.random() < 0.35) {
+        const active = cur.filter(a => a.status === "running");
+        if (active.length > 0) {
+          const orch = cur.find(a => a.id === "orchestrator");
+          if (orch && active.length > 0) {
+            const target = active[Math.floor(Math.random() * active.length)];
+            if (target.id !== "orchestrator") {
+              const rev = Math.random() < 0.4;
+              particlesRef.current.push({
+                fromId: rev ? target.id : "orchestrator",
+                toId: rev ? "orchestrator" : target.id,
+                t: 0, speed: 0.012 + Math.random() * 0.008, life: 1,
+              });
+            }
+          }
+          if (active.length >= 2 && Math.random() < 0.3) {
+            const a = active[Math.floor(Math.random() * active.length)];
+            const b = active.filter(x => x.id !== a.id)[0];
+            if (b) {
+              particlesRef.current.push({ fromId: a.id, toId: b.id, t: 0, speed: 0.015, life: 1 });
+            }
+          }
+        }
+      }
+
+      // ── Agent nodes ────────────────────────────────────────────────────────
+      for (const { agent, proj } of projected) {
+        const { sx, sy, scale } = proj;
+        const r = (agent.id === "orchestrator" ? 38 : 28) * scale;
+        const isRunning = agent.status === "running";
+        const isDone = agent.status === "done";
+        const isErr = agent.status === "error";
+        const glow = isRunning ? 30 : isDone ? 12 : 6;
+
+        // Outer glow
+        ctx.save();
+        ctx.shadowBlur = glow * scale * 2;
+        ctx.shadowColor = agent.color;
+
+        // Hex fill
+        const hexFill = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
+        hexFill.addColorStop(0, agent.color + "44");
+        hexFill.addColorStop(0.6, agent.color + "22");
+        hexFill.addColorStop(1, agent.color + "08");
+
+        const hp = hexPath(sx, sy, r);
+        ctx.fillStyle = hexFill;
+        ctx.fill(hp);
+
+        // Hex border
+        ctx.strokeStyle = agent.color + (isRunning ? "ff" : isDone ? "bb" : "55");
+        ctx.lineWidth = (isRunning ? 2 : 1) * scale;
+        ctx.stroke(hp);
+        ctx.shadowBlur = 0;
+        ctx.restore();
+
+        // Inner pulse ring (running state)
+        if (isRunning) {
+          const pulse = 0.5 + 0.5 * Math.sin(time.current * 3);
+          ctx.save();
+          ctx.globalAlpha = pulse * 0.6;
+          ctx.strokeStyle = agent.color;
+          ctx.lineWidth = 1.5 * scale;
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = agent.color;
+          ctx.beginPath();
+          ctx.arc(sx, sy, (r + 8 + pulse * 6) * scale, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          ctx.restore();
+        }
+
+        // Progress arc
+        if (agent.progress > 0) {
+          ctx.save();
+          ctx.strokeStyle = agent.color;
+          ctx.lineWidth = 3 * scale;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = agent.color;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.arc(sx, sy, (r + 5) * scale, -Math.PI / 2, -Math.PI / 2 + agent.progress * Math.PI * 2);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          ctx.restore();
+        }
+
+        // Status dot (center)
+        ctx.save();
+        const dotColor = isRunning ? "#00ff88" : isDone ? agent.color : isErr ? "#ff4444" : "#333344";
+        ctx.fillStyle = dotColor;
+        ctx.shadowBlur = isRunning ? 12 : 4;
+        ctx.shadowColor = dotColor;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 4 * scale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+
+        // Orchestrator spin ring
+        if (agent.id === "orchestrator") {
+          ctx.save();
+          ctx.globalAlpha = 0.4;
+          ctx.strokeStyle = "#00e5ff";
+          ctx.lineWidth = 1 * scale;
+          const spinR = (r + 16) * scale;
+          for (let i = 0; i < 3; i++) {
+            const startA = time.current * 1.5 + (i * Math.PI * 2) / 3;
+            ctx.beginPath();
+            ctx.arc(sx, sy, spinR, startA, startA + 0.8);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        // Label
+        const fontSize = Math.max(8, 10 * scale);
+        ctx.save();
+        ctx.font = `bold ${fontSize}px "JetBrains Mono", monospace`;
+        ctx.textAlign = "center";
+        ctx.fillStyle = agent.color;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = agent.color;
+        ctx.fillText(agent.name, sx, sy + r + 14 * scale);
+        ctx.shadowBlur = 0;
+        ctx.restore();
+
+        // Ping indicator
+        if (agent.ping > 0) {
+          ctx.save();
+          ctx.font = `${Math.max(7, 8 * scale)}px monospace`;
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#ffffff88";
+          ctx.fillText(`${agent.ping}ms`, sx, sy + r + 24 * scale);
+          ctx.restore();
+        }
+      }
+
+      // ── Corner HUD ─────────────────────────────────────────────────────────
+      ctx.save();
+      ctx.font = "10px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#00e5ff44";
+      const active = cur.filter(a => a.status === "running").length;
+      const done = cur.filter(a => a.status === "done").length;
+      ctx.fillText(`AGENTS: ${active} ACTIVE / ${done} DONE / ${cur.length} TOTAL`, 12, 20);
+      ctx.fillText(`PARTICLES: ${particlesRef.current.length}`, 12, 34);
+      ctx.fillText(`ROT: ${(rotY.current % (Math.PI * 2)).toFixed(2)} rad`, 12, 48);
+      ctx.restore();
+
+      rafRef.current = requestAnimationFrame(draw);
+    }
+
+    rafRef.current = requestAnimationFrame(draw);
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      ro.disconnect();
+    };
+  }, [open]);
+
+  const stop = useCallback(() => {
+    abortCtrls.current.forEach(c => c.abort());
+    abortCtrls.current = [];
+    setRunning(false);
+    setPhase("idle");
+    agentsRef.current = agentsRef.current.map(a =>
+      a.status === "running" ? { ...a, status: "error" as AgentStatus } : a
+    );
+    syncAgents();
+  }, [syncAgents]);
+
+  const run = useCallback(async () => {
+    if (!task.trim() || running) return;
+
+    const fresh = AGENTS_INIT.map(a => ({ ...a }));
+    agentsRef.current = fresh;
+    setAgents(fresh);
+    setSynthesis("");
+    synthBuf.current = "";
+    outputBufs.current.clear();
+    particlesRef.current = [];
+    setRunning(true);
+    setPhase("dispatching");
+    setSelected("orchestrator");
+
+    const ctxMessages = (() => {
+      const chat = state.chats.find(c => c.id === state.activeChatId);
+      const hist = (chat?.messages ?? []).slice(-4).map(m => ({ role: m.role as "user" | "assistant", content: m.content }));
+      return [...hist, { role: "user" as const, content: task }];
+    })();
+
+    const ctrls = AGENTS_INIT.map(() => new AbortController());
+    abortCtrls.current = ctrls;
+
+    // Short delay so UI shows "dispatching" phase
+    await new Promise(r => setTimeout(r, 600));
+    setPhase("running");
+
+    const agentPromises = AGENTS_INIT.map(async (agentDef, i) => {
+      const ctrl = ctrls[i];
+      const startTime = Date.now();
+
+      patchAgent(agentDef.id, { status: "running", progress: 0.05 });
+      syncAgents();
+
+      outputBufs.current.set(agentDef.id, "");
+
+      try {
+        await streamAgent(
+          {
+            messages: ctxMessages,
+            language: "en",
+            maxSteps: 6,
+            customSystemPrompt: agentDef.focus,
+            redteamMode: true,
+          },
+          (event) => {
+            if (event.type === "answer_chunk") {
+              const prev = outputBufs.current.get(agentDef.id) ?? "";
+              outputBufs.current.set(agentDef.id, prev + event.content);
+              const len = outputBufs.current.get(agentDef.id)!.length;
+              patchAgent(agentDef.id, { progress: Math.min(0.95, 0.1 + len / 1200) });
+              scheduleFlush(agentDef.id);
+            } else if (event.type === "step_start") {
+              patchAgent(agentDef.id, { progress: Math.min(0.9, (event.step / event.maxSteps) * 0.8 + 0.1) });
+            }
+          },
+          ctrl.signal,
+        );
+
+        const finalOut = outputBufs.current.get(agentDef.id) ?? "";
+        const elapsed = Date.now() - startTime;
+        patchAgent(agentDef.id, {
+          status: "done",
+          output: finalOut,
+          progress: 1,
+          ping: elapsed,
+        });
+        syncAgents();
+      } catch (e: unknown) {
+        if ((e as Error)?.name === "AbortError") return;
+        patchAgent(agentDef.id, { status: "error", progress: 0 });
+        syncAgents();
+      }
+    });
+
+    await Promise.all(agentPromises);
+
+    // Synthesis pass
+    const allDone = agentsRef.current.filter(a => a.status === "done");
+    if (allDone.length === 0 || abortCtrls.current.length === 0) {
+      setRunning(false);
+      setPhase("done");
+      return;
+    }
+
+    setPhase("synthesizing");
+    const synthCtrl = new AbortController();
+    abortCtrls.current = [synthCtrl];
+
+    const summaries = allDone.map(a => `=== ${a.name} ===\n${a.output}`).join("\n\n");
+
+    try {
+      await streamAgent(
+        {
+          messages: [{ role: "user", content: `Synthesize these specialist agent reports into one executive summary:\n\n${summaries}\n\nOriginal task: ${task}` }],
+          language: "en",
+          maxSteps: 3,
+          customSystemPrompt: "You are a senior cybersecurity director. Synthesize the multi-agent findings into a clear executive report: CRITICAL FINDINGS, KEY RISKS, ATTACK CHAIN, IMMEDIATE ACTIONS, LONG-TERM ROADMAP. Be structured, decisive, and actionable.",
+        },
+        (event) => {
+          if (event.type === "answer_chunk") {
+            synthBuf.current += event.content;
+            if (synthFlush.current) clearTimeout(synthFlush.current);
+            synthFlush.current = setTimeout(() => {
+              setSynthesis(synthBuf.current);
+              synthFlush.current = null;
+            }, 48);
+          }
+        },
+        synthCtrl.signal,
+      );
+    } catch { /* ignore */ }
+
+    setSynthesis(synthBuf.current);
+    setRunning(false);
+    setPhase("done");
+  }, [task, running, state, patchAgent, syncAgents, scheduleFlush]);
+
+  const selectedAgent = agents.find(a => a.id === selected);
+  const Icon = selected ? ICON_MAP[selected] ?? Brain : Brain;
 
   if (!open) return null;
-  return (
-    <AnimatePresence>
-      <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ background: "rgba(0,0,0,0.92)" }}
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-        <motion.div className="relative w-full rounded-2xl overflow-hidden flex flex-col"
-          style={{ maxWidth: 1300, maxHeight: "90vh", background: "#080808", border: "1px solid #1a1a1a" }}
-          initial={{ scale: 0.95 }} animate={{ scale: 1 }}>
 
-          <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "#141414" }}>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.25)" }}>
-                <Users className="w-5 h-5" style={{ color: "#a855f7" }} />
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 backdrop-blur-md p-2 sm:p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92, y: 24 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94, y: 16 }}
+        transition={{ type: "spring", stiffness: 280, damping: 26 }}
+        className="relative flex flex-col w-full max-w-7xl rounded-2xl overflow-hidden border border-white/8"
+        style={{
+          background: "linear-gradient(135deg, #06060c 0%, #080810 50%, #060608 100%)",
+          boxShadow: "0 0 80px rgba(0,229,255,0.08), 0 0 40px rgba(226,18,39,0.06), 0 32px 80px rgba(0,0,0,0.9)",
+          height: "min(90vh, 820px)",
+        }}
+      >
+        {/* Header */}
+        <div className="relative flex items-center gap-3 px-5 py-3 border-b border-white/6 flex-shrink-0"
+          style={{ background: "linear-gradient(90deg, rgba(0,229,255,0.04) 0%, transparent 50%, rgba(226,18,39,0.03) 100%)" }}>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <div className="w-8 h-8 rounded-lg bg-[#00e5ff]/10 border border-[#00e5ff]/30 flex items-center justify-center">
+                <Cpu size={16} className="text-[#00e5ff]" />
               </div>
-              <div>
-                <div className="text-sm font-bold tracking-widest" style={{ color: "#a855f7" }}>MULTI-AGENT SOC SYSTEM</div>
-                <div className="text-xs font-mono mt-0.5" style={{ color: "#2a2a2a" }}>4 Parallel AI Agents · Neural Coordination · Synthesis Report</div>
+              {running && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#00ff88] animate-pulse" />
+              )}
+            </div>
+            <div>
+              <div className="text-xs font-black tracking-[0.25em] text-white/90 font-mono">MULTI-AGENT SOC</div>
+              <div className="text-[10px] text-[#00e5ff]/60 font-mono tracking-widest">
+                {phase === "idle" && "STANDBY — 7 SPECIALIST AGENTS READY"}
+                {phase === "dispatching" && "DISPATCHING NEURAL AGENTS..."}
+                {phase === "running" && `${agents.filter(a => a.status === "running").length} AGENTS ACTIVE · ${agents.filter(a => a.status === "done").length} COMPLETE`}
+                {phase === "synthesizing" && "SYNTHESIS IN PROGRESS..."}
+                {phase === "done" && `MISSION COMPLETE · ${agents.filter(a => a.status === "done").length}/${agents.length} AGENTS`}
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <input value={target} onChange={e => setTarget(e.target.value)}
-                className="px-3 py-1.5 rounded-lg text-xs font-mono bg-transparent outline-none"
-                style={{ border: "1px solid #1a1a1a", color: "#888", width: 220 }} placeholder="Target domain / IP" />
-              <motion.button onClick={launch} disabled={running} whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold tracking-widest"
-                style={{ background: running ? "rgba(168,85,247,0.04)" : "rgba(168,85,247,0.12)", border: "1px solid rgba(168,85,247,0.35)", color: running ? "#333" : "#a855f7" }}>
-                <Play className="w-3.5 h-3.5" />{running ? "AGENTS RUNNING..." : "DEPLOY ALL AGENTS"}
-              </motion.button>
-            </div>
-            <button onClick={() => onOpenChange(false)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/5">
-              <X className="w-4 h-4" style={{ color: "#666" }} />
-            </button>
           </div>
 
-          <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0 }}>
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="grid grid-cols-2 gap-3 p-4 h-64">
+          <div className="flex items-center gap-2 ml-auto">
+            {/* Phase indicators */}
+            {(["dispatching", "running", "synthesizing", "done"] as const).map((p, i) => (
+              <div key={p} className="flex items-center gap-1">
+                <div className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${
+                  phase === p ? "bg-[#00e5ff] shadow-[0_0_6px_#00e5ff]" :
+                  ["dispatching","running","synthesizing","done"].indexOf(phase) > i ? "bg-white/30" : "bg-white/10"
+                }`} />
+                {i < 3 && <div className="w-3 h-px bg-white/10" />}
+              </div>
+            ))}
+
+            <button
+              onClick={() => { stop(); onOpenChange(false); }}
+              className="ml-3 w-7 h-7 rounded-lg bg-white/5 hover:bg-[#e21227]/20 border border-white/8 flex items-center justify-center transition-colors"
+            >
+              <X size={13} className="text-white/60" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* ── Left: 3D Canvas ──────────────────────────────────────────────── */}
+          <div className="relative flex-1 flex flex-col overflow-hidden" style={{ minWidth: 0 }}>
+            <canvas
+              ref={canvasRef}
+              className="flex-1 w-full h-full cursor-crosshair"
+              style={{ display: "block" }}
+            />
+
+            {/* Task input overlay at bottom of canvas */}
+            <div className="absolute bottom-0 left-0 right-0 px-4 py-3 border-t border-white/6"
+              style={{ background: "linear-gradient(0deg, rgba(6,6,12,0.98) 0%, rgba(6,6,12,0.7) 100%)" }}>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <ChevronRight size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#00e5ff]/50" />
+                  <input
+                    value={task}
+                    onChange={e => setTask(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); run(); } }}
+                    placeholder="Enter target / objective for the multi-agent team..."
+                    disabled={running}
+                    className="w-full pl-8 pr-4 py-2.5 rounded-xl text-xs font-mono text-white/90 placeholder-white/25 border outline-none transition-all disabled:opacity-50"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      borderColor: task ? "rgba(0,229,255,0.3)" : "rgba(255,255,255,0.08)",
+                    }}
+                  />
+                </div>
+                {running ? (
+                  <button
+                    onClick={stop}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold font-mono flex items-center gap-2 border transition-all"
+                    style={{ background: "rgba(226,18,39,0.15)", borderColor: "rgba(226,18,39,0.4)", color: "#e21227" }}
+                  >
+                    <Square size={12} /> STOP
+                  </button>
+                ) : (
+                  <button
+                    onClick={run}
+                    disabled={!task.trim()}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold font-mono flex items-center gap-2 border transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    style={{ background: "rgba(0,229,255,0.12)", borderColor: "rgba(0,229,255,0.35)", color: "#00e5ff" }}
+                  >
+                    <Play size={12} /> DEPLOY
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Right: Control Panel ─────────────────────────────────────────── */}
+          <div className="w-80 flex flex-col border-l border-white/6 flex-shrink-0" style={{ background: "rgba(4,4,8,0.9)" }}>
+            {/* Agent roster */}
+            <div className="px-3 py-2 border-b border-white/5">
+              <div className="text-[9px] font-black tracking-[0.3em] text-white/30 font-mono mb-2">AGENT ROSTER</div>
+              <div className="space-y-1">
                 {agents.map(agent => {
-                  const Icon = agent.icon;
-                  const isSelected = active?.id === agent.id;
+                  const AgentIcon = ICON_MAP[agent.id] ?? Brain;
+                  const isSelected = selected === agent.id;
                   return (
-                    <motion.button key={agent.id} onClick={() => setSelectedAgent(agents.find(a => a.id === agent.id) ?? null)}
-                      className="flex flex-col p-3 rounded-xl text-left overflow-hidden relative"
-                      style={{ background: isSelected ? `${agent.color}08` : "#0a0a0a", border: `1px solid ${isSelected ? agent.color + "33" : agent.status === "running" ? agent.color + "22" : "#111"}` }}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${agent.color}15`, border: `1px solid ${agent.color}33` }}>
-                          <Icon className="w-3.5 h-3.5" style={{ color: agent.color }} />
+                    <button
+                      key={agent.id}
+                      onClick={() => setSelected(agent.id)}
+                      className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-all text-left"
+                      style={{
+                        background: isSelected ? `${agent.color}14` : "transparent",
+                        border: `1px solid ${isSelected ? agent.color + "44" : "transparent"}`,
+                      }}
+                    >
+                      <div className="relative flex-shrink-0">
+                        <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: agent.color + "22" }}>
+                          <AgentIcon size={11} style={{ color: agent.color }} />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[10px] font-bold" style={{ color: agent.color }}>{agent.name}</div>
-                          <div className="text-[8px]" style={{ color: "#2a2a2a" }}>{agent.role}</div>
-                        </div>
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
-                          {agent.status === "running" && <motion.div className="w-2 h-2 rounded-full" style={{ background: agent.color }} animate={{ opacity: [1, 0] }} transition={{ repeat: Infinity, duration: 0.6 }} />}
-                          {agent.status === "done" && <span className="text-[9px]" style={{ color: "#4ade80" }}>✓ DONE</span>}
-                          {agent.status === "idle" && <span className="text-[9px]" style={{ color: "#1a1a1a" }}>IDLE</span>}
-                          {agent.findings > 0 && <span className="px-1.5 py-0.5 rounded text-[8px] font-bold" style={{ background: `${agent.color}15`, color: agent.color }}>{agent.findings}</span>}
-                        </div>
+                        <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-black ${
+                          agent.status === "running" ? "bg-[#00ff88] animate-pulse" :
+                          agent.status === "done" ? "bg-[#4ade80]" :
+                          agent.status === "error" ? "bg-[#e21227]" : "bg-white/20"
+                        }`} />
                       </div>
-                      <div className="flex-1 overflow-hidden">
-                        {agent.logs.slice(-3).map((l, i) => (
-                          <div key={i} className="text-[8px] font-mono truncate" style={{ color: l.startsWith("[!]") ? agent.color : "#2a2a2a" }}>{l}</div>
-                        ))}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[10px] font-bold font-mono leading-none truncate" style={{ color: agent.color }}>
+                          {agent.name}
+                        </div>
+                        <div className="text-[9px] text-white/35 font-mono truncate mt-0.5">{agent.subtitle}</div>
                       </div>
                       {agent.status === "running" && (
-                        <motion.div className="absolute bottom-0 left-0 h-0.5" style={{ background: agent.color }}
-                          animate={{ width: ["0%", "100%"] }} transition={{ duration: 4, ease: "linear", repeat: Infinity }} />
+                        <div className="flex-shrink-0 w-12 h-1 rounded-full bg-white/8 overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-300" style={{
+                            width: `${agent.progress * 100}%`,
+                            background: agent.color,
+                            boxShadow: `0 0 6px ${agent.color}`,
+                          }} />
+                        </div>
                       )}
-                    </motion.button>
+                      {agent.status === "done" && agent.ping > 0 && (
+                        <span className="text-[9px] font-mono text-white/30 flex-shrink-0">{(agent.ping / 1000).toFixed(1)}s</span>
+                      )}
+                    </button>
                   );
                 })}
               </div>
+            </div>
 
-              {showSynthesis && (
-                <div ref={synthRef} className="flex-1 overflow-y-auto p-4 mx-4 mb-4 rounded-xl font-mono text-[10px]"
-                  style={{ background: "#030303", border: "1px solid rgba(168,85,247,0.15)", minHeight: 0 }}>
-                  <pre style={{ color: "#a855f7", whiteSpace: "pre-wrap" }}>{synthesis}</pre>
-                </div>
+            {/* Selected agent output */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {selectedAgent && (
+                <>
+                  <div className="px-3 py-2 border-b border-white/5 flex items-center gap-2 flex-shrink-0">
+                    <Icon size={11} style={{ color: selectedAgent.color }} />
+                    <span className="text-[9px] font-black tracking-widest font-mono" style={{ color: selectedAgent.color }}>
+                      {selectedAgent.name} OUTPUT
+                    </span>
+                    {selectedAgent.status === "running" && (
+                      <span className="ml-auto text-[9px] text-[#00ff88] font-mono animate-pulse">STREAMING...</span>
+                    )}
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-3 scroll-smooth">
+                    {selectedAgent.output ? (
+                      <pre className="text-[10px] font-mono text-white/75 whitespace-pre-wrap leading-relaxed">
+                        {selectedAgent.output}
+                        {selectedAgent.status === "running" && (
+                          <span className="inline-block w-1.5 h-3 ml-0.5 bg-white/60 animate-pulse align-middle" />
+                        )}
+                      </pre>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full gap-2 opacity-40">
+                        <Icon size={24} style={{ color: selectedAgent.color }} />
+                        <span className="text-[10px] font-mono text-white/40">
+                          {selectedAgent.status === "idle" ? "Awaiting deployment..." : "Initializing..."}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
 
-            {active && (
-              <motion.div className="w-72 border-l flex flex-col" style={{ borderColor: "#111" }} initial={{ width: 0, opacity: 0 }} animate={{ width: 288, opacity: 1 }}>
-                <div className="p-3 border-b flex items-center gap-2" style={{ borderColor: "#111" }}>
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: active.color }} />
-                  <span className="text-[10px] font-bold" style={{ color: active.color }}>{active.name}</span>
-                </div>
-                <div className="flex-1 overflow-y-auto p-3 space-y-0.5 font-mono text-[9px]" style={{ minHeight: 0 }}>
-                  {active.logs.map((l, i) => (
-                    <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                      style={{ color: l.startsWith("[!]") ? active.color : l.startsWith("[+]") ? "#4ade80" : l.startsWith("[>]") ? "#00e5ff" : "#2a2a2a" }}>
-                      {l}
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+            {/* Synthesis panel */}
+            <AnimatePresence>
+              {(phase === "synthesizing" || phase === "done") && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="border-t border-[#fbbf24]/20 flex-shrink-0"
+                  style={{ maxHeight: "35%" }}
+                >
+                  <div className="px-3 py-2 flex items-center gap-2" style={{ background: "rgba(251,191,36,0.05)" }}>
+                    <GitMerge size={11} className="text-[#fbbf24]" />
+                    <span className="text-[9px] font-black tracking-widest font-mono text-[#fbbf24]">SYNTHESIS</span>
+                    {phase === "synthesizing" && (
+                      <Zap size={9} className="ml-auto text-[#fbbf24] animate-pulse" />
+                    )}
+                  </div>
+                  <div className="overflow-y-auto px-3 pb-3" style={{ maxHeight: "160px" }}>
+                    {synthesis ? (
+                      <pre className="text-[10px] font-mono text-white/75 whitespace-pre-wrap leading-relaxed">
+                        {synthesis}
+                        {phase === "synthesizing" && (
+                          <span className="inline-block w-1.5 h-3 ml-0.5 bg-[#fbbf24]/60 animate-pulse align-middle" />
+                        )}
+                      </pre>
+                    ) : (
+                      <div className="text-[9px] text-white/30 font-mono animate-pulse">Synthesizing all agent reports...</div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </motion.div>
+        </div>
       </motion.div>
-    </AnimatePresence>
+    </div>
   );
 }

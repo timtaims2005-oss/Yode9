@@ -1,3 +1,4 @@
+import React from "react";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -75,7 +76,7 @@ function StatCard({ label, value, sub, icon: Icon, color, spark, trend }: {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: color + "22", border: `1px solid ${color}33` }}>
-            {(Icon as any)({ className: "w-3.5 h-3.5", style: { color } })}
+            {(React.createElement(Icon, { className: "w-3.5 h-3.5", style: { color } }))}
           </div>
           <span className="text-[10px] text-slate-500 font-medium">{label}</span>
         </div>
@@ -235,7 +236,7 @@ export function AnalyticsDashboard({ open, onClose }: Props) {
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-t-lg text-[11px] font-semibold transition-all shrink-0 border-b-2 ${
                     tab === id ? "text-[#3b82f6] border-[#3b82f6] bg-[#3b82f6]/08" : "text-slate-500 border-transparent hover:text-slate-300"
                   }`}>
-                  {(Icon as any)({ className: "w-3.5 h-3.5" })} {label}
+                  {(Icon ? React.createElement(Icon, { className: "w-3.5 h-3.5" }) : null)} {label}
                 </button>
               ))}
             </div>

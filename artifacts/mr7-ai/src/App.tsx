@@ -1,4 +1,17 @@
-import { lazy, Suspense, useEffect, useRef, useReducer, useState, useCallback } from "react";
+import React, { lazy, Suspense, useEffect, useRef, useReducer, useState, useCallback, Component } from "react";
+
+class AppErrorBoundary extends Component<{ children: React.ReactNode; fallback?: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode; fallback?: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(e: Error) { console.warn("[AppErrorBoundary]", e.message); }
+  render() {
+    if (this.state.hasError) return this.props.fallback ?? null;
+    return this.props.children;
+  }
+}
 import { BootScreen } from "./components/BootScreen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";

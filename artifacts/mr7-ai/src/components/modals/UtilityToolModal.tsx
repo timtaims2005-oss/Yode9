@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContentTop, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -259,7 +259,7 @@ export function UtilityToolModal({
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                {(meta.icon as any)({ className: `w-5 h-5 ${meta.color}` })}
+                {(React.createElement(meta.icon, { className: `w-5 h-5 ${meta.color}` }))}
                 {tool}
               </DialogTitle>
               <DialogDescription>{meta.desc}</DialogDescription>

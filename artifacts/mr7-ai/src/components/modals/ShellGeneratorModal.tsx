@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { X, Copy, CheckCheck, Terminal, Shield, Zap, Code2, Send, RefreshCw, Lock, Globe, Cpu, ArrowRight, Database, Wifi, AlertTriangle, Hash, Package, Layers, Bug, DollarSign, Atom, Cloud } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -371,7 +372,7 @@ export function ShellGeneratorModal({ open, onOpenChange, onInjectToChat }: Prop
                             }`}
                             style={shellType === tab.id ? { borderColor: tab.color + "60", background: tab.color + "10", color: tab.color } : {}}
                           >
-                            {(Icon as any)({ className: "w-4 h-4 shrink-0" })}
+                            {(React.createElement(Icon, { className: "w-4 h-4 shrink-0" }))}
                             <span className="text-[12px] font-bold">{tab.label}</span>
                           </button>
                         );

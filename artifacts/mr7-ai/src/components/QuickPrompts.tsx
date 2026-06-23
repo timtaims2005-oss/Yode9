@@ -1,4 +1,4 @@
-import type React from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import {
   Shield, Code2, Search, Zap, Bug, Network, Eye, Lock, Database, Globe, Terminal,
@@ -98,7 +98,7 @@ export function QuickPrompts({ onPick }: { onPick: (text: string) => void }) {
                 {p.tag}
               </span>
 
-              {(Icon as any)({ className: "w-3 h-3 flex-shrink-0", style: { color: p.color, filter: `drop-shadow(0 0 3px ${p.color}80)` } })}
+              {(Icon ? React.createElement(Icon, { className: "w-3 h-3 flex-shrink-0", style: { color: p.color, filter: `drop-shadow(0 0 3px ${p.color}80)` } }) : null)}
               <span className="text-[11px] font-bold tracking-tight whitespace-nowrap">{p.label}</span>
             </motion.button>
           );

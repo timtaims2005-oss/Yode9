@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
@@ -440,7 +441,7 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
                         )}
                         <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
                           style={{ background: `rgba(${pc[0]},${pc[1]},${pc[2]},0.18)`, border: `1px solid rgba(${pc[0]},${pc[1]},${pc[2]},0.28)` }}>
-                          {(Icon as any)({ className: "w-3.5 h-3.5", style: { color: `rgba(${pc[0]},${pc[1]},${pc[2]},0.95)` } })}
+                          {(Icon ? React.createElement(Icon, { className: "w-3.5 h-3.5", style: { color: `rgba(${pc[0]},${pc[1]},${pc[2]},0.95)` } }) : null)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-[10px] font-bold truncate" style={{ color: isActive ? `rgba(${pc[0]},${pc[1]},${pc[2]},1)` : "rgba(255,255,255,0.7)" }}>
@@ -514,7 +515,7 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
                           whileTap={{ scale: 0.98 }}>
                           <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                             style={{ background: `rgba(${pc[0]},${pc[1]},${pc[2]},0.18)`, border: `1px solid rgba(${pc[0]},${pc[1]},${pc[2]},0.30)` }}>
-                            {(Icon as any)({ className: "w-4 h-4", style: { color: `rgba(${pc[0]},${pc[1]},${pc[2]},0.95)` } })}
+                            {(Icon ? React.createElement(Icon, { className: "w-4 h-4", style: { color: `rgba(${pc[0]},${pc[1]},${pc[2]},0.95)` } }) : null)}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="text-[10px] font-bold" style={{ color: isActive ? `rgba(${pc[0]},${pc[1]},${pc[2]},1)` : "rgba(255,255,255,0.75)" }}>{preset.nameAr}</div>

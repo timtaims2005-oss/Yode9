@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -253,7 +254,7 @@ export function WhatsNewModal({ open, onClose }: WhatsNewModalProps) {
                         border: `1px solid ${change.color}30`,
                       }}
                     >
-                      {(Icon as any)({ className: "w-4.5 h-4.5", style: { color: change.color, width: 18, height: 18 } })}
+                      {(React.createElement(Icon, { className: "w-4.5 h-4.5", style: { color: change.color, width: 18, height: 18 } }))}
                     </div>
 
                     {/* Text */}

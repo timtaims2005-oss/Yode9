@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Search, Zap, ChevronRight, Copy, Check, Shield, Globe, Bug, Network, Terminal, Eye, Lock, Cpu, Radio, Crosshair, Fingerprint, Waves, Database } from "lucide-react";
@@ -649,7 +650,7 @@ export function UseCaseLibraryModal({ open, onOpenChange, onInject }: Props) {
                                   transition: "all 0.3s",
                                 }}
                               >
-                                {(Icon as any)({ className: "w-4 h-4", style: { color } })}
+                                {(React.createElement(Icon, { className: "w-4 h-4", style: { color } }))}
                               </div>
                               <div>
                                 <div className="text-[11px] font-mono font-bold uppercase" style={{ color }}>{uc.category}</div>

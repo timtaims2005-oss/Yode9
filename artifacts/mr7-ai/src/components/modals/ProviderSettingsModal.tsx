@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   X, RefreshCw, Check, Cpu, Globe, Zap, FlaskConical, Route, Server, User,
@@ -1938,7 +1939,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                             onClick={() => setExpandedProvider(isExpanded ? null : prov.id)}>
                             <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
                               style={{ background: prov.glow, border: `1px solid ${prov.color}33` }}>
-                              {(Icon as any)({ className: "w-4 h-4", style: { color: prov.color } })}
+                              {(Icon ? React.createElement(Icon, { className: "w-4 h-4", style: { color: prov.color } }) : null)}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
@@ -2150,7 +2151,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                           <div className="flex items-center gap-3 mb-2.5">
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                               style={{ background: prov.glow, border: `1px solid ${prov.color}33` }}>
-                              {(Icon as any)({ className: "w-4 h-4", style: { color: prov.color } })}
+                              {(Icon ? React.createElement(Icon, { className: "w-4 h-4", style: { color: prov.color } }) : null)}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">

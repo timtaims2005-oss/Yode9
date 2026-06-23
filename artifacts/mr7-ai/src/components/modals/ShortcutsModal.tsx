@@ -1,3 +1,4 @@
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Keyboard, Terminal, Shield, Brain, Search, Layers, Zap } from "lucide-react";
 
@@ -81,7 +82,7 @@ export function ShortcutsModal({ open, onOpenChange }: { open: boolean; onOpenCh
             return (
               <div key={group.title} className="space-y-1">
                 <div className="flex items-center gap-1.5 mb-2">
-                  {(Icon as any)({ className: `w-3.5 h-3.5 ${group.color}` })}
+                  {(React.createElement(Icon, { className: `w-3.5 h-3.5 ${group.color}` }))}
                   <span className={`text-[10px] font-black font-mono uppercase tracking-widest ${group.color}`}>{group.title}</span>
                 </div>
                 {group.rows.map((r) => (

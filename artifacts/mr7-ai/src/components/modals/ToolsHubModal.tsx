@@ -1,3 +1,4 @@
+import React from "react";
 import { useMemo, useState, useRef } from "react";
 import { Dialog, DialogContentTop, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Search, Pin, Sparkles, Grid3X3, List, TrendingUp, Zap, Globe, Code2, Send, Loader2, X, Copy, ChevronDown, Plus, Trash2, Image, QrCode, FileCode, Palette, Download, RefreshCw, Wand2, Shield, AlertTriangle, Activity, ExternalLink, ChevronUp, Bug, Radio } from "lucide-react";
@@ -1097,7 +1098,7 @@ function ToolCard({
     return (
       <div className="relative group flex items-center gap-3 p-2.5 rounded-xl border border-border bg-background hover:bg-accent hover:border-primary/30 transition-all cursor-pointer" onClick={onSelect}>
         <div className={`w-8 h-8 rounded-lg border flex items-center justify-center flex-shrink-0 ${catBg} ${catBorder}`}>
-          {(Icon as any)({ className: `w-4 h-4 ${catText}` })}
+          {(React.createElement(Icon, { className: `w-4 h-4 ${catText}` }))}
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-[13px]">{item.tool}</div>
@@ -1122,7 +1123,7 @@ function ToolCard({
         className="w-full text-left rounded-xl border border-border bg-background hover:bg-accent hover:border-primary/30 transition-all p-2.5 h-full"
       >
         <div className={`w-9 h-9 rounded-xl border flex items-center justify-center mb-2 ${catBg} ${catBorder}`}>
-          {(Icon as any)({ className: `w-4 h-4 ${catText}` })}
+          {(React.createElement(Icon, { className: `w-4 h-4 ${catText}` }))}
         </div>
         <div className="font-semibold text-[12px] mb-0.5 leading-snug">{item.tool}</div>
         <div className="text-[10.5px] text-muted-foreground leading-snug line-clamp-2">{item.desc}</div>

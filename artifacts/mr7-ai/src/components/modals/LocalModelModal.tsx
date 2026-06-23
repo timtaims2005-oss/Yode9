@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { FullPageOverlay } from "@/components/FullPageOverlay";
 import { Switch } from "@/components/ui/switch";
@@ -1394,7 +1395,7 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
       ROLEPLAY: Globe, SECURITY: Shield, RERANK: BarChart2, EMBED: Database,
     };
     const Icon = map[tag] ?? Cpu;
-    return (Icon as any)({ className: "w-2.5 h-2.5" });
+    return (Icon ? React.createElement(Icon, { className: "w-2.5 h-2.5" }) : null);
   };
 
   function toggleGroup(grp: string) {
