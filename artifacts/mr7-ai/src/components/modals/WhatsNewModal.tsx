@@ -253,7 +253,7 @@ export function WhatsNewModal({ open, onClose }: WhatsNewModalProps) {
                         border: `1px solid ${change.color}30`,
                       }}
                     >
-                      <Icon className="w-4.5 h-4.5" style={{ color: change.color, width: 18, height: 18 }} />
+                      {(Icon as any)({ className: "w-4.5 h-4.5", style: { color: change.color, width: 18, height: 18 } })}
                     </div>
 
                     {/* Text */}

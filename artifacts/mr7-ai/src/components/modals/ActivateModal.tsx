@@ -3,7 +3,8 @@ import { Dialog, DialogContentTop, DialogHeader, DialogTitle } from "@/component
 import { Key, Check, AlertCircle, Zap } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
-import { verifyActivationCode, TIER_LABELS } from "@/lib/subscription";
+import { verifyActivationCodeServer, TIER_LABELS } from "@/lib/subscription";
+import { getDeviceId } from "@/lib/cloud-sync";
 
 interface ActivateModalProps {
   open: boolean;
@@ -18,9 +19,9 @@ export function ActivateModal({ open, onOpenChange }: ActivateModalProps) {
   const [success, setSuccess] = useState(false);
   const [activatedTier, setActivatedTier] = useState("");
 
-  function activate() {
-    const result = verifyActivationCode(code.trim());
-    if (!result) {
+  async function activate() {
+    const result = await verifyActivationCodeServer(code.trim(), getDeviceId());
+    if (!result.ok || !result.tier || !result.expiresAt) {
       setError("Invalid or expired activation code. Please check the code and try again.");
       return;
     }

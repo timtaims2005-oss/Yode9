@@ -751,7 +751,7 @@ export function OsintDashboard({ open, onOpenChange }: { open: boolean; onOpenCh
                       return (
                         <button key={k} onClick={() => { setFilter(k); setActiveTab("table"); }}
                           className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-bold font-mono transition-colors ${m.bg} ${m.color} hover:opacity-80`}>
-                          <Icon className="w-2.5 h-2.5" /> {m.label} ({counts[k]})
+                          {(Icon as any)({ className: "w-2.5 h-2.5" })} {m.label} ({counts[k]})
                         </button>
                       );
                     })}
@@ -802,7 +802,7 @@ export function OsintDashboard({ open, onOpenChange }: { open: boolean; onOpenCh
                         <span className={`w-1 h-1 rounded-full ${tm.dot}`} /> {tm.label}
                       </span>
                       <span className={`inline-flex items-center gap-0.5 px-1 py-0.5 rounded border text-[8px] font-bold font-mono ${m.bg} ${m.color} shrink-0`}>
-                        <Icon className="w-2 h-2" /> {m.label}
+                        {(Icon as any)({ className: "w-2 h-2" })} {m.label}
                       </span>
                       <span className="font-mono text-[10px] text-foreground/80 truncate flex-1">{ioc.value}</span>
                       <span className="font-mono text-[9px] text-muted-foreground/60 shrink-0">{ioc.count}×</span>
@@ -852,7 +852,7 @@ export function OsintDashboard({ open, onOpenChange }: { open: boolean; onOpenCh
                   const Icon = m.icon;
                   return (
                     <div key={k} className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg border ${m.bg}`}>
-                      <Icon className={`w-3 h-3 ${m.color} shrink-0`} />
+                      {(Icon as any)({ className: `w-3 h-3 ${m.color} shrink-0` })}
                       <div>
                         <div className={`text-[9px] font-black font-mono ${m.color}`}>{m.label}</div>
                         <div className="text-[10px] font-mono text-foreground/70 font-bold">{counts[k]}</div>
@@ -879,7 +879,7 @@ export function OsintDashboard({ open, onOpenChange }: { open: boolean; onOpenCh
                     return (
                       <button key={k} onClick={() => setFilter(k)}
                         className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-bold font-mono transition-colors ${filter === k ? `${m.bg} ${m.color}` : "border-border/50 text-muted-foreground hover:border-primary/30 hover:text-foreground"}`}>
-                        <Icon className="w-3 h-3" /> {m.label} ({counts[k]})
+                        {(Icon as any)({ className: "w-3 h-3" })} {m.label} ({counts[k]})
                       </button>
                     );
                   })}
@@ -951,7 +951,7 @@ export function OsintDashboard({ open, onOpenChange }: { open: boolean; onOpenCh
                               </td>
                               <td className="px-4 py-2">
                                 <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-bold font-mono ${m.bg} ${m.color}`}>
-                                  <Icon className="w-2.5 h-2.5" /> {m.label}
+                                  {(Icon as any)({ className: "w-2.5 h-2.5" })} {m.label}
                                 </span>
                               </td>
                               <td className="px-4 py-2">

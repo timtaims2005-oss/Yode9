@@ -720,7 +720,7 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
                           {isActive && <div className="absolute left-0 inset-y-0 w-0.5 rounded-full pulse-dot" style={{ background: pc, animationDuration: "1.5s" }} />}
                           <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
                             style={{ background: `${pc}20`, border: `1px solid ${pc}35` }}>
-                            <Icon className="w-3 h-3" style={{ color: `${pc}ee` }} />
+                            {(Icon as any)({ className: "w-3 h-3", style: { color: `${pc}ee` } })}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="text-[10px] font-bold truncate" style={{ color: isActive ? pc : "rgba(255,255,255,0.65)" }}>{preset.nameAr.slice(0,14)}</div>
@@ -777,7 +777,7 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
                           whileHover={{ background: `${pc}0c`, borderColor: `${pc}28` }} whileTap={{ scale: 0.98 }}>
                           <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                             style={{ background: `${pc}18`, border: `1px solid ${pc}30` }}>
-                            <Icon className="w-4 h-4" style={{ color: `${pc}ee` }} />
+                            {(Icon as any)({ className: "w-4 h-4", style: { color: `${pc}ee` } })}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="text-[10px] font-bold" style={{ color: isActive ? pc : "rgba(255,255,255,0.72)" }}>{preset.nameAr}</div>

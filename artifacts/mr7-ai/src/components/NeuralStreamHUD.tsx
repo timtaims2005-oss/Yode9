@@ -52,9 +52,9 @@ function SparkCanvas({ samples, color }: { samples: number[]; color: string }) {
   return <canvas ref={ref} width={W} height={H} style={{ display: "block" }} />;
 }
 
-interface Props { tps?: number; tokenCount?: number; agentMode?: boolean }
+interface Props { streaming?: boolean; tps?: number; tokenCount?: number; mode?: string; agentMode?: boolean }
 
-export function NeuralStreamHUD({ tps = 0, tokenCount = 0, agentMode = false }: Props) {
+export function NeuralStreamHUD({ streaming: _streaming, tps = 0, tokenCount = 0, mode: _mode, agentMode = false }: Props) {
   const [phase, setPhase] = useState(0);
   const [sparkSamples, setSparkSamples] = useState<number[]>([0]);
 

@@ -115,6 +115,60 @@ export async function verifyActivationCodeServer(
 }
 
 /**
+ * Backward compatibility alias for verifyActivationCodeServer.
+ * @deprecated Use verifyActivationCodeServer instead
+ */
+export const verifyActivationCode = verifyActivationCodeServer;
+
+/**
+ * Verify admin password via the server.
+ * Server-side only - never exposes the ADMIN_SECRET to the client.
+ */
+export async function verifyAdminPassword(
+  password: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch("/api/subscriptions/verify-admin", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-Key": getInternalKey(),
+      },
+      body: JSON.stringify({ password }),
+    });
+    const data = await res.json() as { ok: boolean; error?: string };
+    return data;
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Network error" };
+  }
+}
+
+/**
+ * Generate an activation code via the server (admin only).
+ * Server-side only - requires admin authentication.
+ */
+export async function generateActivationCode(
+  adminPassword: string,
+  tier: SubscriptionTier,
+  days: number,
+): Promise<{ ok: boolean; code?: string; error?: string }> {
+  try {
+    const res = await fetch("/api/subscriptions/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-Key": getInternalKey(),
+      },
+      body: JSON.stringify({ adminPassword, tier, days }),
+    });
+    const data = await res.json() as { ok: boolean; code?: string; error?: string };
+    return data;
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Network error" };
+  }
+}
+
+/**
  * Client-side tier check. Uses the cached server-verified tier.
  * Falls back to "free" if no valid subscription is cached.
  */

@@ -205,7 +205,7 @@ export function OnboardingTourModal({ open, onClose }: Props) {
                   boxShadow: `0 0 24px ${slide.accentColor}20`,
                 }}
               >
-                <SlideIcon className="w-8 h-8" style={{ color: slide.accentColor }} />
+                {(SlideIcon as any)({ className: "w-8 h-8", style: { color: slide.accentColor } })}
               </div>
 
               <div className="flex items-center justify-center gap-2 mb-1">

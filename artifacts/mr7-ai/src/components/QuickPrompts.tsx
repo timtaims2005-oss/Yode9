@@ -98,7 +98,7 @@ export function QuickPrompts({ onPick }: { onPick: (text: string) => void }) {
                 {p.tag}
               </span>
 
-              <Icon className="w-3 h-3 flex-shrink-0" style={{ color: p.color, filter: `drop-shadow(0 0 3px ${p.color}80)` }} />
+              {(Icon as any)({ className: "w-3 h-3 flex-shrink-0", style: { color: p.color, filter: `drop-shadow(0 0 3px ${p.color}80)` } })}
               <span className="text-[11px] font-bold tracking-tight whitespace-nowrap">{p.label}</span>
             </motion.button>
           );

@@ -594,7 +594,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                   className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-accent transition-colors"
                 >
                   <div className={`w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center ${tool.color ?? "text-foreground/80"}`}>
-                    <tool.icon className="w-4 h-4" />
+                    {(tool.icon as any)({ className: "w-4 h-4" })}
                   </div>
                   <span className="font-medium text-foreground text-[13px]">{label}</span>
                 </button>
@@ -632,7 +632,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
               <div className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center transition-all group-hover:scale-110 group-hover:border-white/15 ${tool.color ?? "text-foreground/80"}`}
                   style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)" }}>
-                  <tool.icon className="w-4 h-4" />
+                  {(tool.icon as any)({ className: "w-4 h-4" })}
                 </div>
                 <span className="font-medium text-foreground text-[13px] group-hover:text-white/90 transition-colors">{tool.label}</span>
               </div>

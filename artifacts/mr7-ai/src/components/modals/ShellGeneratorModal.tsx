@@ -371,7 +371,7 @@ export function ShellGeneratorModal({ open, onOpenChange, onInjectToChat }: Prop
                             }`}
                             style={shellType === tab.id ? { borderColor: tab.color + "60", background: tab.color + "10", color: tab.color } : {}}
                           >
-                            <Icon className="w-4 h-4 shrink-0" />
+                            {(Icon as any)({ className: "w-4 h-4 shrink-0" })}
                             <span className="text-[12px] font-bold">{tab.label}</span>
                           </button>
                         );

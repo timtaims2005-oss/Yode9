@@ -148,7 +148,7 @@ export function ChangelogModal({ open, onOpenChange }: { open: boolean; onOpenCh
                           return (
                             <div key={i} className="flex items-start gap-3">
                               <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: `${c.color}18`, border: `1px solid ${c.color}30` }}>
-                                <Icon className="w-3.5 h-3.5" style={{ color: c.color }} />
+                                {(Icon as any)({ className: "w-3.5 h-3.5", style: { color: c.color } })}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-0.5">

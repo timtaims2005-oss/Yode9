@@ -238,7 +238,7 @@ export function CodeTemplatesPanel({
             ) : (
               <ul className="divide-y divide-border/60">
                 {filtered.map((tpl) => {
-                  const Icon = tpl.icon;
+                  const Icon = tpl.icon as any;
                   return (
                     <li key={tpl.id}>
                       <button

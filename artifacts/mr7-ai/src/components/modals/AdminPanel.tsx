@@ -8,8 +8,10 @@ import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import {
   verifyAdminPassword, generateActivationCode,
-  type SubscriptionTier, TIER_LABELS, TIER_TOKENS,
   loadPaymentSettings, savePaymentSettings, type PaymentSettings,
+} from "@/lib/subscription-verify";
+import {
+  type SubscriptionTier, TIER_LABELS, TIER_TOKENS,
 } from "@/lib/subscription";
 
 interface AdminPanelProps {
@@ -34,8 +36,9 @@ export function AdminPanel({ open, onOpenChange }: AdminPanelProps) {
   const [payOpen, setPayOpen] = useState(false);
   const [paySettings, setPaySettings] = useState<PaymentSettings>(loadPaymentSettings());
 
-  function login() {
-    if (verifyAdminPassword(password)) {
+  async function login() {
+    const isValid = await verifyAdminPassword(password);
+    if (isValid) {
       setAuthed(true);
       setPwError(false);
       setPassword("");
@@ -71,9 +74,13 @@ export function AdminPanel({ open, onOpenChange }: AdminPanelProps) {
     toast({ description: `Subscription set to ${TIER_LABELS[setTier]}${setTier !== "free" ? ` for ${setDays} days` : ""}.` });
   }
 
-  function genCode() {
-    const code = generateActivationCode(genTier, genDays);
-    setGeneratedCode(code);
+  async function genCode() {
+    const result = await generateActivationCode(genTier, genDays);
+    if (result.ok && result.code) {
+      setGeneratedCode(result.code);
+    } else {
+      toast({ description: result.error || "Failed to generate code" });
+    }
   }
 
   function copyCode() {
@@ -111,7 +118,7 @@ export function AdminPanel({ open, onOpenChange }: AdminPanelProps) {
       <label className="text-[10px] text-muted-foreground mb-1 block">{label}</label>
       <input
         value={paySettings[field]}
-        onChange={(e) => setPaySettings((p) => ({ ...p, [field]: e.target.value }))}
+        onChange={(e) => setPaySettings((p: PaymentSettings) => ({ ...p, [field]: e.target.value }))}
         placeholder={placeholder ?? label}
         className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[12px] outline-none focus:border-primary font-mono"
       />

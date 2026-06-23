@@ -47,7 +47,7 @@ interface ChatInputProps {
   state: AppState;
   dispatch: AppDispatch;
   input: string;
-  setInput: (v: string) => void;
+  setInput: (v: string | ((prev: string) => string)) => void;
   streaming: boolean;
   editingId: string | null;
   mode: ChatMode;
@@ -79,7 +79,7 @@ interface ChatInputProps {
   onOpenVisionCamera: () => void;
   onTriggerFile: () => void;
   chat: { messages: { role: string; content: string }[] } | null | undefined;
-  toast: (opts: { description: string; variant?: string }) => void;
+  toast: (opts: { description: string; variant?: "default" | "destructive" | "success" | "warning" | null }) => void;
   t: (key: string, vars?: Record<string, string | number>) => string;
 }
 
@@ -518,7 +518,7 @@ export function ChatInput({
           const isActive = activePresetId && activePresetId !== "default";
           if (!isActive && !hasCustom) return null;
           const preset = PERSONA_PRESETS.find((p) => p.id === activePresetId) ?? PERSONA_PRESETS[0];
-          const Icon = preset.icon;
+          const Icon = preset.icon as any;
           return (
             <div className="mb-1.5 flex items-center gap-1.5 flex-wrap">
               <Popover open={personaSwapOpen} onOpenChange={setPersonaSwapOpen}>
@@ -536,7 +536,7 @@ export function ChatInput({
                 <PopoverContent align="start" side="top" className="w-72 p-1.5 bg-card border-border max-h-[min(60vh,440px)] overflow-y-auto">
                   <div className="px-1.5 py-1 mb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{lang === "ar" ? "تبديل الشخصية" : "Switch Persona"}</div>
                   {PERSONA_PRESETS.filter((p) => p.id !== "custom").map((p) => {
-                    const PIcon = p.icon;
+                    const PIcon = p.icon as any;
                     const isSelected = activePresetId === p.id;
                     return (
                       <button key={p.id} onClick={() => { dispatch({ type: "SET_SETTINGS", patch: { customSystemPrompt: p.prompt, activePersonaPreset: p.id } }); setPersonaSwapOpen(false); toast({ description: lang === "ar" ? `تم تفعيل: ${p.nameAr}` : `Persona: ${p.name}` }); }}

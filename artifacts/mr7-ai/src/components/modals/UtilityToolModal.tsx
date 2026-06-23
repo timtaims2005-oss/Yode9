@@ -259,7 +259,7 @@ export function UtilityToolModal({
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <meta.icon className={`w-5 h-5 ${meta.color}`} />
+                {(meta.icon as any)({ className: `w-5 h-5 ${meta.color}` })}
                 {tool}
               </DialogTitle>
               <DialogDescription>{meta.desc}</DialogDescription>

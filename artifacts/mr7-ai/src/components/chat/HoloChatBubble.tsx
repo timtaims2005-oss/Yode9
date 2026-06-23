@@ -51,8 +51,8 @@ function ScanLineEffect() {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
+          args={[new Float32Array([-0.5, 0, 0, 0.5, 0, 0]), 3]}
           count={2}
-          array={new Float32Array([-0.5, 0, 0, 0.5, 0, 0])}
           itemSize={3}
         />
       </bufferGeometry>

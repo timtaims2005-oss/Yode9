@@ -116,25 +116,21 @@ function NeuralNetwork() {
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
+            args={[maxLinePositions, 3]}
             count={maxLines * 2}
-            array={maxLinePositions}
             itemSize={3}
           />
           <bufferAttribute
             attach="attributes-color"
+            args={[maxLineColors, 3]}
             count={maxLines * 2}
-            array={maxLineColors}
             itemSize={3}
           />
         </bufferGeometry>
-        <lineBasicModel vertexColors transparent opacity={0.6} />
+        <lineBasicMaterial vertexColors transparent opacity={0.6} />
       </lineSegments>
     </group>
   );
-}
-
-function lineBasicModel(props: any) {
-  return <lineBasicModel {...props} />;
 }
 
 function CoreSphere() {

@@ -52,8 +52,8 @@ function FlowLines() {
           <bufferGeometry>
             <bufferAttribute
               attach="attributes-position"
+              args={[new Float32Array(line.points.flatMap((p) => [p.x, p.y, p.z])), 3]}
               count={line.points.length}
-              array={new Float32Array(line.points.flatMap((p) => [p.x, p.y, p.z]))}
               itemSize={3}
             />
           </bufferGeometry>

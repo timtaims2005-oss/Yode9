@@ -38,11 +38,7 @@ const CyberIntelCenter = lazy(() => import("./components/CyberIntelCenter").then
 const AIAutoSetup3D = lazy(() => import("./components/AIAutoSetup3D").then(m => ({ default: m.AIAutoSetup3D })));
 const SystemStatusWidget = lazy(() => import("./components/SystemStatusWidget").then(m => ({ default: m.SystemStatusWidget })));
 const CostDashboard3D = lazy(() => import("./components/CostDashboard3D").then(m => ({ default: m.CostDashboard3D })));
-const useCostTracker = () => {
-  const [entries, setEntries] = useState<{cost:number;tokens:number;model:string;time:number}[]>([]);
-  const addEntry = useCallback((e:{cost:number;tokens:number;model:string;time:number}) => setEntries(p=>[...p,e]),[]);
-  return { entries, addEntry };
-};
+import { useCostTracker } from "./components/CostDashboard3D";
 const DedupVisualizer3D = lazy(() => import("./components/DedupVisualizer3D").then(m => ({ default: m.DedupVisualizer3D })));
 const ThreatFeed3D = lazy(() => import("./components/ThreatFeed3D").then(m => ({ default: m.ThreatFeed3D })));
 const SecurityDashboard3D = lazy(() => import("./components/SecurityDashboard3D").then(m => ({ default: m.SecurityDashboard3D })));

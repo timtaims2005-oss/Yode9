@@ -4,8 +4,9 @@ import {
   Lock, Unlock, ChevronRight, User, BarChart3, Star, Shield, X,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
-import { TIER_LABELS, TIER_TOKENS, TIER_PRICES, tierAtLeast, verifyActivationCode } from "@/lib/subscription";
+import { TIER_LABELS, TIER_TOKENS, TIER_PRICES, tierAtLeast, verifyActivationCodeServer } from "@/lib/subscription";
 import type { SubscriptionTier } from "@/lib/subscription";
+import { getDeviceId } from "@/lib/cloud-sync";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -134,9 +135,9 @@ export function AccountModal({
     saveProfile(next);
   }
 
-  function activateCode() {
-    const result = verifyActivationCode(codeInput.trim());
-    if (!result) {
+  async function activateCode() {
+    const result = await verifyActivationCodeServer(codeInput.trim(), getDeviceId());
+    if (!result.ok || !result.tier || !result.expiresAt) {
       setCodeError("Invalid or expired code.");
       return;
     }

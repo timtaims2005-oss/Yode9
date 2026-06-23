@@ -2559,7 +2559,7 @@ export function PersonaEditorModal({ open, onOpenChange }: PersonaEditorModalPro
                     active ? "bg-primary/15 border border-primary/30" : "hover:bg-accent border border-transparent"
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${preset.color}`} />
+                  {(Icon as any)({ className: `w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${preset.color}` })}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1 flex-wrap">
                       <span className="text-[11.5px] font-semibold leading-tight">
@@ -2589,7 +2589,7 @@ export function PersonaEditorModal({ open, onOpenChange }: PersonaEditorModalPro
             "bg-background/60 border-border"
           }`}>
             <div className="font-semibold mb-0.5 flex items-center gap-1.5 flex-wrap">
-              {(() => { const Icon = selectedPreset.icon; return <Icon className={`w-3.5 h-3.5 ${selectedPreset.color}`} />; })()}
+              {(() => { const Icon = selectedPreset.icon; return (Icon as any)({ className: `w-3.5 h-3.5 ${selectedPreset.color}` }); })()}
               <span>{lang === "ar" ? selectedPreset.nameAr : selectedPreset.name}</span>
               {selectedPreset.badge && (
                 <span className={`text-[8px] font-bold px-1.5 rounded border ${selectedPreset.badgeColor ?? "border-primary/30 text-primary bg-primary/10"}`}>
@@ -2792,7 +2792,7 @@ export function PersonaEditorModal({ open, onOpenChange }: PersonaEditorModalPro
                       active ? "bg-primary/15 border border-primary/30" : "hover:bg-accent border border-transparent"
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${preset.color}`} />
+                    {(Icon as any)({ className: `w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${preset.color}` })}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1 flex-wrap">
                         <span className="text-[11.5px] font-semibold leading-tight">
@@ -2822,7 +2822,7 @@ export function PersonaEditorModal({ open, onOpenChange }: PersonaEditorModalPro
               "bg-background/60 border-border"
             }`}>
               <div className="font-semibold mb-0.5 flex items-center gap-1.5 flex-wrap">
-                {(() => { const Icon = selectedPreset.icon; return <Icon className={`w-3.5 h-3.5 ${selectedPreset.color}`} />; })()}
+                {(() => { const Icon = selectedPreset.icon; return (Icon as any)({ className: `w-3.5 h-3.5 ${selectedPreset.color}` }); })()}
                 <span>{lang === "ar" ? selectedPreset.nameAr : selectedPreset.name}</span>
                 {selectedPreset.badge && (
                   <span className={`text-[8px] font-bold px-1.5 rounded border ${selectedPreset.badgeColor ?? "border-primary/30 text-primary bg-primary/10"}`}>

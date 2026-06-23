@@ -1394,7 +1394,7 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
       ROLEPLAY: Globe, SECURITY: Shield, RERANK: BarChart2, EMBED: Database,
     };
     const Icon = map[tag] ?? Cpu;
-    return <Icon className="w-2.5 h-2.5" />;
+    return (Icon as any)({ className: "w-2.5 h-2.5" });
   };
 
   function toggleGroup(grp: string) {

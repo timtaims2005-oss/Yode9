@@ -649,7 +649,7 @@ export function UseCaseLibraryModal({ open, onOpenChange, onInject }: Props) {
                                   transition: "all 0.3s",
                                 }}
                               >
-                                <Icon className="w-4 h-4" style={{ color }} />
+                                {(Icon as any)({ className: "w-4 h-4", style: { color } })}
                               </div>
                               <div>
                                 <div className="text-[11px] font-mono font-bold uppercase" style={{ color }}>{uc.category}</div>
