@@ -288,6 +288,7 @@ function LocalToggleOrb({ active, onClick }: { active: boolean; onClick: () => v
 export function ChatEmptyState({ modelName, memoryCount = 0, onPrompt, emptyText }: ChatEmptyStateProps) {
   const { state, dispatch } = useStore();
   const useLocal = state.settings.useLocalModel;
+  const globeVisible = state.globeVisible ?? true;
   const [bootLine, setBootLine] = useState(0);
   const [showMain, setShowMain] = useState(false);
   const [glitching, setGlitching] = useState(false);
@@ -320,9 +321,9 @@ export function ChatEmptyState({ modelName, memoryCount = 0, onPrompt, emptyText
   return (
     <div style={{ position: "relative", overflow: "hidden", borderRadius: "16px", padding: "32px 24px", maxWidth: "680px", margin: "0 auto", width: "100%" }}>
       {/* 3D futuristic background for empty state */}
-      <FuturisticBackground3D opacity={0.35} />
+      {globeVisible && <FuturisticBackground3D opacity={0.35} />}
       {/* Subtle matrix rain overlay */}
-      <MatrixRain opacity={0.04} color="#e21227" speed={0.5} density={0.5} />
+      {globeVisible && <MatrixRain opacity={0.04} color="#e21227" speed={0.5} density={0.5} />}
 
       {/* HUD corners */}
       <div className="hud-corners hud-animated" style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
@@ -330,78 +331,82 @@ export function ChatEmptyState({ modelName, memoryCount = 0, onPrompt, emptyText
         <div className="hud-c bl" /><div className="hud-c br" />
       </div>
 
-      {/* Central orb icon */}
-      <div style={{ textAlign: "center", marginBottom: "24px", position: "relative", zIndex: 2 }}>
-        <div style={{ position: "relative", display: "inline-block" }}>
-          {/* Orbit rings */}
-          {[120, 88, 60].map((size, i) => (
-            <div key={i} style={{
+      {/* Central orb icon — hidden in chat mode */}
+      {globeVisible && (
+        <div style={{ textAlign: "center", marginBottom: "24px", position: "relative", zIndex: 2 }}>
+          <div style={{ position: "relative", display: "inline-block" }}>
+            {/* Orbit rings */}
+            {[120, 88, 60].map((size, i) => (
+              <div key={i} style={{
+                position: "absolute",
+                left: "50%", top: "50%",
+                width: size, height: size,
+                transform: "translate(-50%, -50%)",
+                borderRadius: "50%",
+                border: `1px solid rgba(226,18,39,${0.08 + i * 0.06})`,
+                animation: `spin3d ${10 - i * 2}s linear infinite ${i % 2 === 0 ? "" : "reverse"}`,
+                pointerEvents: "none",
+              }} />
+            ))}
+
+            {/* Orbiting dot */}
+            <div style={{
               position: "absolute",
               left: "50%", top: "50%",
-              width: size, height: size,
-              transform: "translate(-50%, -50%)",
-              borderRadius: "50%",
-              border: `1px solid rgba(226,18,39,${0.08 + i * 0.06})`,
-              animation: `spin3d ${10 - i * 2}s linear infinite ${i % 2 === 0 ? "" : "reverse"}`,
               pointerEvents: "none",
-            }} />
-          ))}
+              animation: "orbit 3s linear infinite",
+            }}>
+              <div style={{
+                width: "5px", height: "5px", borderRadius: "50%",
+                background: "#e21227", boxShadow: "0 0 8px #e21227",
+                transform: "translate(-50%, -50%)",
+              }} />
+            </div>
 
-          {/* Orbiting dot */}
-          <div style={{
-            position: "absolute",
-            left: "50%", top: "50%",
-            pointerEvents: "none",
-            animation: "orbit 3s linear infinite",
-          }}>
-            <div style={{
-              width: "5px", height: "5px", borderRadius: "50%",
-              background: "#e21227", boxShadow: "0 0 8px #e21227",
-              transform: "translate(-50%, -50%)",
-            }} />
-          </div>
-
-          {/* Core icon */}
-          <motion.div
-            animate={{ scale: glitching ? [1, 1.04, 0.97, 1] : [1, 1.03, 1] }}
-            transition={{ duration: glitching ? 0.18 : 2.5, repeat: Infinity }}
-            style={{
-              position: "relative", width: "80px", height: "80px",
-              borderRadius: "22px",
-              background: "radial-gradient(circle at 35% 35%, rgba(226,18,39,0.25), rgba(8,8,12,0.97))",
-              border: "1px solid rgba(226,18,39,0.4)",
-              boxShadow: `0 0 40px rgba(226,18,39,0.3), 0 0 ${80 + (pulse % 2) * 20}px rgba(226,18,39,0.1), inset 0 1px 0 rgba(255,255,255,0.08)`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "default",
-            }}
-          >
-            <Shield style={{ width: "36px", height: "36px", color: "#e21227", filter: "drop-shadow(0 0 10px rgba(226,18,39,0.8))" }} />
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Boot sequence */}
-      <div style={{ fontFamily: "monospace", fontSize: "10px", marginBottom: "16px", textAlign: "center", position: "relative", zIndex: 2 }}>
-        <AnimatePresence mode="popLayout">
-          {BOOT_LINES.slice(0, bootLine + 1).map((line, i) => (
+            {/* Core icon */}
             <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: i === bootLine ? 1 : 0.2, x: 0 }}
+              animate={{ scale: glitching ? [1, 1.04, 0.97, 1] : [1, 1.03, 1] }}
+              transition={{ duration: glitching ? 0.18 : 2.5, repeat: Infinity }}
               style={{
-                color: i === BOOT_LINES.length - 1 ? "#22c55e" : "rgba(255,255,255,0.3)",
-                textShadow: i === BOOT_LINES.length - 1 ? "0 0 8px #22c55e" : "none",
-                lineHeight: 1.8,
+                position: "relative", width: "80px", height: "80px",
+                borderRadius: "22px",
+                background: "radial-gradient(circle at 35% 35%, rgba(226,18,39,0.25), rgba(8,8,12,0.97))",
+                border: "1px solid rgba(226,18,39,0.4)",
+                boxShadow: `0 0 40px rgba(226,18,39,0.3), 0 0 ${80 + (pulse % 2) * 20}px rgba(226,18,39,0.1), inset 0 1px 0 rgba(255,255,255,0.08)`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "default",
               }}
             >
-              {i === BOOT_LINES.length - 1 ? "▶ " : "· "}{line}
+              <Shield style={{ width: "36px", height: "36px", color: "#e21227", filter: "drop-shadow(0 0 10px rgba(226,18,39,0.8))" }} />
             </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+          </div>
+        </div>
+      )}
+
+      {/* Boot sequence — hidden in chat mode */}
+      {globeVisible && (
+        <div style={{ fontFamily: "monospace", fontSize: "10px", marginBottom: "16px", textAlign: "center", position: "relative", zIndex: 2 }}>
+          <AnimatePresence mode="popLayout">
+            {BOOT_LINES.slice(0, bootLine + 1).map((line, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: i === bootLine ? 1 : 0.2, x: 0 }}
+                style={{
+                  color: i === BOOT_LINES.length - 1 ? "#22c55e" : "rgba(255,255,255,0.3)",
+                  textShadow: i === BOOT_LINES.length - 1 ? "0 0 8px #22c55e" : "none",
+                  lineHeight: 1.8,
+                }}
+              >
+                {i === BOOT_LINES.length - 1 ? "▶ " : "· "}{line}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
 
       <AnimatePresence>
-        {showMain && (
+        {(showMain || !globeVisible) && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -413,7 +418,7 @@ export function ChatEmptyState({ modelName, memoryCount = 0, onPrompt, emptyText
               <h2 style={{
                 fontSize: "22px", fontWeight: 900, letterSpacing: "-0.5px",
                 color: "#fff",
-                textShadow: glitching
+                textShadow: globeVisible && glitching
                   ? "2px 0 rgba(226,18,39,0.8), -2px 0 rgba(0,200,255,0.4)"
                   : "0 0 20px rgba(226,18,39,0.2)",
                 marginBottom: "4px",
@@ -425,17 +430,19 @@ export function ChatEmptyState({ modelName, memoryCount = 0, onPrompt, emptyText
               </p>
             </div>
 
-            {/* 3D Threat Globe */}
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
-              <div style={{ position: "relative" }}>
-                <ThreatGlobe3D />
-                <div style={{
-                  position: "absolute", bottom: -6, left: "50%", transform: "translateX(-50%)",
-                  fontFamily: "monospace", fontSize: "8px", fontWeight: 700,
-                  color: "rgba(226,18,39,0.55)", letterSpacing: "0.25em", whiteSpace: "nowrap",
-                }}>GLOBAL THREAT MAP</div>
+            {/* 3D Threat Globe — hidden in chat mode */}
+            {globeVisible && (
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+                <div style={{ position: "relative" }}>
+                  <ThreatGlobe3D />
+                  <div style={{
+                    position: "absolute", bottom: -6, left: "50%", transform: "translateX(-50%)",
+                    fontFamily: "monospace", fontSize: "8px", fontWeight: 700,
+                    color: "rgba(226,18,39,0.55)", letterSpacing: "0.25em", whiteSpace: "nowrap",
+                  }}>GLOBAL THREAT MAP</div>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Local Model toggle — boot screen */}
             <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>

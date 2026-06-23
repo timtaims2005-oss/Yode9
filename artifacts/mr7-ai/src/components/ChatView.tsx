@@ -580,10 +580,10 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
 
   return (
     <div className="flex-1 flex flex-col h-full relative overflow-hidden">
-      <FloatingNetworkPanel />
-      <QuantumVoidBackground3D opacity={0.62} accentColor="#e21227" />
-      <FuturisticBackground3D opacity={0.18} />
-      <NeuralPulseBackground />
+      {(state.globeVisible ?? true) && <FloatingNetworkPanel />}
+      {(state.globeVisible ?? true) && <QuantumVoidBackground3D opacity={0.62} accentColor="#e21227" />}
+      {(state.globeVisible ?? true) && <FuturisticBackground3D opacity={0.18} />}
+      {(state.globeVisible ?? true) && <NeuralPulseBackground />}
 
       {chat && (
         <ChatHeader
