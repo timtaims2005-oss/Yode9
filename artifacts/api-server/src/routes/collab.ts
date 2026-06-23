@@ -234,3 +234,34 @@ export function handleCollabSocket(ws: WebSocket): void {
     if (currentUserId) leaveRoom(currentUserId);
   });
 }
+
+/* ─── REST router (exported as collabRouter) ─────────────────────────────── */
+import { Router as ExpressRouter, type Request as Req, type Response as Res } from "express";
+import { jwtAuth } from "../middlewares/jwtAuth";
+
+const _restRouter = ExpressRouter();
+const restRooms = new Map<string, { id: string; name: string; createdBy: string; createdAt: number }>();
+
+_restRouter.get("/collab/rooms", jwtAuth, (_req: Req, res: Res): void => {
+  const list = Array.from(restRooms.values());
+  res.json({ rooms: list, total: list.length });
+});
+
+_restRouter.post("/collab/rooms", jwtAuth, (req: Req, res: Res): void => {
+  const user = (req as Req & { user?: { id: string } }).user;
+  const id = Math.random().toString(36).slice(2, 11);
+  const room = { id, name: req.body.name ?? `غرفة ${id}`, createdBy: user?.id ?? "anon", createdAt: Date.now() };
+  restRooms.set(id, room);
+  res.status(201).json(room);
+});
+
+_restRouter.get("/collab/rooms/:id/messages", jwtAuth, (req: Req, res: Res): void => {
+  const msgs = history.get(String(req.params.id)) ?? [];
+  res.json({ messages: msgs, total: msgs.length });
+});
+
+_restRouter.post("/collab/rooms/:id/join", jwtAuth, (req: Req, res: Res): void => {
+  res.json({ ok: true, roomId: String(req.params.id) });
+});
+
+export { _restRouter as collabRouter };

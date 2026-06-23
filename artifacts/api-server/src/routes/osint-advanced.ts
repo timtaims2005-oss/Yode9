@@ -207,7 +207,7 @@ async function aiAnalyze(target: string, allData: Record<string, unknown>): Prom
       role: "user",
       content: `الهدف: ${target}\n\nالبيانات المجمعة:\n${summary}\n\nقدم تحليلاً شاملاً يشمل:\n1. ملخص تنفيذي\n2. الأصول المكتشفة\n3. نقاط الضعف المحتملة\n4. العلاقات بين الكيانات\n5. التوصيات الأمنية\n6. مستوى الخطر (منخفض/متوسط/عالٍ/حرج)\n\nاكتب بأسلوب احترافي وتقني.`,
     },
-  ], { maxTokens: 2000 });
+  ], 2000);
 }
 
 // ── MAIN SCAN ENDPOINT (SSE streaming) ───────────────────────────
@@ -336,7 +336,7 @@ router.post("/report/generate", async (req: Request, res: Response): Promise<voi
         role: "user",
         content: `أنشئ تقرير OSINT احترافي وشامل للهدف: ${target}\n\nالتحليل:\n${analysis}\n\nالبيانات:\n${JSON.stringify(results, null, 2).slice(0, 3000)}\n\nالتقرير يجب أن يشمل:\n- غلاف التقرير مع التاريخ\n- ملخص تنفيذي\n- منهجية الفحص\n- النتائج التفصيلية لكل وحدة\n- خريطة البنية التحتية\n- نقاط الضعف والمخاطر\n- التوصيات والحلول\n- المراجع والمصادر`,
       },
-    ], { maxTokens: 3000 });
+    ], 3000);
     res.json({ report, target, generatedAt: new Date().toISOString() });
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });

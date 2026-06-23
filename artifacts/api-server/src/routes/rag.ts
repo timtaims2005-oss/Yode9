@@ -221,19 +221,24 @@ ${context || "لم يتم العثور على محتوى ذي صلة."}
     res.setHeader("Connection", "keep-alive");
 
     try {
-      const stream = await aiProviders.streamChat({
+      const openaiMod = (await import("openai")).default;
+      const ragClient = new openaiMod({
+        apiKey: apiKey || process.env.OPENAI_API_KEY,
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      });
+      const ragStream = await ragClient.chat.completions.create({
         model: model || "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: query },
         ],
-        apiKey: apiKey || process.env.OPENAI_API_KEY,
+        max_tokens: 2000,
+        stream: true,
       });
-
-      for await (const chunk of stream) {
-        res.write(`data: ${JSON.stringify({ text: chunk })}\n\n`);
+      for await (const ch of ragStream) {
+        const text = ch.choices[0]?.delta?.content ?? "";
+        if (text) res.write(`data: ${JSON.stringify({ text })}\n\n`);
       }
-
       res.write(`data: ${JSON.stringify({ done: true, sources: scored.slice(0, 5).map(s => ({ docName: s.docName, score: s.score })) })}\n\n`);
     } catch (streamErr) {
       res.write(`data: ${JSON.stringify({ error: "AI generation failed. Context retrieved successfully.", sources: scored.slice(0, 5).map(s => ({ docName: s.docName, score: s.score })) })}\n\n`);
@@ -247,8 +252,8 @@ ${context || "لم يتم العثور على محتوى ذي صلة."}
 
 /* ── DELETE /api/rag/session/:id ── clear session */
 router.delete("/rag/session/:id", jwtAuth, (req: Request, res: Response): void => {
-  sessionStores.delete(req.params.id);
-  sessionTimestamps.delete(req.params.id);
+  sessionStores.delete(String(req.params.id));
+  sessionTimestamps.delete(String(req.params.id));
   res.json({ ok: true });
 });
 

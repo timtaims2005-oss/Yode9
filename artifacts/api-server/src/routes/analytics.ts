@@ -98,8 +98,8 @@ router.get("/analytics/admin", async (req: Request, res: Response): Promise<void
 // ── GET /api/analytics/rate-status — Current user rate limit status ─────────
 router.get("/analytics/rate-status", jwtAuth, requireAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.authUser.id;
-    const tier = req.authUser.subscription || "free";
+    const userId = req.authUser!.id;
+    const tier = req.authUser!.subscription || "free";
 
     const TIER_LIMITS: Record<string, { rpm: number; rpd: number; tokens: number }> = {
       free:         { rpm: 10,   rpd: 100,    tokens: 50_000 },

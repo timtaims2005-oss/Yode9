@@ -57,7 +57,7 @@ async function runTool(tool: ToolId, input: string): Promise<{ output: string; a
           { role: "system" as const, content: "أنت محرك بحث متخصص في الأمن السيبراني. أعط نتائج دقيقة وموثوقة في 4-6 نقاط منظمة مع ذكر المصادر المحتملة." },
           { role: "user" as const, content: `ابحث عن: ${input}` },
         ];
-        const output = await callOnce(msgs, { maxTokens: 900 });
+        const output = await callOnce(msgs, 900);
         return { output, allowed: true };
       } catch { return { output: `[خطأ في البحث]`, allowed: true }; }
     }
@@ -67,7 +67,7 @@ async function runTool(tool: ToolId, input: string): Promise<{ output: string; a
         { role: "system" as const, content: "أنت مترجم Python/JavaScript تحاكي تنفيذ الكود بدقة. أظهر المخرجات والأخطاء المحتملة." },
         { role: "user" as const, content: `نفّذ هذا الكود وأعط المخرجات:\n\`\`\`\n${input}\n\`\`\`` },
       ];
-      const output = await callOnce(msgs, { maxTokens: 700 });
+      const output = await callOnce(msgs, 700);
       return { output, allowed: true };
     }
 
@@ -160,7 +160,7 @@ async function runTool(tool: ToolId, input: string): Promise<{ output: string; a
         { role: "system" as const, content: "أنت قاعدة بيانات CVE متخصصة. أعطِ معلومات دقيقة عن الثغرات الأمنية مع CVE IDs والدرجات CVSS." },
         { role: "user" as const, content: `ابحث عن ثغرات أمنية تخص: ${input}\nأعطِ 3-5 ثغرات مهمة مع التفاصيل.` },
       ];
-      const output = await callOnce(msgs, { maxTokens: 900 });
+      const output = await callOnce(msgs, 900);
       return { output, allowed: true };
     }
 
@@ -182,7 +182,7 @@ async function runTool(tool: ToolId, input: string): Promise<{ output: string; a
         { role: "system" as const, content: "أنت نظام استرجاع معلومات RAG. استرجع معلومات ذات صلة من قاعدة المعرفة الأمنية." },
         { role: "user" as const, content: `استرجع معلومات حول: ${input}` },
       ];
-      const output = await callOnce(msgs, { maxTokens: 600 });
+      const output = await callOnce(msgs, 600);
       return { output, allowed: true };
     }
 
@@ -203,7 +203,7 @@ async function runTool(tool: ToolId, input: string): Promise<{ output: string; a
         { role: "system" as const, content: "أنت أداة مسح منافذ تحاكي نتائج Nmap. أعط نتائج واقعية." },
         { role: "user" as const, content: `حاكِ مسح المنافذ الشائعة لـ ${input}\nأعطِ نتائج Nmap تشمل المنافذ المفتوحة والخدمات والإصدارات.` },
       ];
-      const output = await callOnce(msgs, { maxTokens: 700 });
+      const output = await callOnce(msgs, 700);
       return { output, allowed: true };
     }
 
@@ -247,12 +247,23 @@ ${ltmCtx ? `\nذاكرة سابقة:\n${ltmCtx}` : ""}
 
   try {
     let rawPlan = "";
-    for await (const chunk of streamCompletion([
-      { role: "system", content: AGENT_SYSTEM },
-      { role: "user", content: prompt },
-    ], { maxTokens: 2000 })) {
-      rawPlan += chunk;
-      sse(res, "chunk", { chunk });
+    const openai = (await import("openai")).default;
+    const personalClient = new openai({
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+    });
+    const planStream = await personalClient.chat.completions.create({
+      model: process.env.PERSONAL_DEFAULT_MODEL ?? "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: AGENT_SYSTEM },
+        { role: "user", content: prompt },
+      ],
+      max_tokens: 2000,
+      stream: true,
+    });
+    for await (const ch of planStream) {
+      const chunk = ch.choices[0]?.delta?.content ?? "";
+      if (chunk) { rawPlan += chunk; sse(res, "chunk", { chunk }); }
     }
 
     try {
@@ -279,7 +290,7 @@ router.post("/think", async (req: Request, res: Response): Promise<void> => {
       { role: "system" as const, content: AGENT_SYSTEM },
       ...messages.map(m => ({ role: m.role as "user" | "assistant" | "system", content: m.content })),
     ];
-    const content = await callOnce(allMsgs, { maxTokens: 2000 });
+    const content = await callOnce(allMsgs, 2000);
     res.json({ content });
   } catch (err) {
     res.status(500).json({ error: String(err), content: "تعذّر الوصول إلى الذكاء الاصطناعي." });
@@ -325,7 +336,7 @@ router.post("/reflect", async (req: Request, res: Response): Promise<void> => {
     const reflection = await callOnce([
       { role: "system", content: AGENT_SYSTEM },
       { role: "user", content: prompt },
-    ], { maxTokens: 300 });
+    ], 300);
     res.json({ reflection });
   } catch (err) {
     res.status(500).json({ reflection: `خطأ في التحليل: ${String(err)}` });
@@ -343,7 +354,7 @@ router.post("/synthesize", async (req: Request, res: Response): Promise<void> =>
     const result = await callOnce([
       { role: "system", content: AGENT_SYSTEM },
       { role: "user", content: prompt },
-    ], { maxTokens: 500 });
+    ], 500);
     res.json({ result });
   } catch (err) {
     res.status(500).json({ result: `خطأ في التوليف: ${String(err)}` });
@@ -359,8 +370,20 @@ router.post("/stream", async (req: Request, res: Response): Promise<void> => {
       { role: "system" as const, content: AGENT_SYSTEM },
       ...messages.map(m => ({ role: m.role as "user" | "assistant" | "system", content: m.content })),
     ];
-    for await (const chunk of streamCompletion(allMsgs, { maxTokens: 1500 })) {
-      sse(res, "chunk", { chunk });
+    const openai2 = (await import("openai")).default;
+    const finalClient = new openai2({
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+    });
+    const finalStream = await finalClient.chat.completions.create({
+      model: process.env.PERSONAL_DEFAULT_MODEL ?? "gpt-3.5-turbo",
+      messages: allMsgs,
+      max_tokens: 1500,
+      stream: true,
+    });
+    for await (const fc of finalStream) {
+      const chunk = fc.choices[0]?.delta?.content ?? "";
+      if (chunk) sse(res, "chunk", { chunk });
     }
     sse(res, "done", {});
     res.end();

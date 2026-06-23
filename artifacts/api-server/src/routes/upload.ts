@@ -139,7 +139,7 @@ router.get("/upload/my-files", jwtAuth, requireAuth, async (req: Request, res: R
 // ── GET /api/upload/url/:key ──────────────────────────────────────────────────
 router.get("/upload/url/:key", jwtAuth, requireAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const key = req.params.key;
+    const key = String(req.params.key);
     // Verify ownership
     const { rows } = await pool.query(
       "SELECT url FROM uploaded_files WHERE storage_key=$1 AND user_id=$2",
@@ -150,7 +150,7 @@ router.get("/upload/url/:key", jwtAuth, requireAuth, async (req: Request, res: R
       return;
     }
     const storage = getStorage();
-    const url = await storage.getUrl(key);
+    const url = await storage.getUrl(String(key));
     res.json({ ok: true, url });
   } catch (err) {
     logger.error({ err }, "[upload] Get URL failed");

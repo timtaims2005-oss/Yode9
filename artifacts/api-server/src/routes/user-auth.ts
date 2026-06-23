@@ -362,7 +362,7 @@ router.get("/auth/sessions", jwtAuth, requireAuth, async (req: Request, res: Res
 
 router.delete("/auth/sessions/:id", jwtAuth, requireAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    await revokeUserSession(req.params["id"]!, req.authUser!.id);
+    await revokeUserSession(String(req.params["id"] ?? ""), req.authUser!.id);
     await logSecurityEvent({ userId: req.authUser!.id, eventType: "session_revoked", success: true, ipAddress: getClientIP(req) });
     res.json({ ok: true });
   } catch { res.status(500).json({ error: "Failed" }); }

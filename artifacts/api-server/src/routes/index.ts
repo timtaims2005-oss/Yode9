@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { tierRateLimit } from "../middlewares/tierRateLimit";
 import healthRouter from "./health";
 import chatRouter from "./chat";
 import councilRouter from "./council";
@@ -47,6 +48,10 @@ import agentV2Router from "./agent-v2";
 import aiEngineRouter from "./ai-engine";
 import autonomousAgentRouter from "./autonomous-agent";
 
+import swaggerRouter from "./swagger";
+import subscriptionsRouter from "./subscriptions";
+import { collabRouter } from "./collab";
+
 // ── New Feature Routes ────────────────────────────────────────────────────────
 import emailRouter from "./email";
 import uploadRouter from "./upload";
@@ -56,6 +61,8 @@ import featuresRouter from "./features";
 import backupRouter from "./backup";
 
 const router: IRouter = Router();
+
+router.use(["/chat", "/council", "/godmode", "/image", "/vision", "/agent", "/agent4", "/rag", "/finetune", "/training"], tierRateLimit);
 
 router.use(healthRouter);
 router.use(chatRouter);
@@ -104,6 +111,10 @@ router.use(trainingRouter);
 router.use(agentV2Router);
 router.use(aiEngineRouter);
 router.use(autonomousAgentRouter);
+
+router.use(swaggerRouter);
+router.use(subscriptionsRouter);
+router.use(collabRouter);
 
 // ── New Feature Routes ────────────────────────────────────────────────────────
 router.use(emailRouter);

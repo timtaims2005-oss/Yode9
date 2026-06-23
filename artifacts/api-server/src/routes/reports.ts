@@ -104,7 +104,7 @@ router.post("/reports/scan/:id", jwtAuth, async (req: Request, res: Response): P
       metadata: {
         tool: "KaliGPT v3.0",
         platform: "mr7.ai",
-        analyst: req.authUser.email,
+        analyst: req.authUser!.email,
         scanDate: scan.created_at,
       },
     };
@@ -120,7 +120,7 @@ router.get("/reports/history", jwtAuth, async (req: Request, res: Response): Pro
   try {
     const { rows } = await pool.query(
       `SELECT id, title, template, language, status, created_at, pdf_url FROM reports WHERE user_id=$1 ORDER BY created_at DESC LIMIT 50`,
-      [req.authUser.id]
+      [req.authUser!.id]
     ).catch(() => ({ rows: [] }));
     res.json({ reports: rows });
   } catch { res.status(500).json({ error: "Failed to fetch reports" }); }
