@@ -27,18 +27,37 @@ export async function ensureAuthTables() {
     `);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_sessions_expire ON sessions (expire)`).catch(() => {});
 
-    // Users table (Replit OAuth)
+    // Users table (full schema with auth fields)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR PRIMARY KEY,
         email VARCHAR UNIQUE,
+        username VARCHAR UNIQUE,
         first_name VARCHAR,
         last_name VARCHAR,
+        password_hash VARCHAR,
+        role VARCHAR NOT NULL DEFAULT 'user',
         profile_image_url VARCHAR,
+        email_verified BOOLEAN NOT NULL DEFAULT false,
+        totp_secret VARCHAR,
+        totp_enabled BOOLEAN NOT NULL DEFAULT false,
+        tokens_used BIGINT NOT NULL DEFAULT 0,
+        metadata JSONB DEFAULT '{}'::jsonb,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )
     `);
+    // Add missing columns to existing users table (safe migrations)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR UNIQUE`).catch(() => {});
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR`).catch(() => {});
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR NOT NULL DEFAULT 'user'`).catch(() => {});
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT false`).catch(() => {});
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret VARCHAR`).catch(() => {});
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN NOT NULL DEFAULT false`).catch(() => {});
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS tokens_used BIGINT NOT NULL DEFAULT 0`).catch(() => {});
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_users_username ON users (username)`).catch(() => {});
 
     // Cloud chats (per-device storage, gated by internalAuth)
     await pool.query(`
@@ -107,6 +126,230 @@ export async function ensureAuthTables() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )
     `).catch(() => {});
+
+    // Security events
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS security_events (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR,
+        email VARCHAR,
+        event_type VARCHAR NOT NULL,
+        success BOOLEAN NOT NULL DEFAULT false,
+        ip_address VARCHAR,
+        user_agent TEXT,
+        details JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "security_events table may already exist"));
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_sec_events_user_id ON security_events (user_id)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_sec_events_type ON security_events (event_type)`).catch(() => {});
+
+    // User sessions
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_sessions (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR NOT NULL,
+        session_token VARCHAR NOT NULL UNIQUE,
+        device_name VARCHAR DEFAULT 'Unknown Device',
+        device_type VARCHAR DEFAULT 'browser',
+        browser VARCHAR DEFAULT 'Unknown',
+        os VARCHAR DEFAULT 'Unknown',
+        ip_address VARCHAR,
+        location VARCHAR,
+        last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "user_sessions table may already exist"));
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions (user_id)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions (session_token)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions (expires_at)`).catch(() => {});
+
+    // Notifications
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR NOT NULL,
+        type VARCHAR NOT NULL,
+        title VARCHAR NOT NULL,
+        body TEXT NOT NULL,
+        data JSONB DEFAULT '{}'::jsonb,
+        is_read BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "notifications table may already exist"));
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications (user_id)`).catch(() => {});
+
+    // Context rules (user-defined system context)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS context_rules (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR NOT NULL,
+        name VARCHAR NOT NULL,
+        content TEXT NOT NULL,
+        type VARCHAR NOT NULL DEFAULT 'system',
+        priority INTEGER NOT NULL DEFAULT 5,
+        active BOOLEAN NOT NULL DEFAULT true,
+        triggers JSONB DEFAULT '[]'::jsonb,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "context_rules table may already exist"));
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_context_rules_user_id ON context_rules (user_id)`).catch(() => {});
+
+    // User subscriptions (server-side, user-linked)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_subscriptions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        plan VARCHAR NOT NULL DEFAULT 'free',
+        billing_cycle VARCHAR NOT NULL DEFAULT 'monthly',
+        price_usd NUMERIC(10,2),
+        status VARCHAR NOT NULL DEFAULT 'active',
+        started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        ends_at TIMESTAMP WITH TIME ZONE,
+        canceled_at TIMESTAMP WITH TIME ZONE,
+        trial_ends_at TIMESTAMP WITH TIME ZONE,
+        stripe_customer_id VARCHAR,
+        stripe_subscription_id VARCHAR,
+        stripe_price_id VARCHAR,
+        stripe_product_id VARCHAR,
+        limits JSONB DEFAULT '{}'::jsonb,
+        usage_reset_at TIMESTAMP WITH TIME ZONE,
+        messages_used INTEGER NOT NULL DEFAULT 0,
+        agent_runs_used INTEGER NOT NULL DEFAULT 0,
+        tokens_used INTEGER NOT NULL DEFAULT 0,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        cancel_reason VARCHAR,
+        is_auto_renew BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "user_subscriptions table may already exist"));
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_usub_user_id ON user_subscriptions (user_id)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_usub_status ON user_subscriptions (status)`).catch(() => {});
+
+    // Agent runs (tracking autonomous agent executions)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS agent_runs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR REFERENCES users(id) ON DELETE SET NULL,
+        agent_type VARCHAR NOT NULL,
+        agent_name VARCHAR NOT NULL,
+        agent_version VARCHAR,
+        status VARCHAR NOT NULL DEFAULT 'pending',
+        task TEXT NOT NULL,
+        result JSONB DEFAULT '{}'::jsonb,
+        tools_used JSONB DEFAULT '[]'::jsonb,
+        iterations INTEGER NOT NULL DEFAULT 0,
+        tokens_used INTEGER NOT NULL DEFAULT 0,
+        prompt_tokens INTEGER NOT NULL DEFAULT 0,
+        completion_tokens INTEGER NOT NULL DEFAULT 0,
+        cost_usd NUMERIC(10,6),
+        error_message TEXT,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        completed_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "agent_runs table may already exist"));
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_agent_runs_user_id ON agent_runs (user_id)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_agent_runs_status ON agent_runs (status)`).catch(() => {});
+
+    // API usage tracking
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS api_usage (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR REFERENCES users(id) ON DELETE SET NULL,
+        provider VARCHAR NOT NULL,
+        model VARCHAR NOT NULL,
+        endpoint VARCHAR NOT NULL,
+        prompt_tokens INTEGER NOT NULL DEFAULT 0,
+        completion_tokens INTEGER NOT NULL DEFAULT 0,
+        total_tokens INTEGER NOT NULL DEFAULT 0,
+        cost_usd NUMERIC(10,6),
+        response_ms INTEGER,
+        status_code INTEGER,
+        error VARCHAR,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "api_usage table may already exist"));
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_api_usage_user_id ON api_usage (user_id)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_api_usage_created_at ON api_usage (created_at)`).catch(() => {});
+
+    // Teams
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS teams (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name VARCHAR NOT NULL,
+        slug VARCHAR UNIQUE,
+        owner_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        plan VARCHAR NOT NULL DEFAULT 'starter',
+        max_members INTEGER NOT NULL DEFAULT 5,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "teams table may already exist"));
+
+    // Knowledge base
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS knowledge_base (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR REFERENCES users(id) ON DELETE CASCADE,
+        team_id UUID,
+        title VARCHAR NOT NULL,
+        content TEXT NOT NULL,
+        source_url VARCHAR,
+        source_type VARCHAR NOT NULL DEFAULT 'manual',
+        tags JSONB DEFAULT '[]'::jsonb,
+        embedding_model VARCHAR,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "knowledge_base table may already exist"));
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_kb_user_id ON knowledge_base (user_id)`).catch(() => {});
+
+    // Reports
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS reports (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR NOT NULL,
+        type VARCHAR NOT NULL DEFAULT 'pentest',
+        status VARCHAR NOT NULL DEFAULT 'draft',
+        target VARCHAR,
+        content JSONB DEFAULT '{}'::jsonb,
+        summary TEXT,
+        severity VARCHAR DEFAULT 'medium',
+        findings INTEGER DEFAULT 0,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "reports table may already exist"));
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports (user_id)`).catch(() => {});
+
+    // Webhooks
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS webhooks (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        url TEXT NOT NULL,
+        events JSONB NOT NULL DEFAULT '[]'::jsonb,
+        secret VARCHAR,
+        is_active BOOLEAN NOT NULL DEFAULT true,
+        failure_count INTEGER NOT NULL DEFAULT 0,
+        last_triggered_at TIMESTAMP WITH TIME ZONE,
+        last_error TEXT,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "webhooks table may already exist"));
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_webhooks_user_id ON webhooks (user_id)`).catch(() => {});
 
     logger.info("Database tables ensured.");
   } catch (err) {
