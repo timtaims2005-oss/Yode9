@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useStore } from "@/lib/store";
 import { getTheme } from "@/lib/themes";
+import { Globe, MessageSquare } from "lucide-react";
 
 type Arc = {
   lat1: number; lon1: number;
@@ -34,9 +35,68 @@ function lerpLatLon(
   ];
 }
 
+export function GlobeToggleButton() {
+  const { state, dispatch } = useStore();
+  const visible = state.globeVisible ?? true;
+
+  return (
+    <button
+      onClick={() => dispatch({ type: "TOGGLE_GLOBE" })}
+      title={visible ? "إخفاء الكرة — إظهار المحادثة" : "إظهار الكرة الأرضية"}
+      style={{
+        position: "fixed",
+        bottom: "76px",
+        right: "16px",
+        zIndex: 9999,
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        padding: "8px 14px",
+        borderRadius: "999px",
+        border: "1px solid",
+        borderColor: visible ? "rgba(226,18,39,0.5)" : "rgba(255,255,255,0.15)",
+        background: visible
+          ? "rgba(226,18,39,0.15)"
+          : "rgba(255,255,255,0.08)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        color: visible ? "#e21227" : "rgba(255,255,255,0.7)",
+        fontSize: "11px",
+        fontWeight: 700,
+        letterSpacing: "0.05em",
+        cursor: "pointer",
+        transition: "all 0.25s ease",
+        boxShadow: visible
+          ? "0 0 14px rgba(226,18,39,0.25), 0 2px 8px rgba(0,0,0,0.4)"
+          : "0 2px 8px rgba(0,0,0,0.4)",
+        userSelect: "none",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.05)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
+      }}
+    >
+      {visible ? (
+        <>
+          <MessageSquare style={{ width: 13, height: 13 }} />
+          <span>وضع المحادثة</span>
+        </>
+      ) : (
+        <>
+          <Globe style={{ width: 13, height: 13 }} />
+          <span>الكرة الأرضية</span>
+        </>
+      )}
+    </button>
+  );
+}
+
 export function ThreatGlobeBackground() {
   const { state } = useStore();
   const theme = getTheme(state.activeGlobeTheme ?? "dark");
+  const visible = state.globeVisible ?? true;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef    = useRef(0);
   const rotRef    = useRef(0);
@@ -238,7 +298,7 @@ export function ThreatGlobeBackground() {
   }, [spawnArc]);
 
   const themeId = state.activeGlobeTheme ?? "dark";
-  const opacity = theme.cssVars["--theme-globe-opacity"] ?? "0.20";
+  const opacity = parseFloat((theme.cssVars["--theme-globe-opacity"] ?? "0.20") as string);
 
   return (
     <div
@@ -248,9 +308,9 @@ export function ThreatGlobeBackground() {
         zIndex: 0,
         pointerEvents: "none",
         overflow: "hidden",
-        background: theme.bgCss,
-        opacity: parseFloat(opacity as string) > 0.1 ? 1 : 0.9,
-        transition: "background 0.8s ease",
+        background: visible ? theme.bgCss : "transparent",
+        opacity: visible ? 1 : 0,
+        transition: "opacity 0.5s ease, background 0.5s ease",
       }}
       aria-hidden="true"
       data-theme={themeId}
@@ -261,8 +321,8 @@ export function ThreatGlobeBackground() {
           position: "absolute",
           inset: 0,
           display: "block",
-          opacity: parseFloat(opacity as string),
-          transition: "opacity 0.8s ease",
+          opacity: visible ? opacity : 0,
+          transition: "opacity 0.5s ease",
         }}
       />
     </div>

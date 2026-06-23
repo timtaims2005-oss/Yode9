@@ -187,6 +187,7 @@ export type AppState = {
   settings: Settings;
   themeAccent: ThemeAccent;
   activeGlobeTheme: ThemeId;
+  globeVisible: boolean;
   notifications: { id: string; title: string; body: string; ts: number; read: boolean }[];
   pinnedTools: string[];
   snippets: Snippet[];
@@ -237,6 +238,8 @@ type Action =
   | { type: "SET_SETTINGS"; patch: Partial<Settings> }
   | { type: "SET_ACCENT"; accent: ThemeAccent }
   | { type: "SET_GLOBE_THEME"; theme: ThemeId }
+  | { type: "SET_GLOBE_VISIBLE"; visible: boolean }
+  | { type: "TOGGLE_GLOBE" }
   | { type: "MARK_NOTIFS_READ" }
   | { type: "CLEAR_NOTIFICATIONS" }
   | { type: "PUSH_NOTIF"; notif: { id: string; title: string; body: string; ts: number; read: boolean } }
@@ -337,6 +340,7 @@ const initial: AppState = {
   },
   themeAccent: "crimson",
   activeGlobeTheme: DEFAULT_THEME_ID,
+  globeVisible: true,
   notifications: [
     { id: "n1", title: "Real AI brain online", body: "All models now stream live answers from a high-end LLM. Persona, memory and custom instructions are wired in.", ts: Date.now() - 1000 * 60 * 5, read: false },
     { id: "n2", title: "Memory & custom instructions", body: "Open the Memory panel to teach the assistant about you. It will remember across chats.", ts: Date.now() - 1000 * 60 * 12, read: false },
@@ -565,6 +569,10 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, themeAccent: action.accent };
     case "SET_GLOBE_THEME":
       return { ...state, activeGlobeTheme: action.theme };
+    case "SET_GLOBE_VISIBLE":
+      return { ...state, globeVisible: action.visible };
+    case "TOGGLE_GLOBE":
+      return { ...state, globeVisible: !state.globeVisible };
     case "MARK_NOTIFS_READ":
       return { ...state, notifications: state.notifications.map((n) => ({ ...n, read: true })) };
     case "CLEAR_NOTIFICATIONS":
