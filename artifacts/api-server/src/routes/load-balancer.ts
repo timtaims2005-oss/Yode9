@@ -53,7 +53,7 @@ router.get("/lb/health", async (_req, res) => {
 });
 
 // POST /api/lb/chat — route to fastest online engine (SSE out)
-router.post("/lb/chat", async (req, res) => {
+router.post("/lb/chat", async (req, res): Promise<void> => {
   const { messages, model, preferEngine } = req.body as {
     messages?: Array<{ role: string; content: string }>;
     model?: string;
@@ -61,7 +61,8 @@ router.post("/lb/chat", async (req, res) => {
   };
 
   if (!Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ error: "messages required" });
+    res.status(400).json({ error: "messages required" });
+    return;
   }
 
   res.setHeader("Content-Type", "text/event-stream");
@@ -75,7 +76,8 @@ router.post("/lb/chat", async (req, res) => {
 
   if (online.length === 0) {
     send({ type: "error", message: "No local engines are online. Start Ollama or another engine first." });
-    return res.end();
+    res.end();
+    return;
   }
 
   // Prefer requested engine if it's online
@@ -112,7 +114,8 @@ router.post("/lb/chat", async (req, res) => {
 
     if (!upstream.ok || !upstream.body) {
       send({ type: "error", message: `Engine ${eng.id} returned ${upstream.status}` });
-      return res.end();
+      res.end();
+      return;
     }
 
     const reader = upstream.body.getReader();
@@ -151,14 +154,15 @@ router.post("/lb/chat", async (req, res) => {
 });
 
 // POST /api/lb/race — send prompt to ALL online engines simultaneously (SSE)
-router.post("/lb/race", async (req, res) => {
+router.post("/lb/race", async (req, res): Promise<void> => {
   const { messages, model } = req.body as {
     messages?: Array<{ role: string; content: string }>;
     model?: string;
   };
 
   if (!Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ error: "messages required" });
+    res.status(400).json({ error: "messages required" });
+    return;
   }
 
   res.setHeader("Content-Type", "text/event-stream");
@@ -174,7 +178,8 @@ router.post("/lb/race", async (req, res) => {
 
   if (online.length === 0) {
     send({ type: "error", message: "No engines online" });
-    return res.end();
+    res.end();
+    return;
   }
 
   const activeEngines = new Set<string>(online.map(h => h.id));

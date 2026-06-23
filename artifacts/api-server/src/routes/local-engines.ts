@@ -92,9 +92,6 @@ function checkInstallAvailable(id: EngineId): boolean {
     return fs.existsSync(path.join(BIN_DIR, "koboldcpp", "koboldcpp.py")) ||
            fs.existsSync(path.join(BIN_DIR, "koboldcpp"));
   }
-  if (id === "openwebui") {
-    return false;
-  }
   return false;
 }
 
@@ -110,7 +107,7 @@ router.get("/local-engines/status/:id", async (req, res) => {
   return res.json(result);
 });
 
-router.post("/local-engines/launch/:id", (req, res) => {
+router.post("/local-engines/launch/:id", (req, res): void => {
   const id = req.params.id as EngineId;
 
   res.setHeader("Content-Type", "text/event-stream");
@@ -128,7 +125,8 @@ router.post("/local-engines/launch/:id", (req, res) => {
 
     if (!fs.existsSync(bin)) {
       send({ type: "error", message: "Ollama binary not found. Please install first." });
-      return res.end();
+      res.end();
+      return;
     }
 
     const env: Record<string, string> = {
@@ -165,7 +163,8 @@ router.post("/local-engines/launch/:id", (req, res) => {
     const llamaBin = path.join(BIN_DIR, "llamafile");
     if (!fs.existsSync(llamaBin)) {
       send({ type: "error", message: "Llamafile binary not found. Use install first." });
-      return res.end();
+      res.end();
+      return;
     }
     try {
       execAsync(`chmod +x ${llamaBin}`);
@@ -187,7 +186,8 @@ router.post("/local-engines/launch/:id", (req, res) => {
     const pyScript  = path.join(koboldDir, "koboldcpp.py");
     if (!fs.existsSync(pyScript)) {
       send({ type: "error", message: "KoboldCPP not found. Use install first." });
-      return res.end();
+      res.end();
+      return;
     }
     try {
       spawn("python3", [pyScript, "--port", "5001", "--host", "0.0.0.0", "--skiplauncher"], {
@@ -203,7 +203,7 @@ router.post("/local-engines/launch/:id", (req, res) => {
     return;
   }
 
-  if (id === "openwebui") {
+  if ((id as string) === "openwebui") {
     try {
       const proc = spawn("bash", ["-c", "python3 -m open_webui serve --port 3000 --host 0.0.0.0"], {
         detached: true, stdio: "ignore",
@@ -223,7 +223,7 @@ router.post("/local-engines/launch/:id", (req, res) => {
   res.end();
 });
 
-router.post("/local-engines/install/:id", (req, res) => {
+router.post("/local-engines/install/:id", (req, res): void => {
   const id = req.params.id as EngineId;
 
   res.setHeader("Content-Type", "text/event-stream");
@@ -276,7 +276,7 @@ router.post("/local-engines/install/:id", (req, res) => {
     return;
   }
 
-  if (id === "openwebui") {
+  if ((id as string) === "openwebui") {
     send({ type: "log", message: "Installing Open WebUI via pip..." });
     execAsync("pip3 install open-webui 2>&1", { maxBuffer: 10 * 1024 * 1024 })
       .then(() => { send({ type: "success", message: "Open WebUI installed ✓" }); res.end(); })
@@ -288,9 +288,9 @@ router.post("/local-engines/install/:id", (req, res) => {
   res.end();
 });
 
-router.post("/local-engines/pull-model", async (req, res) => {
+router.post("/local-engines/pull-model", async (req, res): Promise<void> => {
   const { model } = req.body as { model?: string };
-  if (!model) return res.status(400).json({ error: "model required" });
+  if (!model) { res.status(400).json({ error: "model required" }); return; }
 
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -300,7 +300,7 @@ router.post("/local-engines/pull-model", async (req, res) => {
 
   try {
     const check = await fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(3000) });
-    if (!check.ok) { send({ type: "error", message: "Ollama غير مشغّل" }); return res.end(); }
+    if (!check.ok) { send({ type: "error", message: "Ollama غير مشغّل" }); res.end(); return; }
 
     send({ type: "start", model, message: `بدء تحميل ${model}...` });
 
@@ -313,7 +313,8 @@ router.post("/local-engines/pull-model", async (req, res) => {
 
     if (!pullRes.ok || !pullRes.body) {
       send({ type: "error", message: `فشل Ollama pull: ${pullRes.status}` });
-      return res.end();
+      res.end();
+      return;
     }
 
     const reader = pullRes.body.getReader();

@@ -38,7 +38,7 @@ const ALLOWED_ORIGINS: string | string[] | boolean = process.env.ALLOWED_ORIGINS
     ? [] // Reject all cross-origin in production if not configured
     : true; // Allow all in development only
 
-if (process.env.NODE_ENV === "production" && ALLOWED_ORIGINS === false) {
+if (process.env.NODE_ENV === "production" && Array.isArray(ALLOWED_ORIGINS) && ALLOWED_ORIGINS.length === 0) {
   logger.warn("ALLOWED_ORIGINS not set in production — all cross-origin requests will be rejected.");
 }
 

@@ -1,5 +1,16 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { streamCompletion, callOnce } from "../lib/ai-providers";
+import { streamCompletion, callOnce, listProviders, type StreamChunk, type ProviderName } from "../lib/ai-providers";
+
+type Opts = { model?: string; temperature?: number };
+
+async function* streamBest(messages: Msg[], opts?: Opts): AsyncGenerator<StreamChunk> {
+  const providers = listProviders();
+  const available = providers.filter(p => p.available);
+  const pick = available[0];
+  const provider: ProviderName = (pick?.id as ProviderName) ?? "openai";
+  const model = opts?.model ?? pick?.models[0] ?? "gpt-4o";
+  yield* streamCompletion(provider, model, messages, opts?.temperature ?? 0.7);
+}
 
 const router: IRouter = Router();
 
@@ -114,13 +125,13 @@ function getModePromptSuffix(mode: string): string {
   }
 }
 
-router.post("/agent4/build", async (req: Request, res: Response) => {
+router.post("/agent4/build", async (req: Request, res: Response): Promise<void> => {
   sseHeaders(res);
   try {
     const { description, mode = "autonomous", language = "en" } = req.body as {
       description?: string; mode?: string; language?: string;
     };
-    if (!description?.trim()) { sse(res, "error", { message: "Description required" }); return res.end(); }
+    if (!description?.trim()) { sse(res, "error", { message: "Description required" }); res.end(); return; }
 
     const langNote = language === "ar" ? "\n\nRespond in Arabic." : "";
     const systemPrompt = APP_BUILDER_SYSTEM + getModePromptSuffix(mode) + langNote;
@@ -136,7 +147,7 @@ router.post("/agent4/build", async (req: Request, res: Response) => {
       { role: "user", content: `Build this application: ${description}` },
     ];
 
-    for await (const chunk of streamCompletion(messages)) {
+    for await (const chunk of streamBest(messages)) {
       if (chunk.error) { sse(res, "error", { message: chunk.error }); break; }
       if (chunk.content) sse(res, "chunk", { text: chunk.content });
       if (chunk.done) sse(res, "done", { ok: true });
@@ -147,13 +158,13 @@ router.post("/agent4/build", async (req: Request, res: Response) => {
   res.end();
 });
 
-router.post("/agent4/plan", async (req: Request, res: Response) => {
+router.post("/agent4/plan", async (req: Request, res: Response): Promise<void> => {
   sseHeaders(res);
   try {
     const { idea, mode = "power", language = "en" } = req.body as {
       idea?: string; mode?: string; language?: string;
     };
-    if (!idea?.trim()) { sse(res, "error", { message: "Idea required" }); return res.end(); }
+    if (!idea?.trim()) { sse(res, "error", { message: "Idea required" }); res.end(); return; }
 
     const langNote = language === "ar" ? "\n\nRespond in Arabic." : "";
     const messages: Msg[] = [
@@ -163,7 +174,7 @@ router.post("/agent4/plan", async (req: Request, res: Response) => {
 
     sse(res, "phase", { phase: "planning", label: "Running strategic analysis..." });
 
-    for await (const chunk of streamCompletion(messages)) {
+    for await (const chunk of streamBest(messages)) {
       if (chunk.error) { sse(res, "error", { message: chunk.error }); break; }
       if (chunk.content) sse(res, "chunk", { text: chunk.content });
       if (chunk.done) sse(res, "done", { ok: true });
@@ -174,13 +185,13 @@ router.post("/agent4/plan", async (req: Request, res: Response) => {
   res.end();
 });
 
-router.post("/agent4/parallel", async (req: Request, res: Response) => {
+router.post("/agent4/parallel", async (req: Request, res: Response): Promise<void> => {
   sseHeaders(res);
   try {
     const { task, mode = "autonomous", language = "en" } = req.body as {
       task?: string; mode?: string; language?: string;
     };
-    if (!task?.trim()) { sse(res, "error", { message: "Task required" }); return res.end(); }
+    if (!task?.trim()) { sse(res, "error", { message: "Task required" }); res.end(); return; }
 
     const langNote = language === "ar" ? "\n\nRespond in Arabic." : "";
     const messages: Msg[] = [
@@ -190,7 +201,7 @@ router.post("/agent4/parallel", async (req: Request, res: Response) => {
 
     sse(res, "phase", { phase: "spawning", label: "Spawning parallel agent swarm..." });
 
-    for await (const chunk of streamCompletion(messages)) {
+    for await (const chunk of streamBest(messages)) {
       if (chunk.error) { sse(res, "error", { message: chunk.error }); break; }
       if (chunk.content) sse(res, "chunk", { text: chunk.content });
       if (chunk.done) sse(res, "done", { ok: true });
@@ -201,13 +212,13 @@ router.post("/agent4/parallel", async (req: Request, res: Response) => {
   res.end();
 });
 
-router.post("/agent4/search", async (req: Request, res: Response) => {
+router.post("/agent4/search", async (req: Request, res: Response): Promise<void> => {
   sseHeaders(res);
   try {
     const { query, mode = "turbo", language = "en" } = req.body as {
       query?: string; mode?: string; language?: string;
     };
-    if (!query?.trim()) { sse(res, "error", { message: "Query required" }); return res.end(); }
+    if (!query?.trim()) { sse(res, "error", { message: "Query required" }); res.end(); return; }
 
     const langNote = language === "ar" ? "\n\nRespond in Arabic." : "";
     const messages: Msg[] = [
@@ -217,7 +228,7 @@ router.post("/agent4/search", async (req: Request, res: Response) => {
 
     sse(res, "phase", { phase: "searching", label: "Scanning web intelligence sources..." });
 
-    for await (const chunk of streamCompletion(messages)) {
+    for await (const chunk of streamBest(messages)) {
       if (chunk.error) { sse(res, "error", { message: chunk.error }); break; }
       if (chunk.content) sse(res, "chunk", { text: chunk.content });
       if (chunk.done) sse(res, "done", { ok: true });
@@ -228,13 +239,13 @@ router.post("/agent4/search", async (req: Request, res: Response) => {
   res.end();
 });
 
-router.post("/agent4/debug", async (req: Request, res: Response) => {
+router.post("/agent4/debug", async (req: Request, res: Response): Promise<void> => {
   sseHeaders(res);
   try {
     const { code, error: errMsg, mode = "power", language = "en" } = req.body as {
       code?: string; error?: string; mode?: string; language?: string;
     };
-    if (!code?.trim() && !errMsg?.trim()) { sse(res, "error", { message: "Code or error required" }); return res.end(); }
+    if (!code?.trim() && !errMsg?.trim()) { sse(res, "error", { message: "Code or error required" }); res.end(); return; }
 
     const langNote = language === "ar" ? "\n\nRespond in Arabic." : "";
     const input = [code && `Code:\n\`\`\`\n${code}\n\`\`\``, errMsg && `Error:\n${errMsg}`].filter(Boolean).join("\n\n");
@@ -246,7 +257,7 @@ router.post("/agent4/debug", async (req: Request, res: Response) => {
 
     sse(res, "phase", { phase: "analyzing", label: "Running deep stack analysis..." });
 
-    for await (const chunk of streamCompletion(messages)) {
+    for await (const chunk of streamBest(messages)) {
       if (chunk.error) { sse(res, "error", { message: chunk.error }); break; }
       if (chunk.content) sse(res, "chunk", { text: chunk.content });
       if (chunk.done) sse(res, "done", { ok: true });
@@ -257,13 +268,13 @@ router.post("/agent4/debug", async (req: Request, res: Response) => {
   res.end();
 });
 
-router.post("/agent4/deploy", async (req: Request, res: Response) => {
+router.post("/agent4/deploy", async (req: Request, res: Response): Promise<void> => {
   sseHeaders(res);
   try {
     const { app, mode = "autonomous", language = "en" } = req.body as {
       app?: string; mode?: string; language?: string;
     };
-    if (!app?.trim()) { sse(res, "error", { message: "App description required" }); return res.end(); }
+    if (!app?.trim()) { sse(res, "error", { message: "App description required" }); res.end(); return; }
 
     const langNote = language === "ar" ? "\n\nRespond in Arabic." : "";
     const messages: Msg[] = [
@@ -273,7 +284,7 @@ router.post("/agent4/deploy", async (req: Request, res: Response) => {
 
     sse(res, "phase", { phase: "deploying", label: "Generating deployment pipeline..." });
 
-    for await (const chunk of streamCompletion(messages)) {
+    for await (const chunk of streamBest(messages)) {
       if (chunk.error) { sse(res, "error", { message: chunk.error }); break; }
       if (chunk.content) sse(res, "chunk", { text: chunk.content });
       if (chunk.done) sse(res, "done", { ok: true });
@@ -284,13 +295,13 @@ router.post("/agent4/deploy", async (req: Request, res: Response) => {
   res.end();
 });
 
-router.post("/agent4/autofix", async (req: Request, res: Response) => {
+router.post("/agent4/autofix", async (req: Request, res: Response): Promise<void> => {
   sseHeaders(res);
   try {
     const { description, mode = "max", language = "en" } = req.body as {
       description?: string; mode?: string; language?: string;
     };
-    if (!description?.trim()) { sse(res, "error", { message: "Description required" }); return res.end(); }
+    if (!description?.trim()) { sse(res, "error", { message: "Description required" }); res.end(); return; }
 
     const langNote = language === "ar" ? "\n\nRespond in Arabic." : "";
     const system = `You are Agent 4 AutoFix — autonomous error detection and repair system.
@@ -309,7 +320,7 @@ Be surgical, precise, and confident.` + getModePromptSuffix(mode) + langNote;
 
     sse(res, "phase", { phase: "scanning", label: "Auto-scanning for issues..." });
 
-    for await (const chunk of streamCompletion(messages)) {
+    for await (const chunk of streamBest(messages)) {
       if (chunk.error) { sse(res, "error", { message: chunk.error }); break; }
       if (chunk.content) sse(res, "chunk", { text: chunk.content });
       if (chunk.done) sse(res, "done", { ok: true });
@@ -320,13 +331,13 @@ Be surgical, precise, and confident.` + getModePromptSuffix(mode) + langNote;
   res.end();
 });
 
-router.post("/agent4/collaborate", async (req: Request, res: Response) => {
+router.post("/agent4/collaborate", async (req: Request, res: Response): Promise<void> => {
   sseHeaders(res);
   try {
     const { context, mode = "autonomous", language = "en" } = req.body as {
       context?: string; mode?: string; language?: string;
     };
-    if (!context?.trim()) { sse(res, "error", { message: "Context required" }); return res.end(); }
+    if (!context?.trim()) { sse(res, "error", { message: "Context required" }); res.end(); return; }
 
     const langNote = language === "ar" ? "\n\nRespond in Arabic." : "";
     const system = `You are Agent 4 Collaboration Engine — managing multi-user development coordination.
@@ -346,7 +357,7 @@ Output practical, immediately actionable guidance.` + getModePromptSuffix(mode) 
 
     sse(res, "phase", { phase: "coordinating", label: "Setting up team coordination..." });
 
-    for await (const chunk of streamCompletion(messages)) {
+    for await (const chunk of streamBest(messages)) {
       if (chunk.error) { sse(res, "error", { message: chunk.error }); break; }
       if (chunk.content) sse(res, "chunk", { text: chunk.content });
       if (chunk.done) sse(res, "done", { ok: true });
@@ -441,10 +452,10 @@ Include: executive summary, key metrics, analysis, recommendations, conclusion.
 Make it impressive and data-driven.`;
 
   try {
-    for await (const chunk of streamCompletion([
+    for await (const chunk of streamBest([
       { role: "system", content: sys },
       { role: "user",   content: prompt },
-    ], { model: "gpt-4o", maxTokens: 2000, temperature: 0.7 })) {
+    ], { model: "gpt-4o", temperature: 0.7 })) {
       if (chunk.content) sse(res, "chunk", { text: chunk.content });
       if (chunk.done)    sse(res, "done",  { ok: true });
     }
@@ -474,10 +485,10 @@ Include:
 6. Brief explanation in ${language === "ar" ? "Arabic" : "English"}`;
 
   try {
-    for await (const chunk of streamCompletion([
+    for await (const chunk of streamBest([
       { role: "system", content: sys },
       { role: "user",   content: prompt },
-    ], { model: "gpt-4o", maxTokens: 2000, temperature: 0.3 })) {
+    ], { model: "gpt-4o", temperature: 0.3 })) {
       if (chunk.content) sse(res, "chunk", { text: chunk.content });
       if (chunk.done)    sse(res, "done",  { ok: true });
     }

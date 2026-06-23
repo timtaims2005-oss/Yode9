@@ -62,10 +62,10 @@ function broadcastAll(roomId: RoomId, data: object): void {
 function getRoomUsers(roomId: RoomId): object[] {
   const room = rooms.get(roomId);
   if (!room) return [];
-  return Array.from(room).map(uid_ => {
+  return Array.from(room).flatMap(uid_ => {
     const u = users.get(uid_);
-    return u ? { id: u.id, name: u.name, color: u.color, joinedAt: u.joinedAt } : null;
-  }).filter(Boolean);
+    return u ? [{ id: u.id, name: u.name, color: u.color, joinedAt: u.joinedAt }] : [];
+  });
 }
 
 function getHistory(roomId: RoomId): CollabMessage[] {

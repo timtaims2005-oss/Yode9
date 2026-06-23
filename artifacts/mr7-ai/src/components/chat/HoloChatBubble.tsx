@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -7,6 +7,7 @@ interface HoloChatBubbleProps {
   content: string;
   isUser?: boolean;
   timestamp?: Date;
+  children?: ReactNode;
 }
 
 function HoloSphere({ isUser }: { isUser: boolean }) {
