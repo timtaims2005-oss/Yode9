@@ -3,6 +3,9 @@ import { perfMonitor } from "./perf-monitor";
 import { requestDedup } from "./request-dedup";
 import { rateLimiter } from "./rate-limiter";
 import { abortRegistry } from "./abort-registry";
+import { tokenStreamCounter } from "./token-stream-counter";
+import { eventBus } from "./event-bus";
+import { smartPrefetch } from "./smart-prefetch";
 
 export type ChatRole = "user" | "assistant";
 export type ChatMessage = { role: ChatRole; content: string };
@@ -58,6 +61,9 @@ export async function streamChat(req: ChatRequest, onChunk: (text: string) => vo
 
   // ── Abort registry: track this in-flight request ──────────────────────────
   const chatId = req.messages[0]?.content?.slice(0, 8) ?? "unknown";
+  const sessionId = `stream-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+  tokenStreamCounter.startSession(sessionId);
+  eventBus.emit("chat:stream-start", { chatId, sessionId });
   const [regSignal, cancelReg, regKey] = abortRegistry.register("streamChat", chatId);
   const combinedSignal = signal
     ? (AbortSignal as unknown as { any: (s: AbortSignal[]) => AbortSignal }).any?.([signal, regSignal]) ?? signal
@@ -102,7 +108,7 @@ export async function streamChat(req: ChatRequest, onChunk: (text: string) => vo
           try {
             const obj = JSON.parse(payload) as { content?: string; done?: boolean; error?: string; usage?: { total_tokens?: number; prompt_tokens?: number; completion_tokens?: number } };
             if (obj.error) { onChunk(`\n\n[خطأ: ${obj.error}]`); trafficBus.failCall(callId); return full; }
-            if (obj.content) { full += obj.content; onChunk(obj.content); tokenCount += Math.ceil(obj.content.length / 4); }
+            if (obj.content) { full += obj.content; onChunk(obj.content); tokenCount += Math.ceil(obj.content.length / 4); tokenStreamCounter.recordChunk(sessionId, obj.content); }
             if (obj.usage) tokenCount = obj.usage.total_tokens ?? tokenCount;
             if (obj.done) {
               trafficBus.completeCall(callId, { tokens: tokenCount, bytesReceived });
@@ -118,11 +124,16 @@ export async function streamChat(req: ChatRequest, onChunk: (text: string) => vo
     perfMonitor.recordTokens(tokenCount);
     trafficBus.completeCall(callId, { tokens: tokenCount, bytesReceived });
     abortRegistry.remove(regKey);
+    tokenStreamCounter.endSession(sessionId);
+    eventBus.emit("chat:stream-end", { chatId, sessionId, totalTokens: tokenCount });
+    // Analyze last assistant message for smart prefetch
+    smartPrefetch.analyzeAndPrefetch(full, chatId);
     return full;
   } catch (err) {
     perfMonitor.recordLatency(performance.now() - t0);
     trafficBus.failCall(callId);
     abortRegistry.remove(regKey);
+    tokenStreamCounter.endSession(sessionId);
     void cancelReg;
     throw err;
   }

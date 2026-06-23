@@ -5,6 +5,8 @@ import { type ThemeId, getTheme, DEFAULT_THEME_ID } from "./themes";
 import { idbSaveChats, idbLoadAllChats, idbDeleteChat, migrateFromLocalStorage } from "./idb-storage";
 import { fts } from "./full-text-search";
 import { crashRecovery } from "./crash-recovery";
+import { compressToBase64, decompressFromBase64 } from "./lz-compress";
+import { cssBatch } from "./css-batch";
 
 export type CouncilSeatState = {
   id: string;

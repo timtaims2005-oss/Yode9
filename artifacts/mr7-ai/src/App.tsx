@@ -51,6 +51,11 @@ import { workerPool } from "./lib/worker-pool";
 import { gpuLayerManager } from "./lib/gpu-layer-manager";
 import { paintOptimizer } from "./lib/paint-optimizer";
 import { idleQueue } from "./lib/idle-queue";
+import { connectionQuality } from "./lib/connection-quality";
+import { animationController } from "./lib/animation-controller";
+import { keyboardEngine } from "./lib/keyboard-engine";
+import { eventBus } from "./lib/event-bus";
+import { storageQuota } from "./lib/storage-quota";
 
 // ── LAZY-LOADED AMBIENT 3D LAYERS (improves initial bundle) ──────────────────
 const AmbientLayer = lazy(() => import("./components/layout/AmbientLayer").then(m => ({ default: m.AmbientLayer })));
