@@ -551,6 +551,27 @@ export default function LandingPage() {
         <Cyber3DGrid opacity={0.45} color="#e21227" style={{ zIndex: 1 }} />
         <ScanLine />
 
+        {/* HoloCoreOrb — floating right side desktop */}
+        <div style={{
+          position: "absolute",
+          right: "clamp(2%, 6%, 100px)",
+          top: "50%",
+          transform: "translateY(-50%)",
+          zIndex: 3,
+          opacity: 0.92,
+          pointerEvents: "none",
+        }} className="hero-orb-desktop">
+          <HoloCoreOrb
+            size={320}
+            color="#e21227"
+            stats={[
+              { label: "Models", value: "15+" },
+              { label: "Modes", value: "18" },
+              { label: "Brains", value: "105" },
+              { label: "Uptime", value: "99%" },
+            ]}
+          />
+        </div>
 
         {/* Left side floating data stream */}
         <div style={{
