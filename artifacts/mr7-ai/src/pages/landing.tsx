@@ -241,6 +241,91 @@ function GridBackground() {
   );
 }
 
+/* ── Live Neural Network Canvas — hero background ── */
+function NeuralNetCanvas() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef<number>(0);
+
+  useEffect(() => {
+    const cv = ref.current; if (!cv) return;
+    const ctx = cv.getContext("2d")!;
+    let W = window.innerWidth, H = window.innerHeight;
+    cv.width = W; cv.height = H;
+
+    const onResize = () => {
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = W; cv.height = H;
+    };
+    window.addEventListener("resize", onResize);
+
+    const NODE_COUNT = Math.min(55, Math.floor(W * H / 18000));
+    interface Node { x: number; y: number; vx: number; vy: number; r: number; pulse: number; phase: number }
+    const nodes: Node[] = Array.from({ length: NODE_COUNT }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.35,
+      vy: (Math.random() - 0.5) * 0.35,
+      r: 1.5 + Math.random() * 2.5,
+      pulse: Math.random() * Math.PI * 2,
+      phase: Math.random() * Math.PI * 2,
+    }));
+
+    let t = 0;
+    const draw = () => {
+      frameRef.current = requestAnimationFrame(draw);
+      t += 0.012;
+      ctx.clearRect(0, 0, W, H);
+
+      nodes.forEach(n => {
+        n.x += n.vx; n.y += n.vy; n.pulse += 0.04;
+        if (n.x < 0 || n.x > W) n.vx *= -1;
+        if (n.y < 0 || n.y > H) n.vy *= -1;
+      });
+
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const maxDist = 180;
+          if (dist < maxDist) {
+            const alpha = (1 - dist / maxDist) * 0.18;
+            const pulseAlpha = alpha * (0.5 + Math.sin(t * 3 + nodes[i].phase) * 0.5);
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            const g = ctx.createLinearGradient(nodes[i].x, nodes[i].y, nodes[j].x, nodes[j].y);
+            g.addColorStop(0, `rgba(226,18,39,${pulseAlpha * 1.2})`);
+            g.addColorStop(0.5, `rgba(167,139,250,${pulseAlpha})`);
+            g.addColorStop(1, `rgba(0,229,255,${pulseAlpha * 0.8})`);
+            ctx.strokeStyle = g;
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+          }
+        }
+      }
+
+      nodes.forEach(n => {
+        const glow = 0.4 + Math.sin(n.pulse) * 0.3;
+        const rg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 3);
+        rg.addColorStop(0, `rgba(226,18,39,${glow})`);
+        rg.addColorStop(1, `rgba(226,18,39,0)`);
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r * 3, 0, Math.PI * 2);
+        ctx.fillStyle = rg; ctx.fill();
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${glow * 0.8})`; ctx.fill();
+      });
+    };
+    draw();
+
+    return () => {
+      cancelAnimationFrame(frameRef.current);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
+  return <canvas ref={ref} className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.35, zIndex: 0 }} />;
+}
+
 function ScanLine() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
@@ -435,6 +520,7 @@ export default function LandingPage() {
       `}</style>
 
       <ParticleCanvas />
+      <NeuralNetCanvas />
       {/* DATA STREAMS background */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
         {[...Array(8)].map((_, i) => (

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, Shield, Cpu, Network, Terminal, Zap, Code2, Eye, Target, Server } from "lucide-react";
 import { MatrixRain } from "./MatrixRain";
@@ -29,6 +29,109 @@ interface ChatEmptyStateProps {
   memoryCount?: number;
   onPrompt?: (text: string) => void;
   emptyText?: string;
+}
+
+// ── 3D Wireframe Threat Globe ─────────────────────────────────────────────────
+function ThreatGlobe3D() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef    = useRef(0);
+  const rotRef    = useRef(0);
+
+  type Arc = { lat1: number; lon1: number; lat2: number; lon2: number; t: number; speed: number; color: string };
+  const arcsRef = useRef<Arc[]>([]);
+
+  const spawnArc = useCallback(() => {
+    const COLORS = ["#e21227","#ff4455","#00e5ff","#a78bfa","#f97316","#00ff88"];
+    arcsRef.current.push({
+      lat1: (Math.random() - 0.5) * Math.PI * 0.8,
+      lon1: (Math.random() - 0.5) * Math.PI * 2,
+      lat2: (Math.random() - 0.5) * Math.PI * 0.8,
+      lon2: (Math.random() - 0.5) * Math.PI * 2,
+      t: 0, speed: 0.006 + Math.random() * 0.008,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    });
+    if (arcsRef.current.length > 6) arcsRef.current.shift();
+  }, []);
+
+  useEffect(() => {
+    const cv = canvasRef.current;
+    if (!cv) return;
+    const ctx = cv.getContext("2d")!;
+    const S = 140;
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = S * DPR; cv.height = S * DPR;
+    cv.style.width = S + "px"; cv.style.height = S + "px";
+    ctx.scale(DPR, DPR);
+    const cx = S / 2, cy = S / 2, R = S * 0.42;
+
+    const arcSpawn = setInterval(spawnArc, 900);
+    spawnArc(); spawnArc();
+
+    function project(lat: number, lon: number, rotY: number): [number, number, number] {
+      const x = Math.cos(lat) * Math.sin(lon + rotY);
+      const y = Math.sin(lat);
+      const z = Math.cos(lat) * Math.cos(lon + rotY);
+      return [cx + x * R, cy - y * R, z];
+    }
+
+    const draw = () => {
+      rafRef.current = requestAnimationFrame(draw);
+      rotRef.current += 0.004;
+      const rot = rotRef.current;
+      ctx.clearRect(0, 0, S, S);
+
+      // Globe wireframe
+      ctx.strokeStyle = "rgba(0,229,255,0.06)";
+      ctx.lineWidth = 0.5;
+      for (let lat = -80; lat <= 80; lat += 20) {
+        const r = Math.cos(lat * Math.PI / 180) * R;
+        const y2 = cy - Math.sin(lat * Math.PI / 180) * R;
+        ctx.beginPath(); ctx.arc(cx, y2, r, 0, Math.PI * 2); ctx.stroke();
+      }
+      for (let lon = 0; lon < 360; lon += 30) {
+        const angle = (lon * Math.PI / 180) + rot;
+        ctx.beginPath();
+        for (let lat2 = -80; lat2 <= 80; lat2 += 5) {
+          const [px, py, pz] = project(lat2 * Math.PI / 180, 0, angle);
+          if (pz > 0) { if (lat2 === -80) ctx.moveTo(px, py); else ctx.lineTo(px, py); }
+        }
+        ctx.stroke();
+      }
+
+      // Attack arcs
+      arcsRef.current.forEach(arc => {
+        arc.t = Math.min(arc.t + arc.speed, 1);
+        const steps = 24;
+        let first = true;
+        ctx.beginPath();
+        for (let i = 0; i <= steps * arc.t; i++) {
+          const frac = i / steps;
+          const lat = arc.lat1 + (arc.lat2 - arc.lat1) * frac;
+          const lon = arc.lon1 + (arc.lon2 - arc.lon1) * frac;
+          const [px, py, pz] = project(lat, lon, rot);
+          if (pz > 0) { if (first) { ctx.moveTo(px, py); first = false; } else ctx.lineTo(px, py); }
+        }
+        ctx.strokeStyle = arc.color + "cc";
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = arc.color;
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      });
+
+      // Glow core
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.6);
+      g.addColorStop(0, "rgba(226,18,39,0.08)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = g; ctx.fill();
+    };
+    draw();
+
+    return () => { cancelAnimationFrame(rafRef.current); clearInterval(arcSpawn); };
+  }, [spawnArc]);
+
+  return <canvas ref={canvasRef} style={{ width: 140, height: 140 }} />;
 }
 
 // ── Mini local model toggle orb ────────────────────────────────────────────────
@@ -167,6 +270,13 @@ export function ChatEmptyState({ modelName, memoryCount = 0, onPrompt, emptyText
         <div className="hud-c tl" /><div className="hud-c tr" />
         <div className="hud-c bl" /><div className="hud-c br" />
       </div>
+
+      {/* Threat Globe 3D — animated wireframe globe with attack arcs */}
+      {globeVisible && (
+        <div style={{ position: "absolute", top: 8, right: 8, opacity: 0.65, pointerEvents: "none", zIndex: 1 }}>
+          <ThreatGlobe3D />
+        </div>
+      )}
 
       {/* Central orb icon — hidden in chat mode */}
       {globeVisible && (

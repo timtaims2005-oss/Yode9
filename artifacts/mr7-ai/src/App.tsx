@@ -266,6 +266,11 @@ const MarketplacePage       = lazy(() => import("./pages/MarketplacePage").then(
 const PaymentGatewayPage    = lazy(() => import("./pages/PaymentGatewayPage").then(m=>({default:m.PaymentGatewayPage})));
 const FinetunePage          = lazy(() => import("./pages/FinetunePage").then(m=>({default:m.FinetunePage})));
 const HelpCenterPage        = lazy(() => import("./pages/HelpCenterPage").then(m=>({default:m.HelpCenterPage})));
+const SemanticSearchPage    = lazy(() => import("./pages/SemanticSearchPage").then(m=>({default:m.SemanticSearchPage})));
+const ContextManagementPage = lazy(() => import("./pages/ContextManagementPage").then(m=>({default:m.ContextManagementPage})));
+const RateLimitPage         = lazy(() => import("./pages/RateLimitPage").then(m=>({default:m.RateLimitPage})));
+const SystemsHub3DPage      = lazy(() => import("./components/SystemsHub3D").then(m=>({default:m.SystemsHub3D})));
+const InfrastructureMap3DPage = lazy(() => import("./components/InfrastructureMap3D").then(m=>({default:m.InfrastructureMap3D})));
 
 // ── MODAL STATE REDUCER ───────────────────────────────────────────────────────
 const MODAL_IDS = [
@@ -333,6 +338,12 @@ const MODAL_IDS = [
   'paymentGateway',
   'finetunePageWin',
   'helpCenter',
+  // ── KaliGPT Systems — 5 previously unrouted pages ─────────────────────────
+  'semanticSearch',
+  'contextManagement',
+  'rateLimitPage',
+  'systemsHub3D',
+  'infraMap3D',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -720,6 +731,27 @@ function AppContent() {
         onOpenUseCaseLib={() => open('useCaseLib')}
         onOpenOmegaAgent={() => open('omegaAgent')}
         onOpenLocalEngineHub={() => open('localEngineHub')}
+        onOpenKgAdmin={() => open('adminDashboardPage')}
+        onOpenKgPayment={() => open('paymentGateway')}
+        onOpenKgRAG={() => open('ragSystem')}
+        onOpenKgMemory={() => open('memorySystem')}
+        onOpenKgNotifications={() => open('notifications')}
+        onOpenKgMultiAgent={() => open('multiAgent')}
+        onOpenKgOrganizations={() => open('organizations')}
+        onOpenKgMarketplace={() => open('marketplace')}
+        onOpenKgAnalytics={() => open('analyticsDashboard')}
+        onOpenKgFinetune={() => open('finetunePageWin')}
+        onOpenKgAPIKeys={() => open('apiKeys')}
+        onOpenKgMonitoring={() => open('monitoring3D')}
+        onOpenKgSemanticSearch={() => open('semanticSearch')}
+        onOpenKgCollaboration={() => open('collaboration')}
+        onOpenKgContext={() => open('contextManagement')}
+        onOpenKgPentestLab={() => open('pentestLab')}
+        onOpenKgSecurity={() => open('securityCompliance3D')}
+        onOpenKgHelpCenter={() => open('helpCenter')}
+        onOpenKgReports={() => open('reportsPage')}
+        onOpenKgRateLimit={() => open('rateLimitPage')}
+        onOpenKgSystemsHub={() => open('systemsHub3D')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
@@ -1349,6 +1381,43 @@ function AppContent() {
         {modals.helpCenter && (
           <WindowChrome open={true} title="مركز المساعدة" onClose={() => close('helpCenter')}>
             <HelpCenterPage onClose={() => close('helpCenter')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+
+      {/* ── KaliGPT Systems — 5 Previously Unrouted Pages ─────────────── */}
+      <Suspense fallback={null}>
+        {modals.semanticSearch && (
+          <WindowChrome open={true} title="البحث الدلالي" onClose={() => close('semanticSearch')}>
+            <SemanticSearchPage onClose={() => close('semanticSearch')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.contextManagement && (
+          <WindowChrome open={true} title="إدارة السياق" onClose={() => close('contextManagement')}>
+            <ContextManagementPage onClose={() => close('contextManagement')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.rateLimitPage && (
+          <WindowChrome open={true} title="حدود المعدل" onClose={() => close('rateLimitPage')}>
+            <RateLimitPage onClose={() => close('rateLimitPage')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.systemsHub3D && (
+          <WindowChrome open={true} title="Systems Hub 3D" color="#e21227" onClose={() => close('systemsHub3D')}>
+            <SystemsHub3DPage onClose={() => close('systemsHub3D')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.infraMap3D && (
+          <WindowChrome open={true} title="Infrastructure Map 3D" color="#a78bfa" onClose={() => close('infraMap3D')}>
+            <InfrastructureMap3DPage onClose={() => close('infraMap3D')} />
           </WindowChrome>
         )}
       </Suspense>

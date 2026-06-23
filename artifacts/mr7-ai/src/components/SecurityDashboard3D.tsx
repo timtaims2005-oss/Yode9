@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { X, Minus, ShieldCheck } from "lucide-react";
+import { X, Minus, ShieldCheck, AlertTriangle, Activity, Lock, Database, RefreshCw } from "lucide-react";
 import { securityLayer, type AuditEvent, type SecurityStats } from "@/lib/security-layer";
 
-const W = 400;
-const H = 420;
+const W = 440;
+const H = 520;
+
+interface ServerMetrics {
+  totalEventsLast24h: number;
+  attacksLast24h: number;
+  blockedIPs: number;
+  topAttackTypes: Array<{ type: string; count: number }>;
+  topTargetedPaths: Array<{ path: string; count: number }>;
+}
 
 const SEV_COLOR: Record<AuditEvent["severity"], string> = {
   info: "#00e5ff",
@@ -188,7 +196,35 @@ export function SecurityDashboard3D({ onClose }: { onClose: () => void }) {
   const eventsRef = useRef<AuditEvent[]>([]);
   const statsRef = useRef<SecurityStats>({ totalInputs: 0, sanitized: 0, blocked: 0, rateLimited: 0, requestsSent: 0, errorsCount: 0 });
   const [minimized, setMinimized] = useState(false);
-  const [pos, setPos] = useState({ x: 24, y: window.innerHeight - H - 80 });
+  const [activeTab, setActiveTab] = useState<"client" | "server">("client");
+  const [pos, setPos] = useState({ x: 24, y: Math.max(20, window.innerHeight - H - 80) });
+  const [serverMetrics, setServerMetrics] = useState<ServerMetrics | null>(null);
+  const [serverLoading, setServerLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const fetchServerMetrics = useCallback(async () => {
+    setServerLoading(true);
+    setServerError(null);
+    try {
+      const base = (window as Window & { __API_BASE__?: string }).__API_BASE__ ?? "";
+      const res = await fetch(`${base}/api/admin/security/metrics`, {
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!res.ok) {
+        if (res.status === 403) { setServerError("Admin access required"); return; }
+        setServerError("Failed to load server metrics");
+        return;
+      }
+      const data = await res.json() as { ok: boolean; metrics: ServerMetrics };
+      setServerMetrics(data.metrics);
+    } catch {
+      setServerError("Server unreachable");
+    } finally {
+      setServerLoading(false);
+    }
+  }, []);
+
   const dragRef = useRef<{ ox: number; oy: number; px: number; py: number } | null>(null);
 
   const refresh = useCallback(() => {
@@ -203,7 +239,11 @@ export function SecurityDashboard3D({ onClose }: { onClose: () => void }) {
   }, [refresh]);
 
   useEffect(() => {
-    if (minimized) { cancelAnimationFrame(rafRef.current); return; }
+    if (activeTab === "server") fetchServerMetrics();
+  }, [activeTab, fetchServerMetrics]);
+
+  useEffect(() => {
+    if (minimized || activeTab !== "client") { cancelAnimationFrame(rafRef.current); return; }
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -217,7 +257,20 @@ export function SecurityDashboard3D({ onClose }: { onClose: () => void }) {
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [minimized]);
+  }, [minimized, activeTab]);
+
+  const tabStyle = (tab: "client" | "server") => ({
+    fontSize: 9,
+    fontFamily: "monospace",
+    letterSpacing: "0.08em",
+    padding: "3px 10px",
+    border: "none",
+    borderBottom: activeTab === tab ? "1px solid #00e5ff" : "1px solid transparent",
+    background: "none",
+    color: activeTab === tab ? "#00e5ff" : "rgba(255,255,255,0.35)",
+    cursor: "pointer",
+    textTransform: "uppercase" as const,
+  });
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     dragRef.current = { ox: e.clientX, oy: e.clientY, px: pos.x, py: pos.y };
@@ -249,7 +302,69 @@ export function SecurityDashboard3D({ onClose }: { onClose: () => void }) {
         </div>
       </div>
       {!minimized && (
-        <canvas ref={canvasRef} style={{ width: W, height: H, display: "block", borderRadius: "0 0 8px 8px", border: "1px solid rgba(0,229,255,0.15)", borderTop: "none" }} />
+        <div style={{ background: "rgba(2,6,10,0.98)", border: "1px solid rgba(0,229,255,0.15)", borderTop: "none", borderRadius: "0 0 8px 8px" }}>
+          {/* Tabs */}
+          <div style={{ display: "flex", borderBottom: "1px solid rgba(0,229,255,0.08)", padding: "0 8px" }}>
+            <button onClick={() => setActiveTab("client")} style={tabStyle("client")}>Client Layer</button>
+            <button onClick={() => setActiveTab("server")} style={tabStyle("server")}>Server Metrics</button>
+          </div>
+
+          {activeTab === "client" && (
+            <canvas ref={canvasRef} style={{ width: W, height: H, display: "block", borderRadius: "0 0 8px 8px" }} />
+          )}
+
+          {activeTab === "server" && (
+            <div style={{ padding: 14, minHeight: H, fontFamily: "monospace" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em" }}>SERVER SECURITY — LAST 24H</span>
+                <button onClick={fetchServerMetrics} style={{ background: "none", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 4, color: "#00e5ff", cursor: "pointer", padding: "2px 8px", fontSize: 9, display: "flex", alignItems: "center", gap: 4 }}>
+                  <RefreshCw size={10} />Refresh
+                </button>
+              </div>
+              {serverLoading && (
+                <div style={{ textAlign: "center", color: "rgba(255,255,255,0.4)", fontSize: 11, padding: 40 }}>Loading server data...</div>
+              )}
+              {serverError && !serverLoading && (
+                <div style={{ textAlign: "center", color: "#e21227", fontSize: 11, padding: 20 }}>{serverError}</div>
+              )}
+              {serverMetrics && !serverLoading && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                    {[
+                      { icon: <Activity size={12} />, label: "Events 24h", value: serverMetrics.totalEventsLast24h, color: "#00e5ff" },
+                      { icon: <AlertTriangle size={12} />, label: "Attacks", value: serverMetrics.attacksLast24h, color: "#e21227" },
+                      { icon: <Lock size={12} />, label: "Blocked IPs", value: serverMetrics.blockedIPs, color: "#f59e0b" },
+                    ].map(m => (
+                      <div key={m.label} style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${m.color}22`, borderRadius: 6, padding: "8px 10px", textAlign: "center" }}>
+                        <div style={{ color: m.color, marginBottom: 4 }}>{m.icon}</div>
+                        <div style={{ fontSize: 18, fontWeight: "bold", color: m.color }}>{m.value}</div>
+                        <div style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{m.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginBottom: 6, letterSpacing: "0.1em" }}>TOP ATTACK TYPES</div>
+                    {serverMetrics.topAttackTypes.slice(0, 5).map(a => (
+                      <div key={a.type} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)" }}>{a.type}</span>
+                        <span style={{ fontSize: 10, color: "#e21227" }}>{a.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginBottom: 6, letterSpacing: "0.1em" }}>TOP TARGETED PATHS</div>
+                    {serverMetrics.topTargetedPaths.slice(0, 4).map(p => (
+                      <div key={p.path} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                        <span style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", fontFamily: "monospace" }}>{p.path}</span>
+                        <span style={{ fontSize: 10, color: "#f59e0b" }}>{p.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
