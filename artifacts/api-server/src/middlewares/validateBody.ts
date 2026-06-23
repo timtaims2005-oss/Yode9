@@ -35,7 +35,7 @@ export function validateQuery<T>(schema: ZodSchema<T>) {
       res.status(400).json({ error: "Query validation failed.", details: errors });
       return;
     }
-    req.query = result.data as typeof req.query;
+    Object.assign(req.query, result.data);
     next();
   };
 }

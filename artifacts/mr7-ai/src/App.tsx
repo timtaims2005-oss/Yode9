@@ -1228,126 +1228,126 @@ function AppContent() {
       {/* ── NEW FULL PAGES AS WINDOWS ── */}
       <Suspense fallback={null}>
         {modals.accountSettings && (
-          <WindowChrome title="إعدادات الحساب" onClose={() => close('accountSettings')}>
+          <WindowChrome open={true} title="إعدادات الحساب" onClose={() => close('accountSettings')}>
             <AccountSettingsPage onClose={() => close('accountSettings')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.analyticsDashboard && (
-          <WindowChrome title="لوحة التحليلات 3D" onClose={() => close('analyticsDashboard')}>
+          <WindowChrome open={true} title="لوحة التحليلات 3D" onClose={() => close('analyticsDashboard')}>
             <AnalyticsDashboardPage onClose={() => close('analyticsDashboard')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.apiKeys && (
-          <WindowChrome title="مفاتيح API" onClose={() => close('apiKeys')}>
+          <WindowChrome open={true} title="مفاتيح API" onClose={() => close('apiKeys')}>
             <APIKeysPage onClose={() => close('apiKeys')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.collaboration && (
-          <WindowChrome title="التعاون الفوري" onClose={() => close('collaboration')}>
+          <WindowChrome open={true} title="التعاون الفوري" onClose={() => close('collaboration')}>
             <CollaborationPage onClose={() => close('collaboration')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.memorySystem && (
-          <WindowChrome title="نظام الذاكرة" onClose={() => close('memorySystem')}>
+          <WindowChrome open={true} title="نظام الذاكرة" onClose={() => close('memorySystem')}>
             <MemorySystemPage onClose={() => close('memorySystem')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.multiAgent && (
-          <WindowChrome title="Multi-Agent System" onClose={() => close('multiAgent')}>
+          <WindowChrome open={true} title="Multi-Agent System" onClose={() => close('multiAgent')}>
             <MultiAgentPage onClose={() => close('multiAgent')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.monitoring3D && (
-          <WindowChrome title="المراقبة 3D" onClose={() => close('monitoring3D')}>
+          <WindowChrome open={true} title="المراقبة 3D" onClose={() => close('monitoring3D')}>
             <MonitoringPage3D onClose={() => close('monitoring3D')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.notifications && (
-          <WindowChrome title="مركز الإشعارات" onClose={() => close('notifications')}>
+          <WindowChrome open={true} title="مركز الإشعارات" onClose={() => close('notifications')}>
             <NotificationsPage onClose={() => close('notifications')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.ragSystem && (
-          <WindowChrome title="نظام RAG" onClose={() => close('ragSystem')}>
+          <WindowChrome open={true} title="نظام RAG" onClose={() => close('ragSystem')}>
             <RAGSystemPage onClose={() => close('ragSystem')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.reportsPage && (
-          <WindowChrome title="التقارير" onClose={() => close('reportsPage')}>
+          <WindowChrome open={true} title="التقارير" onClose={() => close('reportsPage')}>
             <ReportsPage onClose={() => close('reportsPage')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.securityCompliance3D && (
-          <WindowChrome title="الامتثال الأمني 3D" onClose={() => close('securityCompliance3D')}>
+          <WindowChrome open={true} title="الامتثال الأمني 3D" onClose={() => close('securityCompliance3D')}>
             <SecurityCompliancePage3D onClose={() => close('securityCompliance3D')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.adminDashboardPage && (
-          <WindowChrome title="لوحة الإدارة" onClose={() => close('adminDashboardPage')}>
+          <WindowChrome open={true} title="لوحة الإدارة" onClose={() => close('adminDashboardPage')}>
             <AdminDashboardPage onClose={() => close('adminDashboardPage')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.organizations && (
-          <WindowChrome title="المنظمات" onClose={() => close('organizations')}>
+          <WindowChrome open={true} title="المنظمات" onClose={() => close('organizations')}>
             <OrganizationsPage onClose={() => close('organizations')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.pentestLab && (
-          <WindowChrome title="مختبر اختبار الاختراق" onClose={() => close('pentestLab')}>
+          <WindowChrome open={true} title="مختبر اختبار الاختراق" onClose={() => close('pentestLab')}>
             <PentestLabPage onClose={() => close('pentestLab')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.marketplace && (
-          <WindowChrome title="السوق" onClose={() => close('marketplace')}>
+          <WindowChrome open={true} title="السوق" onClose={() => close('marketplace')}>
             <MarketplacePage onClose={() => close('marketplace')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.paymentGateway && (
-          <WindowChrome title="بوابة الدفع" onClose={() => close('paymentGateway')}>
+          <WindowChrome open={true} title="بوابة الدفع" onClose={() => close('paymentGateway')}>
             <PaymentGatewayPage onClose={() => close('paymentGateway')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.finetunePageWin && (
-          <WindowChrome title="الضبط الدقيق" onClose={() => close('finetunePageWin')}>
+          <WindowChrome open={true} title="الضبط الدقيق" onClose={() => close('finetunePageWin')}>
             <FinetunePage onClose={() => close('finetunePageWin')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.helpCenter && (
-          <WindowChrome title="مركز المساعدة" onClose={() => close('helpCenter')}>
+          <WindowChrome open={true} title="مركز المساعدة" onClose={() => close('helpCenter')}>
             <HelpCenterPage onClose={() => close('helpCenter')} />
           </WindowChrome>
         )}
