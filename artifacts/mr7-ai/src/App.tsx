@@ -44,6 +44,7 @@ import { WindowChrome } from "./components/WindowChrome";
 import { WindowTray } from "./components/WindowTray";
 import { SystemHealthBar } from "./components/SystemHealthBar";
 import { PerformanceHUD } from "./components/PerformanceHUD";
+import { PerformanceBooster } from "./components/PerformanceBooster";
 import { frameScheduler } from "./lib/frame-scheduler";
 import { memoryPressure } from "./lib/memory-pressure";
 import { thermalGuard } from "./lib/thermal-guard";
@@ -635,6 +636,7 @@ function AppContent() {
     {!bootDone && <BootScreen onDone={() => setBootDone(true)} />}
     <SystemHealthBar />
     <PerformanceHUD />
+    <PerformanceBooster />
     <div className="flex h-[100dvh] w-full overflow-hidden text-foreground selection:bg-primary/30 dark relative" style={{ zIndex: 1 }}>
       <Sidebar
         isOpen={modals.sidebar}

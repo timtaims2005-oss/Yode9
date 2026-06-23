@@ -28,6 +28,28 @@ canvas {
   backface-visibility: hidden;
 }
 
+/* ── Performance Booster: kill canvas backgrounds ── */
+html.mr7-no-canvas canvas {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  /* keep in DOM so RAF loops stay alive (cheaper than unmounting) */
+}
+
+/* ── Performance Booster: glow suppression ── */
+html[style*="--mr7-glow: 0"] .mr7-glow,
+html[style*="--mr7-glow:0"] .mr7-glow {
+  filter: none !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+/* ── CSS custom property fallbacks ── */
+:root {
+  --mr7-blur: blur(12px);
+  --mr7-glow: 1;
+  --mr7-particles: 1;
+}
+
 /* ── CSS containment for isolated background panels ── */
 .bg-layer-container {
   contain: layout paint;
