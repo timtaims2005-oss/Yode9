@@ -2,6 +2,9 @@ import { createContext, useContext, useEffect, useRef, useReducer, type ReactNod
 import { type Subscription, type SubscriptionTier, INITIAL_SUBSCRIPTION } from "./subscription";
 import { fetchCloudChats, schedulePush } from "./cloud-sync";
 import { type ThemeId, getTheme, DEFAULT_THEME_ID } from "./themes";
+import { idbSaveChats, idbLoadAllChats, idbDeleteChat, migrateFromLocalStorage } from "./idb-storage";
+import { fts } from "./full-text-search";
+import { crashRecovery } from "./crash-recovery";
 
 export type CouncilSeatState = {
   id: string;
@@ -606,39 +609,77 @@ const Ctx = createContext<{ state: AppState; dispatch: React.Dispatch<Action> } 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initial);
   const hydratedRef = useRef(false);
+  const stateRef    = useRef(state);
 
-  // Load from localStorage on mount, then try cloud sync
+  // Load from localStorage + IndexedDB on mount, then try cloud sync
   useEffect(() => {
     (async () => {
       try {
+        // 1. Try localStorage first (fast, synchronous)
         const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
           dispatch({ type: "HYDRATE", state: parsed });
+          fts.indexChats(parsed.chats ?? []);
+        }
+
+        // 2. Migrate chats to IndexedDB if not already done
+        const idbChats = await idbLoadAllChats<{ id: string }>().catch(() => []);
+        if (idbChats.length === 0 && raw) {
+          await migrateFromLocalStorage(STORAGE_KEY).catch(() => {});
+        } else if (idbChats.length > 0) {
+          // IDB has more chats — merge
+          dispatch({ type: "HYDRATE", state: { chats: idbChats } });
+          fts.indexChats(idbChats as Parameters<typeof fts.indexChats>[0]);
         }
       } catch {
         // ignore
       }
-      // Fetch cloud chats — server wins if it has data
+
+      // 3. Fetch cloud chats — server wins if it has data
       try {
         const cloudChats = await fetchCloudChats();
         if (cloudChats && cloudChats.length > 0) {
           dispatch({ type: "HYDRATE", state: { chats: cloudChats } });
+          fts.indexChats(cloudChats);
         }
       } catch {
         // ignore — offline
       }
+
       hydratedRef.current = true;
+
+      // 4. Start crash recovery auto-save (uses live stateRef)
+      crashRecovery.startAutoSave(() => stateRef.current);
     })();
   }, []);
 
-  // Persist to localStorage
+  // Keep stateRef current for crash recovery getter
+  useEffect(() => { stateRef.current = state; });
+
+  // Persist to localStorage + IndexedDB + cloud
   useEffect(() => {
+    // localStorage (fast)
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
-      // ignore
+      // localStorage quota exceeded — rely on IDB
     }
+
+    // IndexedDB (async, no size limit)
+    idbSaveChats(state.chats).catch(() => {});
+
+    // Update FTS index for new messages in active chat
+    const activeChat = state.chats.find(c => c.id === state.activeChatId);
+    if (activeChat) {
+      for (const msg of activeChat.messages) {
+        fts.indexMessage(activeChat.id, activeChat.title, msg);
+      }
+    }
+
+    // Mark crash recovery as dirty
+    crashRecovery.markDirty();
+
     // Push to cloud (debounced) — only after initial hydration
     if (hydratedRef.current) {
       schedulePush(state.chats);

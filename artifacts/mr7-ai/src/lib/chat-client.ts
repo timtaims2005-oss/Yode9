@@ -1,6 +1,8 @@
 import { trafficBus } from "./trafficBus";
 import { perfMonitor } from "./perf-monitor";
 import { requestDedup } from "./request-dedup";
+import { rateLimiter } from "./rate-limiter";
+import { abortRegistry } from "./abort-registry";
 
 export type ChatRole = "user" | "assistant";
 export type ChatMessage = { role: ChatRole; content: string };
@@ -36,14 +38,30 @@ export type ChatRequest = {
 };
 
 export async function streamChat(req: ChatRequest, onChunk: (text: string) => void, signal?: AbortSignal): Promise<string> {
+  // ── Rate limiting: wait for permission before hitting the API ─────────────
+  const provider = req.provider ?? "personal";
+  try {
+    await rateLimiter.acquire(provider);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Rate limit exceeded";
+    throw new Error(msg);
+  }
+
   const body = JSON.stringify(req);
   const callId = trafficBus.startCall({
     model: req.model,
-    provider: req.provider ?? "personal",
+    provider,
     endpoint: "/api/chat",
     bytesSent: body.length,
     payloadPreview: body.slice(0, 512),
   });
+
+  // ── Abort registry: track this in-flight request ──────────────────────────
+  const chatId = req.messages[0]?.content?.slice(0, 8) ?? "unknown";
+  const [regSignal, cancelReg, regKey] = abortRegistry.register("streamChat", chatId);
+  const combinedSignal = signal
+    ? (AbortSignal as unknown as { any: (s: AbortSignal[]) => AbortSignal }).any?.([signal, regSignal]) ?? signal
+    : regSignal;
 
   let bytesReceived = 0;
   let tokenCount = 0;
@@ -54,7 +72,7 @@ export async function streamChat(req: ChatRequest, onChunk: (text: string) => vo
       method: "POST",
       headers: { "content-type": "application/json" },
       body,
-      signal,
+      signal: combinedSignal,
     });
     if (!res.ok || !res.body) {
       const text = await res.text().catch(() => "");
@@ -99,10 +117,13 @@ export async function streamChat(req: ChatRequest, onChunk: (text: string) => vo
     perfMonitor.recordLatency(performance.now() - t0);
     perfMonitor.recordTokens(tokenCount);
     trafficBus.completeCall(callId, { tokens: tokenCount, bytesReceived });
+    abortRegistry.remove(regKey);
     return full;
   } catch (err) {
     perfMonitor.recordLatency(performance.now() - t0);
     trafficBus.failCall(callId);
+    abortRegistry.remove(regKey);
+    void cancelReg;
     throw err;
   }
 }

@@ -42,6 +42,7 @@ import type { UtilityTool } from "./components/modals/UtilityToolModal";
 import { WindowManagerProvider } from "./components/DraggableWindow";
 import { WindowChrome } from "./components/WindowChrome";
 import { WindowTray } from "./components/WindowTray";
+import { SystemHealthBar } from "./components/SystemHealthBar";
 
 // ── LAZY-LOADED AMBIENT 3D LAYERS (improves initial bundle) ──────────────────
 const AmbientLayer = lazy(() => import("./components/layout/AmbientLayer").then(m => ({ default: m.AmbientLayer })));
@@ -577,6 +578,7 @@ function AppContent() {
     {!bootDone && <BootScreen onDone={() => setBootDone(true)} />}
     <ThreatGlobeBackground />
     <GlobeToggleButton />
+    <SystemHealthBar />
     <div className="flex h-[100dvh] w-full overflow-hidden text-foreground selection:bg-primary/30 dark relative" style={{ zIndex: 1 }}>
       <Sidebar
         isOpen={modals.sidebar}
