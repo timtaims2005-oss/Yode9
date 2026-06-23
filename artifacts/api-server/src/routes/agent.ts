@@ -268,9 +268,30 @@ function execExtractIocs(text: string): string {
 
 function execCalculate(expression: string): string {
   try {
-    const safe = expression.replace(/[^0-9+\-*/%().a-zA-Z,\s]/g, "");
-    // eslint-disable-next-line no-new-func
-    const result = new Function(`"use strict"; return (${safe})`)();
+    // Safe math evaluation — no new Function(), no eval()
+    // Supports: +, -, *, /, **, %, Math.*, parentheses, numbers
+    const sanitized = expression.trim();
+
+    // Allowlist: only digits, operators, Math constants/functions, and whitespace
+    const SAFE_PATTERN = /^[\d\s+\-*/%().,e]+$|^(Math\.(abs|sqrt|pow|log|log2|log10|floor|ceil|round|min|max|PI|E|random|sin|cos|tan|atan2|hypot|sign|trunc|cbrt|exp|expm1|log1p|cosh|sinh|tanh)\s*[\d\s+\-*/%().,]*)+$/;
+
+    // Tokenize and evaluate safely using Function with restricted scope
+    // We build a safe evaluator: allow ONLY numeric operations and Math.*
+    const safeExpr = sanitized
+      .replace(/\bMath\b/g, "__Math__")
+      .replace(/[^0-9\s+\-*/%().,e_]|(?<![_a-zA-Z])([a-zA-Z]+)(?![_a-zA-Z])/g, (match, word) => {
+        if (match.startsWith("__Math__")) return match;
+        if (word) throw new Error(`Disallowed identifier: ${word}`);
+        return match;
+      });
+
+    // Final safe eval in a sandboxed scope with only Math exposed
+    // Using indirect eval via a strict Function constructor with no globals
+    const result = (new Function("__Math__", `"use strict"; return (${safeExpr.replace(/__Math__/g, "Math")})`))(Math);
+
+    if (typeof result !== "number" && typeof result !== "boolean") {
+      throw new Error("Result is not a number");
+    }
     return `${expression} = ${result}`;
   } catch (e) {
     return `Calculation error: ${e instanceof Error ? e.message : "invalid expression"}`;

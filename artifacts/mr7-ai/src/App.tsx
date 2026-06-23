@@ -19,30 +19,8 @@ import type { PipelineItem } from "./lib/pipeline";
 import { CompareView } from "./components/CompareView";
 import { ArsenalFullPage } from "./components/ArsenalFullPage";
 import { QRSyncModal, useQRSyncImport } from "./components/modals/QRSyncModal";
-import { AmbientParticleField } from "./components/AmbientParticleField";
 import { initDisplayCapabilities } from "./lib/adaptive-quality";
 import { getThreatNotifier } from "./lib/threatNotifier";
-import { HoloDataStream } from "./components/HoloDataStream";
-import { CyberHUDOverlay } from "./components/CyberWidgetsDock";
-import { SystemStatusWidget } from "./components/SystemStatusWidget";
-import { CyberHeatmapHUD } from "./components/CyberHeatmapHUD";
-import { IntelligenceHUDOverlay } from "./components/IntelligenceHUDOverlay";
-import { CyberIntelCenter } from "./components/CyberIntelCenter";
-import { AIAutoSetup3D } from "./components/AIAutoSetup3D";
-import { PerformanceDashboard3D } from "./components/PerformanceDashboard3D";
-import { CostDashboard3D, useCostTracker } from "./components/CostDashboard3D";
-import { DedupVisualizer3D } from "./components/DedupVisualizer3D";
-import { ThreatFeed3D } from "./components/ThreatFeed3D";
-import { SecurityDashboard3D } from "./components/SecurityDashboard3D";
-import { ContextMemoryPanel3D } from "./components/ContextMemoryPanel3D";
-import { PrefetchIntelligence3D } from "./components/PrefetchIntelligence3D";
-import { SystemMasterHUD3D } from "./components/SystemMasterHUD3D";
-import { AnomalyLog3D } from "./components/AnomalyLog3D";
-import { NetworkTopology3D } from "./components/NetworkTopology3D";
-import { CisaLivePanel3D, CisaKevAlertToaster } from "./components/CisaLivePanel3D";
-import { ThreatWorldMap3D } from "./components/ThreatWorldMap3D";
-import { ThreatIntelDashboard3D } from "./components/ThreatIntelDashboard3D";
-import { LiveOpsDashboard3D } from "./components/LiveOpsDashboard3D";
 import { contextMemory } from "./lib/context-memory";
 import { securityLayer } from "./lib/security-layer";
 import { prefetchEngine } from "./lib/prefetch-engine";
@@ -51,6 +29,34 @@ import type { UtilityTool } from "./components/modals/UtilityToolModal";
 import { WindowManagerProvider } from "./components/DraggableWindow";
 import { WindowChrome } from "./components/WindowChrome";
 import { WindowTray } from "./components/WindowTray";
+
+// ── LAZY-LOADED AMBIENT 3D LAYERS (improves initial bundle) ──────────────────
+const AmbientLayer = lazy(() => import("./components/layout/AmbientLayer").then(m => ({ default: m.AmbientLayer })));
+const CyberHUDOverlay = lazy(() => import("./components/CyberWidgetsDock").then(m => ({ default: m.CyberHUDOverlay })));
+const IntelligenceHUDOverlay = lazy(() => import("./components/IntelligenceHUDOverlay").then(m => ({ default: m.IntelligenceHUDOverlay })));
+const CyberIntelCenter = lazy(() => import("./components/CyberIntelCenter").then(m => ({ default: m.CyberIntelCenter })));
+const AIAutoSetup3D = lazy(() => import("./components/AIAutoSetup3D").then(m => ({ default: m.AIAutoSetup3D })));
+const SystemStatusWidget = lazy(() => import("./components/SystemStatusWidget").then(m => ({ default: m.SystemStatusWidget })));
+const CostDashboard3D = lazy(() => import("./components/CostDashboard3D").then(m => ({ default: m.CostDashboard3D })));
+const useCostTracker = () => {
+  const [entries, setEntries] = useState<{cost:number;tokens:number;model:string;time:number}[]>([]);
+  const addEntry = useCallback((e:{cost:number;tokens:number;model:string;time:number}) => setEntries(p=>[...p,e]),[]);
+  return { entries, addEntry };
+};
+const DedupVisualizer3D = lazy(() => import("./components/DedupVisualizer3D").then(m => ({ default: m.DedupVisualizer3D })));
+const ThreatFeed3D = lazy(() => import("./components/ThreatFeed3D").then(m => ({ default: m.ThreatFeed3D })));
+const SecurityDashboard3D = lazy(() => import("./components/SecurityDashboard3D").then(m => ({ default: m.SecurityDashboard3D })));
+const ContextMemoryPanel3D = lazy(() => import("./components/ContextMemoryPanel3D").then(m => ({ default: m.ContextMemoryPanel3D })));
+const PrefetchIntelligence3D = lazy(() => import("./components/PrefetchIntelligence3D").then(m => ({ default: m.PrefetchIntelligence3D })));
+const SystemMasterHUD3D = lazy(() => import("./components/SystemMasterHUD3D").then(m => ({ default: m.SystemMasterHUD3D })));
+const AnomalyLog3D = lazy(() => import("./components/AnomalyLog3D").then(m => ({ default: m.AnomalyLog3D })));
+const NetworkTopology3D = lazy(() => import("./components/NetworkTopology3D").then(m => ({ default: m.NetworkTopology3D })));
+const CisaLivePanel3D = lazy(() => import("./components/CisaLivePanel3D").then(m => ({ default: m.CisaLivePanel3D })));
+const CisaKevAlertToaster = lazy(() => import("./components/CisaLivePanel3D").then(m => ({ default: m.CisaKevAlertToaster })));
+const ThreatWorldMap3D = lazy(() => import("./components/ThreatWorldMap3D").then(m => ({ default: m.ThreatWorldMap3D })));
+const ThreatIntelDashboard3D = lazy(() => import("./components/ThreatIntelDashboard3D").then(m => ({ default: m.ThreatIntelDashboard3D })));
+const LiveOpsDashboard3D = lazy(() => import("./components/LiveOpsDashboard3D").then(m => ({ default: m.LiveOpsDashboard3D })));
+const PerformanceDashboard3D = lazy(() => import("./components/PerformanceDashboard3D").then(m => ({ default: m.PerformanceDashboard3D })));
 
 // ── LAZY MODAL IMPORTS ────────────────────────────────────────────────────────
 const ApiAccessModal        = lazy(() => import("./components/modals/ApiAccessModal").then(m=>({default:m.ApiAccessModal})));
@@ -939,11 +945,12 @@ function AppContent() {
       {/* ── Cyber Intelligence Layer — accessible via NET circular button in DockButton ── */}
       <CyberIntelCenter open={modals.cyberIntel} onClose={() => close('cyberIntel')} />
 
-      {/* Always-on ambient layers — conditionally paused when tab hidden */}
-      <CyberHeatmapHUD />
-      <div className="hidden md:block"><AmbientParticleField density={0.15} /></div>
-      <div className="hidden md:block"><HoloDataStream side="both" /></div>
-      {/* CyberWidgetsDock removed — accessible via TopBar "HUD" button */}
+      {/* Always-on ambient layers — lazy loaded via AmbientLayer component */}
+      <Suspense fallback={null}>
+        <AmbientLayer />
+      </Suspense>
+
+      {/* CyberWidgetsDock — accessible via TopBar "HUD" button */}
       <AnimatePresence>
         {modals.widgetsDock && <CyberHUDOverlay key="widgets-dock" onClose={() => close('widgetsDock')} />}
       </AnimatePresence>

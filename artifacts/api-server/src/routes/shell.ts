@@ -1,13 +1,18 @@
 import { Router } from "express";
+import { z } from "zod";
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
 import type { IncomingMessage } from "http";
 import type { WebSocket as WS } from "ws";
+import { logger } from "../lib/logger";
+import { validateBody } from "../middlewares/validateBody";
 
 const execAsync = promisify(exec);
 const router = Router();
 
 const WORKSPACE = process.cwd();
+const INTERNAL_KEY = process.env.INTERNAL_API_KEY;
+const WS_SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes max
 
 const HARD_BLOCKED = [
   /rm\s+-rf\s+[\/~]/i,
@@ -50,18 +55,19 @@ function isSafe(cmd: string): { ok: boolean; reason?: string } {
   }
   for (const pattern of HARD_BLOCKED) {
     if (pattern.test(cmd)) {
-      return { ok: false, reason: `Blocked pattern detected` };
+      return { ok: false, reason: "Blocked pattern detected" };
     }
   }
   return { ok: true };
 }
 
-router.post("/shell/exec", async (req, res) => {
-  const { command, cwd } = req.body as { command?: string; cwd?: string };
-  if (!command || typeof command !== "string") {
-    res.status(400).json({ error: "command required" });
-    return;
-  }
+const execSchema = z.object({
+  command: z.string().min(1).max(MAX_CMD_LENGTH),
+  cwd: z.string().max(512).optional(),
+});
+
+router.post("/shell/exec", validateBody(execSchema), async (req, res) => {
+  const { command, cwd } = req.body as { command: string; cwd?: string };
 
   const check = isSafe(command);
   if (!check.ok) {
@@ -94,11 +100,25 @@ router.post("/shell/exec", async (req, res) => {
   }
 });
 
-export function handleTerminalSocket(ws: WS, _req: IncomingMessage) {
+export function handleTerminalSocket(ws: WS, req: IncomingMessage) {
+  // ── Authentication ──────────────────────────────────────────────────────────
+  if (INTERNAL_KEY) {
+    const keyHeader = (req.headers?.["x-internal-key"] as string | undefined) ?? "";
+    if (keyHeader !== INTERNAL_KEY) {
+      logger.warn({ ip: req.socket?.remoteAddress }, "WebSocket terminal: unauthorized connection rejected");
+      ws.send(JSON.stringify({ type: "error", data: "Unauthorized — invalid API key.\r\n" }));
+      ws.close(4403, "Forbidden");
+      return;
+    }
+  }
+
   let shellProcess: ReturnType<typeof spawn> | null = null;
+  let sessionTimer: ReturnType<typeof setTimeout> | null = null;
 
   function startShell(cwd: string) {
-    if (shellProcess) { try { shellProcess.kill(); } catch {} }
+    if (shellProcess) {
+      try { shellProcess.kill(); } catch (err) { logger.warn({ err }, "Failed to kill previous shell"); }
+    }
 
     shellProcess = spawn("/bin/bash", ["--norc", "--noprofile"], {
       cwd,
@@ -122,12 +142,29 @@ export function handleTerminalSocket(ws: WS, _req: IncomingMessage) {
       if (ws.readyState === 1) ws.send(JSON.stringify({ type: "exit", code: code ?? 0 }));
     });
 
+    // Enforce 30-minute session timeout
+    sessionTimer = setTimeout(() => {
+      if (ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: "output", data: "\r\n[SESSION TIMEOUT — 30 minutes limit]\r\n" }));
+      }
+      try { shellProcess?.kill(); } catch (err) { logger.warn({ err }, "Failed to kill shell on timeout"); }
+      ws.close(4408, "Session timeout");
+    }, WS_SESSION_TIMEOUT_MS);
+
     ws.send(JSON.stringify({ type: "ready", cwd }));
+    logger.info({ ip: req.socket?.remoteAddress, cwd }, "Terminal session started");
   }
 
   ws.on("message", (raw: Buffer | string) => {
     try {
-      const msg = JSON.parse(raw.toString()) as { type: string; data?: string; cwd?: string; cols?: number; rows?: number };
+      const msg = JSON.parse(raw.toString()) as {
+        type: string;
+        data?: string;
+        cwd?: string;
+        cols?: number;
+        rows?: number;
+      };
+
       if (msg.type === "start") {
         startShell(msg.cwd ?? WORKSPACE);
       } else if (msg.type === "input" && shellProcess?.stdin) {
@@ -141,14 +178,24 @@ export function handleTerminalSocket(ws: WS, _req: IncomingMessage) {
       } else if (msg.type === "resize") {
         // PTY resize not supported without node-pty
       } else if (msg.type === "kill") {
-        shellProcess?.kill();
+        try { shellProcess?.kill(); } catch (err) { logger.warn({ err }, "Failed to kill shell"); }
         shellProcess = null;
       }
-    } catch {}
+    } catch (err) {
+      logger.warn({ err }, "Terminal WebSocket: malformed message");
+    }
   });
 
   ws.on("close", () => {
-    try { shellProcess?.kill(); } catch {}
+    if (sessionTimer) clearTimeout(sessionTimer);
+    try { shellProcess?.kill(); } catch (err) { logger.warn({ err }, "Failed to kill shell on close"); }
+    shellProcess = null;
+    logger.info({ ip: req.socket?.remoteAddress }, "Terminal session closed");
+  });
+
+  ws.on("error", (err) => {
+    logger.warn({ err }, "Terminal WebSocket error");
+    try { shellProcess?.kill(); } catch { /* best effort */ }
     shellProcess = null;
   });
 }

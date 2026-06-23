@@ -36,91 +36,110 @@ export const TIER_ORDER: Record<SubscriptionTier, number> = {
   elite: 3,
 };
 
-export function tierAtLeast(_current: SubscriptionTier, _required: SubscriptionTier): boolean {
-  return true;
-}
+// ── Server-side verified subscription state ───────────────────────────────────
+// The actual tier check happens on the server.
+// On the client we cache the latest verified state and fall back to "free".
 
-const ADMIN_SECRET = "CHATGPT-OWNER-2026";
+let _cachedSubscription: Subscription | null = null;
 
-export function generateActivationCode(tier: SubscriptionTier, days: number): string {
-  const expiry = Date.now() + days * 86_400_000;
-  const raw = `${tier}|${expiry}|${ADMIN_SECRET}`;
-  const encoded = btoa(raw).replace(/=/g, "");
-  return encoded.toUpperCase().slice(0, 32);
-}
-
-export function verifyActivationCode(code: string): { tier: SubscriptionTier; expiresAt: number } | null {
+/**
+ * Fetch subscription status from the server.
+ * No secrets on the client — server handles all verification.
+ */
+export async function fetchSubscriptionStatus(deviceId: string): Promise<Subscription> {
   try {
-    const padded = code.toLowerCase() + "=".repeat((4 - (code.length % 4)) % 4);
-    const decoded = atob(padded);
-    const parts = decoded.split("|");
-    if (parts.length !== 3) return null;
-    const [tier, expiryStr, secret] = parts;
-    if (secret !== ADMIN_SECRET) return null;
-    const expiresAt = parseInt(expiryStr, 10);
-    if (isNaN(expiresAt) || Date.now() > expiresAt) return null;
-    if (!["free", "starter", "professional", "elite"].includes(tier)) return null;
-    return { tier: tier as SubscriptionTier, expiresAt };
+    const res = await fetch(`/api/subscriptions/status?deviceId=${encodeURIComponent(deviceId)}`, {
+      headers: { "X-Internal-Key": getInternalKey() },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json() as {
+      tier: SubscriptionTier;
+      activatedAt: number | null;
+      expiresAt: number | null;
+      tokensUsed: number;
+      active: boolean;
+    };
+    const sub: Subscription = {
+      tier: data.tier,
+      activatedAt: data.activatedAt,
+      expiresAt: data.expiresAt,
+      tokensUsed: data.tokensUsed,
+      activationCode: null,
+    };
+    _cachedSubscription = sub;
+    persistSubscriptionState(sub, deviceId);
+    return sub;
   } catch {
-    return null;
+    return loadCachedSubscription();
   }
 }
 
-export function verifyAdminPassword(password: string): boolean {
-  return password === ADMIN_SECRET;
-}
-
-export type PaymentSettings = {
-  usdt_trc20: string;
-  usdt_bep20: string;
-  btc: string;
-  paypal_handle: string;
-  paypal_link: string;
-  bank_iban: string;
-  bank_swift: string;
-  bank_name: string;
-  bank_account_name: string;
-  telegram: string;
-  email: string;
-};
-
-const PAYMENT_SETTINGS_KEY = "mr7-payment-settings";
-
-export const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
-  usdt_trc20: "TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE",
-  usdt_bep20: "0x742d35Cc6634C0532925a3b8D4C9C3e6F1A7B8D2",
-  btc: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
-  paypal_handle: "@mr7ai",
-  paypal_link: "https://paypal.me/mr7ai",
-  bank_iban: "SA03 8000 0000 6080 1016 7519",
-  bank_swift: "RJHISARI",
-  bank_name: "Al Rajhi Bank",
-  bank_account_name: "CHAT-GPT AI",
-  telegram: "https://t.me/KaliGPT_Support",
-  email: "support@kaligpt.ai",
-};
-
-export function loadPaymentSettings(): PaymentSettings {
+/**
+ * Verify an activation code via the server.
+ * The ADMIN_SECRET never leaves the server.
+ */
+export async function verifyActivationCodeServer(
+  code: string,
+  deviceId: string,
+): Promise<{ ok: boolean; tier?: SubscriptionTier; expiresAt?: number; error?: string }> {
   try {
-    const raw = localStorage.getItem(PAYMENT_SETTINGS_KEY);
-    return raw ? { ...DEFAULT_PAYMENT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_PAYMENT_SETTINGS };
-  } catch {
-    return { ...DEFAULT_PAYMENT_SETTINGS };
+    const res = await fetch("/api/subscriptions/verify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-Key": getInternalKey(),
+      },
+      body: JSON.stringify({ code, deviceId }),
+    });
+    const data = await res.json() as {
+      ok: boolean;
+      tier?: SubscriptionTier;
+      expiresAt?: number;
+      error?: string;
+    };
+    if (data.ok && data.tier && data.expiresAt) {
+      const sub: Subscription = {
+        tier: data.tier,
+        activatedAt: Date.now(),
+        expiresAt: data.expiresAt,
+        tokensUsed: 0,
+        activationCode: code,
+      };
+      _cachedSubscription = sub;
+      persistSubscriptionState(sub, deviceId);
+    }
+    return data;
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Network error" };
   }
 }
 
-export function savePaymentSettings(settings: PaymentSettings): void {
-  localStorage.setItem(PAYMENT_SETTINGS_KEY, JSON.stringify(settings));
+/**
+ * Client-side tier check. Uses the cached server-verified tier.
+ * Falls back to "free" if no valid subscription is cached.
+ */
+export function tierAtLeast(current: SubscriptionTier, required: SubscriptionTier): boolean {
+  return TIER_ORDER[current] >= TIER_ORDER[required];
 }
 
-export function checkAndExpireSubscription(_sub: Subscription): Subscription | null {
+/**
+ * Check if a subscription has expired.
+ * Returns updated subscription or null if still valid.
+ */
+export function checkAndExpireSubscription(sub: Subscription): Subscription | null {
+  if (sub.expiresAt && Date.now() > sub.expiresAt) {
+    return { ...sub, tier: "free", expiresAt: null };
+  }
   return null;
 }
 
+/**
+ * Get the initial subscription state — starts as "free" until server verifies.
+ */
 export const INITIAL_SUBSCRIPTION: Subscription = {
-  tier: "elite",
-  activatedAt: Date.now(),
-  expiresAt: Date.now() + 365 * 10 * 86_400_000,
+  tier: "free",
+  activatedAt: null,
+  expiresAt: null,
   tokensUsed: 0,
   activationCode: null,
 };
@@ -173,3 +192,81 @@ export const PLAN_FEATURES: Record<SubscriptionTier, string[]> = {
     "7-Day Refund Window",
   ],
 };
+
+// ── Payment settings (unchanged — UI config only) ─────────────────────────────
+
+export type PaymentSettings = {
+  usdt_trc20: string;
+  usdt_bep20: string;
+  btc: string;
+  paypal_handle: string;
+  paypal_link: string;
+  bank_iban: string;
+  bank_swift: string;
+  bank_name: string;
+  bank_account_name: string;
+  telegram: string;
+  email: string;
+};
+
+const PAYMENT_SETTINGS_KEY = "mr7-payment-settings";
+const SUBSCRIPTION_STATE_KEY = "mr7-subscription-state-v3";
+
+export const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
+  usdt_trc20: "TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE",
+  usdt_bep20: "0x742d35Cc6634C0532925a3b8D4C9C3e6F1A7B8D2",
+  btc: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+  paypal_handle: "@mr7ai",
+  paypal_link: "https://paypal.me/mr7ai",
+  bank_iban: "SA03 8000 0000 6080 1016 7519",
+  bank_swift: "RJHISARI",
+  bank_name: "Al Rajhi Bank",
+  bank_account_name: "CHAT-GPT AI",
+  telegram: "https://t.me/KaliGPT_Support",
+  email: "support@kaligpt.ai",
+};
+
+export function loadPaymentSettings(): PaymentSettings {
+  try {
+    const raw = localStorage.getItem(PAYMENT_SETTINGS_KEY);
+    return raw ? { ...DEFAULT_PAYMENT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_PAYMENT_SETTINGS };
+  } catch {
+    return { ...DEFAULT_PAYMENT_SETTINGS };
+  }
+}
+
+export function savePaymentSettings(settings: PaymentSettings): void {
+  localStorage.setItem(PAYMENT_SETTINGS_KEY, JSON.stringify(settings));
+}
+
+// ── Internal helpers ──────────────────────────────────────────────────────────
+
+function getInternalKey(): string {
+  // In dev, the frontend proxy passes this header to the backend.
+  // In production, the frontend is served from the same origin so no header needed.
+  return (import.meta as any).env?.VITE_INTERNAL_KEY ?? "";
+}
+
+function persistSubscriptionState(sub: Subscription, deviceId: string): void {
+  try {
+    localStorage.setItem(
+      SUBSCRIPTION_STATE_KEY,
+      JSON.stringify({ sub, deviceId, savedAt: Date.now() }),
+    );
+  } catch { /* storage full or unavailable */ }
+}
+
+function loadCachedSubscription(): Subscription {
+  try {
+    const raw = localStorage.getItem(SUBSCRIPTION_STATE_KEY);
+    if (!raw) return INITIAL_SUBSCRIPTION;
+    const data = JSON.parse(raw) as { sub: Subscription; savedAt: number };
+    // Invalidate if older than 1 hour
+    if (Date.now() - data.savedAt > 3600_000) return INITIAL_SUBSCRIPTION;
+    // Check expiry
+    const expired = checkAndExpireSubscription(data.sub);
+    return expired ?? data.sub;
+  } catch {
+    return INITIAL_SUBSCRIPTION;
+  }
+}
