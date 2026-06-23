@@ -43,6 +43,14 @@ import { WindowManagerProvider } from "./components/DraggableWindow";
 import { WindowChrome } from "./components/WindowChrome";
 import { WindowTray } from "./components/WindowTray";
 import { SystemHealthBar } from "./components/SystemHealthBar";
+import { PerformanceHUD } from "./components/PerformanceHUD";
+import { frameScheduler } from "./lib/frame-scheduler";
+import { memoryPressure } from "./lib/memory-pressure";
+import { thermalGuard } from "./lib/thermal-guard";
+import { workerPool } from "./lib/worker-pool";
+import { gpuLayerManager } from "./lib/gpu-layer-manager";
+import { paintOptimizer } from "./lib/paint-optimizer";
+import { idleQueue } from "./lib/idle-queue";
 
 // ── LAZY-LOADED AMBIENT 3D LAYERS (improves initial bundle) ──────────────────
 const AmbientLayer = lazy(() => import("./components/layout/AmbientLayer").then(m => ({ default: m.AmbientLayer })));
@@ -361,6 +369,51 @@ function AppContent() {
   // ── Display capability detection (refresh rate, WebGL2, OffscreenCanvas) ──
   useEffect(() => { initDisplayCapabilities(); }, []);
 
+  // ── Performance Systems Initialization ────────────────────────────────────
+  useEffect(() => {
+    // 1. Worker pool — offloads FTS/JSON/hash to background threads
+    workerPool.init();
+
+    // 2. Memory pressure monitor — triggers cleanups on heap exhaustion
+    memoryPressure.start();
+    const cleanupFTS = memoryPressure.registerCleanup("fts-cache", () => {
+      // FTS is rebuilt lazily — just signal it
+      idleQueue.add("fts-rebuild", () => {}, 5000);
+    });
+
+    // 3. GPU layer manager — initialize and apply GPU promotion to main panels
+    gpuLayerManager.init();
+    idleQueue.add("gpu-promote-panels", () => {
+      gpuLayerManager.promoteAll(".sidebar-panel", "both");
+      gpuLayerManager.promoteAll(".chat-bubble", "will-change");
+    }, 3000);
+
+    // 4. Paint optimizer — monitor paints, apply content-visibility
+    paintOptimizer.init();
+
+    // 5. Thermal guard — detect throttling, adapt quality
+    thermalGuard.start();
+    const unsubThermal = thermalGuard.onMetrics((m) => {
+      if (m.throttlingDetected) {
+        // Signal adaptive quality to reduce complexity
+        document.documentElement.dataset.thermalState = m.state;
+      }
+    });
+
+    // 6. Frame scheduler — seed with one task to start the RAF loop
+    frameScheduler.schedule("init-ping", () => {}, "idle");
+
+    return () => {
+      memoryPressure.stop();
+      thermalGuard.stop();
+      workerPool.terminate();
+      cleanupFTS();
+      unsubThermal();
+      idleQueue.clear();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Real-time threat notification service (CISA KEV via WebSocket) ────────
   useEffect(() => { getThreatNotifier(); }, []);
 
@@ -579,6 +632,7 @@ function AppContent() {
     <ThreatGlobeBackground />
     <GlobeToggleButton />
     <SystemHealthBar />
+    <PerformanceHUD />
     <div className="flex h-[100dvh] w-full overflow-hidden text-foreground selection:bg-primary/30 dark relative" style={{ zIndex: 1 }}>
       <Sidebar
         isOpen={modals.sidebar}
