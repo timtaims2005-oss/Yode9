@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { getCanvasConfig } from "@/lib/adaptive-quality";
+import { adaptiveFPS } from "@/lib/adaptive-fps";
 
 /*
   FUTURISTIC BACKGROUND 3D — v3 (GPU-optimised)
@@ -37,8 +38,6 @@ export function FuturisticBackground3D({
     const ctx = canvas.getContext("2d", { alpha: true })!;
 
     const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const FRAME_MS = reducedMotion ? 100 : 33;
 
     const parseColor = (hex: string) => ({
       r: parseInt(hex.slice(1, 3), 16),
@@ -435,7 +434,7 @@ export function FuturisticBackground3D({
     function draw(now: number) {
       rafRef.current = requestAnimationFrame(draw);
       if (_paused) return;
-      if (now - lastFrameTs < FRAME_MS) return;
+      if (now - lastFrameTs < adaptiveFPS.frameBudgetMs) return;
       lastFrameTs = now;
       timeRef.current += 0.011;
       const t = timeRef.current;

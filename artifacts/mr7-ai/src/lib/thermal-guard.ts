@@ -114,6 +114,11 @@ class ThermalGuard {
       adaptationsActive: [...this.adaptations],
     };
     this.listeners.forEach(cb => cb(metrics));
+
+    // Propagate thermal state to adaptive FPS controller
+    import("./adaptive-fps").then(({ adaptiveFPS }) => {
+      adaptiveFPS.setThermalState(this.thermalState);
+    }).catch(() => {});
   }
 }
 

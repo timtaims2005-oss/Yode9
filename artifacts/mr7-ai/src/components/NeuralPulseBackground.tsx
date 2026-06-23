@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { adaptiveFPS } from "@/lib/adaptive-fps";
 
 /* ══════════════════════════════════════════════════════
    NEURAL PULSE BACKGROUND v3 — GPU-optimised
@@ -58,8 +59,6 @@ export function NeuralPulseBackground() {
     const ctx = canvas.getContext("2d", { alpha: true })!;
 
     const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const FRAME_MS = reducedMotion ? 100 : 33; // 10 fps or 30 fps
 
     function resize() {
       const cssW = canvas!.offsetWidth;
@@ -121,7 +120,7 @@ export function NeuralPulseBackground() {
     function draw(now: number) {
       frameRef.current = requestAnimationFrame(draw);
       if (_paused) return;
-      if (now - lastFrameRef.current < FRAME_MS) return;
+      if (now - lastFrameRef.current < adaptiveFPS.frameBudgetMs) return;
       lastFrameRef.current = now;
       timeRef.current += 0.012;
       const t = timeRef.current;

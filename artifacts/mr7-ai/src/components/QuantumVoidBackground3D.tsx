@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { adaptiveFPS } from "@/lib/adaptive-fps";
 
 /*
   QUANTUM VOID BACKGROUND 3D — v4 (GPU-optimised)
@@ -43,8 +44,6 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
     ctx.imageSmoothingEnabled = false;
 
     const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const FRAME_BUDGET  = reducedMotion ? 100 : 1000 / 30; // 10 or 30 fps
 
     const parseHex = (h: string) => ({
       r: parseInt(h.slice(1,3),16), g: parseInt(h.slice(3,5),16), b: parseInt(h.slice(5,7),16),
@@ -555,7 +554,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
     function loop(now: number) {
       rafRef.current = requestAnimationFrame(loop);
       if (paused) return;
-      if (now - lastLoopTs < FRAME_BUDGET) return;
+      if (now - lastLoopTs < adaptiveFPS.frameBudgetMs) return;
       lastLoopTs = now;
       tRef.current += 0.016;
       drawFrame(tRef.current);
