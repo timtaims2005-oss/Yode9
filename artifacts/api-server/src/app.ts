@@ -11,13 +11,17 @@ import providersRouter from "./routes/providers";
 import cloudChatsRouter from "./routes/cloud-chats";
 import subscriptionsRouter from "./routes/subscriptions";
 import { cisaRouter } from "./routes/cisa";
+import oauthRouter, { setupOAuthStrategies } from "./routes/oauth";
 import { logger } from "./lib/logger";
 import { validateEnv } from "./lib/env";
 import { internalAuth } from "./middlewares/internalAuth";
 import { sanitizeInputs } from "./middlewares/sanitize";
+import { attackDetector } from "./middlewares/attack-detector";
 import { ensureCsrfToken, getCsrfToken } from "./middlewares/csrf";
 import { pool, ensureAuthTables } from "./db";
 import { setupReplitAuth } from "./routes/auth";
+import { startBackupScheduler } from "./lib/backup";
+import { seedDefaultFlags } from "./lib/feature-flags";
 
 // Validate environment at startup — exits if critical vars missing
 validateEnv();
@@ -73,8 +77,8 @@ if (process.env.NODE_ENV === "production" && Array.isArray(ALLOWED_ORIGINS) && A
 app.use(
   cors({
     origin: ALLOWED_ORIGINS,
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Internal-Key"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Internal-Key", "X-MR7-Signature"],
     credentials: true,
   }),
 );
@@ -113,6 +117,23 @@ const subscriptionLimiter = rateLimit({
   message: { error: "Subscription rate limit — max 10 requests/min." },
 });
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Too many auth attempts — try again later." },
+  skipSuccessfulRequests: true,
+});
+
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Upload rate limit — max 30 uploads/min." },
+});
+
 app.use(globalLimiter);
 
 app.use(
@@ -129,9 +150,16 @@ app.use(
   }),
 );
 
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Serve uploaded files (local storage)
+app.use("/uploads", express.static(process.env.LOCAL_UPLOAD_DIR ?? "./uploads"));
+
 app.use(sanitizeInputs);
+
+// ── Attack detector (after body parsing, before routes) ───────────────────────
+app.use(attackDetector);
 
 // ── Session + Passport ────────────────────────────────────────────────────────
 const PgStore = connectPg(session);
@@ -160,7 +188,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ── AI + shell rate limits (applied before auth gate) ────────────────────────
+// ── Apply specific rate limits ────────────────────────────────────────────────
 app.use(
   [
     "/api/chat",
@@ -177,6 +205,8 @@ app.use(
 );
 app.use(["/api/shell/exec"], shellLimiter);
 app.use(["/api/subscriptions/verify", "/api/subscriptions/generate"], subscriptionLimiter);
+app.use(["/api/auth/login", "/api/auth/register", "/api/email/forgot-password"], authLimiter);
+app.use(["/api/upload"], uploadLimiter);
 
 // ── CSRF token endpoint (session-based auth only) ────────────────────────────
 app.get("/api/csrf-token", ensureCsrfToken, getCsrfToken);
@@ -184,10 +214,10 @@ app.get("/api/csrf-token", ensureCsrfToken, getCsrfToken);
 // ── Fully public routes (CISA threat feed, health) ───────────────────────────
 app.use("/api", cisaRouter);
 
+// ── OAuth routes (public — before internalAuth) ───────────────────────────────
+app.use("/api", oauthRouter);
+
 // ── Semi-public routes — providers list (read) + subscription verify ─────────
-// GET /providers and POST /subscriptions/verify are public so the frontend
-// can show available providers and activate subscriptions without a key.
-// Mutating provider routes (set-personal-url) are gated inside the router.
 app.use("/api", providersRouter);
 app.use("/api", subscriptionsRouter);
 
@@ -198,8 +228,18 @@ app.use("/api", subscriptionsRouter);
     if (process.env.REPL_ID) {
       await setupReplitAuth(app);
     }
+    // Setup OAuth strategies (Google + GitHub) — non-fatal if not configured
+    await setupOAuthStrategies();
   } catch (err) {
-    logger.warn({ err }, "Replit Auth setup skipped");
+    logger.warn({ err }, "Auth setup skipped");
+  }
+
+  // Seed feature flags defaults (non-fatal)
+  seedDefaultFlags().catch((err) => logger.warn({ err }, "Feature flags seed skipped"));
+
+  // Start backup scheduler if enabled
+  if (process.env.BACKUP_ENABLED === "true") {
+    startBackupScheduler();
   }
 })();
 

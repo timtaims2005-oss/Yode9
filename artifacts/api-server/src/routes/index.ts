@@ -20,7 +20,7 @@ import ollamaRouter from "./ollama";
 import localEnginesRouter from "./local-engines";
 import loadBalancerRouter from "./load-balancer";
 
-// ── New System Routes ─────────────────────────────────────────────────────────
+// ── Core System Routes ────────────────────────────────────────────────────────
 import userAuthRouter from "./user-auth";
 import adminRouter from "./admin";
 import analyticsRouter from "./analytics";
@@ -47,6 +47,14 @@ import agentV2Router from "./agent-v2";
 import aiEngineRouter from "./ai-engine";
 import autonomousAgentRouter from "./autonomous-agent";
 
+// ── New Feature Routes ────────────────────────────────────────────────────────
+import emailRouter from "./email";
+import uploadRouter from "./upload";
+import vectorRouter from "./vector";
+import webhooksMgmtRouter from "./webhooks-mgmt";
+import featuresRouter from "./features";
+import backupRouter from "./backup";
+
 const router: IRouter = Router();
 
 router.use(healthRouter);
@@ -70,7 +78,7 @@ router.use(ollamaRouter);
 router.use(localEnginesRouter);
 router.use(loadBalancerRouter);
 
-// ── New System Routes ─────────────────────────────────────────────────────────
+// ── Core System Routes ────────────────────────────────────────────────────────
 router.use(userAuthRouter);
 router.use(adminRouter);
 router.use(analyticsRouter);
@@ -96,5 +104,13 @@ router.use(trainingRouter);
 router.use(agentV2Router);
 router.use(aiEngineRouter);
 router.use(autonomousAgentRouter);
+
+// ── New Feature Routes ────────────────────────────────────────────────────────
+router.use(emailRouter);
+router.use(uploadRouter);
+router.use(vectorRouter);
+router.use(webhooksMgmtRouter);
+router.use(featuresRouter);
+router.use(backupRouter);
 
 export default router;
