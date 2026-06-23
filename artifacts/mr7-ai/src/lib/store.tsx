@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useReducer, type ReactNode } from "react";
 import { type Subscription, type SubscriptionTier, INITIAL_SUBSCRIPTION } from "./subscription";
 import { fetchCloudChats, schedulePush } from "./cloud-sync";
+import { type ThemeId, getTheme, DEFAULT_THEME_ID } from "./themes";
 
 export type CouncilSeatState = {
   id: string;
@@ -171,6 +172,7 @@ export type Settings = {
   apiKeyPool: Array<{ key: string; label: string; active: boolean }>;
 };
 
+export type { ThemeId };
 export type ThemeAccent = "crimson" | "midnight" | "emerald" | "amber" | "violet" | "cyan" | "rose" | "lime" | "orange" | "slate";
 
 export type Snippet = { id: string; label: string; content: string };
@@ -184,6 +186,7 @@ export type AppState = {
   activePersona: string | null;
   settings: Settings;
   themeAccent: ThemeAccent;
+  activeGlobeTheme: ThemeId;
   notifications: { id: string; title: string; body: string; ts: number; read: boolean }[];
   pinnedTools: string[];
   snippets: Snippet[];
@@ -233,6 +236,7 @@ type Action =
   | { type: "SET_COMPARE_MODELS"; models: string[] }
   | { type: "SET_SETTINGS"; patch: Partial<Settings> }
   | { type: "SET_ACCENT"; accent: ThemeAccent }
+  | { type: "SET_GLOBE_THEME"; theme: ThemeId }
   | { type: "MARK_NOTIFS_READ" }
   | { type: "CLEAR_NOTIFICATIONS" }
   | { type: "PUSH_NOTIF"; notif: { id: string; title: string; body: string; ts: number; read: boolean } }
@@ -332,6 +336,7 @@ const initial: AppState = {
     apiKeyPool: [],
   },
   themeAccent: "crimson",
+  activeGlobeTheme: DEFAULT_THEME_ID,
   notifications: [
     { id: "n1", title: "Real AI brain online", body: "All models now stream live answers from a high-end LLM. Persona, memory and custom instructions are wired in.", ts: Date.now() - 1000 * 60 * 5, read: false },
     { id: "n2", title: "Memory & custom instructions", body: "Open the Memory panel to teach the assistant about you. It will remember across chats.", ts: Date.now() - 1000 * 60 * 12, read: false },
@@ -558,6 +563,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, settings: { ...state.settings, ...action.patch } };
     case "SET_ACCENT":
       return { ...state, themeAccent: action.accent };
+    case "SET_GLOBE_THEME":
+      return { ...state, activeGlobeTheme: action.theme };
     case "MARK_NOTIFS_READ":
       return { ...state, notifications: state.notifications.map((n) => ({ ...n, read: true })) };
     case "CLEAR_NOTIFICATIONS":
@@ -648,6 +655,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.setProperty("--sidebar-primary", accentMap[state.themeAccent]);
     document.documentElement.style.setProperty("--sidebar-ring", accentMap[state.themeAccent]);
   }, [state.themeAccent]);
+
+  useEffect(() => {
+    const theme = getTheme(state.activeGlobeTheme ?? DEFAULT_THEME_ID);
+    const root = document.documentElement;
+    Object.entries(theme.cssVars).forEach(([k, v]) => {
+      root.style.setProperty(k, v);
+    });
+    root.setAttribute("data-globe-theme", theme.id);
+  }, [state.activeGlobeTheme]);
 
   useEffect(() => {
     const isAr = state.settings.language === "ar";

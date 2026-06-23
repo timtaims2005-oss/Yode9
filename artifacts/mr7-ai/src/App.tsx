@@ -220,6 +220,7 @@ const JARVISCommandCenterModal      = lazy(() => import("./components/modals/JAR
 const OmegaAgentModal               = lazy(() => import("./components/modals/OmegaAgentModal").then(m=>({default:m.OmegaAgentModal})));
 const OllamaHub3D                   = lazy(() => import("./components/OllamaHub3D").then(m=>({default:m.OllamaHub3D})));
 import { LocalAIModelNexus } from "./components/LocalAIModelNexus";
+import { ThreatGlobeBackground } from "./components/ThreatGlobeBackground";
 
 // ── MODAL STATE REDUCER ───────────────────────────────────────────────────────
 const MODAL_IDS = [
@@ -574,7 +575,8 @@ function AppContent() {
   return (
     <>
     {!bootDone && <BootScreen onDone={() => setBootDone(true)} />}
-    <div className="flex h-[100dvh] w-full overflow-hidden text-foreground selection:bg-primary/30 dark">
+    <ThreatGlobeBackground />
+    <div className="flex h-[100dvh] w-full overflow-hidden text-foreground selection:bg-primary/30 dark relative" style={{ zIndex: 1 }}>
       <Sidebar
         isOpen={modals.sidebar}
         collapsed={sidebarCollapsed}

@@ -1,9 +1,10 @@
 import { FullPageOverlay } from "@/components/FullPageOverlay";
 import { Switch } from "@/components/ui/switch";
-import { Settings as SettingsIcon, Palette, Languages, Type, Coins, Trash2, Download, Sparkles, Bot, Layers, Brain, Shield, X } from "lucide-react";
+import { Settings as SettingsIcon, Palette, Languages, Type, Coins, Trash2, Download, Sparkles, Bot, Layers, Brain, Globe, Check, X } from "lucide-react";
 import { useStore, ACCENT_OPTIONS, type Settings } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { useT, type TranslationKey } from "@/lib/i18n";
+import { THEMES, type ThemeId } from "@/lib/themes";
 
 type ToggleKey = {
   [K in keyof Settings]: Settings[K] extends boolean ? K : never;
@@ -141,6 +142,56 @@ export function SettingsModal({ open, onOpenChange }: { open: boolean; onOpenCha
                 <span className={`absolute inset-1 rounded-md ${a.swatch}`} />
               </button>
             ))}
+          </div>
+        </section>
+
+        {/* Globe Theme */}
+        <section className="space-y-2 mt-4">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5">
+            <Globe className="w-3 h-3" /> Theme &amp; Background
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {THEMES.map((th) => {
+              const active = (state.activeGlobeTheme ?? "dark") === th.id;
+              return (
+                <button
+                  key={th.id}
+                  onClick={() => dispatch({ type: "SET_GLOBE_THEME", theme: th.id as ThemeId })}
+                  className={`relative flex flex-col items-center gap-1 p-2 rounded-lg border transition-all group ${
+                    active
+                      ? "border-primary bg-primary/10 shadow-[0_0_10px_rgba(var(--primary),0.2)]"
+                      : "border-border hover:border-primary/50 bg-background/60 hover:bg-accent"
+                  }`}
+                  title={th.description}
+                >
+                  <div
+                    className="w-full h-10 rounded-md mb-0.5 overflow-hidden relative"
+                    style={{ background: th.previewGradient }}
+                  >
+                    <div
+                      className="absolute inset-0 opacity-50"
+                      style={{
+                        background: `radial-gradient(circle at 50% 50%, ${th.globe.glow}55 0%, transparent 70%)`,
+                      }}
+                    />
+                    <div
+                      className="absolute inset-0 flex items-center justify-center"
+                      style={{ color: th.globe.grid, opacity: 0.8 }}
+                    >
+                      <Globe className="w-5 h-5" />
+                    </div>
+                    {active && (
+                      <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-2.5 h-2.5 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <span className={`text-[10px] font-bold leading-tight text-center ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}>
+                    {th.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </section>
 
