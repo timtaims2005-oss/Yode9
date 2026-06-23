@@ -345,7 +345,7 @@ const initial: AppState = {
   },
   themeAccent: "crimson",
   activeGlobeTheme: DEFAULT_THEME_ID,
-  globeVisible: true,
+  globeVisible: false,
   notifications: [
     { id: "n1", title: "Real AI brain online", body: "All models now stream live answers from a high-end LLM. Persona, memory and custom instructions are wired in.", ts: Date.now() - 1000 * 60 * 5, read: false },
     { id: "n2", title: "Memory & custom instructions", body: "Open the Memory panel to teach the assistant about you. It will remember across chats.", ts: Date.now() - 1000 * 60 * 12, read: false },

@@ -4,7 +4,6 @@ import { lazy, Suspense } from "react";
 const AmbientParticleField = lazy(() => import("../AmbientParticleField").then(m => ({ default: m.AmbientParticleField })));
 const HoloDataStream = lazy(() => import("../HoloDataStream").then(m => ({ default: m.HoloDataStream })));
 const CyberHeatmapHUD = lazy(() => import("../CyberHeatmapHUD").then(m => ({ default: m.CyberHeatmapHUD })));
-const CyberneticBackground = lazy(() => import("../3d/CyberneticBackground").then(m => ({ default: m.CyberneticBackground })));
 
 /**
  * AmbientLayer — always-on background visual effects, all lazy loaded
@@ -14,11 +13,6 @@ const CyberneticBackground = lazy(() => import("../3d/CyberneticBackground").the
 export function AmbientLayer() {
   return (
     <>
-      {/* 3D neural network background */}
-      <Suspense fallback={null}>
-        <CyberneticBackground />
-      </Suspense>
-
       {/* Heatmap overlay — ambient cyber HUD */}
       <Suspense fallback={null}>
         <CyberHeatmapHUD />
