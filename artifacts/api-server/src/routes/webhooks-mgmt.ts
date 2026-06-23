@@ -89,7 +89,7 @@ router.get("/webhooks", async (req: Request, res: Response): Promise<void> => {
 // ── DELETE /api/webhooks/:id ──────────────────────────────────────────────────
 router.delete("/webhooks/:id", async (req: Request, res: Response): Promise<void> => {
   try {
-    const deleted = await deleteWebhook(req.params.id, req.authUser!.id);
+    const deleted = await deleteWebhook(String(req.params.id), req.authUser!.id);
     if (!deleted) {
       res.status(404).json({ error: "Webhook not found" });
       return;
@@ -107,7 +107,7 @@ router.put("/webhooks/:id/toggle", async (req: Request, res: Response): Promise<
     const { enabled } = req.body as { enabled?: boolean };
     const { rowCount } = await pool.query(
       "UPDATE webhooks SET is_active=$1, updated_at=NOW() WHERE id=$2 AND user_id=$3",
-      [enabled ?? true, req.params.id, req.authUser!.id],
+      [enabled ?? true, String(req.params.id), req.authUser!.id],
     );
     if (!rowCount) {
       res.status(404).json({ error: "Webhook not found" });
@@ -123,7 +123,7 @@ router.put("/webhooks/:id/toggle", async (req: Request, res: Response): Promise<
 // ── GET /api/webhooks/:id/deliveries ─────────────────────────────────────────
 router.get("/webhooks/:id/deliveries", async (req: Request, res: Response): Promise<void> => {
   try {
-    const deliveries = await getWebhookDeliveries(req.params.id, req.authUser!.id);
+    const deliveries = await getWebhookDeliveries(String(req.params.id), req.authUser!.id);
     res.json({ ok: true, deliveries });
   } catch (err) {
     logger.error({ err }, "[webhooks-mgmt] Get deliveries failed");
@@ -136,7 +136,7 @@ router.post("/webhooks/:id/test", async (req: Request, res: Response): Promise<v
   try {
     const { rows } = await pool.query(
       "SELECT id FROM webhooks WHERE id=$1 AND user_id=$2 AND is_active=true",
-      [req.params.id, req.authUser!.id],
+      [String(req.params.id), req.authUser!.id],
     );
     if (!rows[0]) {
       res.status(404).json({ error: "Webhook not found" });
@@ -144,7 +144,7 @@ router.post("/webhooks/:id/test", async (req: Request, res: Response): Promise<v
     }
     await triggerEvent("system.alert", {
       message: "Test webhook delivery from mr7.ai",
-      webhookId: req.params.id,
+      webhookId: String(req.params.id),
       timestamp: new Date().toISOString(),
     }, req.authUser!.id);
     res.json({ ok: true, message: "Test event triggered" });

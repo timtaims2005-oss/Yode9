@@ -64,7 +64,9 @@ export async function initOpenTelemetry(): Promise<void> {
     const { NodeSDK } = await import("@opentelemetry/sdk-node");
     const { getNodeAutoInstrumentations } = await import("@opentelemetry/auto-instrumentations-node");
     const { OTLPTraceExporter } = await import("@opentelemetry/exporter-trace-otlp-http");
-    const { Resource } = await import("@opentelemetry/resources");
+    const resourcesMod = await import("@opentelemetry/resources");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const Resource: typeof import("@opentelemetry/resources").Resource = (resourcesMod as any).Resource ?? resourcesMod.default;
     const { SEMRESATTRS_SERVICE_NAME } = await import("@opentelemetry/semantic-conventions");
 
     const sdk = new NodeSDK({

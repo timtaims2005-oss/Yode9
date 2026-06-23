@@ -164,7 +164,7 @@ router.delete("/upload/:id", jwtAuth, requireAuth, async (req: Request, res: Res
     await ensureTable();
     const { rows } = await pool.query(
       "SELECT storage_key FROM uploaded_files WHERE id=$1 AND user_id=$2",
-      [req.params.id, req.authUser!.id],
+      [String(req.params.id), req.authUser!.id],
     );
     if (!rows[0]) {
       res.status(404).json({ error: "File not found" });
@@ -172,7 +172,7 @@ router.delete("/upload/:id", jwtAuth, requireAuth, async (req: Request, res: Res
     }
     const storage = getStorage();
     await storage.delete(rows[0].storage_key);
-    await pool.query("DELETE FROM uploaded_files WHERE id=$1", [req.params.id]);
+    await pool.query("DELETE FROM uploaded_files WHERE id=$1", [String(req.params.id)]);
     res.json({ ok: true });
   } catch (err) {
     logger.error({ err }, "[upload] Delete failed");

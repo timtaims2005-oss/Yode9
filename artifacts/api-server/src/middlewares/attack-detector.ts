@@ -233,7 +233,7 @@ export function attackDetector(req: Request, res: Response, next: NextFunction):
     path: req.path,
     method: req.method,
     attacks: hits,
-    severity: maxSev,
+    severity: (maxSev === "low" ? "medium" : maxSev) as "medium" | "high" | "critical",
   }).catch(() => {});
 
   // Block only high/critical attacks

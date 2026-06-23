@@ -88,7 +88,7 @@ router.post("/vector/collections/:id/index", requireAuth, async (req: Request, r
     }
 
     const indexed = await indexDocument(
-      req.params.id,
+      String(req.params.id),
       text,
       metadata ?? {},
       chunkSize ?? 512,
@@ -110,7 +110,7 @@ router.post("/vector/collections/:id/add", requireAuth, async (req: Request, res
       res.status(400).json({ error: "content is required" });
       return;
     }
-    const docId = await upsertDocument(req.params.id, content, metadata ?? {});
+    const docId = await upsertDocument(String(req.params.id), content, metadata ?? {});
     if (!docId) {
       res.status(500).json({ error: "Failed to generate embedding" });
       return;
@@ -135,7 +135,7 @@ router.post("/vector/collections/:id/search", requireAuth, async (req: Request, 
     }
     const results = await semanticSearch(
       query,
-      req.params.id,
+      String(req.params.id),
       Math.min(limit ?? 5, 20),
       threshold ?? 0.7,
     );
@@ -173,7 +173,7 @@ router.post("/vector/search", requireAuth, async (req: Request, res: Response): 
 // ── DELETE /api/vector/documents/:id ─────────────────────────────────────────
 router.delete("/vector/documents/:id", requireAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    await deleteDocument(req.params.id);
+    await deleteDocument(String(req.params.id));
     res.json({ ok: true });
   } catch (err) {
     logger.error({ err }, "[vector] Delete document failed");
