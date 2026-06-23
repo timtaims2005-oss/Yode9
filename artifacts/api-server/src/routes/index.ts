@@ -20,6 +20,33 @@ import ollamaRouter from "./ollama";
 import localEnginesRouter from "./local-engines";
 import loadBalancerRouter from "./load-balancer";
 
+// ── New System Routes ─────────────────────────────────────────────────────────
+import userAuthRouter from "./user-auth";
+import adminRouter from "./admin";
+import analyticsRouter from "./analytics";
+import apiKeysRouter from "./api-keys";
+import ragRouter from "./rag";
+import memoryRouter from "./memory";
+import notificationsRouter from "./notifications";
+import organizationsRouter from "./organizations";
+import reportsRouter from "./reports";
+import monitoringRouter from "./monitoring";
+import debateRouter from "./debate";
+import chainOfThoughtRouter from "./chain-of-thought";
+import codeScanRouter from "./code-scan";
+import finetuneRouter from "./finetune";
+import pluginsRouter from "./plugins";
+import osintAdvancedRouter from "./osint-advanced";
+import personalKeysRouter from "./personal-keys";
+import billingRouter from "./billing";
+import stripeRouter from "./stripe";
+import securityComplianceRouter from "./security-compliance";
+import securityDashboardRouter from "./security-dashboard";
+import trainingRouter from "./training";
+import agentV2Router from "./agent-v2";
+import aiEngineRouter from "./ai-engine";
+import autonomousAgentRouter from "./autonomous-agent";
+
 const router: IRouter = Router();
 
 router.use(healthRouter);
@@ -42,5 +69,32 @@ router.use(agent4Router);
 router.use(ollamaRouter);
 router.use(localEnginesRouter);
 router.use(loadBalancerRouter);
+
+// ── New System Routes ─────────────────────────────────────────────────────────
+router.use(userAuthRouter);
+router.use(adminRouter);
+router.use(analyticsRouter);
+router.use(apiKeysRouter);
+router.use(ragRouter);
+router.use(memoryRouter);
+router.use(notificationsRouter);
+router.use(organizationsRouter);
+router.use(reportsRouter);
+router.use(monitoringRouter);
+router.use(debateRouter);
+router.use(chainOfThoughtRouter);
+router.use(codeScanRouter);
+router.use(finetuneRouter);
+router.use(pluginsRouter);
+router.use(osintAdvancedRouter);
+router.use(personalKeysRouter);
+router.use(billingRouter);
+router.use(stripeRouter);
+router.use(securityComplianceRouter);
+router.use(securityDashboardRouter);
+router.use(trainingRouter);
+router.use(agentV2Router);
+router.use(aiEngineRouter);
+router.use(autonomousAgentRouter);
 
 export default router;

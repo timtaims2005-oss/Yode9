@@ -118,3 +118,141 @@ export async function ensureAuthTables() {
     );
   }
 }
+export async function getUserByEmail(email: string) {
+  const { rows } = await pool.query("SELECT * FROM users WHERE email = $1", [email.toLowerCase()]);
+  return rows[0] ?? null;
+}
+
+export async function getUserById(id: string) {
+  const { rows } = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+  return rows[0] ?? null;
+}
+
+export async function createUser(data: {
+  email: string;
+  password_hash?: string;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  role?: string;
+  profile_image_url?: string;
+  email_verified?: boolean;
+}) {
+  const { rows } = await pool.query(
+    `INSERT INTO users (email, password_hash, first_name, last_name, username, role, profile_image_url, email_verified)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     RETURNING *`,
+    [
+      data.email.toLowerCase(),
+      data.password_hash ?? null,
+      data.first_name ?? null,
+      data.last_name ?? null,
+      data.username ?? null,
+      data.role ?? "user",
+      data.profile_image_url ?? null,
+      data.email_verified ?? false,
+    ],
+  );
+  return rows[0];
+}
+
+export async function updateUserTokens(userId: string, tokensUsed: number) {
+  await pool.query(
+    "UPDATE users SET tokens_used = tokens_used + $1, updated_at = NOW() WHERE id = $2",
+    [tokensUsed, userId],
+  );
+}
+
+export async function createNotification(data: {
+  userId: string;
+  type: string;
+  title: string;
+  body: string;
+  notifData?: Record<string, unknown>;
+}) {
+  const { rows } = await pool.query(
+    `INSERT INTO notifications (user_id, type, title, body, data)
+     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+    [data.userId, data.type, data.title, data.body, JSON.stringify(data.notifData ?? {})],
+  );
+  return rows[0];
+}
+
+// ── Security event logging ────────────────────────────────────────────────────
+export async function logSecurityEvent(data: {
+  userId?: string;
+  email?: string;
+  eventType: string;
+  success: boolean;
+  ipAddress?: string;
+  userAgent?: string;
+  details?: Record<string, unknown>;
+}) {
+  try {
+    await pool.query(
+      `INSERT INTO security_events (user_id, email, event_type, success, ip_address, user_agent, details)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        data.userId ?? null,
+        data.email ?? null,
+        data.eventType,
+        data.success,
+        data.ipAddress ?? null,
+        data.userAgent ?? null,
+        JSON.stringify(data.details ?? {}),
+      ],
+    );
+  } catch { /* non-fatal */ }
+}
+
+// ── Session management ────────────────────────────────────────────────────────
+export async function createUserSession(data: {
+  userId: string;
+  sessionToken: string;
+  deviceName?: string;
+  deviceType?: string;
+  browser?: string;
+  os?: string;
+  ipAddress?: string;
+  expiresAt: Date;
+}) {
+  try {
+    await pool.query(
+      `INSERT INTO user_sessions (user_id, session_token, device_name, device_type, browser, os, ip_address, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       ON CONFLICT (session_token) DO UPDATE SET last_active_at = NOW()`,
+      [
+        data.userId, data.sessionToken,
+        data.deviceName ?? "Unknown Device", data.deviceType ?? "browser",
+        data.browser ?? "Unknown", data.os ?? "Unknown",
+        data.ipAddress ?? null, data.expiresAt,
+      ],
+    );
+  } catch { /* non-fatal */ }
+}
+
+export async function revokeUserSession(sessionId: string, userId: string) {
+  await pool.query("DELETE FROM user_sessions WHERE id = $1 AND user_id = $2", [sessionId, userId]);
+}
+
+export async function revokeAllUserSessions(userId: string, exceptToken?: string) {
+  if (exceptToken) {
+    await pool.query(
+      "DELETE FROM user_sessions WHERE user_id = $1 AND session_token != $2",
+      [userId, exceptToken],
+    );
+  } else {
+    await pool.query("DELETE FROM user_sessions WHERE user_id = $1", [userId]);
+  }
+}
+
+export async function getUserSessions(userId: string) {
+  const { rows } = await pool.query(
+    `SELECT id, device_name, device_type, browser, os, ip_address, location,
+            last_active_at, expires_at, created_at
+     FROM user_sessions WHERE user_id = $1 AND expires_at > NOW()
+     ORDER BY last_active_at DESC`,
+    [userId],
+  );
+  return rows;
+}

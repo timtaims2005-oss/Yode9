@@ -236,6 +236,37 @@ const OmegaAgentModal               = lazy(() => import("./components/modals/Ome
 const OllamaHub3D                   = lazy(() => import("./components/OllamaHub3D").then(m=>({default:m.OllamaHub3D})));
 import { LocalAIModelNexus } from "./components/LocalAIModelNexus";
 
+// ── NEW MODALS — from uploaded project ────────────────────────────────────────
+const AuthModal             = lazy(() => import("./components/modals/AuthModal").then(m=>({default:m.AuthModal})));
+const AutonomousAgentModal  = lazy(() => import("./components/modals/AutonomousAgentModal").then(m=>({default:m.AutonomousAgentModal})));
+const ChainOfThoughtModal   = lazy(() => import("./components/modals/ChainOfThoughtModal").then(m=>({default:m.ChainOfThoughtModal})));
+const CodeScannerModal      = lazy(() => import("./components/modals/CodeScannerModal").then(m=>({default:m.CodeScannerModal})));
+const DebateModal           = lazy(() => import("./components/modals/DebateModal").then(m=>({default:m.DebateModal})));
+const DynamicCouncilModal   = lazy(() => import("./components/modals/DynamicCouncilModal").then(m=>({default:m.DynamicCouncilModal})));
+const FinetuneModal         = lazy(() => import("./components/modals/FinetuneModal").then(m=>({default:m.FinetuneModal})));
+const OsintPlatformModal    = lazy(() => import("./components/modals/OsintPlatformModal").then(m=>({default:m.OsintPlatformModal})));
+const PluginMarketplaceModal = lazy(() => import("./components/modals/PluginMarketplaceModal").then(m=>({default:m.PluginMarketplaceModal})));
+
+// ── NEW PAGES (opened as modals via WindowChrome) ─────────────────────────────
+const AccountSettingsPage   = lazy(() => import("./pages/AccountSettingsPage").then(m=>({default:m.AccountSettingsPage})));
+const AnalyticsDashboardPage= lazy(() => import("./pages/AnalyticsDashboardPage").then(m=>({default:m.AnalyticsDashboardPage})));
+const APIKeysPage           = lazy(() => import("./pages/APIKeysPage").then(m=>({default:m.APIKeysPage})));
+const CollaborationPage     = lazy(() => import("./pages/CollaborationPage").then(m=>({default:m.CollaborationPage})));
+const MemorySystemPage      = lazy(() => import("./pages/MemorySystemPage").then(m=>({default:m.MemorySystemPage})));
+const MultiAgentPage        = lazy(() => import("./pages/MultiAgentPage").then(m=>({default:m.MultiAgentPage})));
+const MonitoringPage3D      = lazy(() => import("./pages/MonitoringPage3D").then(m=>({default:m.MonitoringPage3D})));
+const NotificationsPage     = lazy(() => import("./pages/NotificationsPage").then(m=>({default:m.NotificationsPage})));
+const RAGSystemPage         = lazy(() => import("./pages/RAGSystemPage").then(m=>({default:m.RAGSystemPage})));
+const ReportsPage           = lazy(() => import("./pages/ReportsPage").then(m=>({default:m.ReportsPage})));
+const SecurityCompliancePage3D = lazy(() => import("./pages/SecurityCompliancePage3D").then(m=>({default:m.SecurityCompliancePage3D})));
+const AdminDashboardPage    = lazy(() => import("./pages/AdminDashboard").then(m=>({default:m.AdminDashboard})));
+const OrganizationsPage     = lazy(() => import("./pages/OrganizationsPage").then(m=>({default:m.OrganizationsPage})));
+const PentestLabPage        = lazy(() => import("./pages/PentestLabPage").then(m=>({default:m.PentestLabPage})));
+const MarketplacePage       = lazy(() => import("./pages/MarketplacePage").then(m=>({default:m.MarketplacePage})));
+const PaymentGatewayPage    = lazy(() => import("./pages/PaymentGatewayPage").then(m=>({default:m.PaymentGatewayPage})));
+const FinetunePage          = lazy(() => import("./pages/FinetunePage").then(m=>({default:m.FinetunePage})));
+const HelpCenterPage        = lazy(() => import("./pages/HelpCenterPage").then(m=>({default:m.HelpCenterPage})));
+
 // ── MODAL STATE REDUCER ───────────────────────────────────────────────────────
 const MODAL_IDS = [
   'personaEditor','personaManager','localModel','providerSettings','pricing','api','settings','account',
@@ -273,6 +304,35 @@ const MODAL_IDS = [
   'multiModelRace',
   'localBenchmark',
   'localAINexus',
+  // New modals from uploaded project
+  'authModal',
+  'autonomousAgent',
+  'chainOfThought',
+  'codeScanner',
+  'debate',
+  'dynamicCouncil',
+  'finetune',
+  'osintPlatform',
+  'pluginMarketplace',
+  // New full pages opened as windows
+  'accountSettings',
+  'analyticsDashboard',
+  'apiKeys',
+  'collaboration',
+  'memorySystem',
+  'multiAgent',
+  'monitoring3D',
+  'notifications',
+  'ragSystem',
+  'reportsPage',
+  'securityCompliance3D',
+  'adminDashboardPage',
+  'organizations',
+  'pentestLab',
+  'marketplace',
+  'paymentGateway',
+  'finetunePageWin',
+  'helpCenter',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -1117,6 +1177,181 @@ function AppContent() {
 
       {/* ── LOCAL AI MODEL NEXUS — Full-screen modal ── */}
       <LocalAIModelNexus open={modals.localAINexus} onClose={() => close('localAINexus')} />
+
+      {/* ── NEW MODALS FROM UPLOADED PROJECT ── */}
+      <Suspense fallback={null}>
+        {modals.authModal && (
+          <AuthModal open={modals.authModal} onClose={() => close('authModal')} />
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.autonomousAgent && (
+          <AutonomousAgentModal open={modals.autonomousAgent} onOpenChange={(v) => v ? open('autonomousAgent') : close('autonomousAgent')} />
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.chainOfThought && (
+          <ChainOfThoughtModal onClose={() => close('chainOfThought')} />
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.codeScanner && (
+          <CodeScannerModal open={modals.codeScanner} onClose={() => close('codeScanner')} />
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.debate && (
+          <DebateModal onClose={() => close('debate')} />
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.dynamicCouncil && (
+          <DynamicCouncilModal onClose={() => close('dynamicCouncil')} />
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.finetune && (
+          <FinetuneModal open={modals.finetune} onClose={() => close('finetune')} />
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.osintPlatform && (
+          <OsintPlatformModal open={modals.osintPlatform} onOpenChange={(v) => v ? open('osintPlatform') : close('osintPlatform')} />
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.pluginMarketplace && (
+          <PluginMarketplaceModal open={modals.pluginMarketplace} onClose={() => close('pluginMarketplace')} />
+        )}
+      </Suspense>
+
+      {/* ── NEW FULL PAGES AS WINDOWS ── */}
+      <Suspense fallback={null}>
+        {modals.accountSettings && (
+          <WindowChrome title="إعدادات الحساب" onClose={() => close('accountSettings')}>
+            <AccountSettingsPage onClose={() => close('accountSettings')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.analyticsDashboard && (
+          <WindowChrome title="لوحة التحليلات 3D" onClose={() => close('analyticsDashboard')}>
+            <AnalyticsDashboardPage onClose={() => close('analyticsDashboard')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.apiKeys && (
+          <WindowChrome title="مفاتيح API" onClose={() => close('apiKeys')}>
+            <APIKeysPage onClose={() => close('apiKeys')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.collaboration && (
+          <WindowChrome title="التعاون الفوري" onClose={() => close('collaboration')}>
+            <CollaborationPage onClose={() => close('collaboration')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.memorySystem && (
+          <WindowChrome title="نظام الذاكرة" onClose={() => close('memorySystem')}>
+            <MemorySystemPage onClose={() => close('memorySystem')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.multiAgent && (
+          <WindowChrome title="Multi-Agent System" onClose={() => close('multiAgent')}>
+            <MultiAgentPage onClose={() => close('multiAgent')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.monitoring3D && (
+          <WindowChrome title="المراقبة 3D" onClose={() => close('monitoring3D')}>
+            <MonitoringPage3D onClose={() => close('monitoring3D')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.notifications && (
+          <WindowChrome title="مركز الإشعارات" onClose={() => close('notifications')}>
+            <NotificationsPage onClose={() => close('notifications')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.ragSystem && (
+          <WindowChrome title="نظام RAG" onClose={() => close('ragSystem')}>
+            <RAGSystemPage onClose={() => close('ragSystem')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.reportsPage && (
+          <WindowChrome title="التقارير" onClose={() => close('reportsPage')}>
+            <ReportsPage onClose={() => close('reportsPage')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.securityCompliance3D && (
+          <WindowChrome title="الامتثال الأمني 3D" onClose={() => close('securityCompliance3D')}>
+            <SecurityCompliancePage3D onClose={() => close('securityCompliance3D')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.adminDashboardPage && (
+          <WindowChrome title="لوحة الإدارة" onClose={() => close('adminDashboardPage')}>
+            <AdminDashboardPage onClose={() => close('adminDashboardPage')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.organizations && (
+          <WindowChrome title="المنظمات" onClose={() => close('organizations')}>
+            <OrganizationsPage onClose={() => close('organizations')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.pentestLab && (
+          <WindowChrome title="مختبر اختبار الاختراق" onClose={() => close('pentestLab')}>
+            <PentestLabPage onClose={() => close('pentestLab')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.marketplace && (
+          <WindowChrome title="السوق" onClose={() => close('marketplace')}>
+            <MarketplacePage onClose={() => close('marketplace')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.paymentGateway && (
+          <WindowChrome title="بوابة الدفع" onClose={() => close('paymentGateway')}>
+            <PaymentGatewayPage onClose={() => close('paymentGateway')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.finetunePageWin && (
+          <WindowChrome title="الضبط الدقيق" onClose={() => close('finetunePageWin')}>
+            <FinetunePage onClose={() => close('finetunePageWin')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.helpCenter && (
+          <WindowChrome title="مركز المساعدة" onClose={() => close('helpCenter')}>
+            <HelpCenterPage onClose={() => close('helpCenter')} />
+          </WindowChrome>
+        )}
+      </Suspense>
 
       {/* Global Window Tray — minimized windows only */}
       <WindowTray />
