@@ -2,15 +2,14 @@ import { useEffect, useRef } from "react";
 import { getCanvasConfig } from "@/lib/adaptive-quality";
 
 /*
-  FUTURISTIC BACKGROUND 3D — v2
-  Enhanced multi-layer cyber canvas:
-   · Deep perspective grid with animated wave pulses + color bands
-   · Floating hex data nodes with orbital rings + data beams
-   · Atmospheric depth fog layers
-   · Scan-line sweep + chromatic HUD flickers + glitch streaks
-   · Drifting multi-layer particle constellation (3 depth planes)
-   · Corner HUD brackets + status blips
-  Zero external deps — pure Canvas 2D, requestAnimationFrame.
+  FUTURISTIC BACKGROUND 3D — v3 (GPU-optimised)
+  · DPR capped at 1.5 — mobile DPR-3 → 2.25× not 9×
+  · 30 FPS hard cap via lastFrameTs throttle
+  · 10 FPS when prefers-reduced-motion is on
+  · Page Visibility API: skip draw when tab hidden
+  · Grid vertical lines: flat rgba (no per-line gradient)
+  · Fog / horizon gradients cached, recreated only on resize
+  · GPU layer: will-change:transform + contain:strict
 */
 
 const LABELS = [
@@ -37,16 +36,19 @@ export function FuturisticBackground3D({
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true })!;
 
+    const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const FRAME_MS = reducedMotion ? 100 : 33;
+
     const parseColor = (hex: string) => ({
       r: parseInt(hex.slice(1, 3), 16),
       g: parseInt(hex.slice(3, 5), 16),
       b: parseInt(hex.slice(5, 7), 16),
     });
     const ac  = parseColor(accentColor);
-    const sec = { r: 0,   g: 229, b: 255 };  // cyan accent
-    const tri = { r: 167, g: 139, b: 250 };  // violet accent
+    const sec = { r: 0,   g: 229, b: 255 };
+    const tri = { r: 167, g: 139, b: 250 };
 
-    // ── Types ─────────────────────────────────────────────────────────────
     type HexNode = {
       x: number; y: number; z: number;
       vx: number; vy: number;
@@ -55,29 +57,47 @@ export function FuturisticBackground3D({
       orbitAngle: number; orbitSpd: number; orbitR: number;
       accentIdx: number;
     };
-    type Beam = { a: number; b: number; t: number; spd: number; col: string };
-    type Particle = {
-      x: number; y: number;
-      vx: number; vy: number;
-      alpha: number; r: number;
-      col: string; depth: number;
-    };
+    type Beam      = { a: number; b: number; t: number; spd: number; col: string };
+    type Particle  = { x: number; y: number; vx: number; vy: number; alpha: number; r: number; col: string; depth: number };
     type GlitchStreak = { x: number; y: number; w: number; h: number; ttl: number };
 
-    let nodes:   HexNode[]     = [];
-    let beams:   Beam[]        = [];
-    let particles: Particle[]  = [];
+    let nodes:    HexNode[]      = [];
+    let beams:    Beam[]         = [];
+    let particles: Particle[]   = [];
     let glitches: GlitchStreak[] = [];
 
     const ACCENT_COLS = [accentColor, "#00e5ff", "#a78bfa", "#22c55e", "#f59e0b"];
 
-    // ── Resize ────────────────────────────────────────────────────────────
     let W = 0, H = 0;
+
+    // ── Cached gradients (rebuilt on resize) ──────────────────────────────
+    let cachedFogTop: CanvasGradient | null    = null;
+    let cachedFogBot: CanvasGradient | null    = null;
+    let cachedHorizon: CanvasGradient | null   = null;
+
+    function buildCachedGradients() {
+      const HORIZ = H * 0.52;
+      cachedFogTop = ctx.createLinearGradient(0, 0, 0, H * 0.3);
+      cachedFogTop.addColorStop(0, `rgba(${ac.r},${ac.g},${ac.b},${0.018 * opacity})`);
+      cachedFogTop.addColorStop(1, "transparent");
+
+      cachedFogBot = ctx.createLinearGradient(0, H * 0.7, 0, H);
+      cachedFogBot.addColorStop(0, "transparent");
+      cachedFogBot.addColorStop(1, `rgba(4,4,8,${0.25 * opacity})`);
+
+      cachedHorizon = ctx.createLinearGradient(0, HORIZ - 16, 0, HORIZ + 16);
+      cachedHorizon.addColorStop(0,   "transparent");
+      cachedHorizon.addColorStop(0.5, `rgba(${ac.r},${ac.g},${ac.b},${0.09 * opacity})`);
+      cachedHorizon.addColorStop(1,   "transparent");
+    }
+
     function resize() {
       W = canvas!.offsetWidth;
       H = canvas!.offsetHeight;
-      canvas!.width  = W;
-      canvas!.height = H;
+      canvas!.width  = Math.round(W * DPR);
+      canvas!.height = Math.round(H * DPR);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      buildCachedGradients();
       initScene();
     }
     const ro = new ResizeObserver(resize);
@@ -88,37 +108,35 @@ export function FuturisticBackground3D({
       const qcfg = getCanvasConfig();
       const nodeCount = Math.min(qcfg.nodeCount, Math.max(6, Math.floor(W * H / 38000)));
       nodes = Array.from({ length: nodeCount }, () => ({
-        x:         Math.random() * W,
-        y:         Math.random() * H,
-        z:         0.35 + Math.random() * 0.65,
-        vx:        (Math.random() - 0.5) * 0.16,
-        vy:        (Math.random() - 0.5) * 0.13,
-        size:      2 + Math.random() * 3.5,
-        phase:     Math.random() * Math.PI * 2,
-        phaseSpd:  0.004 + Math.random() * 0.014,
-        label:     LABELS[Math.floor(Math.random() * LABELS.length)],
-        alpha:     0.35 + Math.random() * 0.55,
+        x: Math.random() * W,  y: Math.random() * H,
+        z: 0.35 + Math.random() * 0.65,
+        vx: (Math.random() - 0.5) * 0.16,
+        vy: (Math.random() - 0.5) * 0.13,
+        size: 2 + Math.random() * 3.5,
+        phase: Math.random() * Math.PI * 2,
+        phaseSpd: 0.004 + Math.random() * 0.014,
+        label: LABELS[Math.floor(Math.random() * LABELS.length)],
+        alpha: 0.35 + Math.random() * 0.55,
         orbitAngle: Math.random() * Math.PI * 2,
-        orbitSpd:  (Math.random() - 0.5) * 0.018,
-        orbitR:    8 + Math.random() * 18,
-        accentIdx: Math.floor(Math.random() * ACCENT_COLS.length),
+        orbitSpd:   (Math.random() - 0.5) * 0.018,
+        orbitR:     8 + Math.random() * 18,
+        accentIdx:  Math.floor(Math.random() * ACCENT_COLS.length),
       }));
 
       const qcfg2 = getCanvasConfig();
       const pCount = Math.min(qcfg2.particleCount, Math.floor(W * H / 20000));
       particles = Array.from({ length: pCount }, () => ({
-        x:     Math.random() * W,
-        y:     Math.random() * H,
-        vx:    (Math.random() - 0.5) * 0.06,
-        vy:    -(0.05 + Math.random() * 0.22),
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.06,
+        vy: -(0.05 + Math.random() * 0.22),
         alpha: 0.04 + Math.random() * 0.22,
-        r:     0.4 + Math.random() * 1.8,
-        col:   ACCENT_COLS[Math.floor(Math.random() * ACCENT_COLS.length)],
+        r: 0.4 + Math.random() * 1.8,
+        col: ACCENT_COLS[Math.floor(Math.random() * ACCENT_COLS.length)],
         depth: 0.2 + Math.random() * 0.8,
       }));
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
     function hexPath(cx: number, cy: number, r: number) {
       ctx.beginPath();
       for (let i = 0; i < 6; i++) {
@@ -129,7 +147,7 @@ export function FuturisticBackground3D({
       ctx.closePath();
     }
 
-    // ── Grid ─────────────────────────────────────────────────────────────
+    // ── Grid — vertical lines use flat rgba (no gradient per line) ────────
     function drawGrid(t: number) {
       const HORIZ  = H * 0.52;
       const FOV    = H * 1.6;
@@ -139,7 +157,7 @@ export function FuturisticBackground3D({
       const GRID_W = DEPTH * 1.9;
       const pulse  = Math.sin(t * 0.38) * 0.5 + 0.5;
       const camZ   = 240 + Math.sin(t * 0.2) * 50;
-      const wavePct = (t * 0.15) % 1;          // wave front 0→1 over depth
+      const wavePct = (t * 0.15) % 1;
 
       function project(wx: number, wz: number) {
         const dz = wz + camZ;
@@ -151,31 +169,28 @@ export function FuturisticBackground3D({
         };
       }
 
-      // Vertical lines
+      // Vertical lines — flat color, no gradient object allocation
       for (let i = 0; i <= COLS; i++) {
-        const wx      = (i / COLS - 0.5) * GRID_W;
-        const near    = project(wx * 2.5, 0);
-        const far     = project(wx,       DEPTH);
+        const wx       = (i / COLS - 0.5) * GRID_W;
+        const near     = project(wx * 2.5, 0);
+        const far      = project(wx, DEPTH);
         const edgeFade = 1 - Math.abs(i / COLS - 0.5) * 1.8;
         if (edgeFade <= 0) continue;
-        const a = edgeFade * 0.065 * opacity;
+        const a = edgeFade * 0.065 * opacity + pulse * 0.025 * edgeFade;
         if (a < 0.004) continue;
-        const grad = ctx.createLinearGradient(near.x, near.y, far.x, far.y);
-        grad.addColorStop(0, `rgba(${ac.r},${ac.g},${ac.b},${a + pulse * 0.025})`);
-        grad.addColorStop(1, `rgba(${ac.r},${ac.g},${ac.b},0)`);
         ctx.beginPath();
         ctx.moveTo(near.x, H + 10);
-        ctx.lineTo(far.x,  HORIZ);
-        ctx.strokeStyle = grad;
+        ctx.lineTo(far.x, HORIZ);
+        ctx.strokeStyle = `rgba(${ac.r},${ac.g},${ac.b},${a})`;
         ctx.lineWidth   = 0.6;
         ctx.stroke();
       }
 
       // Horizontal depth bands + traveling wave
       for (let r = 0; r <= ROWS; r++) {
-        const wz       = (r / ROWS) * DEPTH;
-        const p0       = project(-GRID_W * 0.9, wz);
-        const p1       = project( GRID_W * 0.9, wz);
+        const wz      = (r / ROWS) * DEPTH;
+        const p0      = project(-GRID_W * 0.9, wz);
+        const p1      = project( GRID_W * 0.9, wz);
         const rowNorm  = r / ROWS;
         const waveDist = Math.abs(rowNorm - wavePct);
         const waveGlow = Math.exp(-waveDist * 22) * 0.18;
@@ -186,24 +201,20 @@ export function FuturisticBackground3D({
         ctx.beginPath();
         ctx.moveTo(p0.x, screenY);
         ctx.lineTo(p1.x, screenY);
-        const lineCol = waveGlow > 0.05
+        ctx.strokeStyle = waveGlow > 0.05
           ? `rgba(${sec.r},${sec.g},${sec.b},${a * 1.5})`
           : `rgba(${ac.r},${ac.g},${ac.b},${a})`;
-        ctx.strokeStyle = lineCol;
-        ctx.lineWidth   = waveGlow > 0.05 ? 1.2 : 0.6;
+        ctx.lineWidth = waveGlow > 0.05 ? 1.2 : 0.6;
         ctx.stroke();
       }
 
-      // Horizon glow
-      const hg = ctx.createLinearGradient(0, HORIZ - 16, 0, HORIZ + 16);
-      hg.addColorStop(0,   "transparent");
-      hg.addColorStop(0.5, `rgba(${ac.r},${ac.g},${ac.b},${0.07 + pulse * 0.04})`);
-      hg.addColorStop(1,   "transparent");
-      ctx.fillStyle = hg;
-      ctx.fillRect(0, HORIZ - 16, W, 32);
+      // Horizon glow (cached gradient)
+      if (cachedHorizon) {
+        ctx.fillStyle = cachedHorizon;
+        ctx.fillRect(0, HORIZ - 16, W, 32);
+      }
     }
 
-    // ── Nodes + beams ────────────────────────────────────────────────────
     function drawNodes(t: number) {
       const CONN_DIST = Math.min(W, H) * 0.28;
 
@@ -234,7 +245,6 @@ export function FuturisticBackground3D({
         }
       }
 
-      // Beam packets
       beams = beams.filter(bm => {
         bm.t += bm.spd;
         if (bm.t > 1) return false;
@@ -259,7 +269,6 @@ export function FuturisticBackground3D({
         return true;
       });
 
-      // Hex nodes
       for (const n of nodes) {
         n.phase      += n.phaseSpd;
         n.orbitAngle += n.orbitSpd;
@@ -273,31 +282,26 @@ export function FuturisticBackground3D({
         const sz   = n.size * n.z * (0.78 + pulse * 0.35);
         const a    = n.alpha * n.z * opacity;
 
-        // Outer glow
         const grd = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, sz * 4);
         grd.addColorStop(0, `rgba(${nc.r},${nc.g},${nc.b},${a * 0.12})`);
         grd.addColorStop(1, "transparent");
         ctx.beginPath(); ctx.arc(n.x, n.y, sz * 4, 0, Math.PI * 2);
         ctx.fillStyle = grd; ctx.fill();
 
-        // Orbital ring (on large, close nodes)
         if (n.z > 0.6 && sz > 4) {
           ctx.beginPath();
           ctx.ellipse(n.x, n.y, sz * 2.8, sz * 1.1, n.orbitAngle * 0.5, 0, Math.PI * 2);
           ctx.strokeStyle = `rgba(${nc.r},${nc.g},${nc.b},${a * 0.22})`;
           ctx.lineWidth   = 0.6;
           ctx.stroke();
-
-          // Orbiting dot
           const ox = n.x + Math.cos(n.orbitAngle) * sz * 2.8;
           const oy = n.y + Math.sin(n.orbitAngle) * sz * 1.1;
           ctx.beginPath(); ctx.arc(ox, oy, 1.5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${nc.r},${nc.g},${nc.b},${a * 0.7})`;
+          ctx.fillStyle   = `rgba(${nc.r},${nc.g},${nc.b},${a * 0.7})`;
           ctx.shadowColor = acol; ctx.shadowBlur = 5;
           ctx.fill(); ctx.shadowBlur = 0;
         }
 
-        // Hex shape
         hexPath(n.x, n.y, sz);
         ctx.strokeStyle = `rgba(${nc.r},${nc.g},${nc.b},${a * (0.5 + pulse * 0.3)})`;
         ctx.lineWidth   = 0.8;
@@ -306,13 +310,11 @@ export function FuturisticBackground3D({
         ctx.fillStyle = `rgba(${nc.r},${nc.g},${nc.b},${a * 0.14})`;
         ctx.fill();
 
-        // Center dot
         ctx.beginPath(); ctx.arc(n.x, n.y, 1.2, 0, Math.PI * 2);
         ctx.fillStyle   = `rgba(${nc.r},${nc.g},${nc.b},${a * 0.8})`;
         ctx.shadowColor = acol; ctx.shadowBlur = 6;
         ctx.fill(); ctx.shadowBlur = 0;
 
-        // Label
         if (n.z > 0.65 && pulse > 0.6) {
           ctx.font      = `${Math.round(6.5 * n.z)}px monospace`;
           ctx.fillStyle = `rgba(${nc.r},${nc.g},${nc.b},${a * pulse * 0.6})`;
@@ -321,14 +323,13 @@ export function FuturisticBackground3D({
       }
     }
 
-    // ── Particles (3 depth layers) ────────────────────────────────────────
     function drawParticles() {
       for (const p of particles) {
         p.x += p.vx * p.depth;
         p.y += p.vy * p.depth;
         if (p.y < -12) { p.y = H + 12; p.x = Math.random() * W; }
-        if (p.x < -12) { p.x = W + 12; }
-        if (p.x > W + 12) { p.x = -12; }
+        if (p.x < -12) p.x = W + 12;
+        if (p.x > W + 12) p.x = -12;
         const pc = parseColor(p.col);
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r * p.depth, 0, Math.PI * 2);
@@ -337,22 +338,12 @@ export function FuturisticBackground3D({
       }
     }
 
-    // ── Atmospheric fog layers ────────────────────────────────────────────
+    // ── Fog: use cached gradients ─────────────────────────────────────────
     function drawFog() {
-      // Top vignette
-      const tg = ctx.createLinearGradient(0, 0, 0, H * 0.3);
-      tg.addColorStop(0, `rgba(${ac.r},${ac.g},${ac.b},${0.018 * opacity})`);
-      tg.addColorStop(1, "transparent");
-      ctx.fillStyle = tg; ctx.fillRect(0, 0, W, H * 0.3);
-
-      // Bottom vignette
-      const bg = ctx.createLinearGradient(0, H * 0.7, 0, H);
-      bg.addColorStop(0, "transparent");
-      bg.addColorStop(1, `rgba(4,4,8,${0.25 * opacity})`);
-      ctx.fillStyle = bg; ctx.fillRect(0, H * 0.7, W, H * 0.3);
+      if (cachedFogTop) { ctx.fillStyle = cachedFogTop; ctx.fillRect(0, 0, W, H * 0.3); }
+      if (cachedFogBot) { ctx.fillStyle = cachedFogBot; ctx.fillRect(0, H * 0.7, W, H * 0.3); }
     }
 
-    // ── Scan-line sweep ───────────────────────────────────────────────────
     function drawScanLine(t: number) {
       const y  = ((t * 0.165) % 1) * H;
       const sg = ctx.createLinearGradient(0, y - 45, 0, y + 45);
@@ -364,7 +355,6 @@ export function FuturisticBackground3D({
       ctx.fillStyle = sg; ctx.fillRect(0, y - 45, W, 90);
     }
 
-    // ── Glitch streaks ───────────────────────────────────────────────────
     function maybeGlitch(t: number) {
       if (Math.random() < 0.003) {
         glitches.push({
@@ -377,45 +367,35 @@ export function FuturisticBackground3D({
       }
       glitches = glitches.filter(g => {
         g.ttl--;
-        const a = (g.ttl / 10) * 0.6 * opacity;
-        ctx.fillStyle = `rgba(${ac.r},${ac.g},${ac.b},${a})`;
+        ctx.fillStyle = `rgba(${ac.r},${ac.g},${ac.b},${(g.ttl / 10) * 0.6 * opacity})`;
         ctx.fillRect(g.x, g.y, g.w, g.h);
         return g.ttl > 0;
       });
     }
 
-    // ── HUD corner brackets ───────────────────────────────────────────────
     function drawCornerHUD(t: number) {
-      const SZ   = 22;
+      const SZ    = 22;
       const blink = Math.sin(t * 3.5) > 0.3;
-      const ca   = 0.18 * opacity;
+      const ca    = 0.18 * opacity;
       ctx.strokeStyle = `rgba(${ac.r},${ac.g},${ac.b},${ca})`;
       ctx.lineWidth   = 1;
 
-      const corners = [
-        [5, 5],       // TL
-        [W - 5, 5],   // TR
-        [5, H - 5],   // BL
-        [W - 5, H - 5], // BR
-      ];
+      const corners = [[5, 5], [W - 5, 5], [5, H - 5], [W - 5, H - 5]];
       corners.forEach(([cx, cy], ci) => {
-        const sx  = cx === 5 ? 1 : -1;
-        const sy  = cy === 5 ? 1 : -1;
+        const sx = cx === 5 ? 1 : -1;
+        const sy = cy === 5 ? 1 : -1;
         ctx.beginPath();
         ctx.moveTo(cx + sx * SZ, cy);
         ctx.lineTo(cx, cy);
         ctx.lineTo(cx, cy + sy * SZ);
         ctx.stroke();
-
         if (blink && ci === 0) {
           ctx.fillStyle = `rgba(${ac.r},${ac.g},${ac.b},${0.55 * opacity})`;
-          ctx.beginPath();
-          ctx.arc(cx + 9, cy + 9, 2, 0, Math.PI * 2);
+          ctx.beginPath(); ctx.arc(cx + 9, cy + 9, 2, 0, Math.PI * 2);
           ctx.fill();
         }
       });
 
-      // Secondary micro-brackets at 35px offset
       const SM = 10;
       ctx.strokeStyle = `rgba(${sec.r},${sec.g},${sec.b},${ca * 0.5})`;
       ctx.lineWidth   = 0.5;
@@ -432,7 +412,6 @@ export function FuturisticBackground3D({
       });
     }
 
-    // ── Status blip bar (bottom-left) ────────────────────────────────────
     function drawStatusBlips(t: number) {
       const blips = [
         { col: `rgba(${ac.r},${ac.g},${ac.b},${opacity * 0.7})`,  on: Math.sin(t * 4.1) > 0    },
@@ -448,7 +427,6 @@ export function FuturisticBackground3D({
       });
     }
 
-    // ── Main loop ─────────────────────────────────────────────────────────
     let lastFrameTs = 0;
     let _paused = false;
     function _onVis() { _paused = document.hidden; }
@@ -457,12 +435,11 @@ export function FuturisticBackground3D({
     function draw(now: number) {
       rafRef.current = requestAnimationFrame(draw);
       if (_paused) return;
-      if (now - lastFrameTs < 33) return; // ~30fps cap
+      if (now - lastFrameTs < FRAME_MS) return;
       lastFrameTs = now;
       timeRef.current += 0.011;
       const t = timeRef.current;
       ctx.clearRect(0, 0, W, H);
-
       drawGrid(t);
       drawNodes(t);
       drawParticles();
@@ -486,15 +463,15 @@ export function FuturisticBackground3D({
     <canvas
       ref={canvasRef}
       style={{
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        height: "100%",
+        position:      "absolute",
+        inset:         0,
+        width:         "100%",
+        height:        "100%",
         pointerEvents: "none",
-        zIndex: 0,
-        willChange: "transform",
-        transform: "translateZ(0)",
-        contain: "strict",
+        zIndex:        0,
+        willChange:    "transform",
+        transform:     "translateZ(0)",
+        contain:       "strict",
       }}
     />
   );

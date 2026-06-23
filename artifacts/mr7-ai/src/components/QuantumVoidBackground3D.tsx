@@ -1,7 +1,13 @@
 import { useEffect, useRef } from "react";
 
 /*
-  QUANTUM VOID BACKGROUND 3D — Maximum Quality v3
+  QUANTUM VOID BACKGROUND 3D — v4 (GPU-optimised)
+  ─────────────────────────────────────────────────
+  · DPR capped at 1.5 (mobile DPR-3 → 2.25× not 9×)
+  · 30 FPS hard cap, 10 FPS when prefers-reduced-motion
+  · Page Visibility API: skip draw when tab hidden
+  · Vignette gradient cached, rebuilt only on resize
+  · GPU layer: will-change:transform + contain:strict
   ─────────────────────────────────────────────────
   Layers (back → front):
   1. Deep space starfield — 3 parallax depth planes (320 stars)
@@ -17,8 +23,7 @@ import { useEffect, useRef } from "react";
   11. Supernova flash events — periodic explosions
   12. Holographic scan line sweep
   13. Corner HUD brackets + status ticks
-  14. Vignette fade
-  Pure Canvas 2D, requestAnimationFrame, DPR-aware, zero deps.
+  14. Vignette fade (cached gradient)
 */
 
 interface Props {
@@ -33,11 +38,14 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
 
   useEffect(() => {
     if (!canvasRef.current) return;
-    const cv = canvasRef.current as HTMLCanvasElement;
+    const cv  = canvasRef.current as HTMLCanvasElement;
     const ctx = cv.getContext("2d", { alpha: true, desynchronized: true })!;
     ctx.imageSmoothingEnabled = false;
 
-    const DPR = Math.min(window.devicePixelRatio, 1.5);
+    const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const FRAME_BUDGET  = reducedMotion ? 100 : 1000 / 30; // 10 or 30 fps
+
     const parseHex = (h: string) => ({
       r: parseInt(h.slice(1,3),16), g: parseInt(h.slice(3,5),16), b: parseInt(h.slice(5,7),16),
     });
@@ -54,19 +62,28 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
 
     let W = 0, H = 0;
 
+    // ── Cached vignette gradient ──────────────────────────────────────────
+    let cachedVignette: CanvasGradient | null = null;
+    function buildVignette() {
+      cachedVignette = ctx.createRadialGradient(W/2, H/2, H*0.35, W/2, H/2, H*0.85);
+      cachedVignette.addColorStop(0, "rgba(0,0,0,0)");
+      cachedVignette.addColorStop(1, "rgba(0,0,0,0.55)");
+    }
+
     function resize() {
       const rect = cv.parentElement?.getBoundingClientRect();
       W = (rect?.width  || window.innerWidth);
       H = (rect?.height || window.innerHeight);
-      cv.width  = W * DPR;
-      cv.height = H * DPR;
+      cv.width  = Math.round(W * DPR);
+      cv.height = Math.round(H * DPR);
       cv.style.width  = W + "px";
       cv.style.height = H + "px";
-      ctx.scale(DPR, DPR);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      buildVignette();
       initAll();
     }
 
-    // ── 1. Stars ─────────────────────────────────────────────────────────────
+    // ── 1. Stars ─────────────────────────────────────────────────────────
     type Star = { x: number; y: number; r: number; a: number; va: number; depth: number };
     let stars: Star[] = [];
     function initStars() {
@@ -80,7 +97,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       }));
     }
 
-    // ── 2. Dark matter cosmic web ─────────────────────────────────────────────
+    // ── 2. Dark matter cosmic web ─────────────────────────────────────────
     type WebNode = { x: number; y: number };
     let webNodes: WebNode[] = [];
     let webEdges: [number, number][] = [];
@@ -93,14 +110,12 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         for (let j = i+1; j < webNodes.length; j++) {
           const dx = webNodes[i].x - webNodes[j].x;
           const dy = webNodes[i].y - webNodes[j].y;
-          if (Math.sqrt(dx*dx+dy*dy) < Math.min(W, H) * 0.38) {
-            webEdges.push([i, j]);
-          }
+          if (Math.sqrt(dx*dx+dy*dy) < Math.min(W, H) * 0.38) webEdges.push([i, j]);
         }
       }
     }
 
-    // ── 3. Nebula clouds ─────────────────────────────────────────────────────
+    // ── 3. Nebula clouds ──────────────────────────────────────────────────
     type Nebula = { cx: number; cy: number; r: number; phase: number; spd: number; hOff: number };
     let nebulae: Nebula[] = [];
     function initNebulae() {
@@ -114,7 +129,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       ];
     }
 
-    // ── 4. Warp speed tunnel ──────────────────────────────────────────────────
+    // ── 4. Warp speed tunnel ──────────────────────────────────────────────
     type WarpLine = { angle: number; speed: number; alpha: number };
     let warpLines: WarpLine[] = [];
     function initWarp() {
@@ -125,12 +140,12 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       }));
     }
 
-    // ── 5. Cyberspace 3D grid ─────────────────────────────────────────────────
+    // ── 5. Cyberspace 3D grid ─────────────────────────────────────────────
     const GRID_COLS  = 20;
     const GRID_ROWS  = 24;
     const GRID_SPEED = 0.18;
 
-    // ── 6. Neural network ─────────────────────────────────────────────────────
+    // ── 6. Neural network ─────────────────────────────────────────────────
     type NNode = { x: number; y: number; z: number; vx: number; vy: number; hOff: number; r: number };
     type NEdge = { a: number; b: number };
     type NSig  = { edge: number; t: number; spd: number; hOff: number };
@@ -138,7 +153,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
     let edges:   NEdge[] = [];
     let signals: NSig[]  = [];
     const NODE_COUNT = 90;
-    const DEPTH_Z = 300;
+    const DEPTH_Z    = 300;
 
     function initNodes() {
       nodes = Array.from({ length: NODE_COUNT }, (_, i) => ({
@@ -155,10 +170,8 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         for (let j = i+1; j < NODE_COUNT; j++) {
           const dx = nodes[i].x - nodes[j].x;
           const dy = nodes[i].y - nodes[j].y;
-          const d  = Math.sqrt(dx*dx + dy*dy);
-          if (d < Math.min(W,H) * 0.19 && edges.length < 200) {
+          if (Math.sqrt(dx*dx+dy*dy) < Math.min(W,H) * 0.19 && edges.length < 200)
             edges.push({ a: i, b: j });
-          }
         }
       }
     }
@@ -170,7 +183,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       }
     }
 
-    // ── 7. Aurora borealis ────────────────────────────────────────────────────
+    // ── 7. Aurora borealis ────────────────────────────────────────────────
     type AuroraWave = { yBase: number; amplitude: number; freq: number; phase: number; hOff: number; speed: number };
     let auroraWaves: AuroraWave[] = [];
     function initAurora() {
@@ -184,15 +197,14 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       }));
     }
 
-    // ── 8. Black hole ─────────────────────────────────────────────────────────
+    // ── 8. Black hole ─────────────────────────────────────────────────────
     const BH = { x: 0, y: 0, r: 0 };
     function initBlackHole() {
-      BH.x = W * 0.82;
-      BH.y = H * 0.18;
+      BH.x = W * 0.82; BH.y = H * 0.18;
       BH.r = Math.min(W, H) * 0.035;
     }
 
-    // ── 9. Data rain ─────────────────────────────────────────────────────────
+    // ── 9. Data rain ─────────────────────────────────────────────────────
     const CHARS = "01アイウエオカキクケコ01ABCDEF0x";
     type RainDrop = { x: number; y: number; spd: number; len: number; chars: string[]; hOff: number; alpha: number };
     let rain: RainDrop[] = [];
@@ -208,7 +220,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       }));
     }
 
-    // ── 10. Comets & shooting stars ───────────────────────────────────────────
+    // ── 10. Comets ────────────────────────────────────────────────────────
     type Comet = { x: number; y: number; vx: number; vy: number; len: number; alpha: number; hOff: number; active: boolean };
     let comets: Comet[] = [];
     function spawnComet() {
@@ -227,12 +239,12 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       comets = comets.filter(c => c.active);
     }
 
-    // ── 11. Supernova events ──────────────────────────────────────────────────
+    // ── 11. Supernova events ──────────────────────────────────────────────
     type Supernova = { x: number; y: number; r: number; maxR: number; age: number; hOff: number; active: boolean };
     let supernovae: Supernova[] = [];
     let lastSupernovaTime = 0;
 
-    // ── 12. Scan line ─────────────────────────────────────────────────────────
+    // ── 12. Scan line ─────────────────────────────────────────────────────
     let scanY = 0;
 
     function initAll() {
@@ -246,14 +258,14 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       const hue = (t * 10) % 360;
       ctx.clearRect(0, 0, W, H);
 
-      // ── 1. Stars ──────────────────────────────────────────────────────────
+      // ── 1. Stars ──────────────────────────────────────────────────────
       stars.forEach(s => {
         const twinkle = 0.3 + 0.7 * (Math.sin(t * s.va + s.x * 0.01) * 0.5 + 0.5);
         ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
         ctx.fillStyle = `rgba(255,255,255,${s.a * twinkle})`; ctx.fill();
       });
 
-      // ── 2. Dark matter cosmic web ──────────────────────────────────────────
+      // ── 2. Dark matter cosmic web ────────────────────────────────────
       webEdges.forEach(([a, b]) => {
         const ax = webNodes[a].x, ay = webNodes[a].y;
         const bx = webNodes[b].x, by = webNodes[b].y;
@@ -262,19 +274,20 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         ctx.strokeStyle = `rgba(${ACCENT},${0.012 + pulse * 0.010})`; ctx.lineWidth = 0.6; ctx.stroke();
       });
 
-      // ── 3. Nebulae ─────────────────────────────────────────────────────────
+      // ── 3. Nebulae ───────────────────────────────────────────────────
       nebulae.forEach(n => {
-        const wave = Math.sin(t * n.spd + n.phase);
-        const nc = ctx.createRadialGradient(n.cx, n.cy, 0, n.cx, n.cy, n.r * (1 + wave * 0.1));
+        const wave  = Math.sin(t * n.spd + n.phase);
+        const nr    = n.r * (1 + wave * 0.1);
+        const nc    = ctx.createRadialGradient(n.cx, n.cy, 0, n.cx, n.cy, nr);
         nc.addColorStop(0,   `rgba(${hsl(hue + n.hOff)},0.055)`);
         nc.addColorStop(0.45,`rgba(${hsl(hue + n.hOff + 60)},0.022)`);
         nc.addColorStop(0.8, `rgba(${ACCENT},0.008)`);
         nc.addColorStop(1,   "rgba(0,0,0,0)");
-        ctx.beginPath(); ctx.arc(n.cx, n.cy, n.r * (1 + wave * 0.1), 0, Math.PI*2);
+        ctx.beginPath(); ctx.arc(n.cx, n.cy, nr, 0, Math.PI*2);
         ctx.fillStyle = nc; ctx.fill();
       });
 
-      // ── 4. Warp speed tunnel ───────────────────────────────────────────────
+      // ── 4. Warp speed tunnel ─────────────────────────────────────────
       const vanishX = W * 0.5, vanishY = H * 0.5;
       warpLines.forEach(wl => {
         wl.speed += 0.00004;
@@ -289,7 +302,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         ctx.lineWidth = 0.5; ctx.stroke();
       });
 
-      // ── 5. Cyberspace 3D grid ──────────────────────────────────────────────
+      // ── 5. Cyberspace 3D grid ────────────────────────────────────────
       {
         const fov   = Math.min(W, H) * 1.0;
         const eye   = H * 0.55;
@@ -298,7 +311,6 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         const gridW = W * 1.4;
         const gridD = H * 1.0;
 
-        // Horizon glow
         const hg = ctx.createLinearGradient(0, gy - 8, 0, gy + 8);
         hg.addColorStop(0, "rgba(0,0,0,0)");
         hg.addColorStop(0.5, `rgba(${ACCENT},0.06)`);
@@ -306,7 +318,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         ctx.fillStyle = hg; ctx.fillRect(0, gy - 8, W, 16);
 
         function gridProj(gx: number, gz: number) {
-          const d = gz + fov;
+          const d  = gz + fov;
           const sc = fov / (d > 1 ? d : 1);
           return { px: W/2 + gx * sc, py: eye - (eye - gy) * sc };
         }
@@ -330,7 +342,6 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         }
         ctx.restore();
 
-        // Ceiling
         ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, gy); ctx.clip();
         for (let col = 0; col <= GRID_COLS; col++) {
           const gx = (col / GRID_COLS - 0.5) * gridW;
@@ -345,7 +356,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         ctx.restore();
       }
 
-      // ── 6. Neural network ──────────────────────────────────────────────────
+      // ── 6. Neural network ────────────────────────────────────────────
       nodes.forEach(n => {
         n.x += n.vx; n.y += n.vy;
         if (n.x < 0 || n.x > W) n.vx *= -1;
@@ -365,15 +376,15 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       signals.forEach((sig, si) => {
         sig.t += sig.spd;
         if (sig.t >= 1.0) { signals.splice(si, 1); return; }
-        const e  = edges[sig.edge];
+        const e = edges[sig.edge];
         if (!e) { signals.splice(si, 1); return; }
-        const a  = nodes[e.a], b = nodes[e.b];
+        const a = nodes[e.a], b = nodes[e.b];
         const px = a.x + (b.x - a.x) * sig.t;
         const py = a.y + (b.y - a.y) * sig.t;
         const sg = ctx.createRadialGradient(px, py, 0, px, py, 5);
-        sg.addColorStop(0, `rgba(255,255,255,0.90)`);
+        sg.addColorStop(0,   `rgba(255,255,255,0.90)`);
         sg.addColorStop(0.5, `rgba(${hsl(sig.hOff + hue)},0.55)`);
-        sg.addColorStop(1, "rgba(0,0,0,0)");
+        sg.addColorStop(1,   "rgba(0,0,0,0)");
         ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI*2);
         ctx.fillStyle = sg; ctx.fill();
       });
@@ -388,7 +399,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         ctx.fillStyle = `rgba(${hsl(n.hOff+hue)},0.65)`; ctx.fill();
       });
 
-      // ── 7. Aurora borealis ─────────────────────────────────────────────────
+      // ── 7. Aurora borealis ───────────────────────────────────────────
       auroraWaves.forEach(aw => {
         const STEPS = Math.ceil(W / 4);
         ctx.beginPath();
@@ -400,7 +411,6 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         }
         ctx.strokeStyle = `rgba(${hsl(hue + aw.hOff)},0.055)`; ctx.lineWidth = 2.5; ctx.stroke();
 
-        // Aurora fill band
         ctx.beginPath();
         for (let i = 0; i <= STEPS; i++) {
           const x = (i / STEPS) * W;
@@ -414,17 +424,15 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         }
         ctx.closePath();
         const aug = ctx.createLinearGradient(0, aw.yBase - aw.amplitude, 0, aw.yBase + aw.amplitude * 2);
-        aug.addColorStop(0, `rgba(${hsl(hue + aw.hOff)},0.028)`);
+        aug.addColorStop(0,   `rgba(${hsl(hue + aw.hOff)},0.028)`);
         aug.addColorStop(0.5, `rgba(${hsl(hue + aw.hOff + 40)},0.012)`);
-        aug.addColorStop(1, "rgba(0,0,0,0)");
+        aug.addColorStop(1,   "rgba(0,0,0,0)");
         ctx.fillStyle = aug; ctx.fill();
       });
 
-      // ── 8. Black hole ──────────────────────────────────────────────────────
+      // ── 8. Black hole ─────────────────────────────────────────────────
       {
         const pulseR = BH.r * (1 + 0.08 * Math.sin(t * 2.2));
-
-        // Accretion disk (flat ellipse)
         const diskRX = BH.r * 4.0, diskRY = BH.r * 1.1;
         for (let ring = 0; ring < 5; ring++) {
           const rFrac = 1.0 - ring * 0.18;
@@ -434,20 +442,14 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
           ctx.strokeStyle = `rgba(${hsl(diskH)},${0.08 - ring * 0.014})`;
           ctx.lineWidth = 1.2 - ring * 0.2; ctx.stroke();
         }
-
-        // Gravitational lensing rings
         for (let lr = 1; lr <= 4; lr++) {
           const lensR = pulseR * (1.8 + lr * 0.6);
-          const alpha = 0.035 / lr;
           ctx.beginPath(); ctx.arc(BH.x, BH.y, lensR, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(${hsl(hue + lr * 30)},${alpha})`; ctx.lineWidth = 0.8; ctx.stroke();
+          ctx.strokeStyle = `rgba(${hsl(hue + lr * 30)},${0.035 / lr})`; ctx.lineWidth = 0.8; ctx.stroke();
         }
-
-        // Singularity (absolute dark circle with hard edge)
         ctx.beginPath(); ctx.arc(BH.x, BH.y, pulseR, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(0,0,0,0.92)"; ctx.fill();
 
-        // Event horizon glow
         const ehg = ctx.createRadialGradient(BH.x, BH.y, pulseR * 0.7, BH.x, BH.y, pulseR * 3.0);
         ehg.addColorStop(0,   `rgba(${hsl(hue+30)},0.0)`);
         ehg.addColorStop(0.5, `rgba(${hsl(hue+30)},0.06)`);
@@ -457,7 +459,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         ctx.fillStyle = ehg; ctx.fill();
       }
 
-      // ── 9. Data rain ───────────────────────────────────────────────────────
+      // ── 9. Data rain ──────────────────────────────────────────────────
       ctx.font = "9px monospace";
       rain.forEach(drop => {
         drop.y += drop.spd;
@@ -473,25 +475,28 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         }
       });
 
-      // ── 10. Comets ─────────────────────────────────────────────────────────
+      // ── 10. Comets ───────────────────────────────────────────────────
       spawnComet();
       comets.forEach(c => {
         if (!c.active) return;
         c.x += c.vx; c.y += c.vy;
         if (c.y > H + 20 || c.x < -20 || c.x > W + 20) { c.active = false; return; }
-        const cg = ctx.createLinearGradient(c.x, c.y, c.x - c.vx * c.len / Math.sqrt(c.vx*c.vx+c.vy*c.vy), c.y - c.vy * c.len / Math.sqrt(c.vx*c.vx+c.vy*c.vy));
-        cg.addColorStop(0, `rgba(255,255,255,${c.alpha})`);
-        cg.addColorStop(0.3, `rgba(${hsl(c.hOff+hue)},${c.alpha * 0.65})`);
-        cg.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.beginPath(); ctx.moveTo(c.x, c.y);
         const spd = Math.sqrt(c.vx*c.vx+c.vy*c.vy);
+        const cg  = ctx.createLinearGradient(
+          c.x, c.y,
+          c.x - c.vx/spd * c.len, c.y - c.vy/spd * c.len
+        );
+        cg.addColorStop(0,   `rgba(255,255,255,${c.alpha})`);
+        cg.addColorStop(0.3, `rgba(${hsl(c.hOff+hue)},${c.alpha * 0.65})`);
+        cg.addColorStop(1,   "rgba(0,0,0,0)");
+        ctx.beginPath(); ctx.moveTo(c.x, c.y);
         ctx.lineTo(c.x - c.vx/spd * c.len, c.y - c.vy/spd * c.len);
         ctx.strokeStyle = cg; ctx.lineWidth = 1.6; ctx.stroke();
         ctx.beginPath(); ctx.arc(c.x, c.y, 2, 0, Math.PI*2);
         ctx.fillStyle = `rgba(255,255,255,${c.alpha})`; ctx.fill();
       });
 
-      // ── 11. Supernova events ───────────────────────────────────────────────
+      // ── 11. Supernova events ─────────────────────────────────────────
       if (t - lastSupernovaTime > 18 && Math.random() < 0.004) {
         lastSupernovaTime = t;
         supernovae.push({
@@ -503,7 +508,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       }
       supernovae.forEach((sn, si) => {
         if (!sn.active) return;
-        sn.r += sn.maxR * 0.022;
+        sn.r   += sn.maxR * 0.022;
         sn.age += 0.016;
         if (sn.r > sn.maxR) { sn.active = false; supernovae.splice(si, 1); return; }
         const alpha = Math.max(0, 1 - sn.r / sn.maxR);
@@ -514,12 +519,11 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         sg.addColorStop(1,   "rgba(0,0,0,0)");
         ctx.beginPath(); ctx.arc(sn.x, sn.y, sn.r, 0, Math.PI*2);
         ctx.fillStyle = sg; ctx.fill();
-        // Shock ring
         ctx.beginPath(); ctx.arc(sn.x, sn.y, sn.r, 0, Math.PI*2);
         ctx.strokeStyle = `rgba(${hsl(sn.hOff + 30)},${alpha * 0.35})`; ctx.lineWidth = 1.5; ctx.stroke();
       });
 
-      // ── 12. Scan line ──────────────────────────────────────────────────────
+      // ── 12. Scan line ─────────────────────────────────────────────────
       scanY = (scanY + 0.5) % H;
       const sg2 = ctx.createLinearGradient(0, scanY - 2, 0, scanY + 2);
       sg2.addColorStop(0,   "rgba(0,0,0,0)");
@@ -527,7 +531,7 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       sg2.addColorStop(1,   "rgba(0,0,0,0)");
       ctx.fillStyle = sg2; ctx.fillRect(0, scanY - 2, W, 4);
 
-      // ── 13. HUD brackets ──────────────────────────────────────────────────
+      // ── 13. HUD brackets ─────────────────────────────────────────────
       const B = 18;
       [[0, 0, 1, 1], [W, 0, -1, 1], [0, H, 1, -1], [W, H, -1, -1]].forEach(([bx, by, sx, sy]) => {
         ctx.strokeStyle = `rgba(${ACCENT},0.28)`; ctx.lineWidth = 1.2;
@@ -535,17 +539,15 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
         ctx.beginPath(); ctx.moveTo(bx + sx*2, by + sy*2); ctx.lineTo(bx + sx*2, by + sy*(B+2)); ctx.stroke();
       });
 
-      // ── 14. Vignette ──────────────────────────────────────────────────────
-      const vg = ctx.createRadialGradient(W/2, H/2, H*0.35, W/2, H/2, H*0.85);
-      vg.addColorStop(0, "rgba(0,0,0,0)");
-      vg.addColorStop(1, "rgba(0,0,0,0.55)");
-      ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+      // ── 14. Vignette (cached gradient) ───────────────────────────────
+      if (cachedVignette) {
+        ctx.fillStyle = cachedVignette;
+        ctx.fillRect(0, 0, W, H);
+      }
     }
 
-    const TARGET_FPS = 30;
-    const FRAME_BUDGET = 1000 / TARGET_FPS;
     let lastLoopTs = 0;
-    let paused = false;
+    let paused     = false;
 
     function onVisibility() { paused = document.hidden; }
     document.addEventListener("visibilitychange", onVisibility);
@@ -575,11 +577,11 @@ export function QuantumVoidBackground3D({ opacity = 0.60, accentColor = "#e21227
       className="absolute inset-0 pointer-events-none"
       style={{
         opacity,
-        zIndex: 0,
-        display: "block",
+        zIndex:     0,
+        display:    "block",
         willChange: "transform",
-        transform: "translateZ(0)",
-        contain: "strict",
+        transform:  "translateZ(0)",
+        contain:    "strict",
       }}
     />
   );

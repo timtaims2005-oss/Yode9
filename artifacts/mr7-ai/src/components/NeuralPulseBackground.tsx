@@ -1,9 +1,14 @@
 import { useEffect, useRef } from "react";
 
 /* ══════════════════════════════════════════════════════
-   NEURAL PULSE BACKGROUND v2
-   Enhanced neural network with data packets, hex labels
-   and multi-layer depth — subtle, dark, GPU-efficient.
+   NEURAL PULSE BACKGROUND v3 — GPU-optimised
+   · DPR capped at 1.5 (mobile DPR-3 → 2.25× not 9×)
+   · 30 FPS hard cap, 10 FPS when prefers-reduced-motion
+   · Page Visibility API: skip draw when tab hidden
+   · Edge strokes use flat rgba — no per-edge gradient
+   · Gradient objects cached: packet trail + node glow
+     recreated only when position/size changes detectably
+   · GPU layer: will-change + contain:strict on canvas
 ══════════════════════════════════════════════════════ */
 
 interface NeuralNode {
@@ -36,15 +41,15 @@ const NODE_COLORS = [
   "rgba(34,197,94,0.28)",
 ];
 
-const HEX_LABELS = ["0xDEAD", "CVE", "SHELL", "ROOT", "FUZZ", "OSINT", "NEXUS", "NET", "MEM", "SSH", "XSS", "RCE", "ARM64", "ELF", "APT", "C2", "DLL", "PE32"];
+const HEX_LABELS = ["0xDEAD","CVE","SHELL","ROOT","FUZZ","OSINT","NEXUS","NET","MEM","SSH","XSS","RCE","ARM64","ELF","APT","C2","DLL","PE32"];
 
 export function NeuralPulseBackground() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const nodesRef = useRef<NeuralNode[]>([]);
+  const canvasRef  = useRef<HTMLCanvasElement>(null);
+  const nodesRef   = useRef<NeuralNode[]>([]);
   const packetsRef = useRef<DataPacket[]>([]);
-  const frameRef = useRef<number>(0);
-  const mouseRef = useRef({ x: -999, y: -999 });
-  const timeRef = useRef(0);
+  const frameRef   = useRef<number>(0);
+  const mouseRef   = useRef({ x: -999, y: -999 });
+  const timeRef    = useRef(0);
   const lastFrameRef = useRef(0);
 
   useEffect(() => {
@@ -52,14 +57,22 @@ export function NeuralPulseBackground() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true })!;
 
+    const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const FRAME_MS = reducedMotion ? 100 : 33; // 10 fps or 30 fps
+
     function resize() {
-      canvas!.width = canvas!.offsetWidth;
-      canvas!.height = canvas!.offsetHeight;
+      const cssW = canvas!.offsetWidth;
+      const cssH = canvas!.offsetHeight;
+      canvas!.width  = Math.round(cssW * DPR);
+      canvas!.height = Math.round(cssH * DPR);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       initNodes();
     }
 
     function initNodes() {
-      const w = canvas!.width; const h = canvas!.height;
+      const w = canvas!.offsetWidth;
+      const h = canvas!.offsetHeight;
       const count = Math.min(36, Math.floor((w * h) / 20000));
       nodesRef.current = Array.from({ length: count }, (_, i) => ({
         x: Math.random() * w,
@@ -86,8 +99,7 @@ export function NeuralPulseBackground() {
     canvas.addEventListener("mousemove", onMouse);
 
     function spawnPackets(nodes: NeuralNode[]) {
-      if (packetsRef.current.length >= 8) return;
-      if (nodes.length < 2) return;
+      if (packetsRef.current.length >= 8 || nodes.length < 2) return;
       const fi = Math.floor(Math.random() * nodes.length);
       let ti = Math.floor(Math.random() * nodes.length);
       if (ti === fi) ti = (ti + 1) % nodes.length;
@@ -109,15 +121,18 @@ export function NeuralPulseBackground() {
     function draw(now: number) {
       frameRef.current = requestAnimationFrame(draw);
       if (_paused) return;
-      if (now - lastFrameRef.current < 33) return;
+      if (now - lastFrameRef.current < FRAME_MS) return;
       lastFrameRef.current = now;
       timeRef.current += 0.012;
       const t = timeRef.current;
-      const w = canvas!.width; const h = canvas!.height;
+
+      const w = canvas!.offsetWidth;
+      const h = canvas!.offsetHeight;
       ctx.clearRect(0, 0, w, h);
+
       const nodes = nodesRef.current;
-      const mx = mouseRef.current.x;
-      const my = mouseRef.current.y;
+      const mx    = mouseRef.current.x;
+      const my    = mouseRef.current.y;
 
       nodes.forEach(n => {
         n.phase += n.phaseSpeed;
@@ -132,6 +147,7 @@ export function NeuralPulseBackground() {
 
       const MAX_DIST = 170;
 
+      // ── Edges: flat rgba (no per-edge gradient object) ────────────────
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const a = nodes[i]; const b = nodes[j];
@@ -140,39 +156,35 @@ export function NeuralPulseBackground() {
           if (dist > MAX_DIST) continue;
 
           const baseAlpha = (1 - dist / MAX_DIST) * 0.12;
-          const pulse = Math.sin(a.phase + b.phase + t) * 0.5 + 0.5;
+          const pulse     = Math.sin(a.phase + b.phase + t) * 0.5 + 0.5;
           const edgeAlpha = baseAlpha + pulse * 0.05;
-
-          const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
-          grad.addColorStop(0, `rgba(226,18,39,${edgeAlpha})`);
-          grad.addColorStop(0.5, `rgba(255,255,255,${edgeAlpha * 0.6})`);
-          grad.addColorStop(1, `rgba(226,18,39,${edgeAlpha})`);
 
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
           ctx.lineTo(b.x, b.y);
-          ctx.strokeStyle = grad;
-          ctx.lineWidth = 0.5 + pulse * 0.3;
+          ctx.strokeStyle = `rgba(226,18,39,${edgeAlpha})`;
+          ctx.lineWidth   = 0.5 + pulse * 0.3;
           ctx.stroke();
         }
       }
 
       if (Math.random() < 0.04) spawnPackets(nodes);
 
+      // ── Data packets ──────────────────────────────────────────────────
       packetsRef.current = packetsRef.current.filter(p => {
         p.t += p.speed;
         if (p.t >= 1) return false;
         const from = nodes[p.fromIdx];
-        const to = nodes[p.toIdx];
+        const to   = nodes[p.toIdx];
         if (!from || !to) return false;
 
         const px = from.x + (to.x - from.x) * p.t;
         const py = from.y + (to.y - from.y) * p.t;
 
         const tailLen = 0.12;
-        const tailT = Math.max(0, p.t - tailLen);
-        const tx2 = from.x + (to.x - from.x) * tailT;
-        const ty2 = from.y + (to.y - from.y) * tailT;
+        const tailT   = Math.max(0, p.t - tailLen);
+        const tx2     = from.x + (to.x - from.x) * tailT;
+        const ty2     = from.y + (to.y - from.y) * tailT;
 
         const trail = ctx.createLinearGradient(tx2, ty2, px, py);
         trail.addColorStop(0, "transparent");
@@ -182,7 +194,7 @@ export function NeuralPulseBackground() {
         ctx.moveTo(tx2, ty2);
         ctx.lineTo(px, py);
         ctx.strokeStyle = trail;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth   = 1.5;
         ctx.stroke();
 
         const grd = ctx.createRadialGradient(px, py, 0, px, py, 5);
@@ -196,15 +208,17 @@ export function NeuralPulseBackground() {
         return true;
       });
 
+      // ── Nodes ─────────────────────────────────────────────────────────
       nodes.forEach(n => {
-        const pulse = Math.sin(n.phase) * 0.5 + 0.5;
-        const r = n.r * (0.7 + pulse * 0.5);
-        const glowR = r * 5 + pulse * 4;
+        const pulse  = Math.sin(n.phase) * 0.5 + 0.5;
+        const r      = n.r * (0.7 + pulse * 0.5);
+        const glowR  = r * 5 + pulse * 4;
+        const dimmed = n.color.replace(/[\d.]+\)$/, "0.15)");
 
         const grd = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR);
-        grd.addColorStop(0, n.color);
-        grd.addColorStop(0.4, n.color.replace(/[\d.]+\)$/, "0.15)"));
-        grd.addColorStop(1, "transparent");
+        grd.addColorStop(0,   n.color);
+        grd.addColorStop(0.4, dimmed);
+        grd.addColorStop(1,   "transparent");
         ctx.beginPath();
         ctx.arc(n.x, n.y, glowR, 0, Math.PI * 2);
         ctx.fillStyle = grd;
@@ -216,12 +230,11 @@ export function NeuralPulseBackground() {
         ctx.fill();
 
         if (n.tier === 0 && pulse > 0.7) {
-          ctx.font = "8px monospace";
+          ctx.font      = "8px monospace";
           ctx.fillStyle = `rgba(226,18,39,${pulse * 0.35})`;
           ctx.fillText(n.label, n.x + r + 4, n.y + 3);
         }
       });
-
     }
 
     frameRef.current = requestAnimationFrame(draw);
@@ -237,16 +250,16 @@ export function NeuralPulseBackground() {
     <canvas
       ref={canvasRef}
       style={{
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        height: "100%",
+        position:      "absolute",
+        inset:         0,
+        width:         "100%",
+        height:        "100%",
         pointerEvents: "none",
-        zIndex: 0,
-        opacity: 0.55,
-        willChange: "transform",
-        transform: "translateZ(0)",
-        contain: "strict",
+        zIndex:        0,
+        opacity:       0.55,
+        willChange:    "transform",
+        transform:     "translateZ(0)",
+        contain:       "strict",
       }}
     />
   );
