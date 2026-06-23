@@ -43,8 +43,8 @@ export function getCanvasConfig() {
     glitchEnabled: q === "high",
     beamEnabled:   q !== "low",
     dpr:           q === "high" ? safeDpr : 1,
-    targetFps:     q === "high" ? Math.min(_detectedRefreshRate, 60) : 30,
-    frameBudgetMs: q === "high" ? 16.7 : 33,
+    targetFps:     q === "high" ? Math.min(_detectedRefreshRate, 144) : 30,
+    frameBudgetMs: q === "high" ? (1000 / Math.min(_detectedRefreshRate, 144)) : 33,
   };
 }
 
