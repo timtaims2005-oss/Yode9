@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
 import { Search, X, ArrowRight } from "lucide-react";
+import DOMPurify from "dompurify";
 import { Dialog, DialogContentTop, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useStore } from "@/lib/store";
 
 function highlight(text: string, q: string): { __html: string } {
-  if (!q.trim()) return { __html: text };
-  const safe = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  if (!q.trim()) return { __html: DOMPurify.sanitize(escaped) };
   const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "ig");
-  return { __html: safe.replace(re, '<mark class="bg-primary/30 text-primary rounded px-0.5">$1</mark>') };
+  const marked = escaped.replace(re, '<mark class="bg-primary/30 text-primary rounded px-0.5">$1</mark>');
+  return { __html: DOMPurify.sanitize(marked, { ALLOWED_TAGS: ["mark"], ALLOWED_ATTR: ["class"] }) };
 }
 
 export function SearchModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {

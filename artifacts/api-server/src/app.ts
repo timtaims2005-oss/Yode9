@@ -14,6 +14,8 @@ import { cisaRouter } from "./routes/cisa";
 import { logger } from "./lib/logger";
 import { validateEnv } from "./lib/env";
 import { internalAuth } from "./middlewares/internalAuth";
+import { sanitizeInputs } from "./middlewares/sanitize";
+import { ensureCsrfToken, getCsrfToken } from "./middlewares/csrf";
 import { pool, ensureAuthTables } from "./db";
 import { setupReplitAuth } from "./routes/auth";
 
@@ -24,10 +26,36 @@ const app: Express = express();
 
 app.set("trust proxy", 1);
 
+const isDev = process.env.NODE_ENV !== "production";
+
 app.use(
   helmet({
-    contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "blob:", "https:"],
+        fontSrc: ["'self'", "data:", "https:"],
+        connectSrc: [
+          "'self'",
+          "https://api.openai.com",
+          "https://api.anthropic.com",
+          "https://openrouter.ai",
+          "https://api.groq.com",
+          "wss:",
+          "ws:",
+        ],
+        mediaSrc: ["'self'", "blob:", "data:"],
+        workerSrc: ["'self'", "blob:"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: isDev ? ["*"] : ["'none'"],
+        upgradeInsecureRequests: isDev ? null : [],
+      },
+    },
   }),
 );
 
@@ -103,6 +131,7 @@ app.use(
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+app.use(sanitizeInputs);
 
 // ── Session + Passport ────────────────────────────────────────────────────────
 const PgStore = connectPg(session);
@@ -148,6 +177,9 @@ app.use(
 );
 app.use(["/api/shell/exec"], shellLimiter);
 app.use(["/api/subscriptions/verify", "/api/subscriptions/generate"], subscriptionLimiter);
+
+// ── CSRF token endpoint (session-based auth only) ────────────────────────────
+app.get("/api/csrf-token", ensureCsrfToken, getCsrfToken);
 
 // ── Fully public routes (CISA threat feed, health) ───────────────────────────
 app.use("/api", cisaRouter);
