@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 
-export type ProviderName = "openai" | "anthropic" | "groq" | "gemini" | "openrouter" | "custom" | "personal";
+export type ProviderName = "openai" | "anthropic" | "groq" | "gemini" | "openrouter" | "custom" | "personal" | "zhipu";
 
 export type ProviderInfo = {
   id: ProviderName;
@@ -108,6 +108,13 @@ const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
     models: [],
     requiresKey: false,
   },
+  zhipu: {
+    name: "Zhipu AI (GLM-5)",
+    envKey: "ZHIPU_API_KEY",
+    baseURL: "https://open.bigmodel.cn/api/paas/v4",
+    models: ["glm-5", "glm-4-plus", "glm-4", "glm-4-flash", "glm-zero-preview"],
+    requiresKey: true,
+  },
 };
 
 function getPersonalBase(): string {
@@ -126,7 +133,8 @@ export function hasAnyApiKey(): boolean {
     process.env.GEMINI_API_KEY?.trim() ||
     process.env.OPENROUTER_API_KEY?.trim() ||
     process.env.CUSTOM_API_KEY?.trim() ||
-    process.env.OPENAI_API_KEY?.trim()
+    process.env.OPENAI_API_KEY?.trim() ||
+    process.env.ZHIPU_API_KEY?.trim()
   );
 }
 
@@ -165,6 +173,9 @@ export function getOpenAICompatibleClient(provider: ProviderName): OpenAI | null
   if (provider === "custom") {
     apiKey = process.env.CUSTOM_API_KEY || undefined;
     baseURL = process.env.CUSTOM_API_BASE_URL || "https://api.openai.com/v1";
+  } else if (provider === "zhipu") {
+    apiKey = process.env.ZHIPU_API_KEY || undefined;
+    baseURL = "https://open.bigmodel.cn/api/paas/v4";
   } else if (provider === "personal") {
     apiKey = getPersonalKey() || undefined;
     baseURL = getPersonalBase() || undefined;

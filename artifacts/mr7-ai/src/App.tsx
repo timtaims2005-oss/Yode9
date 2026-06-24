@@ -256,6 +256,7 @@ const APIKeysPage           = lazy(() => import("./pages/APIKeysPage").then(m=>(
 const CollaborationPage     = lazy(() => import("./pages/CollaborationPage").then(m=>({default:m.CollaborationPage})));
 const MemorySystemPage      = lazy(() => import("./pages/MemorySystemPage").then(m=>({default:m.MemorySystemPage})));
 const MultiAgentPage        = lazy(() => import("./pages/MultiAgentPage").then(m=>({default:m.MultiAgentPage})));
+const SwarmEvolutionPage    = lazy(() => import("./pages/SwarmEvolutionPage").then(m=>({default:m.SwarmEvolutionPage})));
 const MonitoringPage3D      = lazy(() => import("./pages/MonitoringPage3D").then(m=>({default:m.MonitoringPage3D})));
 const NotificationsPage     = lazy(() => import("./pages/NotificationsPage").then(m=>({default:m.NotificationsPage})));
 const RAGSystemPage         = lazy(() => import("./pages/RAGSystemPage").then(m=>({default:m.RAGSystemPage})));
@@ -329,6 +330,7 @@ const MODAL_IDS = [
   'collaboration',
   'memorySystem',
   'multiAgent',
+  'swarmEvolution',
   'monitoring3D',
   'notifications',
   'ragSystem',
@@ -767,6 +769,7 @@ function AppContent() {
         onOpenKgReports={() => open('reportsPage')}
         onOpenKgRateLimit={() => open('rateLimitPage')}
         onOpenKgSystemsHub={() => open('systemsHub3D')}
+        onOpenKgSwarmEvolution={() => open('swarmEvolution')}
         onOpenLogin={() => open('authModal')}
         onOpenMultiModelRace={() => open('multiModelRace')}
         onOpenLocalBenchmark={() => open('localBenchmark')}
@@ -1340,6 +1343,13 @@ function AppContent() {
         {modals.multiAgent && (
           <WindowChrome open={true} title="Multi-Agent System" onClose={() => close('multiAgent')}>
             <MultiAgentPage onClose={() => close('multiAgent')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.swarmEvolution && (
+          <WindowChrome open={true} title="🧬 Swarm Evolution AI" color="#8b5cf6" onClose={() => close('swarmEvolution')}>
+            <SwarmEvolutionPage onClose={() => close('swarmEvolution')} />
           </WindowChrome>
         )}
       </Suspense>

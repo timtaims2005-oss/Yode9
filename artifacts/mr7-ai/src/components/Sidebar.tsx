@@ -164,6 +164,7 @@ interface SidebarProps {
   onOpenKgReports?: () => void;
   onOpenKgRateLimit?: () => void;
   onOpenKgSystemsHub?: () => void;
+  onOpenKgSwarmEvolution?: () => void;
 }
 
 const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: string }[] = [
@@ -1108,6 +1109,12 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                 <button onClick={onOpenKgMultiAgent} title="Multi-Agent Council" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 hover:border-emerald-500/40 transition-all group">
                   <Network className="w-3.5 h-3.5 text-emerald-400/70 group-hover:text-emerald-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Agents</span>
+                </button>
+              )}
+              {onOpenKgSwarmEvolution && (
+                <button onClick={onOpenKgSwarmEvolution} title="Swarm Evolution AI — نظام الوكلاء المتطور" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 hover:border-violet-500/40 transition-all group">
+                  <Brain className="w-3.5 h-3.5 text-violet-400/70 group-hover:text-violet-400" />
+                  <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Swarm</span>
                 </button>
               )}
               {onOpenKgOrganizations && (

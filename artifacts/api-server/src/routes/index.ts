@@ -47,6 +47,7 @@ import trainingRouter from "./training";
 import agentV2Router from "./agent-v2";
 import aiEngineRouter from "./ai-engine";
 import autonomousAgentRouter from "./autonomous-agent";
+import swarmAgentRouter from "./swarm-agent";
 
 import swaggerRouter from "./swagger";
 import subscriptionsRouter from "./subscriptions";
@@ -111,6 +112,7 @@ router.use(trainingRouter);
 router.use(agentV2Router);
 router.use(aiEngineRouter);
 router.use(autonomousAgentRouter);
+router.use(swarmAgentRouter);
 
 router.use(swaggerRouter);
 router.use(subscriptionsRouter);
