@@ -1,3 +1,26 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// localStorage KEY REGISTRY — update this list when adding new persisted keys
+// ───────────────────────────────────────────────────────────────────────────
+//  KEY                          OWNER              PURPOSE
+//  "mr7-ai-state-v2"            store.tsx          Primary AppState JSON snapshot
+//  "mr7-ai-state-v1"            store.tsx          Legacy key — migrated on first load
+//  "mr7-ai-p-key-{id}"          ProviderSettings   Per-provider API key
+//  "mr7-ai-p-url-{id}"          ProviderSettings   Per-provider base URL override
+//  "mr7-arsenal-enabled"        ArsenalHub         Enabled Arsenal module IDs (JSON)
+//  "mr7-chain-rules"            ChainBuilder       Pipeline automation chain rules
+//  "mr7-sidebar-collapsed"      App.tsx            "1" when sidebar is collapsed
+//  "mr7-health-win"             TopBar             ProviderHealthBadge3D position
+//  "mr7-setup-win"              TopBar             AIQuickSetupButton window pos
+//  "mr7-qp3d-win"               TopBar             QuantumPersona3D window pos
+//  "mr7-ps3d-win"               TopBar             PersonaSwitcher3D window pos
+//  "mr7_access"                 auth.ts            JWT access token
+//  "mr7_refresh"                auth.ts            JWT refresh token
+//  "mr7_user"                   auth.ts            Cached AuthUser JSON
+//  "mr7-ollama-*"               OllamaHub          Ollama model + config cache
+//  "mr7-lb-engines"             LocalEngineHub     Local engine on/off states
+//  "mr7-idb-migrated"           idb-storage.ts     Set to "1" after IDB migration
+// ═══════════════════════════════════════════════════════════════════════════
+
 import { createContext, useContext, useEffect, useRef, useReducer, type ReactNode } from "react";
 import { type Subscription, type SubscriptionTier, INITIAL_SUBSCRIPTION } from "./subscription";
 import { fetchCloudChats, schedulePush } from "./cloud-sync";

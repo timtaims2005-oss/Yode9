@@ -341,6 +341,124 @@ function ScanLine() {
   );
 }
 
+/* ── TypewriterText — cycles through phrases with typing animation ── */
+const TYPEWRITER_PHRASES = [
+  "اختبار الاختراق المتقدم بالذكاء الاصطناعي",
+  "Advanced Penetration Testing AI",
+  "Red Team · OSINT · Council Mode · Arsenal",
+  "105 عقل ذكاء اصطناعي في وقت واحد",
+  "Shell Generator · Dark Web Search · Godmode",
+  "مساعدك الهجومي الأول في الأمن السيبراني",
+];
+
+function TypewriterText({ className = "", style = {} }: { className?: string; style?: CSSProperties }) {
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [displayed, setDisplayed] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [charIdx, setCharIdx] = useState(0);
+
+  useEffect(() => {
+    const phrase = TYPEWRITER_PHRASES[phraseIdx];
+    if (!deleting) {
+      if (charIdx < phrase.length) {
+        const tid = setTimeout(() => {
+          setDisplayed(phrase.slice(0, charIdx + 1));
+          setCharIdx(c => c + 1);
+        }, 42 + Math.random() * 18);
+        return () => clearTimeout(tid);
+      } else {
+        const tid = setTimeout(() => setDeleting(true), 2400);
+        return () => clearTimeout(tid);
+      }
+    } else {
+      if (charIdx > 0) {
+        const tid = setTimeout(() => {
+          setDisplayed(phrase.slice(0, charIdx - 1));
+          setCharIdx(c => c - 1);
+        }, 22);
+        return () => clearTimeout(tid);
+      } else {
+        setDeleting(false);
+        setPhraseIdx(i => (i + 1) % TYPEWRITER_PHRASES.length);
+      }
+    }
+  }, [charIdx, deleting, phraseIdx]);
+
+  return (
+    <span className={className} style={style}>
+      {displayed}
+      <span style={{
+        display: "inline-block",
+        width: "2px",
+        height: "1em",
+        background: "#e21227",
+        marginLeft: "2px",
+        verticalAlign: "middle",
+        animation: "terminalBlink 1s step-end infinite",
+        boxShadow: "0 0 8px #e21227",
+      }} />
+    </span>
+  );
+}
+
+/* ── GlitchLayer — renders a glitch overlay duplicate of children ── */
+function GlitchLayer({ text, color = "#e21227" }: { text: string; color?: string }) {
+  return (
+    <span style={{ position: "relative", display: "inline-block" }}>
+      {text}
+      {/* Glitch clone 1 */}
+      <span aria-hidden style={{
+        position: "absolute",
+        left: 0, top: 0,
+        color,
+        clipPath: "inset(30% 0 50% 0)",
+        animation: "glitch 4s infinite",
+        opacity: 0.7,
+        pointerEvents: "none",
+      }}>{text}</span>
+      {/* Glitch clone 2 */}
+      <span aria-hidden style={{
+        position: "absolute",
+        left: 0, top: 0,
+        color: "#00e5ff",
+        clipPath: "inset(60% 0 20% 0)",
+        animation: "glitch 4s infinite",
+        animationDelay: "0.5s",
+        opacity: 0.4,
+        pointerEvents: "none",
+      }}>{text}</span>
+    </span>
+  );
+}
+
+/* ── HexScanLine — horizontal hex-patterned sweep ── */
+function HexScanLine() {
+  return (
+    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 2 }}>
+      {/* Horizontal cyber sweep */}
+      <div style={{
+        position: "absolute",
+        left: 0, right: 0,
+        height: "1px",
+        background: "linear-gradient(90deg, transparent 0%, rgba(0,229,255,0.0) 10%, rgba(0,229,255,0.6) 30%, rgba(226,18,39,0.8) 50%, rgba(0,229,255,0.6) 70%, rgba(0,229,255,0.0) 90%, transparent 100%)",
+        animation: "scanline 9s linear infinite",
+        animationDelay: "3s",
+        boxShadow: "0 0 12px rgba(0,229,255,0.4), 0 0 30px rgba(0,229,255,0.15)",
+      }} />
+      {/* Vertical cyber sweep */}
+      <div style={{
+        position: "absolute",
+        top: 0, bottom: 0,
+        width: "1px",
+        background: "linear-gradient(180deg, transparent 0%, rgba(167,139,250,0.0) 10%, rgba(167,139,250,0.5) 40%, rgba(226,18,39,0.6) 55%, rgba(167,139,250,0.5) 70%, rgba(167,139,250,0.0) 90%, transparent 100%)",
+        animation: "cyberSweep 12s linear infinite",
+        animationDelay: "1.5s",
+        boxShadow: "0 0 10px rgba(167,139,250,0.4)",
+      }} />
+    </div>
+  );
+}
+
 function FloatingOrb({ size, x, y, color, delay }: { size: number; x: string; y: string; color: string; delay: number }) {
   return (
     <div style={{
@@ -538,6 +656,10 @@ export default function LandingPage() {
         <FloatingOrb size={500} x="-10%" y="5%" color="#e21227" delay={0} />
         <FloatingOrb size={300} x="70%" y="20%" color="#ff6b35" delay={1.5} />
         <FloatingOrb size={200} x="40%" y="60%" color="#e21227" delay={3} />
+        <FloatingOrb size={420} x="55%" y="-5%" color="#00e5ff" delay={2} />
+        <FloatingOrb size={260} x="80%" y="55%" color="#a78bfa" delay={0.8} />
+        <FloatingOrb size={180} x="15%" y="70%" color="#00e5ff" delay={4} />
+        <FloatingOrb size={150} x="90%" y="10%" color="#a78bfa" delay={2.5} />
       </div>
 
       {/* NAV */}
@@ -636,6 +758,7 @@ export default function LandingPage() {
         <MatrixRain opacity={0.07} color="#e21227" speed={0.7} density={0.6} style={{ zIndex: 0 }} />
         <Cyber3DGrid opacity={0.45} color="#e21227" style={{ zIndex: 1 }} />
         <ScanLine />
+        <HexScanLine />
 
         {/* HoloCoreOrb — floating right side desktop */}
         <div style={{
@@ -716,7 +839,7 @@ export default function LandingPage() {
           <span style={{ fontSize: "8px", background: "rgba(255,45,85,0.2)", border: "1px solid rgba(255,45,85,0.4)", borderRadius: "4px", padding: "1px 5px", color: "#ff6b80", letterSpacing: "0.2em" }}>NEW</span>
         </div>
 
-        {/* Title 3D */}
+        {/* Title 3D with GlitchLayer */}
         <div style={{ marginBottom: "20px", perspective: "800px" }}>
           <h1 style={{
             fontSize: "clamp(64px, 10vw, 120px)",
@@ -726,6 +849,7 @@ export default function LandingPage() {
             transform: "perspective(600px) rotateX(3deg)",
             transformStyle: "preserve-3d",
             display: "inline-block",
+            animation: "heroTitlePulse 4s ease-in-out infinite",
           }}>
             <span style={{
               color: "#fff",
@@ -737,22 +861,29 @@ export default function LandingPage() {
               display: "inline-block",
               transform: "translateZ(40px)",
               letterSpacing: "-4px",
-            }}>GPT</span>
+            }}>
+              <GlitchLayer text="GPT" />
+            </span>
           </h1>
         </div>
 
+        {/* TypewriterText subtitle — cycles through cybersecurity phrases */}
         <p style={{
-          fontSize: "clamp(16px, 2.5vw, 22px)",
-          color: "rgba(255,255,255,0.55)",
+          fontSize: "clamp(15px, 2.2vw, 20px)",
+          color: "rgba(255,255,255,0.6)",
           fontWeight: 300,
           marginBottom: "12px",
-          maxWidth: "600px",
+          maxWidth: "640px",
+          minHeight: "2em",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}>
-          مساعدك الذكي المتقدم في اختبارات الاختراق وتحليل الثغرات
+          <TypewriterText style={{ fontFamily: "monospace", letterSpacing: "0.3px" }} />
         </p>
         <p style={{
           fontSize: "12px",
-          color: "rgba(255,255,255,0.25)",
+          color: "rgba(255,255,255,0.22)",
           fontFamily: "monospace",
           marginBottom: "44px",
           letterSpacing: "1px",

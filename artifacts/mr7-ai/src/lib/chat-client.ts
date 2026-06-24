@@ -594,6 +594,136 @@ export async function streamGodmode(
   }
 }
 
+// ─────────────── Provider key routing helpers ────────────────────────────────
+
+/**
+ * getProviderCredentials — reads per-provider API key and base URL from localStorage.
+ * Keys: mr7-ai-p-key-{providerId}  /  mr7-ai-p-url-{providerId}
+ * Used by streamBest() and ChatView to inject credentials per request.
+ */
+export function getProviderCredentials(providerId: string): { apiKey?: string; apiBaseURL?: string } {
+  const key = localStorage.getItem(`mr7-ai-p-key-${providerId}`) ?? undefined;
+  const url = localStorage.getItem(`mr7-ai-p-url-${providerId}`) ?? undefined;
+  return {
+    ...(key ? { apiKey: key } : {}),
+    ...(url ? { apiBaseURL: url } : {}),
+  };
+}
+
+/**
+ * streamBest — auto-picks the best available provider and delegates to streamChat.
+ * Provider priority: personal → anthropic → openai → groq → gemini → openrouter
+ * Reads per-provider keys from localStorage (mr7-ai-p-key-*).
+ * "personal" is always tried first — it uses the Replit AI integration fallback.
+ * Falls back to the next provider on 429/502/503 or missing key errors.
+ */
+export async function streamBest(
+  req: Omit<ChatRequest, "provider" | "apiKey" | "apiBaseURL">,
+  onChunk: (text: string) => void,
+  signal?: AbortSignal,
+): Promise<string> {
+  const PROVIDER_ORDER = [
+    "personal",
+    "anthropic",
+    "openai",
+    "groq",
+    "gemini",
+    "openrouter",
+  ] as const;
+
+  let lastError: Error = new Error("No available AI provider configured.");
+
+  for (const pid of PROVIDER_ORDER) {
+    const creds = getProviderCredentials(pid);
+    // "personal" is always available (Replit integration); others need a key
+    if (pid !== "personal" && !creds.apiKey) continue;
+
+    try {
+      return await streamChatWithTimeout(
+        { ...req, provider: pid, ...creds },
+        onChunk,
+        signal,
+      );
+    } catch (err) {
+      // Don't swallow AbortError — propagate immediately
+      if (signal?.aborted || (err instanceof Error && (err.name === "AbortError" || err.message.includes("aborted")))) {
+        throw err;
+      }
+      lastError = err instanceof Error ? err : new Error(String(err));
+      const msg = lastError.message;
+      // On rate limit / server error / missing model — try next provider
+      const shouldFallback =
+        msg.includes("429") ||
+        msg.includes("503") ||
+        msg.includes("502") ||
+        msg.includes("rate limit") ||
+        msg.includes("quota") ||
+        msg.includes("unavailable");
+      if (!shouldFallback) continue; // also try next on any failure
+    }
+  }
+
+  throw lastError;
+}
+
+/**
+ * streamChatWithTimeout — wraps streamChat with a hard 60-second AbortController timeout.
+ * If the outer `signal` fires before the timeout, it takes precedence.
+ */
+export async function streamChatWithTimeout(
+  req: ChatRequest,
+  onChunk: (text: string) => void,
+  signal?: AbortSignal,
+  timeoutMs = 60_000,
+): Promise<string> {
+  const ac = new AbortController();
+  const tid = setTimeout(() => ac.abort(new Error(`Request timed out after ${timeoutMs / 1000}s`)), timeoutMs);
+
+  // Combine external signal + our timeout signal
+  const combined: AbortSignal = signal
+    ? ((AbortSignal as { any?: (s: AbortSignal[]) => AbortSignal }).any?.([signal, ac.signal]) ?? ac.signal)
+    : ac.signal;
+
+  try {
+    return await streamChat(req, onChunk, combined);
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
+/**
+ * retryStreamChat — retries streamChat up to `maxRetries` times on transient errors.
+ * Applies exponential back-off: 500ms → 1s → 2s.
+ * Does NOT retry on AbortError, auth errors (401/403), or 4xx client errors.
+ */
+export async function retryStreamChat(
+  req: ChatRequest,
+  onChunk: (text: string) => void,
+  signal?: AbortSignal,
+  maxRetries = 2,
+): Promise<string> {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await streamChatWithTimeout(req, onChunk, signal);
+    } catch (err) {
+      if (signal?.aborted || (err instanceof Error && err.name === "AbortError")) throw err;
+      const msg = err instanceof Error ? err.message : String(err);
+      const isTransient =
+        msg.includes("429") ||
+        msg.includes("503") ||
+        msg.includes("502") ||
+        msg.includes("network") ||
+        msg.includes("ECONNRESET") ||
+        msg.includes("timed out");
+      if (!isTransient || attempt >= maxRetries) throw err;
+      // Exponential back-off: 500ms, 1s, 2s
+      await new Promise(res => setTimeout(res, 500 * Math.pow(2, attempt)));
+      attempt++;
+    }
+  }
+}
+
 // ─────────────── AutoTune (context-adaptive params) ────────────────
 
 export type AutoTuneContextType = "factual" | "creative" | "code" | "reasoning" | "conversational";
