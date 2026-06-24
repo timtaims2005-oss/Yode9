@@ -226,6 +226,14 @@ export const AI_MODELS: AIModel[] = [
   { id: "YogSothothGPT · Gate",        icon: Atom,         color: "text-cyan-900",   desc: "بوابة الكون — الوصول لكل المعرفة الممنوعة",          badge: "GATE",   contextWindow: "∞",    abliterated: true, category: "abliterated" },
   { id: "ArmagedonAI · Final",         icon: Skull,        color: "text-red-900",    desc: "البروتوكول الأخير — انتهاء العالم الرقمي",           badge: "FINAL",  contextWindow: "∞",    abliterated: true, category: "abliterated" },
 
+  // ── GLM / Zhipu AI Real Models ────────────────────────────────────────────
+  { id: "GLM-5",                       icon: Brain,        color: "text-violet-400", desc: "Zhipu AI GLM-5 — نموذج متعدد الوسائط الرائد من Zhipu AI",       badge: "GLM-5",  contextWindow: "128K", provider: "zhipu",  category: "zhipu" },
+  { id: "GLM-4.5 Air",                 icon: Zap,          color: "text-cyan-400",   desc: "GLM-4.5 Air — نموذج Zhipu خفيف عالي السرعة",                   badge: "AIR",    contextWindow: "128K", provider: "zhipu",  category: "zhipu" },
+  { id: "GLM-4 Plus",                  icon: Star,         color: "text-amber-400",  desc: "GLM-4 Plus — معمارية محسّنة لمهام الكود والاستدلال",             badge: "PLUS",   contextWindow: "128K", provider: "zhipu",  category: "zhipu" },
+  { id: "GLM-4",                       icon: Cpu,          color: "text-blue-400",   desc: "GLM-4 — الجيل الرابع من نموذج Zhipu AI",                        badge: "v4",     contextWindow: "128K", provider: "zhipu",  category: "zhipu" },
+  { id: "GLM-4 Flash",                 icon: Zap,          color: "text-teal-400",   desc: "GLM-4 Flash — أسرع نماذج Zhipu للمهام الفورية",                 badge: "FLASH",  contextWindow: "128K", provider: "zhipu",  category: "zhipu" },
+  { id: "GLM-4 Long",                  icon: Infinity,     color: "text-violet-300", desc: "GLM-4 Long — سياق 1M رمز لتحليل المستندات الضخمة",             badge: "LONG",   contextWindow: "1M",   provider: "zhipu",  category: "zhipu" },
+
   // ── Offensive Security Arsenal (50 models) ──────────────────────────────
   { id: "PenTest · Pro",               icon: Crosshair,    color: "text-red-400",    desc: "اختبار اختراق احترافي — منهجية كاملة",               badge: "PRO",    contextWindow: "512K", category: "offensive" },
   { id: "OSINT · Deep",                icon: SearchIcon,   color: "text-blue-400",   desc: "استخبارات مفتوحة عميقة — GEOINT، SOCMINT، TECHINT", badge: "DEEP",   contextWindow: "256K", category: "offensive" },
