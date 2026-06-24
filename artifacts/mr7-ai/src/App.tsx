@@ -767,6 +767,9 @@ function AppContent() {
         onOpenKgReports={() => open('reportsPage')}
         onOpenKgRateLimit={() => open('rateLimitPage')}
         onOpenKgSystemsHub={() => open('systemsHub3D')}
+        onOpenLogin={() => open('authModal')}
+        onOpenMultiModelRace={() => open('multiModelRace')}
+        onOpenLocalBenchmark={() => open('localBenchmark')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">

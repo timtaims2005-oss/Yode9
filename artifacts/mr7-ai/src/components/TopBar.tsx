@@ -10,6 +10,7 @@ import { ProviderHealthBadge3D } from "./ProviderHealthBadge3D";
 import { PersonaSwitcher3D } from "./PersonaSwitcher3D";
 import { QuantumPersona3D } from "./QuantumPersona3D";
 import { NotificationsPanel } from "./NotificationsPanel";
+import { NotificationsBell } from "./NotificationsBell";
 import { ThemePopover } from "./ThemePopover";
 import { TokensPopover } from "./TokensPopover";
 import { LocalAIWindow } from "./LocalAIWindow";
@@ -1880,6 +1881,7 @@ export function TopBar({
           <div className="flex items-center gap-1.5 px-2 relative z-10">
             <ProviderHealthBadge3D />
             <AIQuickSetupButton />
+            <NotificationsBell />
             <QuantumPersona3D onOpenPersonaManager={onOpenPersonaManager} />
             <PersonaSwitcher3D onOpenPersonaEditor={onOpenPersonaEditor} onOpenPersonaManager={onOpenPersonaManager} />
           </div>
