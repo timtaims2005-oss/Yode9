@@ -14,6 +14,8 @@ import {
   TrendingUp, AlertTriangle, Dna, Activity,
   ListOrdered, PlusCircle, Trash2, Repeat, Star,
 } from "lucide-react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+void History; void Settings2; void Bot; void Sparkles; void TrendingUp; void Target; void Cpu;
 import { authFetch } from "@/lib/auth";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -112,6 +114,12 @@ export function SwarmEvolutionPage({ onClose }: Props) {
 
   const abortRef = useRef<AbortController | null>(null);
 
+  // Memory context state
+  const [memoryContext, setMemoryContext] = useState<{ goal: string; summary: string; importance: number }[]>([]);
+  const [memContextOpen, setMemContextOpen] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [autoSaved, setAutoSaved] = useState(false);
+
   // ── Load models + agent state + history + evolution insights ──────────────
   useEffect(() => {
     authFetch("/api/swarm/models")
@@ -123,6 +131,11 @@ export function SwarmEvolutionPage({ onClose }: Props) {
     authFetch("/api/agent-memory/evolution/insights")
       .then(r => r.json())
       .then(d => { if (d.insights) setEvolutionInsights(d.insights.slice(0, 8)); })
+      .catch(() => {});
+    // Retrieve cross-session context from memory
+    authFetch("/api/agent-memory/retrieve-context?limit=4")
+      .then(r => r.json())
+      .then(d => { if (d.memories?.length) setMemoryContext(d.memories.slice(0, 4)); })
       .catch(() => {});
   }, []);
 
@@ -311,6 +324,38 @@ export function SwarmEvolutionPage({ onClose }: Props) {
     setRun(r => r ? { ...r, status: "error" } : r);
   }, []);
 
+  // ── Auto-save to memory after run completes ────────────────────────────────
+  const autoSaveToMemory = useCallback(async (completedRun: SwarmRun) => {
+    if (completedRun.status !== "done" || !completedRun.goal) return;
+    setAutoSaving(true);
+    setAutoSaved(false);
+    try {
+      const agentOutputs = Object.fromEntries(
+        completedRun.agents.map(a => [a.agentId, a.output])
+      );
+      await authFetch("/api/agent-memory/auto-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          goal: completedRun.goal,
+          agentOutputs,
+          fusion: completedRun.fusion,
+          model,
+          success: true,
+          iteration: completedRun.iteration || 1,
+        }),
+      });
+      setAutoSaved(true);
+      setTimeout(() => setAutoSaved(false), 4000);
+      // Reload memory context for next run
+      authFetch("/api/agent-memory/retrieve-context?limit=4")
+        .then(r => r.json())
+        .then(d => { if (d.memories?.length) setMemoryContext(d.memories.slice(0, 4)); })
+        .catch(() => {});
+    } catch { /* non-fatal */ }
+    finally { setAutoSaving(false); }
+  }, [model]);
+
   // ── Task Queue processing ─────────────────────────────────────────────────
   const addToQueue = useCallback(() => {
     if (!taskInput.trim()) return;
@@ -335,6 +380,14 @@ export function SwarmEvolutionPage({ onClose }: Props) {
   const removeFromQueue = useCallback((id: string) => {
     setTaskQueue(prev => prev.filter(t => t.id !== id));
   }, []);
+
+  // ── Auto-save when run completes ──────────────────────────────────────────
+  useEffect(() => {
+    if (run?.status === "done") {
+      autoSaveToMemory(run);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [run?.status]);
 
   const selectedModel = models.find(m => m.id === model);
 
@@ -567,6 +620,41 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                 : iterations === 1 ? "تشغيل واحد" : iterations === 2 ? "تكرار مرتين" : "تكرار 3 مرات"}
             </div>
           </div>
+
+          {/* Memory Context Panel — cross-session memories */}
+          {memoryContext.length > 0 && (
+            <div className="rounded-xl border border-[#8b5cf6]/20 bg-[#8b5cf6]/5 p-3">
+              <button className="flex items-center gap-2 w-full" onClick={() => setMemContextOpen(p => !p)}>
+                <Brain className="w-3.5 h-3.5 text-[#8b5cf6]" />
+                <span className="text-xs font-bold text-[#8b5cf6] flex-1 text-right">ذاكرة الجلسات السابقة</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#8b5cf6]/15 text-[#8b5cf6]">{memoryContext.length}</span>
+                {memContextOpen ? <ChevronDown className="w-3 h-3 text-[#8b5cf6]/60" /> : <ChevronDown className="w-3 h-3 text-[#8b5cf6]/40 rotate-[-90deg]" />}
+              </button>
+              <AnimatePresence>
+                {memContextOpen && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mt-2 space-y-1.5 overflow-hidden">
+                    {memoryContext.map((m, i) => (
+                      <div key={i} className="p-2 rounded-lg bg-black/30 cursor-pointer hover:bg-black/50 transition" onClick={() => setGoal(m.goal)}>
+                        <div className="text-[10px] text-white/65 line-clamp-1">{m.goal}</div>
+                        <div className="text-[9px] text-white/35 mt-0.5 line-clamp-1">{m.summary}</div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[8px] text-[#8b5cf6]/60">⭐ {m.importance}/10</span>
+                          <span className="text-[8px] text-white/25">← انقر لاستخدامه هدفاً</span>
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {(autoSaving || autoSaved) && (
+                <div className="mt-2 flex items-center gap-1.5 text-[9px]"
+                  style={{ color: autoSaved ? "#10b981" : "#6366f1" }}>
+                  <Activity className="w-2.5 h-2.5" style={{ animation: autoSaving ? "spin 1.2s linear infinite" : "none" }} />
+                  {autoSaving ? "جارٍ الحفظ التلقائي..." : "✓ حُفظ في الذاكرة"}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Agent Status */}
           {run && (

@@ -346,7 +346,7 @@ function TopBarHUDCanvas({ powerOn }: { powerOn: boolean }) {
   );
 }
 
-// ── Real-time local model health ping hook ─────────────────────────────────────
+// ── Real-time local model health ping hook — uses backend API ─────────────────
 type LocalHealth = "online" | "slow" | "offline" | "checking";
 const HEALTH_C: Record<LocalHealth, string> = {
   online:   "#22c55e",
@@ -365,23 +365,27 @@ function useLocalModelHealth(endpoint: string, enabled: boolean) {
   const [health,  setHealth]  = useState<LocalHealth>("checking");
   const [latency, setLatency] = useState<number | null>(null);
   const [lastMs,  setLastMs]  = useState<number | null>(null);
+  const [engines, setEngines] = useState<{ id: string; online: boolean; latencyMs: number | null; models: string[] }[]>([]);
 
   const ping = useCallback(async () => {
     if (!enabled) { setHealth("offline"); setLatency(null); return; }
     setHealth("checking");
     const t0 = Date.now();
     try {
-      const base = (endpoint || "http://localhost:11434/v1").replace(/\/v1\/?$/, "");
-      // Try Ollama models endpoint, fallback to LM Studio
-      const res = await Promise.race([
-        fetch(`${base}/api/tags`, { signal: AbortSignal.timeout(4000) }).catch(() =>
-          fetch(`${base}/v1/models`, { signal: AbortSignal.timeout(4000) })
-        ),
-        new Promise<never>((_, rej) => setTimeout(() => rej(new Error("timeout")), 4200)),
-      ]) as Response;
+      const res = await fetch("/api/local-engines/status", { signal: AbortSignal.timeout(6000) });
       const ms = Date.now() - t0;
-      setLatency(ms); setLastMs(Date.now());
-      setHealth(ms < 600 ? "online" : ms < 2000 ? "slow" : "slow");
+      if (res.ok) {
+        const data = await res.json() as { engines: { id: string; online: boolean; latencyMs: number | null; models: string[] }[] };
+        const engs = data.engines ?? [];
+        setEngines(engs);
+        const anyOnline = engs.some(e => e.online);
+        const fastEng = engs.find(e => e.online && (e.latencyMs ?? 9999) < 600);
+        setLatency(ms);
+        setLastMs(Date.now());
+        setHealth(anyOnline ? (fastEng ? "online" : "slow") : "offline");
+      } else {
+        setHealth("offline"); setLatency(null); setLastMs(Date.now());
+      }
     } catch {
       setHealth("offline"); setLatency(null); setLastMs(Date.now());
     }
@@ -393,7 +397,7 @@ function useLocalModelHealth(endpoint: string, enabled: boolean) {
     return () => clearInterval(id);
   }, [ping]);
 
-  return { health, latency, lastMs, ping };
+  return { health, latency, lastMs, ping, engines };
 }
 
 // ── 3D Health pulse orb canvas ─────────────────────────────────────────────────
@@ -575,10 +579,16 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
   const model    = state.settings.localModel || "tinyllama";
   const endpoint = state.settings.localEndpoint || "http://localhost:11434/v1";
   const [floatOpen, setFloatOpen] = useState(false);
-  const btnRef = useRef<HTMLButtonElement>(null);
+  const [activeTab, setActiveTab] = useState<"status"|"models"|"settings"|"test">("status");
+  const [testPrompt, setTestPrompt] = useState("");
+  const [testOutput, setTestOutput] = useState("");
+  const [testRunning, setTestRunning] = useState(false);
+  const [editEndpoint, setEditEndpoint] = useState(endpoint);
+  const [editModel,    setEditModel]    = useState(model);
+  const [saved, setSaved] = useState(false);
   const { pos: dragPos, rootRef: dragRef, onDragMouseDown, onDragTouchStart } = useDraggable("mr7-local-win", { x: 20, y: 80 });
 
-  const { health, latency, lastMs, ping } = useLocalModelHealth(endpoint, useLocal);
+  const { health, latency, lastMs, ping, engines } = useLocalModelHealth(endpoint, useLocal);
   const hColor = HEALTH_C[health];
 
   useEffect(() => {
@@ -588,12 +598,91 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
     return () => window.removeEventListener("keydown", h);
   }, [floatOpen]);
 
+  useEffect(() => {
+    setEditEndpoint(endpoint);
+    setEditModel(model);
+  }, [endpoint, model]);
+
   const lastAgo = lastMs ? Math.round((Date.now() - lastMs) / 1000) : null;
+  const onlineEngines = engines.filter(e => e.online);
+  const allModels = engines.flatMap(e => e.models.map(m => ({ model: m, engine: e.id })));
+
+  const saveSettings = () => {
+    dispatch({ type: "SET_SETTINGS", patch: {
+      localEndpoint: editEndpoint,
+      localModel: editModel,
+    }});
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1800);
+  };
+
+  const runTest = async () => {
+    if (!testPrompt.trim() || testRunning) return;
+    setTestRunning(true);
+    setTestOutput("");
+    try {
+      const resp = await fetch("/api/local-proxy/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          endpoint,
+          model,
+          messages: [{ role: "user", content: testPrompt }],
+          stream: true,
+        }),
+      });
+      if (!resp.body) { setTestOutput("[لا يوجد رد]"); setTestRunning(false); return; }
+      const reader = resp.body.getReader();
+      const dec = new TextDecoder();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const text = dec.decode(value);
+        for (const line of text.split("\n")) {
+          if (!line.startsWith("data:")) continue;
+          const chunk = line.slice(5).trim();
+          if (chunk === "[DONE]") break;
+          try {
+            const j = JSON.parse(chunk);
+            const delta = j.choices?.[0]?.delta?.content ?? "";
+            if (delta) setTestOutput(p => p + delta);
+          } catch { /* skip */ }
+        }
+      }
+    } catch (e) {
+      setTestOutput(`[خطأ: ${String(e)}]`);
+    }
+    setTestRunning(false);
+  };
+
+  const HUDCanvas3D = () => {
+    const cvRef = useRef<HTMLCanvasElement>(null);
+    const rafRef2 = useRef(0);
+    useEffect(() => {
+      const cv = cvRef.current; if (!cv) return;
+      const ctx = cv.getContext("2d")!;
+      cv.width = 380; cv.height = 8;
+      let t = 0;
+      const draw = () => {
+        t += 0.04;
+        ctx.clearRect(0, 0, 380, 8);
+        for (let x = 0; x < 380; x += 2) {
+          const a = 0.15 + Math.sin(t + x * 0.04) * 0.12;
+          const [r, g, b] = health === "online" ? [34,197,94] : health === "slow" ? [245,158,11] : health === "offline" ? [239,68,68] : [99,102,241];
+          ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+          ctx.fillRect(x, 0, 1, 8);
+        }
+        rafRef2.current = requestAnimationFrame(draw);
+      };
+      rafRef2.current = requestAnimationFrame(draw);
+      return () => cancelAnimationFrame(rafRef2.current);
+    }, []);
+    return <canvas ref={cvRef} style={{ width: "100%", height: 8, display: "block", borderRadius: 4 }} />;
+  };
 
   return (
     <>
       <motion.button
-        ref={btnRef}
         onClick={() => setFloatOpen(o => !o)}
         className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1.5 rounded-lg relative overflow-hidden"
         style={{
@@ -607,9 +696,7 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
         aria-label="Local Model status"
         title={useLocal ? `Local: ${model} — ${HEALTH_LBL[health]}` : "Local model disabled"}
       >
-        {/* Shimmer sweep — CSS-only (no Framer runtime) */}
         <span className="btn-shimmer-inner" style={{ background: `linear-gradient(90deg,transparent,${hColor}22,transparent)` }} />
-
         <div style={{ filter: `drop-shadow(0 0 3px ${hColor}88)`, opacity: useLocal ? 1 : 0.5 }}>
           <Server className="w-3.5 h-3.5" />
         </div>
@@ -617,146 +704,315 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
           <span className="text-[6.5px] font-black tracking-[0.3em] uppercase opacity-60">LOCAL</span>
           <span className="text-[8px] font-black tracking-wide">{useLocal ? "ON" : "OFF"}</span>
         </div>
-
-        {/* Live health dot — CSS */}
         {useLocal && (
           <span className="w-2 h-2 rounded-full flex-shrink-0 pulse-dot"
             style={{ background: hColor, boxShadow: `0 0 8px ${hColor}`,
               animationDuration: health === "checking" ? "0.7s" : "1.6s" }} />
         )}
-
-        {/* Active pulse bottom line — CSS */}
         {floatOpen && (
           <span className="absolute bottom-0 left-0 right-0 h-px pointer-events-none pulse-dot"
             style={{ background: `linear-gradient(90deg,transparent,${hColor},transparent)` }} />
         )}
       </motion.button>
 
-      {/* External floating window — portal to document.body */}
       {createPortal(
       <AnimatePresence>
         {floatOpen && (
           <>
             <motion.div className="fixed inset-0 z-[1998]"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              style={{ background: "rgba(0,0,0,0.60)", backdropFilter: "blur(5px)" }}
+              style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
               onClick={() => setFloatOpen(false)} />
 
             <motion.div
               ref={dragRef}
-              className="fixed z-[1999] rounded-2xl"
+              className="fixed z-[1999] rounded-2xl overflow-hidden flex flex-col"
               style={{
-                top: dragPos.y, left: dragPos.x, width: 320,
-                background: "linear-gradient(160deg, rgba(4,8,5,0.99) 0%, rgba(2,5,3,0.99) 100%)",
+                top: dragPos.y, left: dragPos.x, width: 380,
+                maxHeight: "min(88vh, 620px)",
+                background: "linear-gradient(160deg, rgba(3,7,4,0.99) 0%, rgba(2,4,3,0.99) 100%)",
                 border: `1px solid ${hColor}40`,
-                boxShadow: `0 0 80px ${hColor}18, 0 0 30px ${hColor}0a, 0 28px 70px rgba(0,0,0,0.92), inset 0 1px 0 ${hColor}18`,
-                backdropFilter: "blur(32px)",
+                boxShadow: `0 0 90px ${hColor}18, 0 0 40px ${hColor}0a, 0 30px 80px rgba(0,0,0,0.94), inset 0 1px 0 ${hColor}20`,
               }}
-              initial={{ opacity: 0, scale: 0.91, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.91, y: -8 }}
-              transition={{ duration: 0.20, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0, scale: 0.88, y: -12, rotateX: 6 }}
+              animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
+              exit={{ opacity: 0, scale: 0.88, y: -10, rotateX: -4 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             >
               <DragHandle3D color={hColor} title="LOCAL MODEL ENGINE" onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart} onClose={() => setFloatOpen(false)} />
 
               {/* Corner brackets */}
-              <span className="absolute top-10 left-2 w-3 h-3 border-t border-l pointer-events-none" style={{ borderColor: hColor + "66" }} />
-              <span className="absolute top-10 right-2 w-3 h-3 border-t border-r pointer-events-none" style={{ borderColor: hColor + "66" }} />
-              <span className="absolute bottom-2 left-2 w-3 h-3 border-b border-l pointer-events-none" style={{ borderColor: hColor + "33" }} />
-              <span className="absolute bottom-2 right-2 w-3 h-3 border-b border-r pointer-events-none" style={{ borderColor: hColor + "33" }} />
+              {[["top-10 left-2 border-t border-l"],["top-10 right-2 border-t border-r"],
+                ["bottom-2 left-2 border-b border-l"],["bottom-2 right-2 border-b border-r"]].map(([cls], i) => (
+                <span key={i} className={`absolute w-3 h-3 pointer-events-none ${cls}`} style={{ borderColor: hColor + "55" }} />
+              ))}
 
-              <div className="px-5 pt-3 pb-2">
-                {/* Status sub-header */}
-                <div className="flex items-center gap-3 mb-3">
-                  <HealthOrb3D health={health} />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-black flex items-center gap-1.5" style={{ color: hColor }}>
-                      {HEALTH_LBL[health]}
-                      {latency != null && (
-                        <span className="text-[9px] font-mono font-normal" style={{ color: hColor + "aa" }}>{latency}ms</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Live latency bar */}
-                {useLocal && (
-                  <div className="mb-3 rounded-lg overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                    <div className="flex items-center justify-between px-2.5 py-1.5">
-                      <span className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.3)" }}>اتصال مباشر</span>
-                      <span className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>
-                        {lastAgo != null ? `آخر فحص: ${lastAgo}ث` : "—"} · كل 30ث
-                      </span>
-                    </div>
-                    <div className="mx-2.5 mb-2 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
-                      <motion.div className="h-full rounded-full"
-                        animate={{ width: health === "online" ? "92%" : health === "slow" ? "52%" : health === "checking" ? ["20%","80%","20%"] : "8%" }}
-                        transition={{ duration: health === "checking" ? 1.2 : 0.6, repeat: health === "checking" ? Infinity : 0, ease: "easeOut" }}
-                        style={{ background: `linear-gradient(90deg,${hColor},${hColor}aa)` }} />
-                    </div>
-
-                    {/* Real-time health indicators */}
-                    <div className="grid grid-cols-3 gap-1 mx-2.5 mb-2">
-                      {[
-                        { label: "LATENCY", value: latency != null ? `${latency}ms` : "—", color: latency != null ? (latency < 600 ? "#22c55e" : latency < 2000 ? "#f59e0b" : "#ef4444") : "rgba(255,255,255,0.3)" },
-                        { label: "STATUS",  value: HEALTH_LBL[health], color: hColor },
-                        { label: "UPTIME",  value: health !== "offline" ? "LIVE" : "DOWN", color: health !== "offline" ? "#22c55e" : "#ef4444" },
-                      ].map(s => (
-                        <div key={s.label} className="rounded-lg p-1.5 text-center" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                          <div className="text-[6px] uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>{s.label}</div>
-                          <div className="text-[8px] font-black font-mono" style={{ color: s.color }}>{s.value}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Endpoint display */}
-                <div className="text-[9px] font-mono mb-3 px-2 py-1.5 rounded-lg truncate"
-                  style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                  {endpoint} · {model}
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  {/* Main toggle */}
-                  <motion.button
-                    onClick={() => {
-                      dispatch({ type: "SET_SETTINGS", patch: { useLocalModel: !useLocal } });
-                      setFloatOpen(false);
-                    }}
-                    className="w-full py-2.5 rounded-xl text-[11px] font-black tracking-wider uppercase relative overflow-hidden"
-                    style={{
-                      background: useLocal ? "rgba(239,68,68,0.12)" : "rgba(34,197,94,0.14)",
-                      border: `1px solid ${useLocal ? "rgba(239,68,68,0.4)" : "rgba(34,197,94,0.4)"}`,
-                      color: useLocal ? "#ef4444" : "#22c55e",
-                    }}
-                    whileHover={{ scale: 1.02, boxShadow: `0 0 20px ${useLocal ? "rgba(239,68,68,0.22)" : "rgba(34,197,94,0.22)"}` }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    <span className="btn-shimmer-inner" style={{ background: `linear-gradient(90deg,transparent,${useLocal ? "rgba(239,68,68,0.18)" : "rgba(34,197,94,0.18)"},transparent)` }} />
-                    {useLocal ? "⊘  تعطيل النموذج المحلي" : "⊕  تفعيل النموذج المحلي"}
-                  </motion.button>
-
-                  <div className="flex gap-2">
-                    {/* Ping now */}
-                    <motion.button
-                      onClick={() => ping()}
-                      className="flex-1 py-2 rounded-xl text-[9px] font-black tracking-wider uppercase"
-                      style={{ background: `${hColor}10`, border: `1px solid ${hColor}28`, color: hColor }}
-                      whileHover={{ scale: 1.02, background: `${hColor}18` }} whileTap={{ scale: 0.97 }}
-                    >⟳ فحص الآن</motion.button>
-
-                    <motion.button
-                      onClick={() => { setFloatOpen(false); onOpenLocalModel(); }}
-                      className="flex-1 py-2 rounded-xl text-[9px] font-black tracking-wider uppercase"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.45)" }}
-                      whileHover={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.7)" }}
-                      whileTap={{ scale: 0.97 }}
-                    >⚙ إعدادات</motion.button>
-                  </div>
-                </div>
+              {/* Live HUD wave bar */}
+              <div className="px-4 pt-2 pb-1">
+                <HUDCanvas3D />
               </div>
+
+              {/* Status hero */}
+              <div className="flex items-center gap-3 px-4 pb-3">
+                <HealthOrb3D health={health} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[14px] font-black tracking-wide flex items-center gap-2" style={{ color: hColor }}>
+                    {HEALTH_LBL[health]}
+                    {latency != null && <span className="text-[9px] font-mono opacity-60">{latency}ms</span>}
+                    {onlineEngines.length > 0 && (
+                      <span className="text-[8px] px-1.5 py-0.5 rounded-full font-bold"
+                        style={{ background: `${hColor}18`, border: `1px solid ${hColor}30`, color: hColor }}>
+                        {onlineEngines.length} engine{onlineEngines.length > 1 ? "s" : ""} live
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[9px] mt-0.5 font-mono truncate" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    {endpoint} · {model}
+                  </div>
+                </div>
+                <motion.button
+                  onClick={() => {
+                    dispatch({ type: "SET_SETTINGS", patch: { useLocalModel: !useLocal } });
+                  }}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-black relative overflow-hidden"
+                  style={{
+                    background: useLocal ? "rgba(239,68,68,0.14)" : `${hColor}18`,
+                    border: `1px solid ${useLocal ? "rgba(239,68,68,0.45)" : hColor + "45"}`,
+                    color: useLocal ? "#ef4444" : hColor,
+                  }}
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.93 }}
+                >
+                  <Cpu className="w-3 h-3" />
+                  {useLocal ? "OFF" : "ON"}
+                </motion.button>
+              </div>
+
+              <div className="h-px mx-4" style={{ background: `linear-gradient(90deg,transparent,${hColor}30,transparent)` }} />
+
+              {/* Real-time stats bar */}
+              <div className="grid grid-cols-4 gap-px mx-4 my-2" style={{ background: "rgba(255,255,255,0.04)", borderRadius: 10, overflow: "hidden" }}>
+                {[
+                  { label: "LATENCY", value: latency != null ? `${latency}ms` : "—", color: latency ? (latency < 600 ? "#22c55e" : "#f59e0b") : "rgba(255,255,255,0.3)" },
+                  { label: "ENGINES", value: `${onlineEngines.length}/${engines.length || 7}`, color: onlineEngines.length > 0 ? "#22c55e" : "#ef4444" },
+                  { label: "MODELS",  value: String(allModels.length || "—"), color: "#8b5cf6" },
+                  { label: "CHECK",   value: lastAgo != null ? `${lastAgo}s` : "—", color: "rgba(255,255,255,0.4)" },
+                ].map(s => (
+                  <div key={s.label} className="py-2 px-2 text-center" style={{ background: "rgba(0,0,0,0.5)" }}>
+                    <div className="text-[7px] uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.22)" }}>{s.label}</div>
+                    <div className="text-[10px] font-black font-mono" style={{ color: s.color }}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tabs */}
+              <div className="flex gap-px mx-4 mb-2" style={{ background: "rgba(255,255,255,0.04)", borderRadius: 10, overflow: "hidden" }}>
+                {(["status","models","settings","test"] as const).map(t => (
+                  <button key={t}
+                    onClick={() => setActiveTab(t)}
+                    className="flex-1 py-1.5 text-[9px] font-black uppercase tracking-wider transition-all"
+                    style={{
+                      background: activeTab === t ? `${hColor}20` : "transparent",
+                      color: activeTab === t ? hColor : "rgba(255,255,255,0.3)",
+                      borderBottom: activeTab === t ? `2px solid ${hColor}` : "2px solid transparent",
+                    }}
+                  >
+                    {t === "status" ? "📡 حالة" : t === "models" ? "🤖 نماذج" : t === "settings" ? "⚙ إعداد" : "🧪 اختبار"}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tab content */}
+              <div className="flex-1 overflow-y-auto px-4 pb-3" style={{ scrollbarWidth: "none" }}>
+                <AnimatePresence mode="wait">
+
+                  {/* STATUS TAB */}
+                  {activeTab === "status" && (
+                    <motion.div key="status" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+                      {/* Live bar */}
+                      <div className="rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        <div className="px-3 pt-2 pb-1 flex justify-between items-center">
+                          <span className="text-[8px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.3)" }}>مستوى الاتصال</span>
+                          <span className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.2)" }}>auto-refresh 30s</span>
+                        </div>
+                        <div className="mx-3 mb-2 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                          <motion.div className="h-full rounded-full"
+                            animate={{ width: health === "online" ? "95%" : health === "slow" ? "55%" : health === "checking" ? ["22%","80%","22%"] : "6%" }}
+                            transition={{ duration: health === "checking" ? 1 : 0.5, repeat: health === "checking" ? Infinity : 0 }}
+                            style={{ background: `linear-gradient(90deg,${hColor},${hColor}99)`, boxShadow: `0 0 8px ${hColor}60` }} />
+                        </div>
+                      </div>
+
+                      {/* Engines list */}
+                      {engines.length > 0 ? (
+                        <div className="space-y-1.5">
+                          {engines.slice(0, 5).map(eng => (
+                            <div key={eng.id} className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                              style={{ background: eng.online ? `${hColor}08` : "rgba(255,255,255,0.02)", border: `1px solid ${eng.online ? hColor + "25" : "rgba(255,255,255,0.05)"}` }}>
+                              <div className="w-2 h-2 rounded-full flex-shrink-0"
+                                style={{ background: eng.online ? "#22c55e" : "#374151", boxShadow: eng.online ? "0 0 6px #22c55e" : "none" }} />
+                              <span className="text-[10px] font-bold capitalize flex-1" style={{ color: eng.online ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.3)" }}>{eng.id}</span>
+                              {eng.online && eng.latencyMs != null && (
+                                <span className="text-[8px] font-mono" style={{ color: eng.latencyMs < 600 ? "#22c55e" : "#f59e0b" }}>{eng.latencyMs}ms</span>
+                              )}
+                              {eng.models.length > 0 && (
+                                <span className="text-[7px] px-1 rounded" style={{ background: "#8b5cf620", color: "#8b5cf6" }}>{eng.models.length} models</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>
+                          جاري فحص المحركات...
+                        </div>
+                      )}
+
+                      <button onClick={() => ping()}
+                        className="w-full py-2 rounded-xl text-[9px] font-black tracking-wider uppercase"
+                        style={{ background: `${hColor}10`, border: `1px solid ${hColor}28`, color: hColor }}>
+                        ⟳ فحص الآن
+                      </button>
+                    </motion.div>
+                  )}
+
+                  {/* MODELS TAB */}
+                  {activeTab === "models" && (
+                    <motion.div key="models" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+                      {allModels.length > 0 ? (
+                        <div className="space-y-1">
+                          {allModels.map(({ model: m, engine }) => (
+                            <motion.button key={`${engine}-${m}`}
+                              onClick={() => {
+                                const endpoints: Record<string, string> = {
+                                  ollama: "http://localhost:11434/v1", lmstudio: "http://localhost:1234/v1",
+                                  jan: "http://localhost:1337/v1", gpt4all: "http://localhost:4891/v1",
+                                  llamafile: "http://localhost:8081/v1", kobold: "http://localhost:5001/v1",
+                                };
+                                dispatch({ type: "SET_SETTINGS", patch: {
+                                  useLocalModel: true, localModel: m,
+                                  localEndpoint: endpoints[engine] ?? "http://localhost:11434/v1",
+                                }});
+                              }}
+                              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-all"
+                              style={{
+                                background: model === m ? `${hColor}14` : "rgba(255,255,255,0.02)",
+                                border: `1px solid ${model === m ? hColor + "40" : "rgba(255,255,255,0.05)"}`,
+                              }}
+                              whileHover={{ background: `${hColor}10` }}
+                            >
+                              <Cpu className="w-3 h-3 flex-shrink-0" style={{ color: hColor, opacity: 0.7 }} />
+                              <span className="text-[10px] font-bold flex-1 truncate" style={{ color: "rgba(255,255,255,0.75)" }}>{m}</span>
+                              <span className="text-[8px] font-mono px-1.5 rounded" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.3)" }}>{engine}</span>
+                              {model === m && <span className="text-[8px]" style={{ color: hColor }}>✓</span>}
+                            </motion.button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6" style={{ color: "rgba(255,255,255,0.2)" }}>
+                          <Cpu className="w-6 h-6 mx-auto mb-2 opacity-20" />
+                          <p className="text-xs">لا توجد نماذج متاحة</p>
+                          <p className="text-[9px] mt-1">شغّل Ollama أو LM Studio لرؤية النماذج</p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* SETTINGS TAB */}
+                  {activeTab === "settings" && (
+                    <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+                      <div>
+                        <label className="text-[8px] font-bold uppercase tracking-widest mb-1 block" style={{ color: "rgba(255,255,255,0.3)" }}>Endpoint URL</label>
+                        <input
+                          value={editEndpoint}
+                          onChange={e => setEditEndpoint(e.target.value)}
+                          className="w-full rounded-lg px-3 py-2 text-[10px] font-mono outline-none"
+                          style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${hColor}28`, color: "rgba(255,255,255,0.8)" }}
+                          placeholder="http://localhost:11434/v1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold uppercase tracking-widest mb-1 block" style={{ color: "rgba(255,255,255,0.3)" }}>Model Name</label>
+                        <input
+                          value={editModel}
+                          onChange={e => setEditModel(e.target.value)}
+                          className="w-full rounded-lg px-3 py-2 text-[10px] font-mono outline-none"
+                          style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${hColor}28`, color: "rgba(255,255,255,0.8)" }}
+                          placeholder="llama3, mistral, codellama..."
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-[8px] font-bold" style={{ color: "rgba(255,255,255,0.3)" }}>
+                        <div className="p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                          <div className="mb-1">أمثلة Ollama</div>
+                          {["llama3", "mistral", "codellama", "phi3"].map(m => (
+                            <button key={m} onClick={() => setEditModel(m)} className="block w-full text-left text-[9px] px-1 py-0.5 rounded hover:bg-white/5 transition" style={{ color: hColor }}>{m}</button>
+                          ))}
+                        </div>
+                        <div className="p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                          <div className="mb-1">Endpoints شائعة</div>
+                          {["localhost:11434/v1","localhost:1234/v1","localhost:1337/v1"].map(ep => (
+                            <button key={ep} onClick={() => setEditEndpoint(`http://${ep}`)} className="block w-full text-left text-[8px] px-1 py-0.5 rounded hover:bg-white/5 transition truncate" style={{ color: "#8b5cf6" }}>{ep}</button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <motion.button onClick={saveSettings}
+                          className="flex-1 py-2 rounded-xl text-[10px] font-black"
+                          style={{ background: saved ? "rgba(34,197,94,0.2)" : `${hColor}18`, border: `1px solid ${saved ? "#22c55e50" : hColor + "40"}`, color: saved ? "#22c55e" : hColor }}
+                          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                        >{saved ? "✓ تم الحفظ" : "💾 حفظ"}</motion.button>
+                        <motion.button onClick={() => { setFloatOpen(false); onOpenLocalModel(); }}
+                          className="flex-1 py-2 rounded-xl text-[10px] font-black"
+                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.45)" }}
+                          whileHover={{ background: "rgba(255,255,255,0.07)" }} whileTap={{ scale: 0.97 }}
+                        >⚙ إعدادات متقدمة</motion.button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* TEST TAB */}
+                  {activeTab === "test" && (
+                    <motion.div key="test" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+                      <div className="text-[8px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>
+                        اختبار سريع للنموذج المحلي · {model}
+                      </div>
+                      <textarea
+                        value={testPrompt}
+                        onChange={e => setTestPrompt(e.target.value)}
+                        rows={3}
+                        className="w-full rounded-xl px-3 py-2 text-[10px] outline-none resize-none"
+                        style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${hColor}25`, color: "rgba(255,255,255,0.8)" }}
+                        placeholder="أدخل سؤالاً للاختبار..."
+                      />
+                      <motion.button
+                        onClick={runTest}
+                        disabled={testRunning || !testPrompt.trim()}
+                        className="w-full py-2 rounded-xl text-[10px] font-black relative overflow-hidden"
+                        style={{
+                          background: testRunning ? "rgba(99,102,241,0.14)" : `${hColor}18`,
+                          border: `1px solid ${testRunning ? "#6366f145" : hColor + "40"}`,
+                          color: testRunning ? "#6366f1" : hColor,
+                          opacity: (!testRunning && testPrompt.trim()) ? 1 : 0.6,
+                        }}
+                        whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                      >
+                        {testRunning ? "⚡ جاري التوليد..." : "▶ إرسال"}
+                      </motion.button>
+                      {testOutput && (
+                        <div className="rounded-xl p-3 text-[10px] leading-relaxed max-h-36 overflow-y-auto"
+                          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.75)" }}>
+                          {testOutput}
+                          {testRunning && <span className="inline-block w-1.5 h-3 ml-0.5 animate-pulse" style={{ background: hColor }} />}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <div className="h-px" style={{ background: `linear-gradient(90deg,transparent,${hColor}44,transparent)` }} />
+              <div className="px-4 py-2 flex items-center justify-between" style={{ background: "rgba(0,0,0,0.3)" }}>
+                <span className="text-[7.5px] font-mono" style={{ color: "rgba(255,255,255,0.15)" }}>LOCAL · ENGINE · v2</span>
+                <span className="text-[7.5px] font-mono" style={{ color: hColor + "80" }}>{HEALTH_LBL[health]} · {useLocal ? "ACTIVE" : "IDLE"}</span>
+              </div>
             </motion.div>
           </>
         )}
