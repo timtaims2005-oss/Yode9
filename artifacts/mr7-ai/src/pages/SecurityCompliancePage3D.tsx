@@ -1,1 +1,1 @@
-// stub — see SecurityCompliancePage.tsx
+export { SecurityCompliancePage as SecurityCompliancePage3D } from "./SecurityCompliancePage";

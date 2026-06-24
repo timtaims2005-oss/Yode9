@@ -268,13 +268,13 @@ export function PerformanceBooster() {
   }, []);
 
   /* ── adaptive FPS state ─────────────────────────────────────────── */
-  useEffect(() => adaptiveFPS.subscribe(setAdaptState), []);
+  useEffect(() => { adaptiveFPS.subscribe(setAdaptState); }, []);
 
   /* ── Web Vitals ─────────────────────────────────────────────────── */
-  useEffect(() => webVitals.subscribe(setVitals), []);
+  useEffect(() => { webVitals.subscribe(setVitals); }, []);
 
   /* ── Frame pipeline ─────────────────────────────────────────────── */
-  useEffect(() => onFramePipeline(setPipeline), []);
+  useEffect(() => { onFramePipeline(setPipeline); }, []);
 
   /* ── GPU layer audit — refresh every 5s when panel is open ─────── */
   useEffect(() => {

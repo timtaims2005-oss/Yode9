@@ -654,7 +654,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           await migrateFromLocalStorage(STORAGE_KEY).catch(() => {});
         } else if (idbChats.length > 0) {
           // IDB has more chats — merge
-          dispatch({ type: "HYDRATE", state: { chats: idbChats } });
+          dispatch({ type: "HYDRATE", state: { chats: idbChats as Chat[] } });
           fts.indexChats(idbChats as Parameters<typeof fts.indexChats>[0]);
         }
       } catch {

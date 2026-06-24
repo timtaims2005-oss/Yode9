@@ -319,7 +319,7 @@ function StepCard({
           {statusIcon}
         </div>
         <div className="w-5 h-5 flex items-center justify-center rounded" style={{ background: color + "25" }}>
-          <ToolIcon size={11} style={{ color }} />
+          <ToolIcon size={11} {...{ style: { color } } as Record<string,unknown>} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-[11px] font-semibold text-white/90 truncate">{step.title}</div>
@@ -873,7 +873,7 @@ export function AutonomousAgentModal({ open, onOpenChange }: Props) {
                     <div className="grid grid-cols-2 gap-2 w-full max-w-xs">
                       {Object.entries(TOOL_ICONS).slice(0, 4).map(([tool, Icon]) => (
                         <div key={tool} className="flex items-center gap-2 rounded-lg p-2 border border-white/5 bg-white/3">
-                          <Icon size={12} style={{ color: TOOL_COLORS[tool as AgentTool] }} />
+                          <Icon size={12} {...{ style: { color: TOOL_COLORS[tool as AgentTool] } } as Record<string,unknown>} />
                           <span className="text-[9px] text-white/40">{TOOL_LABELS[tool as AgentTool]}</span>
                         </div>
                       ))}

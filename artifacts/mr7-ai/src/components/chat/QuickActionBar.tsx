@@ -223,11 +223,7 @@ export function QuickActionBar({ onInsert }: Props) {
               </span>
 
               {/* icon */}
-              <Icon
-                className="flex-shrink-0 z-20"
-                style={{ color: action.color, width: 13, height: 13 }}
-                strokeWidth={2.2}
-              />
+              <Icon {...{ className: "flex-shrink-0 z-20", style: { color: action.color, width: 13, height: 13 }, strokeWidth: 2.2 } as Record<string,unknown>} />
 
               {/* arabic label */}
               <span

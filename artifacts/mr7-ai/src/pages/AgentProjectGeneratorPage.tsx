@@ -170,10 +170,7 @@ export function AgentProjectGeneratorPage({ onClose }: Props) {
                     backgroundColor: `${pt.color}10`,
                   } : {}}
                 >
-                  <pt.icon
-                    className="w-4 h-4 mx-auto mb-1"
-                    style={{ color: projectType === pt.id ? pt.color : "#6b7280" }}
-                  />
+                  <pt.icon {...{ className: "w-4 h-4 mx-auto mb-1", style: { color: projectType === pt.id ? pt.color : "#6b7280" } } as Record<string,unknown>} />
                   <div className="text-[10px] font-medium" style={{ color: projectType === pt.id ? pt.color : "#6b7280" }}>
                     {pt.label}
                   </div>

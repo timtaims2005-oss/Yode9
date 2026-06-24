@@ -361,7 +361,7 @@ export async function* streamCompletion(
       stream: true,
       temperature,
       ...glm5Extra,
-    } as Parameters<typeof client.chat.completions.create>[0], { signal: controller.signal });
+    } as Parameters<typeof client.chat.completions.create>[0], { signal: controller.signal }) as AsyncIterable<import("openai/resources").ChatCompletionChunk>;
 
     for await (const chunk of streamRes) {
       const content = chunk.choices?.[0]?.delta?.content;

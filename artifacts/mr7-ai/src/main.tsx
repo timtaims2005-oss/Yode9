@@ -21,7 +21,7 @@ function initErrorMonitor() {
     errorLog.push({ ts: Date.now(), type, message, stack });
     if (errorLog.length > MAX_ERRORS) errorLog.shift();
     // Expose for debugging console: window.__kaliErrors
-    (window as Record<string, unknown>).__kaliErrors = errorLog;
+    (window as unknown as Record<string, unknown>).__kaliErrors = errorLog;
   }
 
   window.addEventListener("error", (e: ErrorEvent) => {

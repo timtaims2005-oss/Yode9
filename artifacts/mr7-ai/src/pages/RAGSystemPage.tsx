@@ -104,7 +104,7 @@ export function RAGSystemPage({ onClose }: Props) {
                 return (
                   <motion.div key={doc.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                     className="flex items-center gap-3 p-3.5 rounded-xl bg-white/3 border border-white/6 hover:border-blue-500/20 transition-colors">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center flex-shrink-0"><Icon className="w-4 h-4 text-blue-400" /></div>
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center flex-shrink-0">{React.createElement(Icon as React.FC<React.SVGProps<SVGSVGElement>>, { className: "w-4 h-4 text-blue-400" })}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate">{doc.name}</p>
                       <div className="flex items-center gap-2 mt-0.5 text-[10px] text-zinc-600">

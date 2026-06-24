@@ -121,8 +121,9 @@ export function ThreatGlobeBackground() {
   }, []);
 
   useEffect(() => {
-    const cv = canvasRef.current;
-    if (!cv) return;
+    const cvOrNull = canvasRef.current;
+    if (!cvOrNull) return;
+    const cv = cvOrNull;
 
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
 

@@ -7,7 +7,7 @@ import { tokenStreamCounter } from "./token-stream-counter";
 import { eventBus } from "./event-bus";
 import { smartPrefetch } from "./smart-prefetch";
 
-export type ChatRole = "user" | "assistant";
+export type ChatRole = "user" | "assistant" | "system";
 export type ChatMessage = { role: ChatRole; content: string };
 
 // ─────────────── Agent (ReAct tool-loop) ────────────────

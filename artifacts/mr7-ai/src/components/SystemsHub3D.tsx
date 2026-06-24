@@ -464,7 +464,7 @@ export function SystemsHub3D({ open, onClose, onOpenSystem }: Props) {
                     <div className="px-4 py-3 border-b border-white/5">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${selected.color}25`, border: `1px solid ${selected.color}40` }}>
-                          <selected.icon className="w-4 h-4" style={{ color: selected.color }} />
+                          <selected.icon {...{ className: "w-4 h-4", style: { color: selected.color } } as Record<string,unknown>} />
                         </div>
                         <div>
                           <p className="text-sm font-bold text-white">{selected.name}</p>
@@ -495,7 +495,7 @@ export function SystemsHub3D({ open, onClose, onOpenSystem }: Props) {
                     className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-right transition-all hover:bg-white/5"
                     style={{ borderLeft: `2px solid ${sys.color}50` }}
                   >
-                    <sys.icon className="w-3 h-3 flex-shrink-0" style={{ color: sys.color }} />
+                    <sys.icon {...{ className: "w-3 h-3 flex-shrink-0", style: { color: sys.color } } as Record<string,unknown>} />
                     <span className="text-[10px] text-zinc-400 truncate flex-1">{sys.name}</span>
                     <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${sys.status === "online" ? "bg-green-500" : sys.status === "new" ? "bg-amber-500" : "bg-blue-500"}`} />
                   </motion.button>

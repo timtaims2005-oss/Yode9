@@ -296,7 +296,7 @@ export function CommandPalette({
         )}
         <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 transition-colors
           ${isActive ? "bg-red-500/20 ring-1 ring-red-500/40" : "bg-white/5"}`}>
-          <Icon className={`w-3.5 h-3.5 ${item.color}`} />
+          <Icon {...{ className: `w-3.5 h-3.5 ${item.color}` } as Record<string,unknown>} />
         </div>
         <div className="flex-1 min-w-0">
           <div className={`text-[13px] font-medium truncate ${isActive ? "text-white" : "text-white/80"}`}>

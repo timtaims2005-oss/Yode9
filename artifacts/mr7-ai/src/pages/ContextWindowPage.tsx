@@ -150,7 +150,7 @@ export function ContextWindowPage({ onClose }: Props) {
                 className="p-3.5 rounded-xl border group" style={{ background: `${block.color}08`, borderColor: `${block.color}20` }}>
                 <div className="flex items-start gap-3">
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${block.color}20` }}>
-                    <Icon className="w-3.5 h-3.5" style={{ color: block.color }} />
+                    <Icon {...{ className: "w-3.5 h-3.5", style: { color: block.color } } as Record<string,unknown>} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">

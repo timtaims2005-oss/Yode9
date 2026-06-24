@@ -241,7 +241,7 @@ const AuthModal             = lazy(() => import("./components/modals/AuthModal")
 const AutonomousAgentModal  = lazy(() => import("./components/modals/AutonomousAgentModal").then(m=>({default:m.AutonomousAgentModal})));
 const ChainOfThoughtModal   = lazy(() => import("./components/modals/ChainOfThoughtModal").then(m=>({default:m.ChainOfThoughtModal})));
 const CodeScannerModal      = lazy(() => import("./components/modals/CodeScannerModal").then(m=>({default:m.CodeScannerModal})));
-const CollabModal           = lazy(() => import("./components/modals/CollabModal").then(m=>({default:m.CollabModal})));
+const CollabModal           = lazy(() => import("./components/modals/CollabModal"));
 const DebateModal           = lazy(() => import("./components/modals/DebateModal").then(m=>({default:m.DebateModal})));
 const DynamicCouncilModal   = lazy(() => import("./components/modals/DynamicCouncilModal").then(m=>({default:m.DynamicCouncilModal})));
 const FinetuneModal         = lazy(() => import("./components/modals/FinetuneModal").then(m=>({default:m.FinetuneModal})));
@@ -1480,14 +1480,14 @@ function AppContent() {
       <Suspense fallback={null}>
         {modals.systemsHub3D && (
           <WindowChrome open={true} title="Systems Hub 3D" color="#e21227" onClose={() => close('systemsHub3D')}>
-            <SystemsHub3DPage onClose={() => close('systemsHub3D')} />
+            <SystemsHub3DPage open={true} onClose={() => close('systemsHub3D')} />
           </WindowChrome>
         )}
       </Suspense>
       <Suspense fallback={null}>
         {modals.infraMap3D && (
           <WindowChrome open={true} title="Infrastructure Map 3D" color="#a78bfa" onClose={() => close('infraMap3D')}>
-            <InfrastructureMap3DPage onClose={() => close('infraMap3D')} />
+            <InfrastructureMap3DPage />
           </WindowChrome>
         )}
       </Suspense>

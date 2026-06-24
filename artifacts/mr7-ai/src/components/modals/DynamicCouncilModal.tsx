@@ -126,7 +126,7 @@ export function DynamicCouncilModal({ onClose }: { onClose: () => void }) {
                 break;
               case "brain_chunk":
                 if (evt.id && evt.content) {
-                  setBrainOutputs(prev => ({ ...prev, [evt.id]: (prev[evt.id] ?? "") + evt.content }));
+                  setBrainOutputs(prev => ({ ...prev, [evt.id as string]: (prev[evt.id as string] ?? "") + (evt.content as string) }));
                 }
                 break;
               case "brain_done":

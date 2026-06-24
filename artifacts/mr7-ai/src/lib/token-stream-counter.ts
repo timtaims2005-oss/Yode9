@@ -123,7 +123,7 @@ class TokenStreamCounter {
     this.globalListeners.forEach(cb => cb(session));
   }
 
-  private buildSession(id: string, s: ReturnType<NonNullable<ReturnType<typeof this.sessions.get>>>, done: boolean): StreamSession {
+  private buildSession(id: string, s: NonNullable<ReturnType<typeof this.sessions["get"]>>, done: boolean): StreamSession {
     const elapsed = performance.now() - s.startedAt;
     return {
       id,

@@ -165,7 +165,7 @@ export function PerformanceHUD() {
   }, []);
 
   /* ── adaptive state subscription ─────────────────────────────────── */
-  useEffect(() => adaptiveFPS.subscribe(setAdaptive), []);
+  useEffect(() => { adaptiveFPS.subscribe(setAdaptive); }, []);
 
   /* ── FPS sampler (independent RAF) ───────────────────────────────── */
   useEffect(() => {
