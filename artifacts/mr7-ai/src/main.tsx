@@ -12,6 +12,63 @@ import "./index.css";
 
 const INTERNAL_KEY = import.meta.env.VITE_INTERNAL_KEY as string | undefined;
 
+// ── Error monitor — captures unhandled errors and promise rejections ──────────
+function initErrorMonitor() {
+  const MAX_ERRORS = 50;
+  const errorLog: Array<{ ts: number; type: string; message: string; stack?: string }> = [];
+
+  function record(type: string, message: string, stack?: string) {
+    errorLog.push({ ts: Date.now(), type, message, stack });
+    if (errorLog.length > MAX_ERRORS) errorLog.shift();
+    // Expose for debugging console: window.__kaliErrors
+    (window as Record<string, unknown>).__kaliErrors = errorLog;
+  }
+
+  window.addEventListener("error", (e: ErrorEvent) => {
+    record("uncaught", e.message, e.error?.stack);
+    if (import.meta.env.DEV) {
+      console.error("[KaliGPT Error Monitor]", e.message, e.error);
+    }
+  });
+
+  window.addEventListener("unhandledrejection", (e: PromiseRejectionEvent) => {
+    const msg = e.reason instanceof Error ? e.reason.message : String(e.reason);
+    const stack = e.reason instanceof Error ? e.reason.stack : undefined;
+    record("unhandledrejection", msg, stack);
+    if (import.meta.env.DEV) {
+      console.error("[KaliGPT Promise Monitor]", e.reason);
+    }
+  });
+}
+
+// ── PWA Service Worker registration ──────────────────────────────────────────
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js", { scope: "/" })
+      .then(reg => {
+        if (import.meta.env.DEV) console.info("[KaliGPT SW] Registered:", reg.scope);
+        reg.addEventListener("updatefound", () => {
+          const sw = reg.installing;
+          if (!sw) return;
+          sw.addEventListener("statechange", () => {
+            if (sw.state === "installed" && navigator.serviceWorker.controller) {
+              // New SW installed — post update event for in-app banner
+              window.dispatchEvent(new CustomEvent("kali:sw-update-ready"));
+            }
+          });
+        });
+      })
+      .catch(err => {
+        if (import.meta.env.DEV) console.warn("[KaliGPT SW] Registration failed:", err);
+      });
+  });
+}
+
+// Boot monitors before React renders
+initErrorMonitor();
+registerServiceWorker();
+
 // ── Global CSRF + internal-key fetch interceptor ─────────────────────────────
 // All non-GET requests to /api/* automatically receive:
 //   - X-CSRF-Token header (fetched & cached from GET /api/csrf-token)

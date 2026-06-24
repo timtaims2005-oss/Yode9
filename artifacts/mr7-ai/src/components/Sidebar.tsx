@@ -1256,7 +1256,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
 
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-1">
-            <UserMenu onAccount={onOpenAccount} onSettings={onOpenSettings} onTheme={onOpenSettings} />
+            <UserMenu onAccount={onOpenAccount} onSettings={onOpenSettings} onTheme={onOpenSettings} onLogin={onOpenLogin} />
             {onOpenLogin && (
               <button
                 onClick={onOpenLogin}
@@ -1307,7 +1307,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                 <QrCode className="w-3.5 h-3.5" />
               </button>
             )}
-            <UserMenu trigger="dots" onAccount={onOpenAccount} onSettings={onOpenSettings} onTheme={onOpenSettings} />
+            <UserMenu trigger="dots" onAccount={onOpenAccount} onSettings={onOpenSettings} onTheme={onOpenSettings} onLogin={onOpenLogin} />
           </div>
         </div>
       </div>
