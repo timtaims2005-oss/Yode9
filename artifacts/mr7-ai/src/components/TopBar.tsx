@@ -82,6 +82,7 @@ interface TopBarProps {
   onOpenDynamicCouncil?: () => void;
   onOpenCollab?: () => void;
   onOpenFinetune?: () => void;
+  onOpenSwarmEvolution?: () => void;
   hudsVisible?: boolean;
   sidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
@@ -1718,6 +1719,7 @@ export function TopBar({
   onOpenDynamicCouncil,
   onOpenCollab,
   onOpenFinetune,
+  onOpenSwarmEvolution,
   hudsVisible,
   sidebarCollapsed,
   onToggleSidebar,
@@ -1941,6 +1943,7 @@ export function TopBar({
         {onOpenMasterHud      && <HUDBtn icon={Globe}        label="HUD"          color="#22c55e" onClick={onOpenMasterHud} />}
         {onOpenCyberHub       && <HUDBtn icon={Zap}          label="Cyber Hub"    color="#e21227" onClick={onOpenCyberHub} badge="3D" />}
         {onOpenWidgetsDock    && <HUDBtn icon={Gauge}        label="Widgets HUD"  color="#06b6d4" onClick={onOpenWidgetsDock} badge="6P" />}
+        {onOpenSwarmEvolution && <HUDBtn icon={BrainCircuit} label="Swarm AI"     color="#8b5cf6" onClick={onOpenSwarmEvolution} badge="NEW" />}
         {(onOpenCisaLive || onOpenCveTimeline || onOpenCyberHierarchy || onOpenThreatFeed) && <VDivider />}
 
         {/* ── GROUP 5 — System ────────────────────────────────────────── */}

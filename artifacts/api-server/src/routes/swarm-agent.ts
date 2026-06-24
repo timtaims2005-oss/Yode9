@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { callOnce, streamCompletion, getOpenAICompatibleClient } from "../lib/ai-providers";
+import { streamCompletion, type ProviderName } from "../lib/ai-providers";
 import { pool } from "../db";
 
 const router = Router();
@@ -62,6 +62,18 @@ async function ensureSwarmTables() {
 }
 ensureSwarmTables().catch(() => {});
 
+// ─── Provider detection from model id ────────────────────────────────────────
+function detectProvider(model: string): ProviderName {
+  if (model.startsWith("glm-")) return "zhipu";
+  if (model.startsWith("gpt-") || model.startsWith("o1") || model.startsWith("o3") || model.startsWith("o4")) return "openai";
+  if (model.startsWith("claude-")) return "anthropic";
+  if (model.startsWith("gemini-")) return "gemini";
+  if (model.startsWith("deepseek-")) return "openrouter";
+  if (model.startsWith("llama-") || model.startsWith("mixtral-")) return "groq";
+  if (model.startsWith("mistral-")) return "openrouter";
+  return "personal";
+}
+
 // ─── Agent definitions ───────────────────────────────────────────────────────
 const SWARM_AGENTS = {
   orchestrator: {
@@ -121,8 +133,11 @@ async function runSwarmAgent(
   model: string,
   res: Response,
   taskId: string,
+  apiKey?: string,
+  apiBaseURL?: string,
 ): Promise<string> {
   const agent = SWARM_AGENTS[agentId];
+  const provider = detectProvider(model);
   sse(res, "agent_start", { agent: agentId, name: agent.name, taskId });
 
   const messages = [
@@ -132,7 +147,7 @@ async function runSwarmAgent(
 
   let output = "";
   try {
-    for await (const chunk of streamCompletion(messages, { model, maxTokens: 2000 })) {
+    for await (const chunk of streamCompletion(provider, model, messages, 0.7, { apiKey, apiBaseURL })) {
       if (chunk.content) {
         output += chunk.content;
         sse(res, "agent_chunk", { agent: agentId, name: agent.name, chunk: chunk.content });
@@ -150,11 +165,13 @@ async function runSwarmAgent(
 
 // ─── POST /api/swarm/run — Full swarm evolution run (SSE) ───────────────────
 router.post("/swarm/run", async (req: Request, res: Response) => {
-  const { goal, model = "gpt-4o", fallbackModel = "gpt-3.5-turbo", maxIterations = 1 } = req.body as {
+  const { goal, model = "gpt-4o", fallbackModel = "gpt-3.5-turbo", maxIterations = 1, apiKey, apiBaseURL } = req.body as {
     goal?: string;
     model?: string;
     fallbackModel?: string;
     maxIterations?: number;
+    apiKey?: string;
+    apiBaseURL?: string;
   };
 
   if (!goal || goal.trim().length < 5) {
@@ -185,22 +202,22 @@ router.post("/swarm/run", async (req: Request, res: Response) => {
 
       // ── PLANNER ─────────────────────────────────────────────────────────
       const planContext = iter === 0 ? "بدء المشروع من الصفر" : `التكرار رقم ${iter + 1}.\nالتحسينات المقترحة:\n${evolutionLog.slice(-3).join("\n")}`;
-      const planOutput = await runSwarmAgent("planner", goal, planContext, model, res, taskId);
+      const planOutput = await runSwarmAgent("planner", goal, planContext, model, res, taskId, apiKey, apiBaseURL);
       agentOutputs["planner"] = planOutput;
 
       // ── EXECUTOR ─────────────────────────────────────────────────────────
       const execContext = `خطة التنفيذ:\n${planOutput}`;
-      const execOutput = await runSwarmAgent("executor", goal, execContext, model, res, taskId);
+      const execOutput = await runSwarmAgent("executor", goal, execContext, model, res, taskId, apiKey, apiBaseURL);
       agentOutputs["executor"] = execOutput;
 
       // ── CRITIC ──────────────────────────────────────────────────────────
       const criticContext = `الخطة:\n${planOutput}\n\nالتنفيذ:\n${execOutput}`;
-      const criticOutput = await runSwarmAgent("critic", goal, criticContext, model, res, taskId);
+      const criticOutput = await runSwarmAgent("critic", goal, criticContext, model, res, taskId, apiKey, apiBaseURL);
       agentOutputs["critic"] = criticOutput;
 
       // ── TESTER ──────────────────────────────────────────────────────────
       const testerContext = `الحل المنفذ:\n${execOutput}\n\nملاحظات المراجع:\n${criticOutput}`;
-      const testerOutput = await runSwarmAgent("tester", goal, testerContext, model, res, taskId);
+      const testerOutput = await runSwarmAgent("tester", goal, testerContext, model, res, taskId, apiKey, apiBaseURL);
       agentOutputs["tester"] = testerOutput;
 
       // ── ORCHESTRATOR SYNTHESIS ────────────────────────────────────────────
@@ -215,7 +232,7 @@ router.post("/swarm/run", async (req: Request, res: Response) => {
 
 [TESTER]: ${testerOutput.slice(0, 600)}
       `.trim();
-      const orchestratorOutput = await runSwarmAgent("orchestrator", goal, orchestratorContext, model, res, taskId);
+      const orchestratorOutput = await runSwarmAgent("orchestrator", goal, orchestratorContext, model, res, taskId, apiKey, apiBaseURL);
       agentOutputs["orchestrator"] = orchestratorOutput;
       finalResult = orchestratorOutput;
 
@@ -249,8 +266,9 @@ router.post("/swarm/run", async (req: Request, res: Response) => {
       },
     ];
 
+    const fusionProvider = detectProvider(model);
     let fusionOut = "";
-    for await (const chunk of streamCompletion(fusionMessages, { model, maxTokens: 2000 })) {
+    for await (const chunk of streamCompletion(fusionProvider, model, fusionMessages, 0.7, { apiKey, apiBaseURL })) {
       if (chunk.content) {
         fusionOut += chunk.content;
         sse(res, "fusion_chunk", { chunk: chunk.content });

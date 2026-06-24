@@ -833,6 +833,7 @@ function AppContent() {
           onOpenDynamicCouncil={() => open('dynamicCouncil')}
           onOpenCollab={() => open('collab')}
           onOpenFinetune={() => open('finetune')}
+          onOpenSwarmEvolution={() => open('swarmEvolution')}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}

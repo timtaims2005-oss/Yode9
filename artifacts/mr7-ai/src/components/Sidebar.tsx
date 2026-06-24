@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, lazy, Suspense } from "react";
+const MainAgentControl = lazy(() => import("./MainAgentControl").then(m => ({ default: m.MainAgentControl })));
 import { Plus, Search, TerminalSquare, Code, Globe, KeyRound, Network, FileCode, Bug, Gift, Clock, Coins, Pin, Pencil, Trash2, MessageSquare, Filter, Check, LayoutGrid, Hash, Binary, QrCode, Calculator, Regex, FileJson, Fingerprint, Terminal, ShieldAlert, Sparkles, Cookie, Lock as LockIcon, ScanLine, Server, Link as LinkIcon, Wand2, Image as ImageIcon, FileText, Languages, ShieldAlert as PhishIcon, BookOpenCheck, Activity, UserCog, TrendingUp, Mail, Brain, Bookmark, ArrowLeftRight, AtSign, Wallet, Eye, Send, Database as DbIcon, Container as ContainerIcon, FileSearch, Radar, Crosshair, ScrollText, FileCheck2, GitCommit, Music, Palette, ShieldCheck, FlaskConical, ChevronDown, Zap, Users, Layers, Bell, CreditCard, Shield } from "lucide-react";
 import { AI_MODELS } from "@/lib/ai-config";
 import { motion, AnimatePresence } from "framer-motion";
@@ -287,7 +288,7 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: DbIcon, label: "Kali SQLi Guide", color: "text-blue-400" },
 ];
 
-export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution }: SidebarProps) {
   const { toast } = useToast();
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -1260,6 +1261,11 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
             </span>
           </motion.button>
         )}
+
+        {/* Main Agent Control — compact toggle */}
+        <Suspense fallback={null}>
+          <MainAgentControl compact className="mb-2" />
+        </Suspense>
 
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-1">
