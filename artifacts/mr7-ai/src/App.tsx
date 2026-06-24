@@ -257,6 +257,7 @@ const CollaborationPage     = lazy(() => import("./pages/CollaborationPage").the
 const MemorySystemPage      = lazy(() => import("./pages/MemorySystemPage").then(m=>({default:m.MemorySystemPage})));
 const MultiAgentPage        = lazy(() => import("./pages/MultiAgentPage").then(m=>({default:m.MultiAgentPage})));
 const SwarmEvolutionPage    = lazy(() => import("./pages/SwarmEvolutionPage").then(m=>({default:m.SwarmEvolutionPage})));
+const AutonomousSwarmSystemPage = lazy(() => import("./pages/AutonomousSwarmSystemPage").then(m=>({default:m.AutonomousSwarmSystemPage})));
 const AgentProjectGeneratorPage = lazy(() => import("./pages/AgentProjectGeneratorPage").then(m=>({default:m.AgentProjectGeneratorPage})));
 const AgentEvolutionDashboard = lazy(() => import("./pages/AgentEvolutionDashboard").then(m=>({default:m.AgentEvolutionDashboard})));
 const AgentMemoryPanelPage  = lazy(() => import("./components/AgentMemoryPanel").then(m=>({default:m.AgentMemoryPanel})));
@@ -334,6 +335,7 @@ const MODAL_IDS = [
   'memorySystem',
   'multiAgent',
   'swarmEvolution',
+  'autonomousSwarmSystem',
   'agentProjectGenerator',
   'agentEvolutionDashboard',
   'agentMemoryPanel',
@@ -779,6 +781,7 @@ function AppContent() {
         onOpenKgRateLimit={() => open('rateLimitPage')}
         onOpenKgSystemsHub={() => open('systemsHub3D')}
         onOpenKgSwarmEvolution={() => open('swarmEvolution')}
+        onOpenKgAutonomousSwarm={() => open('autonomousSwarmSystem')}
         onOpenKgProjectGenerator={() => open('agentProjectGenerator')}
         onOpenKgAgentMemory={() => open('agentMemoryPanel')}
         onOpenLogin={() => open('authModal')}
@@ -1362,6 +1365,11 @@ function AppContent() {
         {modals.swarmEvolution && (
           <WindowChrome open={true} title="🧬 Swarm Evolution AI" color="#8b5cf6" onClose={() => close('swarmEvolution')}>
             <SwarmEvolutionPage onClose={() => close('swarmEvolution')} />
+          </WindowChrome>
+        )}
+        {modals.autonomousSwarmSystem && (
+          <WindowChrome open={true} title="🤖 Autonomous Swarm System — GLM-5" color="#06b6d4" onClose={() => close('autonomousSwarmSystem')}>
+            <AutonomousSwarmSystemPage onClose={() => close('autonomousSwarmSystem')} />
           </WindowChrome>
         )}
         {modals.agentProjectGenerator && (

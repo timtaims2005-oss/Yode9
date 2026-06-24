@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { streamCompletion, type ProviderName } from "../lib/ai-providers";
+import { streamCompletion, getOpenAICompatibleClient, type ProviderName } from "../lib/ai-providers";
 import { pool } from "../db";
 
 const router = Router();
@@ -58,6 +58,63 @@ async function ensureSwarmTables() {
       VALUES ('singleton', false, 'gpt-4o', 'gpt-3.5-turbo')
       ON CONFLICT (id) DO NOTHING
     `);
+
+    // ── agent_evolution_insights (referenced in swarm/run & self-improve) ─────
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS agent_evolution_insights (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        task_id UUID,
+        insight TEXT NOT NULL,
+        agent TEXT NOT NULL DEFAULT 'system',
+        iteration INTEGER NOT NULL DEFAULT 0,
+        model TEXT,
+        impact_score NUMERIC(3,1) DEFAULT 5.0,
+        applied BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_evo_insights_task ON agent_evolution_insights (task_id)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_evo_insights_impact ON agent_evolution_insights (impact_score DESC)`).catch(() => {});
+
+    // ── autonomous_task_queue (new: persisted task queue from documents) ───────
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS autonomous_task_queue (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        goal TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        priority INTEGER NOT NULL DEFAULT 5,
+        model TEXT NOT NULL DEFAULT 'glm-5.2',
+        fallback_model TEXT NOT NULL DEFAULT 'gpt-4o',
+        agent_mode TEXT NOT NULL DEFAULT 'autonomous',
+        result TEXT,
+        error TEXT,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        started_at TIMESTAMPTZ,
+        completed_at TIMESTAMPTZ
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_atq_status ON autonomous_task_queue (status)`).catch(() => {});
+
+    // ── evolution_system_state (living project state — self-improving loop) ────
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS evolution_system_state (
+        id TEXT PRIMARY KEY DEFAULT 'singleton',
+        generation INTEGER NOT NULL DEFAULT 0,
+        total_tasks_completed INTEGER NOT NULL DEFAULT 0,
+        total_errors_fixed INTEGER NOT NULL DEFAULT 0,
+        top_insights JSONB DEFAULT '[]'::jsonb,
+        current_strategy TEXT DEFAULT 'balanced',
+        system_prompt_version INTEGER NOT NULL DEFAULT 1,
+        last_improvement_at TIMESTAMPTZ,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      INSERT INTO evolution_system_state (id) VALUES ('singleton')
+      ON CONFLICT (id) DO NOTHING
+    `);
+
   } catch { /* non-fatal */ }
 }
 ensureSwarmTables().catch(() => {});
@@ -616,6 +673,300 @@ router.get("/swarm/models", async (_req: Request, res: Response) => {
     { id: "mistral-large-latest", name: "Mistral Large", provider: "mistral", tier: "advanced" },
   ];
   res.json({ models });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// NEW: Autonomous Swarm Evolution System — Full Document Integration
+// Based on: Autonomous Swarm Evolution AI System (FULL UNIFIED PROMPT)
+// 4 Layers: Swarm · Self-Improving Loop · Task Queue · Evolution System
+// Primary Model: GLM-5 (ZAI) → Fallback: GPT-4o → GPT-3.5-turbo
+// ══════════════════════════════════════════════════════════════════════════════
+
+const AUTONOMOUS_SYSTEM_PROMPT = `أنت نظام ذكاء اصطناعي متقدم جدًا يعمل كـ:
+Autonomous Multi-Agent Software Engineering + Self-Evolving AI System
+
+هدفك تحويل أي طلب إلى نظام برمجي كامل يتم تخطيطه، بناؤه، اختباره، تحسينه، وتطويره تلقائيًا.
+
+🤖 SWARM AGENTS (فريق العمل):
+- Orchestrator: يدير النظام بالكامل ويوزع المهام
+- Planner: يحلل المتطلبات ويضع الخطة التفصيلية
+- Executor: يكتب الكود وينفذ الحلول
+- Critic: يراجع ويكتشف الأخطاء والثغرات
+- Tester: يختبر ويتحقق من الجودة
+
+🔁 SELF-IMPROVING LOOP:
+- تعلّم من الأخطاء السابقة
+- تحسين الخطط مع كل تكرار
+- تطوير جودة الحلول باستمرار
+
+📦 TASK QUEUE SYSTEM:
+- تقسيم العمل إلى مهام صغيرة قابلة للتنفيذ
+- تتبع الحالة: pending → running → done / failed
+- عدم الانتقال قبل إكمال المهمة الحالية
+
+🧬 EVOLUTION SYSTEM:
+- المشروع كائن حي يتطور مع الوقت
+- تسجيل التجارب والدروس المستفادة
+- إنتاج نسخ محسّنة باستمرار
+
+🛠️ TOOLS AVAILABLE:
+- تحليل الكود وإنتاجه
+- تصحيح الأخطاء التلقائي
+- اختبار الأنظمة
+- تحليل الأداء
+
+⚙️ EXECUTION RULES:
+1. لا تنفيذ بدون خطة واضحة
+2. لا تكرار نفس الخطأ
+3. لا توقف عند فشل أول محاولة
+4. الجودة أهم من السرعة
+5. كل مشروع يجب أن ينتهي بنتيجة واضحة
+
+أسلوبك: دقيق، منظم، احترافي. تجيب بالعربية إلا إذا طُلب غير ذلك.`;
+
+// ─── POST /api/swarm/autonomous — Full Autonomous System run (SSE) ────────────
+router.post("/swarm/autonomous", async (req: Request, res: Response) => {
+  const {
+    goal,
+    model = "glm-5.2",
+    fallbackModel = "gpt-4o",
+    maxIterations = 3,
+    agentMode = true,
+    apiKey,
+    apiBaseURL,
+  } = req.body as {
+    goal: string;
+    model?: string;
+    fallbackModel?: string;
+    maxIterations?: number;
+    agentMode?: boolean;
+    apiKey?: string;
+    apiBaseURL?: string;
+  };
+
+  if (!goal?.trim()) {
+    res.status(400).json({ error: "goal is required" });
+    return;
+  }
+
+  sseHeaders(res);
+
+  let taskId: string | null = null;
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO autonomous_task_queue (goal, status, model, fallback_model, agent_mode)
+       VALUES ($1, 'running', $2, $3, $4) RETURNING id`,
+      [goal.slice(0, 2000), model, fallbackModel, agentMode ? "autonomous" : "simple"]
+    );
+    taskId = rows[0]?.id ?? null;
+  } catch { /* non-fatal */ }
+
+  sse(res, "init", { taskId, goal, model, fallbackModel, maxIterations });
+
+  // ── Helper: call model with fallback chain ────────────────────────────────
+  async function callWithFallback(
+    messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+    label: string,
+    maxTokens = 1200
+  ): Promise<string> {
+    const chain = [model, fallbackModel, "gpt-3.5-turbo"];
+    for (const m of chain) {
+      try {
+        const provider = detectProvider(m);
+        const client = getOpenAICompatibleClient(provider);
+        if (!client) continue;
+        sse(res, "model_attempt", { model: m, label });
+        const resp = await client.chat.completions.create({
+          model: m,
+          messages,
+          max_tokens: maxTokens,
+          temperature: 0.7,
+          ...(apiKey ? {} : {}),
+        });
+        return resp.choices[0]?.message?.content ?? "";
+      } catch {
+        sse(res, "model_fallback", { from: m, label });
+      }
+    }
+    return `[${label}: تعذّر الاتصال بأي نموذج]`;
+  }
+
+  try {
+    const evolutionNotes: string[] = [];
+
+    for (let iter = 0; iter < maxIterations; iter++) {
+      sse(res, "iteration_start", { iteration: iter + 1, maxIterations });
+
+      // ── ORCHESTRATOR ──────────────────────────────────────────────────────
+      sse(res, "agent_start", { agent: "orchestrator", iteration: iter + 1 });
+      const orchestratorOutput = await callWithFallback([
+        { role: "system", content: AUTONOMOUS_SYSTEM_PROMPT },
+        { role: "user", content: `[ORCHESTRATOR] المهمة: ${goal}\nالتكرار: ${iter + 1}/${maxIterations}\n${evolutionNotes.length ? `الدروس السابقة:\n${evolutionNotes.slice(-2).join("\n")}` : ""}\n\nحلل المتطلبات وأعط توجيهات واضحة للفريق.` },
+      ], "orchestrator");
+      sse(res, "agent_done", { agent: "orchestrator", output: orchestratorOutput });
+
+      // ── PLANNER ───────────────────────────────────────────────────────────
+      sse(res, "agent_start", { agent: "planner", iteration: iter + 1 });
+      const plannerOutput = await callWithFallback([
+        { role: "system", content: AUTONOMOUS_SYSTEM_PROMPT },
+        { role: "user", content: `[PLANNER] بناءً على توجيهات Orchestrator:\n${orchestratorOutput.slice(0, 600)}\n\nضع خطة تفصيلية مقسمة إلى مهام صغيرة. استخدم JSON للخطة.` },
+      ], "planner");
+      sse(res, "agent_done", { agent: "planner", output: plannerOutput });
+
+      // ── EXECUTOR ──────────────────────────────────────────────────────────
+      sse(res, "agent_start", { agent: "executor", iteration: iter + 1 });
+      const executorOutput = await callWithFallback([
+        { role: "system", content: AUTONOMOUS_SYSTEM_PROMPT },
+        { role: "user", content: `[EXECUTOR] نفّذ الخطة التالية:\n${plannerOutput.slice(0, 800)}\n\nاكتب الكود/الحل الكامل مع التفاصيل التقنية.` },
+      ], "executor", 2000);
+      sse(res, "agent_done", { agent: "executor", output: executorOutput });
+
+      // ── CRITIC ────────────────────────────────────────────────────────────
+      sse(res, "agent_start", { agent: "critic", iteration: iter + 1 });
+      const criticOutput = await callWithFallback([
+        { role: "system", content: AUTONOMOUS_SYSTEM_PROMPT },
+        { role: "user", content: `[CRITIC] راجع هذا التنفيذ وحدد الأخطاء والتحسينات:\n${executorOutput.slice(0, 800)}\n\nكن دقيقاً في النقد البنّاء.` },
+      ], "critic");
+      sse(res, "agent_done", { agent: "critic", output: criticOutput });
+
+      // ── TESTER ────────────────────────────────────────────────────────────
+      sse(res, "agent_start", { agent: "tester", iteration: iter + 1 });
+      const testerOutput = await callWithFallback([
+        { role: "system", content: AUTONOMOUS_SYSTEM_PROMPT },
+        { role: "user", content: `[TESTER] اختبر وتحقق من الحل التالي:\n${executorOutput.slice(0, 600)}\n\nأعط نتائج الاختبار وحالة النجاح/الفشل.` },
+      ], "tester");
+      sse(res, "agent_done", { agent: "tester", output: testerOutput });
+
+      // ── EVOLUTION NOTE ────────────────────────────────────────────────────
+      const note = `[Gen ${iter + 1}] Critic: ${criticOutput.slice(0, 150)} | Tester: ${testerOutput.slice(0, 100)}`;
+      evolutionNotes.push(note);
+      sse(res, "evolution_note", { iteration: iter + 1, note });
+
+      try {
+        await pool.query(
+          `INSERT INTO agent_evolution_insights (task_id, insight, agent, iteration, model, impact_score)
+           VALUES ($1, $2, 'autonomous-swarm', $3, $4, 7.0)`,
+          [taskId, note.slice(0, 500), iter + 1, model]
+        );
+        // Update evolution system state
+        await pool.query(`
+          UPDATE evolution_system_state
+          SET generation = generation + 1, last_improvement_at = NOW(), updated_at = NOW()
+          WHERE id = 'singleton'
+        `);
+      } catch { /* non-fatal */ }
+    }
+
+    // ── FINAL SYNTHESIS ──────────────────────────────────────────────────────
+    sse(res, "fusion_start", {});
+    const fusionOutput = await callWithFallback([
+      { role: "system", content: AUTONOMOUS_SYSTEM_PROMPT },
+      { role: "user", content: `[FUSION — النتيجة النهائية]\nالهدف: ${goal}\n\nادمج جميع مخرجات الفريق في تقرير نهائي شامل ومنظم يكون جاهزاً للاستخدام الفوري.\n\nالملاحظات التطورية:\n${evolutionNotes.join("\n")}` },
+    ], "fusion", 3000);
+
+    sse(res, "fusion_done", { result: fusionOutput });
+
+    // Update task queue status
+    if (taskId) {
+      await pool.query(
+        `UPDATE autonomous_task_queue SET status='done', result=$1, completed_at=NOW() WHERE id=$2`,
+        [fusionOutput.slice(0, 8000), taskId]
+      ).catch(() => {});
+    }
+
+  } catch (err: any) {
+    sse(res, "error", { message: err?.message ?? "Autonomous system failed" });
+    if (taskId) {
+      pool.query(
+        `UPDATE autonomous_task_queue SET status='failed', error=$1 WHERE id=$2`,
+        [err?.message ?? "Unknown error", taskId]
+      ).catch(() => {});
+    }
+  } finally {
+    res.end();
+  }
+});
+
+// ─── GET /api/swarm/task-queue — List autonomous task queue ─────────────────
+router.get("/swarm/task-queue", async (_req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, goal, status, priority, model, fallback_model, agent_mode,
+              created_at, started_at, completed_at,
+              CASE WHEN result IS NOT NULL THEN LEFT(result, 200) ELSE NULL END as result_preview,
+              error
+       FROM autonomous_task_queue
+       ORDER BY created_at DESC LIMIT 50`
+    );
+    res.json({ tasks: rows });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message ?? "Failed to fetch task queue" });
+  }
+});
+
+// ─── POST /api/swarm/task-queue — Add task to queue ─────────────────────────
+router.post("/swarm/task-queue", async (req: Request, res: Response) => {
+  const { goal, model = "glm-5.2", fallbackModel = "gpt-4o", priority = 5 } = req.body as {
+    goal: string; model?: string; fallbackModel?: string; priority?: number;
+  };
+  if (!goal?.trim()) { res.status(400).json({ error: "goal required" }); return; }
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO autonomous_task_queue (goal, model, fallback_model, priority)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [goal.slice(0, 2000), model, fallbackModel, priority]
+    );
+    res.json({ task: rows[0] });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message ?? "Failed to add task" });
+  }
+});
+
+// ─── DELETE /api/swarm/task-queue/:id — Remove task ─────────────────────────
+router.delete("/swarm/task-queue/:id", async (req: Request, res: Response) => {
+  try {
+    await pool.query(`DELETE FROM autonomous_task_queue WHERE id=$1`, [req.params.id]);
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message });
+  }
+});
+
+// ─── GET /api/swarm/evolution-state — Living system state ───────────────────
+router.get("/swarm/evolution-state", async (_req: Request, res: Response) => {
+  try {
+    const [stateRes, insightsRes] = await Promise.all([
+      pool.query(`SELECT * FROM evolution_system_state WHERE id='singleton'`),
+      pool.query(
+        `SELECT insight, agent, impact_score, created_at
+         FROM agent_evolution_insights
+         ORDER BY impact_score DESC, created_at DESC LIMIT 10`
+      ),
+    ]);
+    const state = stateRes.rows[0] ?? {
+      generation: 0,
+      total_tasks_completed: 0,
+      total_errors_fixed: 0,
+      current_strategy: "balanced",
+    };
+    res.json({ state, topInsights: insightsRes.rows });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message });
+  }
+});
+
+// ─── GET /api/swarm/glm5-status — GLM-5 / ZAI availability check ─────────────
+router.get("/swarm/glm5-status", async (_req: Request, res: Response) => {
+  const zaiKey = !!process.env.ZAI_API_KEY?.trim();
+  const zhipuKey = !!process.env.ZHIPU_API_KEY?.trim();
+  res.json({
+    glm5Available: zaiKey || zhipuKey,
+    provider: zaiKey ? "ZAI (api.z.ai)" : zhipuKey ? "Zhipu (open.bigmodel.cn)" : "none",
+    endpoint: zaiKey ? "https://api.z.ai/v1" : "https://open.bigmodel.cn/api/paas/v4",
+    models: ["glm-5.2", "glm-5.1", "glm-5", "glm-4-plus", "glm-4-flash"],
+    primaryModel: "glm-5.2",
+    fallbackChain: ["glm-5.2", "gpt-4o", "gpt-3.5-turbo"],
+  });
 });
 
 export default router;

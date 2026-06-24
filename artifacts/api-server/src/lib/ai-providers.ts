@@ -118,7 +118,7 @@ const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
   glm: {
     name: "ZAI / GLM-5 (api.z.ai — International)",
     envKey: "ZAI_API_KEY",
-    baseURL: "https://api.z.ai/api/paas/v4",
+    baseURL: "https://api.z.ai/v1",
     models: ["glm-5.2", "glm-5.1", "glm-5", "glm-4-plus", "glm-4", "glm-4-flash", "glm-zero-preview"],
     requiresKey: true,
   },
@@ -186,7 +186,7 @@ export function getOpenAICompatibleClient(provider: ProviderName): OpenAI | null
     baseURL = "https://open.bigmodel.cn/api/paas/v4";
   } else if (provider === "glm") {
     apiKey = process.env.ZAI_API_KEY || undefined;
-    baseURL = "https://api.z.ai/api/paas/v4";
+    baseURL = "https://api.z.ai/v1";
   } else if (provider === "personal") {
     apiKey = getPersonalKey() || undefined;
     baseURL = getPersonalBase() || undefined;

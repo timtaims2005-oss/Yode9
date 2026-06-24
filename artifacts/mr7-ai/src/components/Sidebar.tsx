@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, lazy, Suspense } from "react";
 const MainAgentControl = lazy(() => import("./MainAgentControl").then(m => ({ default: m.MainAgentControl })));
-import { Plus, Search, TerminalSquare, Code, Globe, KeyRound, Network, FileCode, Bug, Gift, Clock, Coins, Pin, Pencil, Trash2, MessageSquare, Filter, Check, LayoutGrid, Hash, Binary, QrCode, Calculator, Regex, FileJson, Fingerprint, Terminal, ShieldAlert, Sparkles, Cookie, Lock as LockIcon, ScanLine, Server, Link as LinkIcon, Wand2, Image as ImageIcon, FileText, Languages, ShieldAlert as PhishIcon, BookOpenCheck, Activity, UserCog, TrendingUp, Mail, Brain, Bookmark, ArrowLeftRight, AtSign, Wallet, Eye, Send, Database as DbIcon, Database, Container as ContainerIcon, FileSearch, Radar, Crosshair, ScrollText, FileCheck2, GitCommit, Music, Palette, ShieldCheck, FlaskConical, ChevronDown, Zap, Users, Layers, Bell, CreditCard, Shield, Rocket } from "lucide-react";
+import { Plus, Search, TerminalSquare, Code, Globe, KeyRound, Network, FileCode, Bug, Gift, Clock, Coins, Pin, Pencil, Trash2, MessageSquare, Filter, Check, LayoutGrid, Hash, Binary, QrCode, Calculator, Regex, FileJson, Fingerprint, Terminal, ShieldAlert, Sparkles, Cookie, Lock as LockIcon, ScanLine, Server, Link as LinkIcon, Wand2, Image as ImageIcon, FileText, Languages, ShieldAlert as PhishIcon, BookOpenCheck, Activity, UserCog, TrendingUp, Mail, Brain, Bookmark, ArrowLeftRight, AtSign, Wallet, Eye, Send, Database as DbIcon, Database, Container as ContainerIcon, FileSearch, Radar, Crosshair, ScrollText, FileCheck2, GitCommit, Music, Palette, ShieldCheck, FlaskConical, ChevronDown, Zap, Users, Layers, Bell, CreditCard, Shield, Rocket, Bot } from "lucide-react";
 import { AI_MODELS } from "@/lib/ai-config";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -168,6 +168,7 @@ interface SidebarProps {
   onOpenKgSwarmEvolution?: () => void;
   onOpenKgProjectGenerator?: () => void;
   onOpenKgAgentMemory?: () => void;
+  onOpenKgAutonomousSwarm?: () => void;
 }
 
 const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: string }[] = [
@@ -290,7 +291,7 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: DbIcon, label: "Kali SQLi Guide", color: "text-blue-400" },
 ];
 
-export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution, onOpenKgProjectGenerator, onOpenKgAgentMemory }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution, onOpenKgProjectGenerator, onOpenKgAgentMemory, onOpenKgAutonomousSwarm }: SidebarProps) {
   const { toast } = useToast();
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -1118,6 +1119,12 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                 <button onClick={onOpenKgSwarmEvolution} title="Swarm Evolution AI — نظام الوكلاء المتطور" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 hover:border-violet-500/40 transition-all group">
                   <Brain className="w-3.5 h-3.5 text-violet-400/70 group-hover:text-violet-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Swarm</span>
+                </button>
+              )}
+              {onOpenKgAutonomousSwarm && (
+                <button onClick={onOpenKgAutonomousSwarm} title="Autonomous Swarm System — GLM-5 Primary · AutoGPT-style" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 hover:border-cyan-500/40 transition-all group">
+                  <Bot className="w-3.5 h-3.5 text-cyan-400/70 group-hover:text-cyan-400" />
+                  <span className="text-[8px] text-gray-500 group-hover:text-gray-300">AutoSwarm</span>
                 </button>
               )}
               {onOpenKgProjectGenerator && (
