@@ -189,6 +189,34 @@ router.post("/admin/verify-code", async (req: Request, res: Response): Promise<v
   }
 });
 
+/* ── POST /api/admin/users/:id/action — Suspend / Ban / Delete / Activate ── */
+router.post("/admin/users/:id/action", async (req: Request, res: Response): Promise<void> => {
+  if (!verifyAdmin(req, res)) return;
+  try {
+    const { action } = req.body as { action?: string };
+    const { id } = req.params;
+    if (!action || !id) { res.status(400).json({ error: "action and id required" }); return; }
+
+    if (action === "delete") {
+      await pool.query("DELETE FROM users WHERE id = $1", [id]);
+      res.json({ ok: true, action: "deleted" });
+    } else if (action === "suspend") {
+      await pool.query("UPDATE users SET status = 'suspended', updated_at = NOW() WHERE id = $1", [id]);
+      res.json({ ok: true, action: "suspended" });
+    } else if (action === "ban") {
+      await pool.query("UPDATE users SET status = 'banned', updated_at = NOW() WHERE id = $1", [id]);
+      res.json({ ok: true, action: "banned" });
+    } else if (action === "activate") {
+      await pool.query("UPDATE users SET status = 'active', updated_at = NOW() WHERE id = $1", [id]);
+      res.json({ ok: true, action: "activated" });
+    } else {
+      res.status(400).json({ error: `Unknown action: ${action}` });
+    }
+  } catch {
+    res.status(500).json({ error: "Failed to perform user action" });
+  }
+});
+
 /* ── In-memory error log (last 500 errors) ── */
 export const errorLog: Array<{ ts: string; level: string; message: string; stack?: string }> = [];
 export function logError(level: string, message: string, stack?: string) {

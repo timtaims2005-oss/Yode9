@@ -99,10 +99,45 @@ export function AnalyticsDashboardPage({onClose}:Props) {
   const [loading,setLoading]=useState(false);
   const pingRef=useRef<ReturnType<typeof setInterval>|undefined>(undefined);
 
+  const MODEL_COLORS: Record<string, string> = {
+    "gpt-4o":"#3b82f6","gpt-4":"#2563eb","gpt-3.5":"#e21227","o1":"#0ea5e9","o3":"#0284c7","o4":"#0369a1",
+    "claude":"#8b5cf6","gemini":"#10b981","llama":"#f59e0b","mixtral":"#fb923c","deepseek":"#ef4444",
+    "glm":"#22d3ee","mistral":"#6366f1","groq":"#f97316",
+  };
+  function resolveModelColor(m:string):string{
+    const ml=m.toLowerCase();
+    for(const[k,v]of Object.entries(MODEL_COLORS)){if(ml.startsWith(k))return v;}
+    return "#6b7280";
+  }
+
   const load=useCallback(async()=>{
     setLoading(true);
-    try{const res=await authFetch(`/api/analytics/me?days=${days}`);if(res.ok){const d=await res.json() as{daily?:DailyUsage[];topModels?:ModelUsage[];totals?:Totals};setDaily(d.daily?.length?d.daily:mockDaily(days));setModels(d.topModels?.length?d.topModels:mockModels());setTotals(d.totals||null);}else{setDaily(mockDaily(days));setModels(mockModels());}}
-    catch{setDaily(mockDaily(days));setModels(mockModels());}finally{setLoading(false);}
+    try{
+      const res=await authFetch(`/api/analytics/me?days=${days}`);
+      if(res.ok){
+        const d=await res.json() as{
+          daily?:Array<{day:string;tokens:string|number;requests:string|number}>;
+          topModels?:Array<{model:string;tokens:string|number;requests:string|number}>;
+          totals?:{total_tokens?:string|number;total_requests?:string|number;avg_latency?:string|number;tokens?:string|number;requests?:string|number;cost?:string|number;avgLatency?:string|number};
+        };
+        const daily=(d.daily??[]).map(r=>({
+          label:new Date(r.day).toLocaleDateString("ar-SA",{month:"numeric",day:"numeric"}),
+          value:parseInt(String(r.tokens))||0,
+        }));
+        const topModels=(d.topModels??[]).map(r=>({
+          model:r.model,tokens:parseInt(String(r.tokens))||0,requests:parseInt(String(r.requests))||0,
+          color:resolveModelColor(r.model),
+        }));
+        const tot=d.totals;
+        const totalTok=parseInt(String(tot?.total_tokens??tot?.tokens??0));
+        const totalReq=parseInt(String(tot?.total_requests??tot?.requests??0));
+        const avgLat=Math.round(parseFloat(String(tot?.avg_latency??tot?.avgLatency??0)));
+        const cost=parseFloat(String(tot?.cost??"0"))||((totalTok/1000)*0.002);
+        if(daily.length)setDaily(daily);else setDaily(mockDaily(days));
+        if(topModels.length)setModels(topModels);else setModels(mockModels());
+        setTotals({tokens:totalTok,requests:totalReq,cost,avgLatency:avgLat});
+      }else{setDaily(mockDaily(days));setModels(mockModels());}
+    }catch{setDaily(mockDaily(days));setModels(mockModels());}finally{setLoading(false);}
   },[days]);
 
   useEffect(()=>{load();},[load]);

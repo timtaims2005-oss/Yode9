@@ -186,15 +186,20 @@ export function AutonomousSwarmSystemPage({ onClose }: Props) {
         const { done, value } = await reader.read();
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
 
-        for (const line of lines) {
-          if (!line.startsWith("data:")) continue;
+        // SSE blocks are separated by double newline
+        const blocks = buffer.split("\n\n");
+        buffer = blocks.pop() ?? "";
+
+        for (const block of blocks) {
+          if (!block.trim()) continue;
+          const blockLines = block.split("\n");
+          const evtTypeLine = blockLines.find(l => l.startsWith("event:"));
+          const dataLine = blockLines.find(l => l.startsWith("data:"));
+          if (!dataLine) continue;
+          const evtType = evtTypeLine?.slice(6).trim() ?? "";
           try {
-            const evt = JSON.parse(line.slice(5).trim());
-            const eventLine = lines.find(l => l.startsWith("event:"));
-            const evtType = eventLine?.slice(6).trim() ?? "";
+            const evt = JSON.parse(dataLine.slice(5).trim());
 
             if (evtType === "agent_done" && evt.agent && evt.output) {
               setAgents(prev => {
@@ -205,10 +210,7 @@ export function AutonomousSwarmSystemPage({ onClose }: Props) {
               });
             }
             if (evtType === "agent_start") {
-              setAgents(prev => {
-                const next: AgentEvent = { agent: evt.agent, output: "", status: "running", iteration: evt.iteration ?? 1 };
-                return [...prev, next];
-              });
+              setAgents(prev => [...prev, { agent: evt.agent, output: "", status: "running", iteration: evt.iteration ?? 1 }]);
             }
             if (evtType === "evolution_note") {
               setEvolutionNotes(prev => [...prev, evt.note]);

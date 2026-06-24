@@ -2,9 +2,10 @@
  * OrganizationsPage — 3D Holographic Team Workspace
  * Organizations · teams · member management · roles · invite system
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, X, Plus, Settings, Shield, Crown, UserCheck, Mail, Trash2, ChevronRight, Building2, Globe, Lock } from "lucide-react";
+import { authFetch } from "@/lib/auth";
 
 interface Member { id: string; name: string; email: string; role: "owner" | "admin" | "member" | "viewer"; avatar: string; status: "active" | "invited" | "suspended"; joinedAt: string }
 interface Org { id: string; name: string; slug: string; plan: string; members: Member[]; createdAt: string }
@@ -33,16 +34,62 @@ export function OrganizationsPage({ onClose }: Props) {
   const [inviteRole, setInviteRole] = useState<"member" | "viewer">("member");
   const [showInvite, setShowInvite] = useState(false);
   const [tab, setTab] = useState<"members" | "settings" | "billing">("members");
+  const [loading, setLoading] = useState(false);
 
-  const invite = useCallback(() => {
+  useEffect(() => {
+    setLoading(true);
+    authFetch("/api/orgs/me").then(r => r.ok ? r.json() : null).then(d => {
+      if (!d?.org) return;
+      const members: Member[] = [
+        ...(d.members ?? []).map((m: Record<string, string>) => ({
+          id: m.user_id || m.id,
+          name: [m.first_name, m.last_name].filter(Boolean).join(" ") || m.email?.split("@")[0] || "—",
+          email: m.email || "",
+          role: (m.role as Member["role"]) || "member",
+          avatar: (m.first_name?.[0] || m.email?.[0] || "?").toUpperCase(),
+          status: (m.status as Member["status"]) || "active",
+          joinedAt: m.created_at || new Date().toISOString(),
+        })),
+        ...(d.invites ?? []).map((i: Record<string, string>) => ({
+          id: i.id,
+          name: i.email?.split("@")[0] || "—",
+          email: i.email || "",
+          role: (i.role as Member["role"]) || "member",
+          avatar: (i.email?.[0] || "?").toUpperCase(),
+          status: "invited" as const,
+          joinedAt: i.created_at || new Date().toISOString(),
+        })),
+      ];
+      setOrg({
+        id: d.org.id,
+        name: d.org.name || "المؤسسة",
+        slug: d.org.slug || "",
+        plan: d.org.plan || "free",
+        members,
+        createdAt: d.org.created_at || new Date().toISOString(),
+      });
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  const invite = useCallback(async () => {
     if (!inviteEmail.trim()) return;
-    const newMember: Member = { id: crypto.randomUUID(), name: inviteEmail.split("@")[0], email: inviteEmail, role: inviteRole, avatar: inviteEmail[0].toUpperCase(), status: "invited", joinedAt: new Date().toISOString() };
-    setOrg(o => ({ ...o, members: [...o.members, newMember] }));
+    const optimistic: Member = { id: crypto.randomUUID(), name: inviteEmail.split("@")[0], email: inviteEmail, role: inviteRole, avatar: inviteEmail[0].toUpperCase(), status: "invited", joinedAt: new Date().toISOString() };
+    setOrg(o => ({ ...o, members: [...o.members, optimistic] }));
     setInviteEmail(""); setShowInvite(false);
+    try {
+      await authFetch("/api/orgs/invite", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: inviteEmail, role: inviteRole }) });
+    } catch { /**/ }
   }, [inviteEmail, inviteRole]);
 
-  const remove = (id: string) => setOrg(o => ({ ...o, members: o.members.filter(m => m.id !== id) }));
-  const changeRole = (id: string, role: Member["role"]) => setOrg(o => ({ ...o, members: o.members.map(m => m.id === id ? { ...m, role } : m) }));
+  const remove = useCallback(async (id: string) => {
+    setOrg(o => ({ ...o, members: o.members.filter(m => m.id !== id) }));
+    try { await authFetch(`/api/orgs/members/${id}`, { method: "DELETE" }); } catch { /**/ }
+  }, []);
+
+  const changeRole = useCallback(async (id: string, role: Member["role"]) => {
+    setOrg(o => ({ ...o, members: o.members.map(m => m.id === id ? { ...m, role } : m) }));
+    try { await authFetch(`/api/orgs/members/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ role }) }); } catch { /**/ }
+  }, []);
 
   return (
     <div className="relative flex flex-col h-full bg-[#080808] overflow-hidden" dir="rtl">

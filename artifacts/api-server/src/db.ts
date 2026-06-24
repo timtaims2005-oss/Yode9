@@ -180,6 +180,29 @@ export async function ensureAuthTables() {
     `).catch((err) => logger.warn({ err }, "notifications table may already exist"));
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications (user_id)`).catch(() => {});
 
+    // Usage stats (per-request token tracking for analytics)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS usage_stats (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR NOT NULL,
+        model TEXT NOT NULL DEFAULT 'unknown',
+        tokens_used INTEGER NOT NULL DEFAULT 0,
+        prompt_tokens INTEGER NOT NULL DEFAULT 0,
+        completion_tokens INTEGER NOT NULL DEFAULT 0,
+        latency_ms INTEGER NOT NULL DEFAULT 0,
+        endpoint TEXT NOT NULL DEFAULT '/api/chat',
+        status TEXT NOT NULL DEFAULT 'success',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_usage_stats_user_id ON usage_stats (user_id)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_usage_stats_created_at ON usage_stats (created_at)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_usage_stats_model ON usage_stats (model)`).catch(() => {});
+
+    // Safe migration: add status column to users if missing
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR NOT NULL DEFAULT 'active'`).catch(() => {});
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP WITH TIME ZONE`).catch(() => {});
+
     // Context rules (user-defined system context)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS context_rules (

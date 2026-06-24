@@ -35,16 +35,43 @@ export function NotificationsPage({ onClose }: Props) {
     setLoading(true);
     try {
       const res = await authFetch("/api/notifications");
-      if (res.ok) { const d = await res.json() as { notifications: Notification[] }; if (d.notifications?.length) setNotifs(d.notifications); }
+      if (res.ok) {
+        const d = await res.json() as { notifications: Array<{id:number|string;type?:string;title?:string;body?:string;message?:string;is_read?:boolean;read?:boolean;created_at?:string;createdAt?:string;data?:{link?:string}}> };
+        if (d.notifications?.length) {
+          const mapped: Notification[] = d.notifications.map(n => ({
+            id: String(n.id),
+            type: (["info","success","warning","error","ai","security"].includes(n.type??"")?n.type:"info") as Notification["type"],
+            title: n.title || "إشعار",
+            message: n.body || n.message || "",
+            read: n.is_read ?? n.read ?? false,
+            createdAt: n.created_at || n.createdAt || new Date().toISOString(),
+            link: n.data?.link,
+          }));
+          setNotifs(mapped);
+        }
+      }
     } catch { /**/ } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const markRead = (id: string) => setNotifs(n => n.map(x => x.id === id ? { ...x, read: true } : x));
-  const markAllRead = () => setNotifs(n => n.map(x => ({ ...x, read: true })));
-  const del = (id: string) => setNotifs(n => n.filter(x => x.id !== id));
-  const clearRead = () => setNotifs(n => n.filter(x => !x.read));
+  const markRead = useCallback(async (id: string) => {
+    setNotifs(n => n.map(x => x.id === id ? { ...x, read: true } : x));
+    try { await authFetch(`/api/notifications/${id}/read`, { method: "POST" }); } catch { /**/ }
+  }, []);
+  const markAllRead = useCallback(async () => {
+    setNotifs(n => n.map(x => ({ ...x, read: true })));
+    try { await authFetch("/api/notifications/read-all", { method: "POST" }); } catch { /**/ }
+  }, []);
+  const del = useCallback(async (id: string) => {
+    setNotifs(n => n.filter(x => x.id !== id));
+    try { await authFetch(`/api/notifications/${id}`, { method: "DELETE" }); } catch { /**/ }
+  }, []);
+  const clearRead = useCallback(async () => {
+    const ids = notifs.filter(x => x.read).map(x => x.id);
+    setNotifs(n => n.filter(x => !x.read));
+    try { await Promise.all(ids.map(id => authFetch(`/api/notifications/${id}`, { method: "DELETE" }))); } catch { /**/ }
+  }, [notifs]);
 
   const unread = notifs.filter(n => !n.read).length;
   const filtered = filter === "all" ? notifs : filter === "unread" ? notifs.filter(n => !n.read) : notifs.filter(n => n.type === filter);

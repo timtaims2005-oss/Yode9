@@ -90,9 +90,56 @@ export function AdminDashboard({ onClose }: Props) {
     try {
       const r1 = await authFetch("/api/admin/stats");
       if (r1.ok) { const d = await r1.json() as Stats; setStats(d); }
+
       const r2 = await authFetch("/api/admin/users?limit=20");
-      if (r2.ok) { const d = await r2.json() as { users: User[] }; if (d.users?.length) setUsers(d.users); }
+      if (r2.ok) {
+        const d = await r2.json() as { users: Array<{id:string;email:string;first_name?:string;last_name?:string;role?:string;subscription?:string;tokens_used?:number;created_at?:string;last_login_at?:string;status?:string}> };
+        if (d.users?.length) {
+          setUsers(d.users.map(u => ({
+            id: u.id,
+            email: u.email,
+            name: [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email.split("@")[0],
+            subscription: u.subscription || "free",
+            tokens_used: u.tokens_used ?? 0,
+            created_at: u.created_at || "",
+            last_active: u.last_login_at || u.created_at || new Date().toISOString(),
+            status: (u.status as User["status"]) || "active",
+          })));
+        }
+      }
+
+      const r3 = await authFetch("/api/admin/errors?limit=50");
+      if (r3.ok) {
+        const d = await r3.json() as { errors?: Array<{ts:string;level:string;message:string}> };
+        if (d.errors?.length) {
+          setLogs(d.errors.map((e, i) => ({
+            id: String(i),
+            level: (e.level === "error" ? "error" : e.level === "warn" ? "warn" : "info") as SystemLog["level"],
+            message: e.message,
+            timestamp: e.ts,
+            service: "system",
+          })));
+        }
+      }
     } catch { /* use mock */ } finally { setLoading(false); }
+  }, []);
+
+  const banUser = useCallback(async (id: string, action: "suspend" | "ban" | "delete" | "activate") => {
+    try {
+      const res = await authFetch(`/api/admin/users/${id}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        if (action === "delete") {
+          setUsers(prev => prev.filter(u => u.id !== id));
+        } else {
+          const nextStatus: User["status"] = action === "activate" ? "active" : action as "suspended" | "banned";
+          setUsers(prev => prev.map(u => u.id === id ? { ...u, status: nextStatus } : u));
+        }
+      }
+    } catch { /**/ }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -208,8 +255,18 @@ export function AdminDashboard({ onClose }: Props) {
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${u.status === "active" ? "bg-green-500/15 text-green-400" : u.status === "suspended" ? "bg-amber-500/15 text-amber-400" : "bg-red-500/15 text-red-400"}`}>{u.status}</span>
                     <span className="text-[10px] text-zinc-600 flex-shrink-0">آخر نشاط: {fmtTime(u.last_active)}</span>
                     <div className="flex items-center gap-1 flex-shrink-0">
-                      <button className="w-6 h-6 rounded flex items-center justify-center text-zinc-600 hover:text-white transition-colors"><Eye className="w-3 h-3" /></button>
-                      <button className="w-6 h-6 rounded flex items-center justify-center text-zinc-600 hover:text-amber-400 transition-colors"><Ban className="w-3 h-3" /></button>
+                      <button
+                        title={u.status === "active" ? "إيقاف مؤقت" : "تفعيل"}
+                        onClick={() => banUser(u.id, u.status === "active" ? "suspend" : "activate")}
+                        className={`w-6 h-6 rounded flex items-center justify-center transition-colors ${u.status === "active" ? "text-zinc-600 hover:text-amber-400" : "text-amber-400 hover:text-green-400"}`}>
+                        {u.status === "active" ? <Ban className="w-3 h-3" /> : <UserCheck className="w-3 h-3" />}
+                      </button>
+                      <button
+                        title="حذف المستخدم"
+                        onClick={() => { if (confirm(`حذف ${u.email}؟`)) banUser(u.id, "delete"); }}
+                        className="w-6 h-6 rounded flex items-center justify-center text-zinc-600 hover:text-red-400 transition-colors">
+                        <Trash2 className="w-3 h-3" />
+                      </button>
                     </div>
                   </div>
                 </motion.div>

@@ -2,9 +2,10 @@
  * ReportsPage — 3D Holographic Pentest Report Generator
  * PDF export · CVSS scoring · executive summary · timeline · risk matrix
  */
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FileText, X, Plus, Download, Trash2, Edit3, RefreshCw, CheckCircle2, AlertTriangle, Shield, Clock, BarChart2, Target, Globe, Lock, ChevronRight, Eye } from "lucide-react";
+import { authFetch } from "@/lib/auth";
 
 interface Finding { id: string; title: string; severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO"; cvss: number; description: string; recommendation: string; status: "open" | "mitigated" | "accepted" }
 interface Report { id: string; title: string; client: string; date: string; scope: string; tester: string; findings: Finding[]; status: "draft" | "review" | "final" }
@@ -48,6 +49,15 @@ export function ReportsPage({ onClose }: Props) {
   const [report, setReport] = useState<Report>(MOCK_REPORT);
   const [generating, setGenerating] = useState(false);
   const [tab, setTab] = useState<"overview" | "findings" | "timeline">("overview");
+  const [history, setHistory] = useState<Array<{id:string;title:string;status:string;created_at:string}>>([]);
+  const _histRef = useRef(false);
+
+  useEffect(() => {
+    if (_histRef.current) return; _histRef.current = true;
+    authFetch("/api/reports/history").then(r => r.ok ? r.json() : null).then(d => {
+      if (d?.reports?.length) setHistory(d.reports);
+    }).catch(() => {});
+  }, []);
 
   const open = report.findings.filter(f => f.status === "open").length;
   const mitigated = report.findings.filter(f => f.status === "mitigated").length;
@@ -55,15 +65,38 @@ export function ReportsPage({ onClose }: Props) {
 
   const generatePDF = useCallback(async () => {
     setGenerating(true);
-    await new Promise(r => setTimeout(r, 2000));
-    setGenerating(false);
-    // Simulate download
-    const content = `PENTEST REPORT\n${report.title}\nClient: ${report.client}\nDate: ${report.date}\n\nFindings: ${report.findings.length}\nOpen: ${open}\n`;
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `pentest-report-${Date.now()}.txt`; a.click();
-    URL.revokeObjectURL(url);
-  }, [report, open]);
+    try {
+      const res = await authFetch("/api/reports/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: report.title,
+          type: "pentest",
+          findings: report.findings.map(f => ({ severity: f.severity.toLowerCase(), title: f.title, description: f.description, fix: f.recommendation })),
+          metadata: { client: report.client, date: report.date, scope: report.scope, tester: report.tester },
+        }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        const content = JSON.stringify(d.report || d, null, 2);
+        const blob = new Blob([content], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a"); a.href = url; a.download = `pentest-report-${Date.now()}.json`; a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        throw new Error("فشل التوليد");
+      }
+    } catch {
+      // Fallback to text export
+      const content = `PENTEST REPORT\n${report.title}\nClient: ${report.client}\nDate: ${report.date}\n\nFindings (${report.findings.length}):\n${report.findings.map(f=>`[${f.severity}] CVSS ${f.cvss} — ${f.title}\n${f.description}\nFix: ${f.recommendation}`).join("\n\n")}`;
+      const blob = new Blob([content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = `pentest-report-${Date.now()}.txt`; a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setGenerating(false);
+    }
+  }, [report]);
 
   const toggleStatus = (id: string) => {
     setReport(r => ({ ...r, findings: r.findings.map(f => f.id === id ? { ...f, status: f.status === "open" ? "mitigated" : "open" } : f) }));
