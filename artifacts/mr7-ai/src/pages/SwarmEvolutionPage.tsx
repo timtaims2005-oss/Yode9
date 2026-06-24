@@ -14,8 +14,6 @@ import {
   TrendingUp, AlertTriangle, Dna, Activity,
   ListOrdered, PlusCircle, Trash2, Repeat, Star,
 } from "lucide-react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-void History; void Settings2; void Bot; void Sparkles; void TrendingUp; void Target; void Cpu;
 import { authFetch } from "@/lib/auth";
 
 // ── Types ────────────────────────────────────────────────────────────────────

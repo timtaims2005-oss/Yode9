@@ -125,7 +125,7 @@ const SAFE_FIELDS = new Set([
   "query", "prompt", "code", "input", "data", "messages",
 ]);
 
-// Routes that are completely skipped (AI chat routes)
+// Routes that are completely skipped (AI chat routes + public system endpoints)
 const SKIP_ROUTES = [
   "/api/chat",
   "/api/council",
@@ -136,6 +136,9 @@ const SKIP_ROUTES = [
   "/api/claude-code",
   "/api/local-proxy",
   "/api/tools",
+  "/api/health",
+  "/api/healthz",
+  "/api/csrf-token",
 ];
 
 function getIp(req: Request): string {

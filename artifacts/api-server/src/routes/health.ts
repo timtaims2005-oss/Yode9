@@ -3,9 +3,13 @@ import { HealthCheckResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
-router.get("/healthz", (_req, res) => {
+const healthHandler = (_req: import("express").Request, res: import("express").Response): void => {
   const data = HealthCheckResponse.parse({ status: "ok" });
   res.json(data);
-});
+};
+
+router.get("/healthz", healthHandler);
+router.get("/health", healthHandler);
+router.head("/health", (_req, res) => { res.status(200).end(); });
 
 export default router;

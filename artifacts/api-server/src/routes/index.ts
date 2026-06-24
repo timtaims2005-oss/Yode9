@@ -66,7 +66,7 @@ const router: IRouter = Router();
 
 router.use(["/chat", "/council", "/godmode", "/image", "/vision", "/agent", "/agent4", "/rag", "/finetune", "/training"], tierRateLimit);
 
-router.use(healthRouter);
+// healthRouter is registered directly in app.ts as a public route — not here
 router.use(chatRouter);
 router.use(councilRouter);
 router.use(godmodeRouter);

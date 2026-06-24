@@ -7,6 +7,7 @@ import session from "express-session";
 import connectPg from "connect-pg-simple";
 import passport from "passport";
 import router from "./routes";
+import healthRouter from "./routes/health";
 import providersRouter from "./routes/providers";
 import cloudChatsRouter from "./routes/cloud-chats";
 import subscriptionsRouter from "./routes/subscriptions";
@@ -211,7 +212,8 @@ app.use(["/api/upload"], uploadLimiter);
 // ── CSRF token endpoint (session-based auth only) ────────────────────────────
 app.get("/api/csrf-token", ensureCsrfToken, getCsrfToken);
 
-// ── Fully public routes (CISA threat feed, health) ───────────────────────────
+// ── Fully public routes (health + CISA threat feed) ─────────────────────────
+app.use("/api", healthRouter);
 app.use("/api", cisaRouter);
 
 // ── OAuth routes (public — before internalAuth) ───────────────────────────────
