@@ -2,6 +2,7 @@
  * SwarmEvolutionPage — Autonomous Swarm Evolution AI System
  * Orchestrator · Planner · Executor · Critic · Tester
  * Full SSE streaming · Model switcher · ON/OFF · Evolution loop
+ * Self-Improve · Task Queue · Continuous Mode · Evolution Insights
  */
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,6 +11,8 @@ import {
   Cpu, Shield, FlaskConical, Target, Network,
   ToggleLeft, ToggleRight, Settings2, History,
   CheckCircle2, XCircle, Loader2, Sparkles, Bot,
+  TrendingUp, AlertTriangle, Dna, Activity,
+  ListOrdered, PlusCircle, Trash2, Repeat, Star,
 } from "lucide-react";
 import { authFetch } from "@/lib/auth";
 
@@ -44,6 +47,19 @@ interface MainAgentState {
   fallbackModel: string;
 }
 
+interface EvolutionInsight {
+  insight: string;
+  agent: string;
+  impact_score: number;
+  created_at?: string;
+}
+
+interface TaskQueueItem {
+  id: string;
+  goal: string;
+  status: "pending" | "running" | "done" | "error";
+}
+
 // ── Agent meta ───────────────────────────────────────────────────────────────
 const AGENT_META: Record<string, { icon: React.ElementType; color: string; label: string }> = {
   orchestrator: { icon: Network,      color: "#e21227", label: "Orchestrator" },
@@ -67,6 +83,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
   const [goal, setGoal]             = useState("");
   const [model, setModel]           = useState("gpt-4o");
   const [iterations, setIterations] = useState(1);
+  const [continuousMode, setContinuousMode] = useState(false);
   const [run, setRun]               = useState<SwarmRun | null>(null);
   const [models, setModels]         = useState<SwarmModel[]>([]);
   const [modelOpen, setModelOpen]   = useState(false);
@@ -74,14 +91,46 @@ export function SwarmEvolutionPage({ onClose }: Props) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [mainAgent, setMainAgent]   = useState<MainAgentState>({ enabled: false, model: "gpt-4o", fallbackModel: "gpt-3.5-turbo" });
   const [mainAgentLoading, setMainAgentLoading] = useState(false);
+
+  // Self-Improve state
+  const [selfImproving, setSelfImproving]     = useState(false);
+  const [selfImproveRecs, setSelfImproveRecs] = useState<string[]>([]);
+  const [selfImproveDone, setSelfImproveDone] = useState(false);
+
+  // Evolution insights from DB
+  const [evolutionInsights, setEvolutionInsights] = useState<EvolutionInsight[]>([]);
+  const [insightsOpen, setInsightsOpen]            = useState(false);
+
+  // Task queue
+  const [taskQueue, setTaskQueue]         = useState<TaskQueueItem[]>([]);
+  const [taskInput, setTaskInput]         = useState("");
+  const [taskQueueOpen, setTaskQueueOpen] = useState(false);
+  const [processingQueue, setProcessingQueue] = useState(false);
+
+  // ZAI / GLM provider status
+  const [zaiProvider, setZaiProvider] = useState<"zai" | "zhipu" | "none">("none");
+
   const abortRef = useRef<AbortController | null>(null);
 
-  // ── Load models + agent state + history ──────────────────────────────────
+  // ── Load models + agent state + history + evolution insights ──────────────
   useEffect(() => {
-    authFetch("/api/swarm/models").then(r => r.json()).then(d => { if (d.models) setModels(d.models); }).catch(() => {});
+    authFetch("/api/swarm/models")
+      .then(r => r.json())
+      .then(d => { if (d.models) { setModels(d.models); detectZai(d.models); } })
+      .catch(() => {});
     authFetch("/api/main-agent/state").then(r => r.json()).then(d => setMainAgent(d)).catch(() => {});
     authFetch("/api/swarm/tasks").then(r => r.json()).then(d => { if (d.tasks) setHistory(d.tasks); }).catch(() => {});
+    authFetch("/api/agent-memory/evolution/insights")
+      .then(r => r.json())
+      .then(d => { if (d.insights) setEvolutionInsights(d.insights.slice(0, 8)); })
+      .catch(() => {});
   }, []);
+
+  function detectZai(modelList: SwarmModel[]) {
+    const hasZai   = modelList.some(m => m.provider === "glm");
+    const hasZhipu = modelList.some(m => m.provider === "zhipu");
+    setZaiProvider(hasZai ? "zai" : hasZhipu ? "zhipu" : "none");
+  }
 
   // ── Toggle Main Agent ON/OFF ───────────────────────────────────────────────
   const toggleMainAgent = useCallback(async () => {
@@ -111,12 +160,67 @@ export function SwarmEvolutionPage({ onClose }: Props) {
     } catch { /* non-fatal */ }
   }, []);
 
+  // ── Self-Improve — calls /api/swarm/self-improve after a run ─────────────
+  const selfImprove = useCallback(async () => {
+    if (!run || run.status !== "done") return;
+    setSelfImproving(true);
+    setSelfImproveRecs([]);
+    setSelfImproveDone(false);
+
+    try {
+      const resp = await authFetch("/api/swarm/self-improve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task_id: run.taskId || undefined,
+          goal: run.goal,
+          agentOutputs: Object.fromEntries(run.agents.map(a => [a.agentId, a.output])),
+          evolutionNotes: [],
+          model,
+        }),
+      });
+
+      if (!resp.body) return;
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          try {
+            const evt = JSON.parse(line.slice(5).trim());
+            if (Array.isArray(evt.recommendations)) setSelfImproveRecs(evt.recommendations);
+          } catch { /* ignore */ }
+        }
+      }
+      setSelfImproveDone(true);
+
+      // Reload evolution insights from DB
+      authFetch("/api/agent-memory/evolution/insights")
+        .then(r => r.json())
+        .then(d => { if (d.insights) setEvolutionInsights(d.insights.slice(0, 8)); })
+        .catch(() => {});
+    } catch { /* non-fatal */ }
+    finally { setSelfImproving(false); }
+  }, [run, model]);
+
   // ── Start swarm run ───────────────────────────────────────────────────────
-  const startRun = useCallback(async () => {
-    if (!goal.trim() || run?.status === "running") return;
+  const startRun = useCallback(async (goalOverride?: string) => {
+    const targetGoal = (goalOverride ?? goal).trim();
+    if (!targetGoal || run?.status === "running") return;
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
+    setSelfImproveRecs([]);
+    setSelfImproveDone(false);
+
+    const effectiveIterations = continuousMode ? 3 : iterations;
 
     const initAgents: AgentOutput[] = Object.keys(AGENT_META).map(id => ({
       agentId: id,
@@ -127,7 +231,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
 
     setRun({
       taskId: "",
-      goal: goal.trim(),
+      goal: targetGoal,
       status: "running",
       iteration: 0,
       agents: initAgents,
@@ -139,7 +243,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
       const res = await authFetch("/api/swarm/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal: goal.trim(), model, maxIterations: iterations }),
+        body: JSON.stringify({ goal: targetGoal, model, maxIterations: effectiveIterations }),
         signal: ctrl.signal,
       });
 
@@ -168,51 +272,31 @@ export function SwarmEvolutionPage({ onClose }: Props) {
         setRun(r => r ? { ...r, status: "error" } : r);
       }
     }
-  }, [goal, model, iterations, run]);
+  }, [goal, model, iterations, continuousMode, run]);
 
   const handleSSEEvent = useCallback((evt: any) => {
     if (!evt) return;
-    const type = Object.keys(evt)[0] === "type" ? evt.type : undefined;
-    // Check which SSE event type this is from the server
-    // The server sends: event: TYPE\ndata: JSON
-    // But we're reading data: JSON lines here, so evt already has the parsed data
     setRun(prev => {
       if (!prev) return prev;
       if (evt.taskId && !prev.taskId) return { ...prev, taskId: evt.taskId };
       if (evt.agent !== undefined && evt.name !== undefined) {
         if (evt.outputLen !== undefined) {
-          // agent_done
-          return {
-            ...prev,
-            agents: prev.agents.map(a => a.agentId === evt.agent ? { ...a, status: "done" } : a),
-          };
+          return { ...prev, agents: prev.agents.map(a => a.agentId === evt.agent ? { ...a, status: "done" } : a) };
         }
         if (evt.chunk !== undefined) {
-          // agent_chunk
-          return {
-            ...prev,
-            agents: prev.agents.map(a => a.agentId === evt.agent
-              ? { ...a, status: "running", output: a.output + evt.chunk }
-              : a),
-          };
+          return { ...prev, agents: prev.agents.map(a => a.agentId === evt.agent ? { ...a, status: "running", output: a.output + evt.chunk } : a) };
         }
         if (evt.outputLen === undefined && evt.chunk === undefined) {
-          // agent_start
-          return {
-            ...prev,
-            agents: prev.agents.map(a => a.agentId === evt.agent ? { ...a, status: "running" } : a),
-          };
+          return { ...prev, agents: prev.agents.map(a => a.agentId === evt.agent ? { ...a, status: "running" } : a) };
         }
       }
       if (evt.iteration !== undefined && evt.of === undefined) {
         return { ...prev, iteration: evt.iteration };
       }
       if (evt.chunk !== undefined && evt.agent === undefined) {
-        // fusion_chunk
         return { ...prev, fusion: prev.fusion + evt.chunk, fusionRunning: true };
       }
       if (evt.result !== undefined) {
-        // done
         return { ...prev, status: "done", fusionRunning: false };
       }
       if (evt.message !== undefined && prev.status === "running") {
@@ -225,6 +309,31 @@ export function SwarmEvolutionPage({ onClose }: Props) {
   const stopRun = useCallback(() => {
     abortRef.current?.abort();
     setRun(r => r ? { ...r, status: "error" } : r);
+  }, []);
+
+  // ── Task Queue processing ─────────────────────────────────────────────────
+  const addToQueue = useCallback(() => {
+    if (!taskInput.trim()) return;
+    setTaskQueue(prev => [...prev, { id: `tq-${Date.now()}`, goal: taskInput.trim(), status: "pending" }]);
+    setTaskInput("");
+  }, [taskInput]);
+
+  const runQueue = useCallback(async () => {
+    if (processingQueue) return;
+    setProcessingQueue(true);
+    const pending = taskQueue.filter(t => t.status === "pending");
+    for (const task of pending) {
+      setTaskQueue(prev => prev.map(t => t.id === task.id ? { ...t, status: "running" } : t));
+      setGoal(task.goal);
+      await startRun(task.goal);
+      setTaskQueue(prev => prev.map(t => t.id === task.id ? { ...t, status: "done" } : t));
+      await new Promise(r => setTimeout(r, 1500));
+    }
+    setProcessingQueue(false);
+  }, [taskQueue, processingQueue, startRun]);
+
+  const removeFromQueue = useCallback((id: string) => {
+    setTaskQueue(prev => prev.filter(t => t.id !== id));
   }, []);
 
   const selectedModel = models.find(m => m.id === model);
@@ -244,6 +353,56 @@ export function SwarmEvolutionPage({ onClose }: Props) {
         </div>
 
         <div className="flex-1" />
+
+        {/* ZAI/GLM-5 status badge */}
+        {zaiProvider !== "none" && (
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+            zaiProvider === "zai"
+              ? "bg-[#06b6d4]/10 text-[#06b6d4] border-[#06b6d4]/30"
+              : "bg-[#8b5cf6]/10 text-[#8b5cf6] border-[#8b5cf6]/30"
+          }`}>
+            <Dna className="w-3 h-3" />
+            {zaiProvider === "zai" ? "ZAI GLM-5" : "Zhipu GLM"}
+          </div>
+        )}
+
+        {/* Continuous mode badge */}
+        {continuousMode && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#f97316]/10 text-[#f97316] border border-[#f97316]/30">
+            <Repeat className="w-3 h-3" />
+            Continuous
+          </div>
+        )}
+
+        {/* Evolution insights button */}
+        <button
+          onClick={() => setInsightsOpen(o => !o)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition text-xs ${
+            insightsOpen ? "bg-[#8b5cf6]/20 text-[#8b5cf6] border border-[#8b5cf6]/30" : "bg-white/5 hover:bg-white/10 text-white/60"
+          }`}
+        >
+          <Dna className="w-3.5 h-3.5" />
+          رؤى التطور
+          {evolutionInsights.length > 0 && (
+            <span className="bg-[#8b5cf6] text-white rounded-full px-1.5 py-0.5 text-[9px]">{evolutionInsights.length}</span>
+          )}
+        </button>
+
+        {/* Task queue button */}
+        <button
+          onClick={() => setTaskQueueOpen(o => !o)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition text-xs ${
+            taskQueueOpen ? "bg-[#22d3ee]/20 text-[#22d3ee] border border-[#22d3ee]/30" : "bg-white/5 hover:bg-white/10 text-white/60"
+          }`}
+        >
+          <ListOrdered className="w-3.5 h-3.5" />
+          قائمة المهام
+          {taskQueue.filter(t => t.status === "pending").length > 0 && (
+            <span className="bg-[#22d3ee] text-black rounded-full px-1.5 py-0.5 text-[9px]">
+              {taskQueue.filter(t => t.status === "pending").length}
+            </span>
+          )}
+        </button>
 
         {/* History button */}
         <button
@@ -290,8 +449,8 @@ export function SwarmEvolutionPage({ onClose }: Props) {
             </div>
             <div className={`text-[10px] px-3 py-2 rounded-lg ${mainAgent.enabled ? "bg-[#e21227]/10 text-[#e21227]/80 border border-[#e21227]/20" : "bg-white/5 text-white/40"}`}>
               {mainAgent.enabled
-                ? "✅ وضع Agent المستقل مفعّل — التخطيط التلقائي + تنفيذ الأدوات + ذاكرة متطورة"
-                : "⚪ وضع المساعد العادي — ردود مباشرة فقط"}
+                ? "تخطيط تلقائي · تنفيذ أدوات · ذاكرة متطورة · إصلاح تلقائي"
+                : "وضع المساعد العادي — ردود مباشرة فقط"}
             </div>
           </div>
 
@@ -353,7 +512,6 @@ export function SwarmEvolutionPage({ onClose }: Props) {
               </AnimatePresence>
             </div>
 
-            {/* Sync to Main Agent */}
             {model !== mainAgent.model && (
               <button
                 onClick={() => setMainAgentModel(model)}
@@ -364,19 +522,19 @@ export function SwarmEvolutionPage({ onClose }: Props) {
             )}
           </div>
 
-          {/* Iterations */}
+          {/* Iterations + Continuous Mode */}
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <div className="flex items-center gap-2 mb-3">
               <RefreshCw className="w-4 h-4 text-[#22d3ee]" />
               <span className="text-sm font-semibold">دورات التطوير</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-3">
               {[1, 2, 3].map(n => (
                 <button
                   key={n}
-                  onClick={() => setIterations(n)}
+                  onClick={() => { setIterations(n); setContinuousMode(false); }}
                   className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${
-                    iterations === n
+                    !continuousMode && iterations === n
                       ? "bg-[#22d3ee]/20 text-[#22d3ee] border border-[#22d3ee]/40"
                       : "bg-white/5 text-white/40 border border-white/10 hover:bg-white/10"
                   }`}
@@ -385,8 +543,28 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                 </button>
               ))}
             </div>
-            <div className="mt-2 text-[10px] text-white/30 text-center">
-              {iterations === 1 ? "تشغيل واحد" : iterations === 2 ? "تكرار مرتين لتحسين الجودة" : "تكرار 3 مرات للتطوير الكامل"}
+            {/* Continuous Mode Toggle */}
+            <button
+              onClick={() => setContinuousMode(p => !p)}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition border ${
+                continuousMode
+                  ? "bg-[#f97316]/15 text-[#f97316] border-[#f97316]/30"
+                  : "bg-white/5 text-white/40 border-white/10 hover:bg-white/8"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Repeat className="w-3 h-3" />
+                <span className="font-medium">Continuous Loop Mode</span>
+              </div>
+              {continuousMode
+                ? <ToggleRight className="w-4 h-4" />
+                : <ToggleLeft className="w-4 h-4" />
+              }
+            </button>
+            <div className="mt-1.5 text-[10px] text-white/25 text-center">
+              {continuousMode
+                ? "يعمل 3 دورات تلقائياً ويحسّن نفسه"
+                : iterations === 1 ? "تشغيل واحد" : iterations === 2 ? "تكرار مرتين" : "تكرار 3 مرات"}
             </div>
           </div>
 
@@ -415,6 +593,110 @@ export function SwarmEvolutionPage({ onClose }: Props) {
               </div>
             </div>
           )}
+
+          {/* Evolution Insights Panel */}
+          <AnimatePresence>
+            {insightsOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="rounded-xl border border-[#8b5cf6]/20 bg-[#8b5cf6]/5 p-4 overflow-hidden"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <Dna className="w-3.5 h-3.5 text-[#8b5cf6]" />
+                  <span className="text-xs font-bold text-[#8b5cf6]">رؤى التطور من الذاكرة</span>
+                </div>
+                {evolutionInsights.length === 0 ? (
+                  <div className="text-[11px] text-white/30 text-center py-3">
+                    لا توجد رؤى بعد — ابدأ تشغيلاً وفعّل Self-Improve
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {evolutionInsights.map((ins, i) => (
+                      <div key={i} className="flex gap-2 p-2 rounded-lg bg-black/30">
+                        <div className="w-4 h-4 rounded-full bg-[#8b5cf6]/20 flex items-center justify-center shrink-0 mt-0.5">
+                          <Star className="w-2.5 h-2.5 text-[#8b5cf6]" />
+                        </div>
+                        <div>
+                          <div className="text-[11px] text-white/70 leading-relaxed">{ins.insight}</div>
+                          <div className="text-[9px] text-white/30 mt-0.5">
+                            [{ins.agent}] — impact: {ins.impact_score}/10
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Task Queue Panel */}
+          <AnimatePresence>
+            {taskQueueOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="rounded-xl border border-[#22d3ee]/20 bg-[#22d3ee]/5 p-4 overflow-hidden"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <ListOrdered className="w-3.5 h-3.5 text-[#22d3ee]" />
+                  <span className="text-xs font-bold text-[#22d3ee]">قائمة انتظار المهام</span>
+                </div>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    value={taskInput}
+                    onChange={e => setTaskInput(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && addToQueue()}
+                    placeholder="أضف مهمة جديدة..."
+                    className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#22d3ee]/40 transition"
+                  />
+                  <button
+                    onClick={addToQueue}
+                    className="p-2 rounded-lg bg-[#22d3ee]/15 text-[#22d3ee] hover:bg-[#22d3ee]/25 transition"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                  </button>
+                </div>
+                {taskQueue.length > 0 && (
+                  <>
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto mb-3">
+                      {taskQueue.map(task => (
+                        <div key={task.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-black/30">
+                          {task.status === "pending" && <div className="w-2 h-2 rounded-full bg-white/30 shrink-0" />}
+                          {task.status === "running" && <Loader2 className="w-2.5 h-2.5 animate-spin text-[#22d3ee] shrink-0" />}
+                          {task.status === "done" && <CheckCircle2 className="w-2.5 h-2.5 text-[#10b981] shrink-0" />}
+                          {task.status === "error" && <XCircle className="w-2.5 h-2.5 text-[#e21227] shrink-0" />}
+                          <span className="text-[11px] text-white/60 flex-1 truncate">{task.goal}</span>
+                          {task.status === "pending" && (
+                            <button onClick={() => removeFromQueue(task.id)} className="text-white/30 hover:text-white/60 transition">
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={runQueue}
+                      disabled={processingQueue || taskQueue.every(t => t.status !== "pending")}
+                      className="w-full py-2 rounded-lg text-xs font-bold bg-[#22d3ee]/15 text-[#22d3ee] border border-[#22d3ee]/30 hover:bg-[#22d3ee]/25 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {processingQueue ? (
+                        <><Loader2 className="w-3 h-3 animate-spin inline mr-1" /> جارٍ المعالجة...</>
+                      ) : (
+                        <><Play className="w-3 h-3 inline mr-1" /> تشغيل القائمة</>
+                      )}
+                    </button>
+                  </>
+                )}
+                {taskQueue.length === 0 && (
+                  <div className="text-[11px] text-white/30 text-center py-2">القائمة فارغة — أضف مهام للمعالجة التلقائية</div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* History Panel */}
           <AnimatePresence>
@@ -508,6 +790,19 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                     );
                   })}
                 </div>
+
+                {/* Evolution stats if available */}
+                {evolutionInsights.length > 0 && (
+                  <div className="w-full max-w-lg px-4 py-3 rounded-xl bg-[#8b5cf6]/10 border border-[#8b5cf6]/20">
+                    <div className="text-[10px] uppercase tracking-widest text-[#8b5cf6] mb-2 flex items-center gap-1">
+                      <Dna className="w-3 h-3" />
+                      رؤى التطور المتراكمة ({evolutionInsights.length})
+                    </div>
+                    <div className="text-xs text-white/50 leading-relaxed">
+                      {evolutionInsights[0]?.insight}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -521,7 +816,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                   <div className="flex-1">
                     <div className="text-xs font-medium text-white/80 truncate">{run.goal}</div>
                     <div className="text-[10px] text-white/40">
-                      {run.status === "running" ? `تشغيل الدورة ${run.iteration}/${iterations}...` : run.status === "done" ? "اكتمل بنجاح" : "توقف"}
+                      {run.status === "running" ? `تشغيل الدورة ${run.iteration}/${continuousMode ? 3 : iterations}...` : run.status === "done" ? "اكتمل بنجاح" : "توقف"}
                     </div>
                   </div>
                   <div className="text-[10px] px-2 py-1 rounded-md text-white/50 bg-white/5">
@@ -580,6 +875,71 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                     <div className="p-4 bg-black/40 max-h-80 overflow-y-auto">
                       <pre className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">{run.fusion}</pre>
                     </div>
+                  </motion.div>
+                )}
+
+                {/* ── SELF-IMPROVE SECTION ────────────────────────────── */}
+                {run.status === "done" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border border-[#8b5cf6]/30 overflow-hidden"
+                  >
+                    <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-[#8b5cf6]/15 to-[#06b6d4]/10">
+                      <Dna className="w-4 h-4 text-[#8b5cf6]" />
+                      <div>
+                        <div className="text-sm font-bold text-white">التحسين الذاتي (Self-Improve)</div>
+                        <div className="text-[10px] text-white/40">
+                          تحليل نتائج الجلسة واستخراج رؤى لتحسين الجلسات المستقبلية
+                        </div>
+                      </div>
+                      <div className="flex-1" />
+                      <button
+                        onClick={selfImprove}
+                        disabled={selfImproving || selfImproveDone}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                          selfImproveDone
+                            ? "bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/30 cursor-default"
+                            : selfImproving
+                              ? "bg-[#8b5cf6]/15 text-[#8b5cf6] border border-[#8b5cf6]/30 cursor-not-allowed"
+                              : "bg-[#8b5cf6]/20 text-[#8b5cf6] border border-[#8b5cf6]/40 hover:bg-[#8b5cf6]/30"
+                        }`}
+                      >
+                        {selfImproving ? (
+                          <><Loader2 className="w-4 h-4 animate-spin" /> جارٍ التحليل...</>
+                        ) : selfImproveDone ? (
+                          <><CheckCircle2 className="w-4 h-4" /> تم التحسين</>
+                        ) : (
+                          <><TrendingUp className="w-4 h-4" /> تحسين ذاتي</>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Self-improve recommendations */}
+                    <AnimatePresence>
+                      {selfImproveRecs.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          className="px-4 py-3 bg-black/30"
+                        >
+                          <div className="text-[10px] uppercase tracking-widest text-[#8b5cf6] mb-2 flex items-center gap-1">
+                            <Activity className="w-3 h-3" />
+                            توصيات للجلسة القادمة
+                          </div>
+                          <div className="space-y-1.5">
+                            {selfImproveRecs.map((rec, i) => (
+                              <div key={i} className="flex gap-2 items-start">
+                                <div className="w-4 h-4 rounded-full bg-[#8b5cf6]/20 flex items-center justify-center shrink-0 mt-0.5 text-[9px] text-[#8b5cf6] font-bold">
+                                  {i + 1}
+                                </div>
+                                <p className="text-xs text-white/70 leading-relaxed">{rec}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 )}
               </div>

@@ -83,7 +83,9 @@ export type ArsenalModuleId =
   // OMEGA AGENT — Autonomous Neural Command Center
   | "omegaAgent"
   // Batch 16 — Autonomous Decision Engine
-  | "autonomousdecisionengine";
+  | "autonomousdecisionengine"
+  // AutoGPT Swarm + Evolution
+  | "swarmEvolution" | "agentProjectGenerator" | "agentEvolutionDashboard";
 
 export type ArsenalModule = {
   id: ArsenalModuleId;

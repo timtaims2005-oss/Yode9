@@ -258,6 +258,7 @@ const MemorySystemPage      = lazy(() => import("./pages/MemorySystemPage").then
 const MultiAgentPage        = lazy(() => import("./pages/MultiAgentPage").then(m=>({default:m.MultiAgentPage})));
 const SwarmEvolutionPage    = lazy(() => import("./pages/SwarmEvolutionPage").then(m=>({default:m.SwarmEvolutionPage})));
 const AgentProjectGeneratorPage = lazy(() => import("./pages/AgentProjectGeneratorPage").then(m=>({default:m.AgentProjectGeneratorPage})));
+const AgentEvolutionDashboard = lazy(() => import("./pages/AgentEvolutionDashboard").then(m=>({default:m.AgentEvolutionDashboard})));
 const AgentMemoryPanelPage  = lazy(() => import("./components/AgentMemoryPanel").then(m=>({default:m.AgentMemoryPanel})));
 const MonitoringPage3D      = lazy(() => import("./pages/MonitoringPage3D").then(m=>({default:m.MonitoringPage3D})));
 const NotificationsPage     = lazy(() => import("./pages/NotificationsPage").then(m=>({default:m.NotificationsPage})));
@@ -334,6 +335,7 @@ const MODAL_IDS = [
   'multiAgent',
   'swarmEvolution',
   'agentProjectGenerator',
+  'agentEvolutionDashboard',
   'agentMemoryPanel',
   'monitoring3D',
   'notifications',
@@ -410,6 +412,9 @@ const ARSENAL_MAP: Partial<Record<string, ModalId>> = {
   "autonomousdecisionengine": "autonomousDecisionEngine",
   "jarviscommandcenter": "jarvisCommandCenter",
   "omegaagent": "omegaAgent",
+  "swarmEvolution": "swarmEvolution",
+  "agentProjectGenerator": "agentProjectGenerator",
+  "agentEvolutionDashboard": "agentEvolutionDashboard",
 };
 
 const queryClient = new QueryClient();
@@ -1362,6 +1367,11 @@ function AppContent() {
         {modals.agentProjectGenerator && (
           <WindowChrome open={true} title="🚀 Auto Project Generator" color="#e21227" onClose={() => close('agentProjectGenerator')}>
             <AgentProjectGeneratorPage onClose={() => close('agentProjectGenerator')} />
+          </WindowChrome>
+        )}
+        {modals.agentEvolutionDashboard && (
+          <WindowChrome open={true} title="🧬 Agent Evolution Dashboard" color="#8b5cf6" onClose={() => close('agentEvolutionDashboard')}>
+            <AgentEvolutionDashboard onClose={() => close('agentEvolutionDashboard')} />
           </WindowChrome>
         )}
         {modals.agentMemoryPanel && (
