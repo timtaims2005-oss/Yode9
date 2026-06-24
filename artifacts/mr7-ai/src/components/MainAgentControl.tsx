@@ -11,6 +11,8 @@ import {
 import { authFetch } from "@/lib/auth";
 
 const QUICK_MODELS = [
+  { id: "glm-5.2",                    label: "GLM-5.2",        color: "#06b6d4" },
+  { id: "glm-5.1",                    label: "GLM-5.1",        color: "#22d3ee" },
   { id: "glm-5",                      label: "GLM-5",          color: "#22d3ee" },
   { id: "glm-4-plus",                 label: "GLM-4+",         color: "#22d3ee" },
   { id: "gpt-4o",                     label: "GPT-4o",         color: "#10b981" },

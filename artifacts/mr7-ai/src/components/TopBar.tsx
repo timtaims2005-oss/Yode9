@@ -6,6 +6,7 @@ import { useStore } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { AIQuickSetupButton } from "./AIQuickSetupButton";
+import { MainAgentControl } from "./MainAgentControl";
 import { ProviderHealthBadge3D } from "./ProviderHealthBadge3D";
 import { PersonaSwitcher3D } from "./PersonaSwitcher3D";
 import { QuantumPersona3D } from "./QuantumPersona3D";
@@ -1944,6 +1945,8 @@ export function TopBar({
         {onOpenCyberHub       && <HUDBtn icon={Zap}          label="Cyber Hub"    color="#e21227" onClick={onOpenCyberHub} badge="3D" />}
         {onOpenWidgetsDock    && <HUDBtn icon={Gauge}        label="Widgets HUD"  color="#06b6d4" onClick={onOpenWidgetsDock} badge="6P" />}
         {onOpenSwarmEvolution && <HUDBtn icon={BrainCircuit} label="Swarm AI"     color="#8b5cf6" onClick={onOpenSwarmEvolution} badge="NEW" />}
+        <VDivider />
+        <MainAgentControl compact className="shrink-0" />
         {(onOpenCisaLive || onOpenCveTimeline || onOpenCyberHierarchy || onOpenThreatFeed) && <VDivider />}
 
         {/* ── GROUP 5 — System ────────────────────────────────────────── */}

@@ -356,8 +356,10 @@ router.patch("/main-agent/state", async (req: Request, res: Response) => {
 // ─── GET /api/swarm/models — List all available models for swarm ─────────────
 router.get("/swarm/models", async (_req: Request, res: Response) => {
   const models = [
-    // GLM-5 / Zhipu AI
-    { id: "glm-5", name: "GLM-5 (Zhipu AI)", provider: "zhipu", tier: "flagship" },
+    // GLM-5 Series / Zhipu AI (Z.ai) — 744B-A40B, 1M context, agentic engineering
+    { id: "glm-5.2", name: "GLM-5.2 (Zhipu AI)", provider: "zhipu", tier: "flagship" },
+    { id: "glm-5.1", name: "GLM-5.1 (Zhipu AI)", provider: "zhipu", tier: "flagship" },
+    { id: "glm-5",   name: "GLM-5 (Zhipu AI)",   provider: "zhipu", tier: "flagship" },
     { id: "glm-4-plus", name: "GLM-4 Plus (Zhipu AI)", provider: "zhipu", tier: "advanced" },
     { id: "glm-4", name: "GLM-4 (Zhipu AI)", provider: "zhipu", tier: "standard" },
     { id: "glm-4-flash", name: "GLM-4 Flash (Fast)", provider: "zhipu", tier: "fast" },

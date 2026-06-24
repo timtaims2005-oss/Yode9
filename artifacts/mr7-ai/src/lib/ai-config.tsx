@@ -227,7 +227,9 @@ export const AI_MODELS: AIModel[] = [
   { id: "ArmagedonAI · Final",         icon: Skull,        color: "text-red-900",    desc: "البروتوكول الأخير — انتهاء العالم الرقمي",           badge: "FINAL",  contextWindow: "∞",    abliterated: true, category: "abliterated" },
 
   // ── GLM / Zhipu AI Real Models ────────────────────────────────────────────
-  { id: "GLM-5",                       icon: Brain,        color: "text-violet-400", desc: "Zhipu AI GLM-5 — نموذج متعدد الوسائط الرائد من Zhipu AI",       badge: "GLM-5",  contextWindow: "128K", provider: "zhipu",  category: "zhipu" },
+  { id: "GLM-5.2",                     icon: Brain,        color: "text-cyan-400",   desc: "GLM-5.2 — أحدث نماذج Zhipu AI مع 1M token context وكودينج متقدم",  badge: "GLM-5.2",contextWindow: "1M",   provider: "zhipu",  category: "zhipu" },
+  { id: "GLM-5.1",                     icon: Brain,        color: "text-blue-400",   desc: "GLM-5.1 — نموذج هندسة الوكلاء مع أداء SWE-Bench Pro رائد",       badge: "GLM-5.1",contextWindow: "1M",   provider: "zhipu",  category: "zhipu" },
+  { id: "GLM-5",                       icon: Brain,        color: "text-violet-400", desc: "Zhipu AI GLM-5 — 744B parameters, top open-source agentic model",  badge: "GLM-5",  contextWindow: "128K", provider: "zhipu",  category: "zhipu" },
   { id: "GLM-4.5 Air",                 icon: Zap,          color: "text-cyan-400",   desc: "GLM-4.5 Air — نموذج Zhipu خفيف عالي السرعة",                   badge: "AIR",    contextWindow: "128K", provider: "zhipu",  category: "zhipu" },
   { id: "GLM-4 Plus",                  icon: Star,         color: "text-amber-400",  desc: "GLM-4 Plus — معمارية محسّنة لمهام الكود والاستدلال",             badge: "PLUS",   contextWindow: "128K", provider: "zhipu",  category: "zhipu" },
   { id: "GLM-4",                       icon: Cpu,          color: "text-blue-400",   desc: "GLM-4 — الجيل الرابع من نموذج Zhipu AI",                        badge: "v4",     contextWindow: "128K", provider: "zhipu",  category: "zhipu" },

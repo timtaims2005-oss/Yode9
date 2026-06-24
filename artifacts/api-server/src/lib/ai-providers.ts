@@ -41,7 +41,7 @@ const WORLD_MODELS = [
   // Moonshot (China)
   "moonshot-v1-128k", "moonshot-v1-32k", "moonshot-v1-8k",
   // Zhipu AI GLM (China)
-  "glm-4", "glm-4-flash", "glm-4-plus", "glm-zero-preview",
+  "glm-5.2", "glm-5.1", "glm-5", "glm-4-plus", "glm-4", "glm-4-flash", "glm-zero-preview",
   // Baidu ERNIE (China)
   "ernie-4.5-8k", "ernie-4.0-8k", "ernie-3.5-8k",
   // Perplexity
@@ -109,10 +109,10 @@ const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
     requiresKey: false,
   },
   zhipu: {
-    name: "Zhipu AI (GLM-5)",
+    name: "Zhipu AI (GLM-5.2 / GLM-5.1 / GLM-5)",
     envKey: "ZHIPU_API_KEY",
     baseURL: "https://open.bigmodel.cn/api/paas/v4",
-    models: ["glm-5", "glm-4-plus", "glm-4", "glm-4-flash", "glm-zero-preview"],
+    models: ["glm-5.2", "glm-5.1", "glm-5", "glm-4-plus", "glm-4", "glm-4-flash", "glm-zero-preview"],
     requiresKey: true,
   },
 };
@@ -352,12 +352,16 @@ export async function* streamCompletion(
 
     const resolvedModel = model || PERSONAL_DEFAULT_MODEL;
 
+    const isGlm5 = /^glm-5/.test(resolvedModel);
+    const glm5Extra = isGlm5 ? { extra_body: { reasoning_effort: "max" } } : {};
+
     const streamRes = await client.chat.completions.create({
       model: resolvedModel,
       messages,
       stream: true,
       temperature,
-    }, { signal: controller.signal });
+      ...glm5Extra,
+    } as Parameters<typeof client.chat.completions.create>[0], { signal: controller.signal });
 
     for await (const chunk of streamRes) {
       const content = chunk.choices?.[0]?.delta?.content;
