@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 
-export type ProviderName = "openai" | "anthropic" | "groq" | "gemini" | "openrouter" | "custom" | "personal" | "zhipu";
+export type ProviderName = "openai" | "anthropic" | "groq" | "gemini" | "openrouter" | "custom" | "personal" | "zhipu" | "glm";
 
 export type ProviderInfo = {
   id: ProviderName;
@@ -115,6 +115,13 @@ const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
     models: ["glm-5.2", "glm-5.1", "glm-5", "glm-4-plus", "glm-4", "glm-4-flash", "glm-zero-preview"],
     requiresKey: true,
   },
+  glm: {
+    name: "ZAI / GLM-5 (api.z.ai — International)",
+    envKey: "ZAI_API_KEY",
+    baseURL: "https://api.z.ai/api/paas/v4",
+    models: ["glm-5.2", "glm-5.1", "glm-5", "glm-4-plus", "glm-4", "glm-4-flash", "glm-zero-preview"],
+    requiresKey: true,
+  },
 };
 
 function getPersonalBase(): string {
@@ -134,7 +141,8 @@ export function hasAnyApiKey(): boolean {
     process.env.OPENROUTER_API_KEY?.trim() ||
     process.env.CUSTOM_API_KEY?.trim() ||
     process.env.OPENAI_API_KEY?.trim() ||
-    process.env.ZHIPU_API_KEY?.trim()
+    process.env.ZHIPU_API_KEY?.trim() ||
+    process.env.ZAI_API_KEY?.trim()
   );
 }
 
@@ -176,6 +184,9 @@ export function getOpenAICompatibleClient(provider: ProviderName): OpenAI | null
   } else if (provider === "zhipu") {
     apiKey = process.env.ZHIPU_API_KEY || undefined;
     baseURL = "https://open.bigmodel.cn/api/paas/v4";
+  } else if (provider === "glm") {
+    apiKey = process.env.ZAI_API_KEY || undefined;
+    baseURL = "https://api.z.ai/api/paas/v4";
   } else if (provider === "personal") {
     apiKey = getPersonalKey() || undefined;
     baseURL = getPersonalBase() || undefined;

@@ -64,7 +64,10 @@ ensureSwarmTables().catch(() => {});
 
 // ─── Provider detection from model id ────────────────────────────────────────
 function detectProvider(model: string): ProviderName {
-  if (model.startsWith("glm-")) return "zhipu";
+  if (model.startsWith("glm-")) {
+    // Prefer ZAI (api.z.ai) if key is available, else fallback to Zhipu (open.bigmodel.cn)
+    return process.env.ZAI_API_KEY ? "glm" : "zhipu";
+  }
   if (model.startsWith("gpt-") || model.startsWith("o1") || model.startsWith("o3") || model.startsWith("o4")) return "openai";
   if (model.startsWith("claude-")) return "anthropic";
   if (model.startsWith("gemini-")) return "gemini";

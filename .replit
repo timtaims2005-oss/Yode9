@@ -93,6 +93,9 @@ APP_URL = "https://${REPLIT_DEV_DOMAIN}"
 FRONTEND_URL = "https://${REPLIT_DEV_DOMAIN}"
 API_BASE_URL = "https://${REPLIT_DEV_DOMAIN}"
 ALLOWED_ORIGINS = "https://${REPLIT_DEV_DOMAIN}"
+APP_VERSION = "1.0.0"
+STORAGE_PROVIDER = "local"
+LOCAL_UPLOAD_DIR = "./uploads"
 
 [deployment]
 deploymentTarget = "autoscale"
