@@ -282,6 +282,25 @@ router.post("/swarm/run", async (req: Request, res: Response) => {
       [finalResult.slice(0, 8000), taskId],
     );
 
+    // ── AUTO-SAVE TO AGENT MEMORY ─────────────────────────────────────────────
+    try {
+      const summaryText = finalResult.slice(0, 300);
+      const tags = ["swarm", "fusion", model.split("-")[0]];
+      await pool.query(
+        `INSERT INTO agent_memory (type, goal, content, summary, tags, agent, model, success, importance, iteration)
+         VALUES ('solution', $1, $2, $3, $4, 'swarm', $5, true, 7, $6)`,
+        [goal, finalResult.slice(0, 8000), summaryText, JSON.stringify(tags), model, maxIterations]
+      );
+      // Store evolution insights
+      for (const note of evolutionLog) {
+        await pool.query(
+          `INSERT INTO agent_evolution_insights (task_id, insight, agent, iteration, model, impact_score)
+           VALUES ($1, $2, 'swarm', 1, $3, 6)`,
+          [taskId, note.slice(0, 500), model]
+        ).catch(() => {});
+      }
+    } catch { /* non-fatal */ }
+
     sse(res, "done", { taskId, result: finalResult, agentOutputs });
   } catch (err: any) {
     sse(res, "error", { message: err?.message ?? "Unknown error" });
@@ -350,6 +369,214 @@ router.patch("/main-agent/state", async (req: Request, res: Response) => {
     res.json({ enabled: row.enabled, model: row.model, fallbackModel: row.fallback_model });
   } catch (err: any) {
     res.status(500).json({ error: err?.message });
+  }
+});
+
+// ─── POST /api/swarm/generate — Auto Project Generator ───────────────────────
+router.post("/swarm/generate", async (req: Request, res: Response) => {
+  const {
+    project_type = "web",
+    requirements,
+    tech_stack,
+    model = "gpt-4o",
+    apiKey,
+    apiBaseURL,
+  } = req.body as {
+    project_type?: string;
+    requirements?: string;
+    tech_stack?: string;
+    model?: string;
+    apiKey?: string;
+    apiBaseURL?: string;
+  };
+
+  if (!requirements || requirements.trim().length < 10) {
+    res.status(400).json({ error: "requirements is required (min 10 chars)" });
+    return;
+  }
+
+  sseHeaders(res);
+  sse(res, "generate_start", { project_type, model });
+
+  const provider = detectProvider(model);
+  const generatorMessages = [
+    {
+      role: "system" as const,
+      content: `أنت Auto Project Generator — مولّد مشاريع برمجية كاملة.
+مهمتك: توليد مشروع برمجي متكامل بناءً على المتطلبات المعطاة.
+المخرجات يجب أن تحتوي على:
+1. هيكل المشروع (Project Structure) — شجرة الملفات
+2. الكود الكامل لكل ملف رئيسي
+3. ملف README.md مفصّل
+4. تعليمات التثبيت والتشغيل
+5. قائمة التبعيات (dependencies)
+
+نوع المشروع: ${project_type}
+${tech_stack ? `التقنيات المطلوبة: ${tech_stack}` : ""}
+
+قواعد:
+- اكتب كوداً حقيقياً قابلاً للتشغيل
+- استخدم أفضل الممارسات
+- أضف تعليقات توضيحية
+- تعامل مع الأخطاء
+- الجودة أهم من الكمية`,
+    },
+    {
+      role: "user" as const,
+      content: `اولد مشروعاً كاملاً بناءً على هذه المتطلبات:\n\n${requirements}`,
+    },
+  ];
+
+  let output = "";
+  try {
+    for await (const chunk of streamCompletion(provider, model, generatorMessages, 0.7, { apiKey, apiBaseURL })) {
+      if (chunk.content) {
+        output += chunk.content;
+        sse(res, "generate_chunk", { chunk: chunk.content });
+      }
+      if (chunk.done) break;
+    }
+
+    // Save to agent memory
+    try {
+      await pool.query(
+        `INSERT INTO agent_memory (type, goal, content, summary, tags, agent, model, success, importance)
+         VALUES ('solution', $1, $2, $3, $4, 'project-generator', $5, true, 8)`,
+        [
+          `Generate ${project_type} project: ${requirements.slice(0, 100)}`,
+          output.slice(0, 8000),
+          output.slice(0, 300),
+          JSON.stringify(["project-generator", project_type, ...(tech_stack ? [tech_stack] : [])]),
+          model,
+        ]
+      );
+    } catch { /* non-fatal */ }
+
+    sse(res, "generate_done", { output, projectType: project_type });
+  } catch (err: any) {
+    sse(res, "generate_error", { message: err?.message ?? "Generation failed" });
+  } finally {
+    res.end();
+  }
+});
+
+// ─── POST /api/swarm/self-improve — Self-Improving Loop: store + apply insights
+router.post("/swarm/self-improve", async (req: Request, res: Response) => {
+  const { task_id, goal, agentOutputs, evolutionNotes, model = "gpt-4o", apiKey, apiBaseURL } = req.body as {
+    task_id?: string;
+    goal?: string;
+    agentOutputs?: Record<string, string>;
+    evolutionNotes?: string[];
+    model?: string;
+    apiKey?: string;
+    apiBaseURL?: string;
+  };
+
+  if (!goal) { res.status(400).json({ error: "goal required" }); return; }
+
+  sseHeaders(res);
+  sse(res, "improve_start", { task_id, goal });
+
+  try {
+    // 1. Get past insights from DB for self-improvement context
+    const { rows: pastInsights } = await pool.query(
+      `SELECT insight, agent, impact_score FROM agent_evolution_insights
+       ORDER BY impact_score DESC, applied_count ASC LIMIT 10`
+    );
+
+    const pastContext = pastInsights.length > 0
+      ? `\n\nرؤى من الجلسات السابقة (استخدمها لتحسين التحليل):\n${pastInsights.map((r: { agent: string; insight: string }) => `- [${r.agent}]: ${r.insight}`).join("\n")}`
+      : "";
+
+    const outputContext = agentOutputs
+      ? Object.entries(agentOutputs).map(([k, v]) => `[${k.toUpperCase()}]: ${String(v).slice(0, 400)}`).join("\n\n")
+      : "";
+
+    const selfImproveMessages = [
+      {
+        role: "system" as const,
+        content: `أنت نظام التحسين الذاتي (Self-Improving System) لفريق Swarm.
+مهمتك: تحليل نتائج هذه الجلسة واستخراج رؤى قابلة للتطبيق في الجلسات المستقبلية.
+استخرج:
+1. ما نجح وسبب نجاحه (3 نقاط)
+2. ما يمكن تحسينه (3 نقاط)
+3. أنماط أخطاء جديدة (إن وجدت)
+4. توصيات للجلسة القادمة (3 نقاط)
+
+أجب بتنسيق JSON:
+{
+  "successes": [{"insight": "...", "agent": "...", "impact": 8}],
+  "improvements": [{"insight": "...", "agent": "...", "impact": 7}],
+  "errors": [{"pattern": "...", "solution": "..."}],
+  "recommendations": ["...", "...", "..."]
+}${pastContext}`,
+      },
+      {
+        role: "user" as const,
+        content: `الهدف: ${goal}\n\nنتائج الجلسة:\n${outputContext}\n\nملاحظات التطور:\n${(evolutionNotes ?? []).join("\n")}`,
+      },
+    ];
+
+    const provider = detectProvider(model);
+    let analysisText = "";
+    for await (const chunk of streamCompletion(provider, model, selfImproveMessages, 0.5, { apiKey, apiBaseURL })) {
+      if (chunk.content) {
+        analysisText += chunk.content;
+        sse(res, "improve_chunk", { chunk: chunk.content });
+      }
+      if (chunk.done) break;
+    }
+
+    // Parse and store insights
+    let parsed: {
+      successes?: Array<{ insight: string; agent: string; impact?: number }>;
+      improvements?: Array<{ insight: string; agent: string; impact?: number }>;
+      errors?: Array<{ pattern: string; solution?: string }>;
+      recommendations?: string[];
+    } = {};
+    try {
+      const match = analysisText.match(/```json\s*([\s\S]*?)```/) ?? analysisText.match(/\{[\s\S]*\}/);
+      if (match) parsed = JSON.parse(match[1] ?? match[0]);
+    } catch { /* non-fatal */ }
+
+    // Store all insights in DB
+    const allInsights = [
+      ...(parsed.successes ?? []),
+      ...(parsed.improvements ?? []),
+    ];
+
+    for (const ins of allInsights) {
+      try {
+        await pool.query(
+          `INSERT INTO agent_evolution_insights (task_id, insight, agent, iteration, model, impact_score)
+           VALUES ($1, $2, $3, 1, $4, $5)`,
+          [task_id ?? null, ins.insight, ins.agent ?? "swarm", model, ins.impact ?? 5]
+        );
+      } catch { /* non-fatal */ }
+    }
+
+    // Store error patterns
+    for (const err of (parsed.errors ?? [])) {
+      try {
+        await pool.query(
+          `INSERT INTO agent_error_patterns (pattern, solution, model, occurrence_count, last_seen)
+           VALUES ($1, $2, $3, 1, NOW())
+           ON CONFLICT DO NOTHING`,
+          [err.pattern?.slice(0, 500) ?? "", err.solution?.slice(0, 500) ?? null, model]
+        );
+      } catch { /* non-fatal */ }
+    }
+
+    sse(res, "improve_done", {
+      insights: allInsights.length,
+      errors: (parsed.errors ?? []).length,
+      recommendations: parsed.recommendations ?? [],
+      rawAnalysis: analysisText,
+    });
+  } catch (err: any) {
+    sse(res, "improve_error", { message: err?.message ?? "Self-improve failed" });
+  } finally {
+    res.end();
   }
 });
 

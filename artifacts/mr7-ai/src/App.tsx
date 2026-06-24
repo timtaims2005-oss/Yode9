@@ -257,6 +257,8 @@ const CollaborationPage     = lazy(() => import("./pages/CollaborationPage").the
 const MemorySystemPage      = lazy(() => import("./pages/MemorySystemPage").then(m=>({default:m.MemorySystemPage})));
 const MultiAgentPage        = lazy(() => import("./pages/MultiAgentPage").then(m=>({default:m.MultiAgentPage})));
 const SwarmEvolutionPage    = lazy(() => import("./pages/SwarmEvolutionPage").then(m=>({default:m.SwarmEvolutionPage})));
+const AgentProjectGeneratorPage = lazy(() => import("./pages/AgentProjectGeneratorPage").then(m=>({default:m.AgentProjectGeneratorPage})));
+const AgentMemoryPanelPage  = lazy(() => import("./components/AgentMemoryPanel").then(m=>({default:m.AgentMemoryPanel})));
 const MonitoringPage3D      = lazy(() => import("./pages/MonitoringPage3D").then(m=>({default:m.MonitoringPage3D})));
 const NotificationsPage     = lazy(() => import("./pages/NotificationsPage").then(m=>({default:m.NotificationsPage})));
 const RAGSystemPage         = lazy(() => import("./pages/RAGSystemPage").then(m=>({default:m.RAGSystemPage})));
@@ -331,6 +333,8 @@ const MODAL_IDS = [
   'memorySystem',
   'multiAgent',
   'swarmEvolution',
+  'agentProjectGenerator',
+  'agentMemoryPanel',
   'monitoring3D',
   'notifications',
   'ragSystem',
@@ -770,6 +774,8 @@ function AppContent() {
         onOpenKgRateLimit={() => open('rateLimitPage')}
         onOpenKgSystemsHub={() => open('systemsHub3D')}
         onOpenKgSwarmEvolution={() => open('swarmEvolution')}
+        onOpenKgProjectGenerator={() => open('agentProjectGenerator')}
+        onOpenKgAgentMemory={() => open('agentMemoryPanel')}
         onOpenLogin={() => open('authModal')}
         onOpenMultiModelRace={() => open('multiModelRace')}
         onOpenLocalBenchmark={() => open('localBenchmark')}
@@ -1351,6 +1357,16 @@ function AppContent() {
         {modals.swarmEvolution && (
           <WindowChrome open={true} title="🧬 Swarm Evolution AI" color="#8b5cf6" onClose={() => close('swarmEvolution')}>
             <SwarmEvolutionPage onClose={() => close('swarmEvolution')} />
+          </WindowChrome>
+        )}
+        {modals.agentProjectGenerator && (
+          <WindowChrome open={true} title="🚀 Auto Project Generator" color="#e21227" onClose={() => close('agentProjectGenerator')}>
+            <AgentProjectGeneratorPage onClose={() => close('agentProjectGenerator')} />
+          </WindowChrome>
+        )}
+        {modals.agentMemoryPanel && (
+          <WindowChrome open={true} title="🧠 ذاكرة الوكيل الذكي" color="#8b5cf6" onClose={() => close('agentMemoryPanel')}>
+            <AgentMemoryPanelPage onClose={() => close('agentMemoryPanel')} />
           </WindowChrome>
         )}
       </Suspense>
