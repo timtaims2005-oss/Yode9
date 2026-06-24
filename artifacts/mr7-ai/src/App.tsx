@@ -241,11 +241,13 @@ const AuthModal             = lazy(() => import("./components/modals/AuthModal")
 const AutonomousAgentModal  = lazy(() => import("./components/modals/AutonomousAgentModal").then(m=>({default:m.AutonomousAgentModal})));
 const ChainOfThoughtModal   = lazy(() => import("./components/modals/ChainOfThoughtModal").then(m=>({default:m.ChainOfThoughtModal})));
 const CodeScannerModal      = lazy(() => import("./components/modals/CodeScannerModal").then(m=>({default:m.CodeScannerModal})));
+const CollabModal           = lazy(() => import("./components/modals/CollabModal").then(m=>({default:m.CollabModal})));
 const DebateModal           = lazy(() => import("./components/modals/DebateModal").then(m=>({default:m.DebateModal})));
 const DynamicCouncilModal   = lazy(() => import("./components/modals/DynamicCouncilModal").then(m=>({default:m.DynamicCouncilModal})));
 const FinetuneModal         = lazy(() => import("./components/modals/FinetuneModal").then(m=>({default:m.FinetuneModal})));
 const OsintPlatformModal    = lazy(() => import("./components/modals/OsintPlatformModal").then(m=>({default:m.OsintPlatformModal})));
 const PluginMarketplaceModal = lazy(() => import("./components/modals/PluginMarketplaceModal").then(m=>({default:m.PluginMarketplaceModal})));
+const NotificationCenter    = lazy(() => import("./components/NotificationCenter").then(m=>({default:m.NotificationCenter})));
 
 // ── NEW PAGES (opened as modals via WindowChrome) ─────────────────────────────
 const AccountSettingsPage   = lazy(() => import("./pages/AccountSettingsPage").then(m=>({default:m.AccountSettingsPage})));
@@ -314,6 +316,7 @@ const MODAL_IDS = [
   'autonomousAgent',
   'chainOfThought',
   'codeScanner',
+  'collab',
   'debate',
   'dynamicCouncil',
   'finetune',
@@ -493,14 +496,22 @@ function AppContent() {
   // ── Real-time threat notification service (CISA KEV via WebSocket) ────────
   useEffect(() => { getThreatNotifier(); }, []);
 
-  // ── Subscription expiry check ─────────────────────────────────────────────
+  // ── Subscription expiry + token usage warnings ────────────────────────────
   useEffect(() => {
+    const warnedRef = { warn80: false, warn95: false };
     function check() {
       const subRaw = localStorage.getItem("mr7-ai-state-v2"); if (!subRaw) return;
       try {
         const parsed = JSON.parse(subRaw); const sub = parsed?.subscription; if (!sub) return;
         const expired = checkAndExpireSubscription(sub);
-        if (expired) { dispatch({ type: "SET_SUBSCRIPTION", patch: expired }); toast({ description: "Your subscription has expired. You have been moved to the Free plan." }); }
+        if (expired) { dispatch({ type: "SET_SUBSCRIPTION", patch: expired }); toast({ description: "Your subscription has expired. You have been moved to the Free plan." }); return; }
+        // Token usage warnings
+        const { tokensUsed = 0, tier = "free" } = sub;
+        const limits: Record<string, number> = { free: 10_000, starter: 300_000, professional: 1_500_000, elite: 3_000_000 };
+        const limit = limits[tier] ?? 10_000;
+        const pct = tokensUsed / limit;
+        if (pct >= 0.95 && !warnedRef.warn95) { warnedRef.warn95 = true; toast({ description: `⚠️ Token warning: 95% used (${tokensUsed.toLocaleString()} / ${limit.toLocaleString()}). Upgrade to continue.` }); }
+        else if (pct >= 0.80 && !warnedRef.warn80) { warnedRef.warn80 = true; toast({ description: `⚠️ Token warning: 80% used (${tokensUsed.toLocaleString()} / ${limit.toLocaleString()}).` }); }
       } catch { /* ignore */ }
     }
     check(); const id = setInterval(check, 60_000); return () => clearInterval(id);
@@ -626,10 +637,14 @@ function AppContent() {
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "a" && !e.altKey) { e.preventDefault(); window.dispatchEvent(new CustomEvent("kali:trigger-auto-setup")); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "o") { e.preventDefault(); toggle('osintDash'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "l") { e.preventDefault(); toggle('changelog'); }
-      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "u") { e.preventDefault(); toggle('useCaseLib'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "u") { e.preventDefault(); toggle('collab'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "i") { e.preventDefault(); toggle('intelligenceCore'); }
       if (!inField && (e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "h") { e.preventDefault(); toggle('widgetsDock'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "g") { e.preventDefault(); toggle('omegaAgent'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "j") { e.preventDefault(); toggle('finetune'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "d") { e.preventDefault(); toggle('debate'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "p") { e.preventDefault(); toggle('providerSettings'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "y") { e.preventDefault(); toggle('chainOfThought'); }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -807,6 +822,11 @@ function AppContent() {
           onOpenLocalAINexus={() => open('localAINexus')}
           onOpenLocalEngineHub={() => open('localEngineHub')}
           onOpenBenchmark={() => open('localBenchmark')}
+          onOpenDebate={() => open('debate')}
+          onOpenChainOfThought={() => open('chainOfThought')}
+          onOpenDynamicCouncil={() => open('dynamicCouncil')}
+          onOpenCollab={() => open('collab')}
+          onOpenFinetune={() => open('finetune')}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
@@ -1210,6 +1230,21 @@ function AppContent() {
       {/* ── LOCAL AI MODEL NEXUS — Full-screen modal ── */}
       <LocalAIModelNexus open={modals.localAINexus} onClose={() => close('localAINexus')} />
 
+      {/* ── IntelligenceHUDOverlay — always-on cyber intel layer ── */}
+      <Suspense fallback={null}>
+        <IntelligenceHUDOverlay onOpenCommandCenter={() => open('cyberIntel')} />
+      </Suspense>
+
+      {/* ── SystemStatusWidget — always-on system health widget ── */}
+      <Suspense fallback={null}>
+        <SystemStatusWidget />
+      </Suspense>
+
+      {/* ── NotificationCenter — always-on notification hub ── */}
+      <Suspense fallback={null}>
+        <NotificationCenter />
+      </Suspense>
+
       {/* ── NEW MODALS FROM UPLOADED PROJECT ── */}
       <Suspense fallback={null}>
         {modals.authModal && (
@@ -1254,6 +1289,11 @@ function AppContent() {
       <Suspense fallback={null}>
         {modals.pluginMarketplace && (
           <PluginMarketplaceModal open={modals.pluginMarketplace} onClose={() => close('pluginMarketplace')} />
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.collab && (
+          <CollabModal open={modals.collab} onOpenChange={(v) => v ? open('collab') : close('collab')} />
         )}
       </Suspense>
 

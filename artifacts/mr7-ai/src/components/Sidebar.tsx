@@ -1203,7 +1203,10 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
               {onOpenKgSystemsHub && (
                 <button onClick={onOpenKgSystemsHub} title="Systems Hub 3D" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-[#e21227]/15 hover:bg-[#e21227]/30 border border-[#e21227]/30 hover:border-[#e21227]/60 transition-all group relative">
                   <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-500 border border-black animate-pulse" />
-                  <Activity className="w-3.5 h-3.5 text-red-400/80 group-hover:text-red-400" />
+                  <div className="relative">
+                    <Activity className="w-3.5 h-3.5 text-red-400/80 group-hover:text-red-400" />
+                    <span className="absolute -top-1 -right-2.5 text-[7px] font-black px-0.5 rounded" style={{ background: "rgba(226,18,39,0.85)", color: "#fff", lineHeight: "10px" }}>38</span>
+                  </div>
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Hub</span>
                 </button>
               )}
@@ -1252,7 +1255,21 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
         )}
 
         <div className="flex items-center justify-between pt-1">
-          <UserMenu onAccount={onOpenAccount} onSettings={onOpenSettings} onTheme={onOpenSettings} />
+          <div className="flex items-center gap-1">
+            <UserMenu onAccount={onOpenAccount} onSettings={onOpenSettings} onTheme={onOpenSettings} />
+            {onOpenLogin && (
+              <button
+                onClick={onOpenLogin}
+                title="Sign In / Login"
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black border transition-all"
+                style={{ background: "rgba(226,18,39,0.1)", borderColor: "rgba(226,18,39,0.3)", color: "#e21227" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(226,18,39,0.2)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(226,18,39,0.5)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(226,18,39,0.1)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(226,18,39,0.3)"; }}
+              >
+                LOGIN
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-1">
             {onOpenLocalEngineHub && (
               <button

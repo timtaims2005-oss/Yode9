@@ -20,7 +20,7 @@ import {
   Hexagon, Shield, Columns3, Crosshair, BarChart2, ChevronDown, ChevronLeft, ChevronRight,
   Target, GitBranch, Bug, Activity, DollarSign, GitMerge, ShieldAlert, ShieldCheck,
   BrainCircuit, Gauge, Globe, AlertTriangle, Network, Cpu, Lock,
-  Flame, Share2, PanelLeftClose, PanelLeftOpen,
+  Flame, Share2, PanelLeftClose, PanelLeftOpen, Swords, Crown, Users,
 } from "lucide-react";
 
 // ── Compact mode context ───────────────────────────────────────────────────────
@@ -76,6 +76,11 @@ interface TopBarProps {
   onOpenBenchmark?: () => void;
   onOpenMultiModelRace?: () => void;
   onOpenLocalBenchmark?: () => void;
+  onOpenDebate?: () => void;
+  onOpenChainOfThought?: () => void;
+  onOpenDynamicCouncil?: () => void;
+  onOpenCollab?: () => void;
+  onOpenFinetune?: () => void;
   hudsVisible?: boolean;
   sidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
@@ -1707,6 +1712,11 @@ export function TopBar({
   onOpenLocalAINexus,
   onOpenLocalEngineHub,
   onOpenBenchmark,
+  onOpenDebate,
+  onOpenChainOfThought,
+  onOpenDynamicCouncil,
+  onOpenCollab,
+  onOpenFinetune,
   hudsVisible,
   sidebarCollapsed,
   onToggleSidebar,
@@ -1883,6 +1893,11 @@ export function TopBar({
         <HUDBtn icon={Bot} label="KaliAgent" color="#ff4d4d" onClick={onOpenAgent} iconOnly />
         <HUDBtn icon={Hexagon}   label="NEXUS"      color="#fbbf24" onClick={onOpenNexus}   badge="5X" />
         <HUDBtn icon={Shield}    label="Arsenal"    color="#e21227" onClick={onOpenArsenal} />
+        {onOpenDebate        && <HUDBtn icon={Swords}       label="Debate"       color="#ef4444" onClick={onOpenDebate}        shortLabel="Debate" />}
+        {onOpenChainOfThought && <HUDBtn icon={BrainCircuit} label="Chain·Thought" color="#3b82f6" onClick={onOpenChainOfThought} shortLabel="CoT" />}
+        {onOpenDynamicCouncil && <HUDBtn icon={Crown}        label="Council+"     color="#f59e0b" onClick={onOpenDynamicCouncil} shortLabel="Council" badge="+" />}
+        {onOpenCollab        && <HUDBtn icon={Users}         label="Collab"       color="#22c55e" onClick={onOpenCollab}        shortLabel="Collab" />}
+        {onOpenFinetune      && <HUDBtn icon={Cpu}           label="Finetune"     color="#a78bfa" onClick={onOpenFinetune}      shortLabel="FT" />}
         <VDivider />
 
         {/* ── GROUP 2 — Ops ───────────────────────────────────────────── */}
