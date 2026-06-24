@@ -29,6 +29,7 @@ import { ChatHeader } from "./chat/ChatHeader";
 import { ChatTypingIndicator } from "./chat/ChatTypingIndicator";
 import { ChatScrollArea } from "./chat/ChatScrollArea";
 import { ChatInput } from "./chat/ChatInput";
+import { QuickActionBar } from "./chat/QuickActionBar";
 import { SecurityMissionsBar } from "./SecurityMissionsBar";
 
 function escapeHtml(s: string) {
@@ -642,6 +643,8 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
           onStop={stopStreaming}
         />
       </div>
+
+      <QuickActionBar onInsert={(text) => { setInput((prev) => prev ? `${prev}\n\n${text}` : text); setTimeout(() => taRef.current?.focus(), 50); }} />
 
       <ChatInput
         state={state as Parameters<typeof ChatInput>[0]["state"]}
