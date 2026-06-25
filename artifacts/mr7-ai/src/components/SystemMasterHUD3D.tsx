@@ -386,12 +386,25 @@ function draw(canvas: HTMLCanvasElement, t: number, systems: SystemDef[], hovere
       const mcy=(ny1+ny2)/2+Math.cos(t*0.07+i*j)*5;
       ctx.beginPath(); ctx.moveTo(nx1,ny1); ctx.quadraticCurveTo(mcx,mcy,nx2,ny2);
       ctx.strokeStyle=`rgba(${hRGB},${webA})`; ctx.lineWidth=0.5; ctx.stroke();
-      // Signal pulse along arc
-      const pp=(t*0.4+(i*3+j)*0.7)%1;
-      const pqx=nx1*(1-pp)**2+mcx*2*pp*(1-pp)+nx2*pp**2;
-      const pqy=ny1*(1-pp)**2+mcy*2*pp*(1-pp)+ny2*pp**2;
-      ctx.beginPath(); ctx.arc(pqx,pqy,1.5,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${hRGB},${webA*4})`; ctx.fill();
+      // Worm trail: 10-dot signal worm along bezier arc
+      const WORM_DOTS = 10;
+      for (let wi=0; wi<WORM_DOTS; wi++) {
+        const pp=((t*0.45+(i*3+j)*0.65) - wi*0.042 + 20)%1;
+        const pqx=nx1*(1-pp)**2+mcx*2*pp*(1-pp)+nx2*pp**2;
+        const pqy=ny1*(1-pp)**2+mcy*2*pp*(1-pp)+ny2*pp**2;
+        const wAlpha=(1-wi/WORM_DOTS)**1.5*webA*8;
+        const wRadius=(1-wi/WORM_DOTS)*2.6;
+        if (wi===0) { ctx.shadowColor=`rgba(${hRGB},0.9)`; ctx.shadowBlur=6; }
+        ctx.beginPath(); ctx.arc(pqx,pqy,Math.max(wRadius,0.3),0,Math.PI*2);
+        ctx.fillStyle=`rgba(${hRGB},${wAlpha})`; ctx.fill();
+        if (wi===0) { ctx.shadowBlur=0; }
+      }
+      // Second worm (opposite direction, different speed)
+      const pp2=((t*0.28+(i*2+j)*1.1))%1;
+      const pqx2=nx1*(1-pp2)**2+mcx*2*pp2*(1-pp2)+nx2*pp2**2;
+      const pqy2=ny1*(1-pp2)**2+mcy*2*pp2*(1-pp2)+ny2*pp2**2;
+      ctx.beginPath(); ctx.arc(pqx2,pqy2,1.2,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${hRGB},${webA*3})`; ctx.fill();
     }
   }
 

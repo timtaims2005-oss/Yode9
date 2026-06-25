@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Smile } from "lucide-react";
-import { renderMessageContent, CodeBlock } from "@/components/CodeBlock";
+import { renderMessageContent, CodeBlock, RichTextBlock } from "@/components/CodeBlock";
 import { CouncilCard } from "@/components/CouncilCard";
 import { GodmodeCard } from "@/components/GodmodeCard";
 import { ThinkingIndicator } from "@/components/ThinkingIndicator";
