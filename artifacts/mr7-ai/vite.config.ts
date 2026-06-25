@@ -110,14 +110,7 @@ export default defineConfig({
         "./src/components/Sidebar.tsx",
       ],
     },
-    hmr: process.env.REPL_ID
-      ? {
-          host: process.env.REPLIT_DEV_DOMAIN,
-          protocol: "wss",
-          clientPort: 443,
-          timeout: 5000,
-        }
-      : { timeout: 5000 },
+    hmr: { timeout: 5000 },
     fs: {
       strict: true,
     },

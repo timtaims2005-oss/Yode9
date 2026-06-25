@@ -30,6 +30,105 @@ const ENG_COLOR: Record<string, string> = {
 
 type Tab = "engines" | "models" | "perf" | "duel";
 
+// ── Module-level helpers (must NOT be defined inside render) ──────────────────
+interface ModelOpt { m: string; label: string; col: string }
+
+function ModelSelector({ value, onChange, exclude, side, allModels }: {
+  value: string; onChange: (v: string) => void; exclude?: string; side: 1 | 2; allModels: ModelOpt[];
+}) {
+  const col = side === 1 ? C : V;
+  return (
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      className="w-full rounded-lg px-2 py-1.5 text-[9px] font-mono outline-none appearance-none cursor-pointer transition-all"
+      style={{ background: "rgba(0,0,0,0.5)", border: `1px solid ${col}25`, color: value ? col : "rgba(255,255,255,0.3)" }}
+    >
+      <option value="">— اختر نموذجاً —</option>
+      {allModels.filter(x => x.m !== exclude).map(({ m, label }) => (
+        <option key={m} value={m}>{m} ({label})</option>
+      ))}
+    </select>
+  );
+}
+
+function TpsBar({ tps, running, col }: { tps: number; running: boolean; col: string }) {
+  const pct = Math.min((tps / 60) * 100, 100);
+  return (
+    <div className="flex items-center gap-1.5 mt-1">
+      <span className="text-[7px] font-mono uppercase tracking-widest shrink-0" style={{ color: "rgba(255,255,255,0.22)" }}>TPS</span>
+      <div className="flex-1 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: col, boxShadow: running ? `0 0 6px ${col}` : "none" }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.4 }}
+        />
+      </div>
+      <span className="text-[8px] font-mono w-8 text-right" style={{ color: running && tps > 0 ? col : "rgba(255,255,255,0.25)" }}>
+        {running && tps > 0 ? `${tps}` : "—"}
+      </span>
+    </div>
+  );
+}
+
+function OutputPanel({ output, running, model, col, tps }: {
+  output: string; running: boolean; model: string; col: string; tps: number;
+}) {
+  return (
+    <div className="flex-1 min-w-0 flex flex-col" style={{ minHeight: 180 }}>
+      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-t-xl" style={{
+        background: col + "10", borderTop: `1px solid ${col}22`,
+        borderLeft: `1px solid ${col}22`, borderRight: `1px solid ${col}22`,
+      }}>
+        <motion.div
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ background: col, boxShadow: running ? `0 0 6px ${col}` : "none" }}
+          animate={running ? { scale: [0.8, 1.2, 0.8], opacity: [0.5, 1, 0.5] } : {}}
+          transition={{ duration: 0.7, repeat: Infinity }}
+        />
+        <span className="text-[8px] font-black truncate flex-1" style={{ color: col }}>
+          {model || "—"}
+        </span>
+        {running && (
+          <motion.span
+            className="text-[7px] font-mono px-1 rounded"
+            style={{ background: col + "18", color: col }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 0.8, repeat: Infinity }}
+          >
+            LIVE
+          </motion.span>
+        )}
+      </div>
+      <div
+        className="flex-1 px-2.5 py-2 text-[9.5px] font-mono leading-relaxed overflow-y-auto scrollbar-none"
+        style={{
+          background: col + "04", border: `1px solid ${col}14`, borderTop: "none",
+          borderBottomLeftRadius: 10, borderBottomRightRadius: 10,
+          color: "rgba(255,255,255,0.72)", whiteSpace: "pre-wrap", wordBreak: "break-word", minHeight: 140,
+        }}
+      >
+        {output || (
+          <span style={{ color: "rgba(255,255,255,0.15)" }}>
+            {model ? "في انتظار الإطلاق..." : "اختر نموذجاً أعلاه"}
+          </span>
+        )}
+        {running && (
+          <motion.span
+            style={{ display: "inline-block", width: 6, height: 12, background: col, borderRadius: 1, marginLeft: 2, verticalAlign: "middle" }}
+            animate={{ opacity: [1, 0, 1] }}
+            transition={{ duration: 0.5, repeat: Infinity }}
+          />
+        )}
+      </div>
+      <div className="px-1 pt-1">
+        <TpsBar tps={tps} running={running} col={col} />
+      </div>
+    </div>
+  );
+}
+
 export function LocalAIWindow({
   open, onClose, onOpenNexus, onOpenHub, onOpenBench,
 }: {
@@ -931,115 +1030,6 @@ export function LocalAIWindow({
             const allModels = engines.flatMap(e => e.online ? e.models.map(m => ({ m, label: e.label, col: ENG_COLOR[e.id] ?? C })) : []);
             const isDueling = duelRunning1 || duelRunning2;
 
-            const ModelSelector = ({ value, onChange, exclude, side }: {
-              value: string; onChange: (v: string) => void; exclude?: string; side: 1 | 2;
-            }) => {
-              const col = side === 1 ? C : V;
-              return (
-                <select
-                  value={value}
-                  onChange={e => onChange(e.target.value)}
-                  className="w-full rounded-lg px-2 py-1.5 text-[9px] font-mono outline-none appearance-none cursor-pointer transition-all"
-                  style={{
-                    background: "rgba(0,0,0,0.5)",
-                    border: `1px solid ${col}25`,
-                    color: value ? col : "rgba(255,255,255,0.3)",
-                  }}
-                >
-                  <option value="">— اختر نموذجاً —</option>
-                  {allModels.filter(x => x.m !== exclude).map(({ m, label }) => (
-                    <option key={m} value={m}>{m} ({label})</option>
-                  ))}
-                </select>
-              );
-            };
-
-            const TpsBar = ({ tps, running, col }: { tps: number; running: boolean; col: string }) => {
-              const pct = Math.min((tps / 60) * 100, 100);
-              return (
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-[7px] font-mono uppercase tracking-widest shrink-0" style={{ color: "rgba(255,255,255,0.22)" }}>TPS</span>
-                  <div className="flex-1 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-                    <motion.div
-                      className="h-full rounded-full"
-                      style={{ background: col, boxShadow: running ? `0 0 6px ${col}` : "none" }}
-                      animate={{ width: `${pct}%` }}
-                      transition={{ duration: 0.4 }}
-                    />
-                  </div>
-                  <span className="text-[8px] font-mono w-8 text-right" style={{ color: running && tps > 0 ? col : "rgba(255,255,255,0.25)" }}>
-                    {running && tps > 0 ? `${tps}` : "—"}
-                  </span>
-                </div>
-              );
-            };
-
-            const OutputPanel = ({
-              output, running, model, col, tps,
-            }: { output: string; running: boolean; model: string; col: string; tps: number }) => (
-              <div className="flex-1 min-w-0 flex flex-col" style={{ minHeight: 180 }}>
-                {/* Panel header */}
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-t-xl" style={{
-                  background: col + "10", borderTop: `1px solid ${col}22`,
-                  borderLeft: `1px solid ${col}22`, borderRight: `1px solid ${col}22`,
-                }}>
-                  <motion.div
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ background: col, boxShadow: running ? `0 0 6px ${col}` : "none" }}
-                    animate={running ? { scale: [0.8, 1.2, 0.8], opacity: [0.5, 1, 0.5] } : {}}
-                    transition={{ duration: 0.7, repeat: Infinity }}
-                  />
-                  <span className="text-[8px] font-black truncate flex-1" style={{ color: col }}>
-                    {model || "—"}
-                  </span>
-                  {running && (
-                    <motion.span
-                      className="text-[7px] font-mono px-1 rounded"
-                      style={{ background: col + "18", color: col }}
-                      animate={{ opacity: [0.5, 1, 0.5] }}
-                      transition={{ duration: 0.8, repeat: Infinity }}
-                    >
-                      LIVE
-                    </motion.span>
-                  )}
-                </div>
-
-                {/* Output area */}
-                <div
-                  className="flex-1 px-2.5 py-2 text-[9.5px] font-mono leading-relaxed overflow-y-auto scrollbar-none"
-                  style={{
-                    background: col + "04",
-                    border: `1px solid ${col}14`,
-                    borderTop: "none",
-                    borderBottomLeftRadius: 10,
-                    borderBottomRightRadius: 10,
-                    color: "rgba(255,255,255,0.72)",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                    minHeight: 140,
-                  }}
-                >
-                  {output || (
-                    <span style={{ color: "rgba(255,255,255,0.15)" }}>
-                      {model ? "في انتظار الإطلاق..." : "اختر نموذجاً أعلاه"}
-                    </span>
-                  )}
-                  {running && (
-                    <motion.span
-                      style={{ display: "inline-block", width: 6, height: 12, background: col, borderRadius: 1, marginLeft: 2, verticalAlign: "middle" }}
-                      animate={{ opacity: [1, 0, 1] }}
-                      transition={{ duration: 0.5, repeat: Infinity }}
-                    />
-                  )}
-                </div>
-
-                {/* TPS bar */}
-                <div className="px-1 pt-1">
-                  <TpsBar tps={tps} running={running} col={col} />
-                </div>
-              </div>
-            );
-
             return (
               <div className="p-2.5 flex flex-col gap-2.5">
                 {/* Title */}
@@ -1058,7 +1048,7 @@ export function LocalAIWindow({
                     <div className="text-[7px] font-black tracking-widest uppercase px-0.5" style={{ color: C + "77" }}>
                       CONTENDER A
                     </div>
-                    <ModelSelector value={duelModel1} onChange={setDuelModel1} exclude={duelModel2} side={1} />
+                    <ModelSelector value={duelModel1} onChange={setDuelModel1} exclude={duelModel2} side={1} allModels={allModels} />
                   </div>
                   <div className="flex items-end justify-center pb-0.5">
                     <span className="text-[10px] font-black" style={{ color: "rgba(255,255,255,0.2)" }}>VS</span>
@@ -1067,7 +1057,7 @@ export function LocalAIWindow({
                     <div className="text-[7px] font-black tracking-widest uppercase px-0.5" style={{ color: V + "77" }}>
                       CONTENDER B
                     </div>
-                    <ModelSelector value={duelModel2} onChange={setDuelModel2} exclude={duelModel1} side={2} />
+                    <ModelSelector value={duelModel2} onChange={setDuelModel2} exclude={duelModel1} side={2} allModels={allModels} />
                   </div>
                 </div>
 
