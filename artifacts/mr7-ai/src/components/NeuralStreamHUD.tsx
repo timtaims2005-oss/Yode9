@@ -2,17 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Cpu, Radio } from "lucide-react";
 
-/* ═══════════════════════════════════════════════════════════════
-   NEURAL STREAM HUD  v2 — live inline badge shown while AI streams
-   content (after first token). Features:
-     • 5-phase rotating label (DECODE → GENERATE → FORMULATE → OUTPUT → STREAM)
-     • TPS sparkline with glow fill
-     • Radar sweep canvas (rotating arm + concentric rings)
-     • Particle trail that spawns dots along the sweep arm
-     • Token counter with KB shorthand
-     • Energy shimmer sweep
-═══════════════════════════════════════════════════════════════ */
-
 const PHASES = [
   { label: "DECODE",    color: "#e21227" },
   { label: "GENERATE",  color: "#a78bfa" },
@@ -21,42 +10,106 @@ const PHASES = [
   { label: "STREAM",    color: "#f59e0b" },
 ];
 
-/* ── Spark sparkline canvas ─────────────────────────────────── */
-function SparkCanvas({ samples, color }: { samples: number[]; color: string }) {
+/* ── Heartbeat / ECG wave canvas with traveling worm signal ─── */
+function HeartbeatCanvas({ color, tps }: { color: string; tps: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const W = 52, H = 16;
+  const phaseRef = useRef(0);
+  const rafRef = useRef<number>(0);
+  const W = 60, H = 18;
 
   useEffect(() => {
     const c = ref.current;
     if (!c) return;
     const ctx = c.getContext("2d")!;
-    ctx.clearRect(0, 0, W, H);
-    if (samples.length < 2) return;
 
-    const max = Math.max(...samples, 1);
-    ctx.beginPath();
-    samples.forEach((v, i) => {
-      const x = (i / (samples.length - 1)) * W;
-      const y = H - (v / max) * H * 0.85;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    });
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1.5;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 4;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+    // Speed tied to TPS
+    const speed = 0.04 + Math.min(tps / 60, 1) * 0.14;
 
-    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, `${color}40`); g.addColorStop(1, "transparent");
-    ctx.fillStyle = g; ctx.fill();
-  }, [samples, color]);
+    function ecgY(x: number, phase: number): number {
+      const p = ((x / W + phase) % 1);
+      if (p < 0.10) return H * 0.5 + Math.sin(p / 0.10 * Math.PI) * H * 0.12;
+      if (p < 0.14) return H * 0.5 - Math.sin((p - 0.10) / 0.04 * Math.PI) * H * 0.42;
+      if (p < 0.18) return H * 0.5 + Math.sin((p - 0.14) / 0.04 * Math.PI) * H * 0.55;
+      if (p < 0.22) return H * 0.5 - Math.sin((p - 0.18) / 0.04 * Math.PI) * H * 0.22;
+      if (p < 0.30) return H * 0.5 + Math.sin((p - 0.22) / 0.08 * Math.PI) * H * 0.10;
+      return H * 0.5 + Math.sin(p * Math.PI * 3) * H * 0.04;
+    }
 
-  return <canvas ref={ref} width={W} height={H} style={{ display: "block" }} />;
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      const phase = phaseRef.current;
+
+      // Background glow fill under the wave
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      for (let x = 0; x <= W; x++) {
+        ctx.lineTo(x, ecgY(x, phase));
+      }
+      ctx.lineTo(W, H);
+      ctx.closePath();
+      const fillGrad = ctx.createLinearGradient(0, 0, 0, H);
+      fillGrad.addColorStop(0, `${color}30`);
+      fillGrad.addColorStop(1, "transparent");
+      ctx.fillStyle = fillGrad;
+      ctx.fill();
+
+      // Main ECG line
+      ctx.beginPath();
+      for (let x = 0; x <= W; x++) {
+        const y = ecgY(x, phase);
+        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.4;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 5;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Traveling worm — bright glowing dot moving along the ECG
+      const wormX = ((phase % 1) * W * 1.8) % W;
+      const wormY = ecgY(wormX, phase);
+      const wormGrad = ctx.createRadialGradient(wormX, wormY, 0, wormX, wormY, 5);
+      wormGrad.addColorStop(0, `${color}ff`);
+      wormGrad.addColorStop(0.4, `${color}99`);
+      wormGrad.addColorStop(1, `${color}00`);
+      ctx.beginPath();
+      ctx.arc(wormX, wormY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = wormGrad;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Worm tail (5 trailing dots)
+      for (let ti = 1; ti <= 5; ti++) {
+        const tx = ((wormX - ti * 3.5 + W * 4) % W);
+        const ty = ecgY(tx, phase);
+        ctx.beginPath();
+        ctx.arc(tx, ty, (1 - ti / 6) * 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = `${color}${Math.round((1 - ti / 6) * 140).toString(16).padStart(2, "0")}`;
+        ctx.fill();
+      }
+
+      phaseRef.current = (phaseRef.current + speed) % 10;
+      rafRef.current = requestAnimationFrame(draw);
+    }
+
+    rafRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [color, tps]);
+
+  return (
+    <canvas
+      ref={ref}
+      width={W}
+      height={H}
+      style={{ display: "block", imageRendering: "pixelated" }}
+    />
+  );
 }
 
-/* ── Radar sweep canvas ─────────────────────────────────────── */
+/* ── Compact radar sweep ────────────────────────────────────── */
 interface Particle { x: number; y: number; age: number; maxAge: number }
 
 function RadarCanvas({ color, tps }: { color: string; tps: number }) {
@@ -64,92 +117,70 @@ function RadarCanvas({ color, tps }: { color: string; tps: number }) {
   const angleRef = useRef(0);
   const particlesRef = useRef<Particle[]>([]);
   const rafRef = useRef<number>(0);
-  const SIZE = 36;
+  const SIZE = 28;
   const CX = SIZE / 2, CY = SIZE / 2, R = SIZE / 2 - 2;
 
   useEffect(() => {
     const c = ref.current;
     if (!c) return;
     const ctx = c.getContext("2d")!;
-
-    const baseSpeed = 0.025 + Math.min(tps / 80, 1) * 0.06;
+    const baseSpeed = 0.030 + Math.min(tps / 80, 1) * 0.07;
 
     function draw() {
       ctx.clearRect(0, 0, SIZE, SIZE);
 
-      /* rings */
       [0.35, 0.65, 1].forEach(frac => {
         ctx.beginPath();
         ctx.arc(CX, CY, R * frac, 0, Math.PI * 2);
-        ctx.strokeStyle = `${color}22`;
-        ctx.lineWidth = 0.6;
+        ctx.strokeStyle = `${color}25`;
+        ctx.lineWidth = 0.5;
         ctx.stroke();
       });
-
-      /* crosshairs */
       ctx.beginPath();
       ctx.moveTo(CX - R, CY); ctx.lineTo(CX + R, CY);
       ctx.moveTo(CX, CY - R); ctx.lineTo(CX, CY + R);
-      ctx.strokeStyle = `${color}15`;
-      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = `${color}18`;
+      ctx.lineWidth = 0.4;
       ctx.stroke();
 
-      /* sweep arm */
       const arm = angleRef.current;
-      /* trailing arc sweep fill */
       ctx.beginPath();
       ctx.moveTo(CX, CY);
       ctx.arc(CX, CY, R, arm - Math.PI * 0.55, arm);
       ctx.closePath();
-      ctx.fillStyle = `${color}18`;
+      ctx.fillStyle = `${color}1a`;
       ctx.fill();
 
-      /* sweep arm line */
-      ctx.beginPath();
-      ctx.moveTo(CX, CY);
-      ctx.lineTo(CX + Math.cos(arm) * R, CY + Math.sin(arm) * R);
-      ctx.strokeStyle = `${color}99`;
-      ctx.lineWidth = 1;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 4;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      /* bright sweep tip */
       ctx.beginPath();
       ctx.moveTo(CX, CY);
       ctx.lineTo(CX + Math.cos(arm) * R, CY + Math.sin(arm) * R);
       ctx.strokeStyle = color;
-      ctx.lineWidth = 1.2;
+      ctx.lineWidth = 1.1;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 7;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      /* spawn particle at tip occasionally */
-      if (Math.random() < 0.25) {
+      if (Math.random() < 0.22) {
         const px = CX + Math.cos(arm) * (R * (0.4 + Math.random() * 0.6));
         const py = CY + Math.sin(arm) * (R * (0.4 + Math.random() * 0.6));
-        particlesRef.current.push({ x: px, y: py, age: 0, maxAge: 18 + Math.random() * 20 });
+        particlesRef.current.push({ x: px, y: py, age: 0, maxAge: 16 + Math.random() * 18 });
       }
-
-      /* draw & age particles */
       particlesRef.current = particlesRef.current.filter(p => {
         const alpha = 1 - p.age / p.maxAge;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2);
-        ctx.fillStyle = `${color}${Math.round(alpha * 200).toString(16).padStart(2, "0")}`;
+        ctx.arc(p.x, p.y, 1, 0, Math.PI * 2);
+        ctx.fillStyle = `${color}${Math.round(alpha * 180).toString(16).padStart(2, "0")}`;
         ctx.shadowColor = color;
-        ctx.shadowBlur = 3;
+        ctx.shadowBlur = 2;
         ctx.fill();
         ctx.shadowBlur = 0;
         p.age++;
         return p.age < p.maxAge;
       });
 
-      /* center dot */
       ctx.beginPath();
-      ctx.arc(CX, CY, 1.5, 0, Math.PI * 2);
+      ctx.arc(CX, CY, 1.2, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.shadowColor = color;
       ctx.shadowBlur = 5;
@@ -174,7 +205,7 @@ function RadarCanvas({ color, tps }: { color: string; tps: number }) {
   );
 }
 
-/* ── Main HUD component ─────────────────────────────────────── */
+/* ── Main HUD — COMPACT half-size redesign ──────────────────── */
 interface Props {
   streaming?: boolean;
   tps?: number;
@@ -191,11 +222,6 @@ export function NeuralStreamHUD({
   agentMode = false,
 }: Props) {
   const [phase, setPhase] = useState(0);
-  const [sparkSamples, setSparkSamples] = useState<number[]>([0]);
-
-  useEffect(() => {
-    setSparkSamples(prev => [...prev, tps].slice(-28));
-  }, [tps]);
 
   useEffect(() => {
     const id = setInterval(() => setPhase(p => (p + 1) % PHASES.length), 1800);
@@ -206,101 +232,91 @@ export function NeuralStreamHUD({
 
   return (
     <motion.span
-      initial={{ opacity: 0, scale: 0.85, y: 4 }}
-      animate={{ opacity: 1, scale: 1,    y: 0 }}
-      exit={{    opacity: 0, scale: 0.85, y: 4 }}
-      transition={{ duration: 0.25, ease: "easeOut" }}
+      initial={{ opacity: 0, scale: 0.88, y: 3 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.88, y: 3 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: "6px",
+        gap: "5px",
         verticalAlign: "middle",
-        marginLeft: "6px",
-        borderRadius: "8px",
-        background: "rgba(6,6,12,0.94)",
+        marginLeft: "5px",
+        borderRadius: "6px",
+        background: "rgba(5,5,10,0.95)",
         border: `1px solid ${cur.color}30`,
-        boxShadow: `0 0 18px ${cur.color}14, inset 0 0 10px rgba(0,0,0,0.5)`,
-        padding: "3px 8px 3px 4px",
+        boxShadow: `0 0 14px ${cur.color}12, inset 0 0 8px rgba(0,0,0,0.5)`,
+        padding: "2px 6px 2px 3px",
         backdropFilter: "blur(10px)",
         position: "relative",
         overflow: "hidden",
       }}
     >
-      {/* Radar sweep canvas */}
+      {/* Compact radar */}
       <div style={{ flexShrink: 0 }}>
         <RadarCanvas color={cur.color} tps={tps} />
       </div>
 
-      {/* Vertical divider */}
-      <div style={{ width: 1, height: 22, background: `${cur.color}20`, flexShrink: 0 }} />
+      <div style={{ width: 1, height: 18, background: `${cur.color}20`, flexShrink: 0 }} />
 
-      {/* Phase label + pulsing dot */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "1px", minWidth: 52 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+      {/* Phase label + heartbeat wave */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "1px", minWidth: 60 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
           <motion.div
-            animate={{ opacity: [1, 0.2, 1], scale: [1, 1.4, 1] }}
-            transition={{ duration: 0.7, repeat: Infinity }}
-            style={{ width: 4, height: 4, borderRadius: "50%", background: cur.color, boxShadow: `0 0 5px ${cur.color}`, flexShrink: 0 }}
+            animate={{ opacity: [1, 0.15, 1], scale: [1, 1.5, 1] }}
+            transition={{ duration: 0.65, repeat: Infinity }}
+            style={{ width: 3, height: 3, borderRadius: "50%", background: cur.color, boxShadow: `0 0 4px ${cur.color}`, flexShrink: 0 }}
           />
           <AnimatePresence mode="wait">
             <motion.span
               key={phase}
-              initial={{ opacity: 0, y: -3 }}
+              initial={{ opacity: 0, y: -2 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{    opacity: 0, y:  3 }}
-              transition={{ duration: 0.18 }}
-              style={{ fontSize: "8px", fontFamily: "monospace", fontWeight: 800, color: cur.color, letterSpacing: "0.8px" }}
+              exit={{ opacity: 0, y: 2 }}
+              transition={{ duration: 0.15 }}
+              style={{ fontSize: "7px", fontFamily: "monospace", fontWeight: 800, color: cur.color, letterSpacing: "0.7px" }}
             >
               {agentMode ? "EXEC" : cur.label}
             </motion.span>
           </AnimatePresence>
         </div>
-
-        {/* Spark row */}
-        <SparkCanvas samples={sparkSamples} color={cur.color} />
+        {/* ECG / Heartbeat wave */}
+        <HeartbeatCanvas color={cur.color} tps={tps} />
       </div>
 
-      {/* Divider */}
-      <div style={{ width: 1, height: 22, background: `${cur.color}20`, flexShrink: 0 }} />
+      <div style={{ width: 1, height: 18, background: `${cur.color}20`, flexShrink: 0 }} />
 
-      {/* TPS + Token stats */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-        {/* TPS */}
+      {/* TPS + Token stats — compact */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-          <Zap style={{ width: 7, height: 7, color: "#22c55e" }} />
-          <span style={{ fontSize: "8px", fontFamily: "monospace", color: "#22c55e", fontWeight: 700 }}>
-            {tps}
-          </span>
-          <span style={{ fontSize: "7px", fontFamily: "monospace", color: "rgba(255,255,255,0.2)" }}>t/s</span>
+          <Zap style={{ width: 6, height: 6, color: "#22c55e" }} />
+          <span style={{ fontSize: "7px", fontFamily: "monospace", color: "#22c55e", fontWeight: 700 }}>{tps}</span>
+          <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.18)" }}>t/s</span>
         </div>
-
-        {/* Token count */}
         {tokenCount > 0 && (
           <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-            <Cpu style={{ width: 7, height: 7, color: "rgba(255,255,255,0.3)" }} />
-            <span style={{ fontSize: "7.5px", fontFamily: "monospace", color: "rgba(255,255,255,0.35)" }}>
+            <Cpu style={{ width: 6, height: 6, color: "rgba(255,255,255,0.28)" }} />
+            <span style={{ fontSize: "6.5px", fontFamily: "monospace", color: "rgba(255,255,255,0.32)" }}>
               {tokenCount >= 1000 ? `${(tokenCount / 1000).toFixed(1)}K` : tokenCount}
             </span>
           </div>
         )}
-
-        {/* Radio indicator */}
         <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-          <Radio style={{ width: 7, height: 7, color: `${cur.color}80` }} />
-          <span style={{ fontSize: "7px", fontFamily: "monospace", color: `${cur.color}60`, letterSpacing: "0.5px" }}>LIVE</span>
+          <Radio style={{ width: 6, height: 6, color: `${cur.color}80` }} />
+          <span style={{ fontSize: "6px", fontFamily: "monospace", color: `${cur.color}60`, letterSpacing: "0.5px" }}>LIVE</span>
         </div>
       </div>
 
       {/* Energy shimmer sweep */}
       <motion.div
         animate={{ x: ["-100%", "400%"] }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.5 }}
+        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.4 }}
         style={{
           position: "absolute",
           left: 0, top: 0, bottom: 0,
-          width: "25%",
-          background: `linear-gradient(90deg, transparent, ${cur.color}14, transparent)`,
-          borderRadius: "8px",
+          width: "22%",
+          background: `linear-gradient(90deg, transparent, ${cur.color}16, transparent)`,
+          borderRadius: "6px",
           pointerEvents: "none",
         }}
       />

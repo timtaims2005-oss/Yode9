@@ -247,32 +247,50 @@ function draw(canvas: HTMLCanvasElement, t: number, systems: SystemDef[], hovere
 
   // ── Deep space starfield background ────────────────────────────────────────
   const bgGrad = ctx.createRadialGradient(cx,cy,0,cx,cy,cx);
-  bgGrad.addColorStop(0,"rgba(8,12,28,0.99)");
-  bgGrad.addColorStop(0.55,"rgba(4,6,16,0.98)");
-  bgGrad.addColorStop(1,"rgba(2,3,8,0.99)");
+  bgGrad.addColorStop(0,"rgba(4,7,20,0.99)");
+  bgGrad.addColorStop(0.4,"rgba(2,4,14,0.99)");
+  bgGrad.addColorStop(0.75,"rgba(1,2,8,0.99)");
+  bgGrad.addColorStop(1,"rgba(0,1,4,1)");
   ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,cx-1,0,Math.PI*2); ctx.clip();
   ctx.fillStyle=bgGrad; ctx.fillRect(0,0,cw,ch);
 
-  // Stars (seeded positions using golden ratio spiral)
+  // Stars — 120 stars with color variation and dual-speed twinkle
   const golden = 2.399963;
-  for (let si=0; si<80; si++) {
-    const sr = Math.sqrt(si/80)*cx*0.92;
+  const STAR_COLORS = ["255,255,255","180,210,255","220,190,255","160,240,220","255,230,180"];
+  for (let si=0; si<120; si++) {
+    const sr = Math.sqrt(si/120)*cx*0.93;
     const sa = si*golden;
     const sx = cx+Math.cos(sa)*sr, sy = cy+Math.sin(sa)*sr;
-    const ss = 0.3+((si*1374)%100)*0.012;
-    const sa2 = 0.2+Math.sin(t*0.5+si)*0.18;
+    const ss = 0.25+((si*1374)%100)*0.014;
+    const twinkle1 = Math.sin(t*0.7+si*0.8)*0.5+0.5;
+    const twinkle2 = Math.sin(t*1.3+si*1.2)*0.3+0.7;
+    const alpha = 0.18+twinkle1*twinkle2*0.55;
+    const cIdx = (si*37)%STAR_COLORS.length;
     ctx.beginPath(); ctx.arc(sx,sy,ss,0,Math.PI*2);
-    ctx.fillStyle=`rgba(255,255,255,${sa2})`; ctx.fill();
+    ctx.fillStyle=`rgba(${STAR_COLORS[cIdx]},${alpha})`; ctx.fill();
+    // Occasional bright star spike
+    if ((si*73)%100 < 8) {
+      ctx.beginPath(); ctx.arc(sx,sy,ss*2.5,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${STAR_COLORS[cIdx]},${alpha*0.18})`; ctx.fill();
+    }
   }
 
-  // Nebula cloud layers (2 passes)
-  for (let ni=0; ni<2; ni++) {
-    const ncx = cx+Math.cos(t*0.04+ni*1.57)*18, ncy = cy+Math.sin(t*0.05+ni*1.57)*14;
-    const nGrad = ctx.createRadialGradient(ncx,ncy,0,ncx,ncy,cx*0.55);
-    nGrad.addColorStop(0,`rgba(${ni===0?"60,80,160":"80,30,120"},0.05)`);
-    nGrad.addColorStop(0.5,`rgba(${ni===0?"30,50,120":"50,20,90"},0.02)`);
+  // Nebula cloud layers — 5 passes with vivid deep-space colors
+  const NEBULA_DEFS = [
+    { rgb:"60,90,200", orbit:18, speed1:0.04, speed2:0.05, phase:0,    radius:0.56 },
+    { rgb:"100,30,140", orbit:22, speed1:0.035, speed2:0.042, phase:1.57, radius:0.52 },
+    { rgb:"20,120,100", orbit:14, speed1:0.028, speed2:0.038, phase:2.4,  radius:0.44 },
+    { rgb:"160,40,60",  orbit:10, speed1:0.05,  speed2:0.06,  phase:3.8,  radius:0.38 },
+    { rgb:"60,160,220", orbit:26, speed1:0.022, speed2:0.03,  phase:5.1,  radius:0.60 },
+  ];
+  for (const nd of NEBULA_DEFS) {
+    const ncx = cx+Math.cos(t*nd.speed1+nd.phase)*nd.orbit;
+    const ncy = cy+Math.sin(t*nd.speed2+nd.phase)*nd.orbit;
+    const nGrad = ctx.createRadialGradient(ncx,ncy,0,ncx,ncy,cx*nd.radius);
+    nGrad.addColorStop(0,`rgba(${nd.rgb},0.07)`);
+    nGrad.addColorStop(0.45,`rgba(${nd.rgb},0.025)`);
     nGrad.addColorStop(1,"rgba(0,0,0,0)");
-    ctx.beginPath(); ctx.arc(ncx,ncy,cx*0.55,0,Math.PI*2);
+    ctx.beginPath(); ctx.arc(ncx,ncy,cx*nd.radius,0,Math.PI*2);
     ctx.fillStyle=nGrad; ctx.fill();
   }
   ctx.restore();
@@ -285,22 +303,35 @@ function draw(canvas: HTMLCanvasElement, t: number, systems: SystemDef[], hovere
 
   // ── 3D perspective hex-grid overlay ────────────────────────────────────────
   {
-    const hexR = 12, hexA = 0.022;
-    ctx.strokeStyle=`rgba(${hRGB},${hexA})`; ctx.lineWidth=0.3;
+    const hexR = 12;
+    const hexBaseA = 0.045;
     for (let hxi=-7; hxi<=7; hxi++) {
       for (let hyi=-7; hyi<=7; hyi++) {
         const hx = cx+hxi*hexR*1.732, hy = cy+hyi*hexR*2+(hxi%2)*hexR;
         const dist = Math.sqrt((hx-cx)**2+(hy-cy)**2);
         if (dist>cx-4) continue;
-        const persp = 0.6+0.4*(1-dist/cx);
-        ctx.globalAlpha=hexA*persp;
+        const persp = 0.55+0.45*(1-dist/cx);
+        // Pulse: some hexes flicker brighter at different times
+        const hexPhase = Math.sin(t*0.6+(hxi*3+hyi)*0.7)*0.5+0.5;
+        const isLit = hexPhase > 0.92;
+        const finalA = isLit ? hexBaseA*6*persp : hexBaseA*persp;
+        ctx.globalAlpha = finalA;
+        ctx.strokeStyle = isLit ? `rgba(${hRGB},1)` : `rgba(${hRGB},1)`;
+        ctx.lineWidth = isLit ? 0.7 : 0.28;
         ctx.beginPath();
         for (let hk=0; hk<6; hk++) {
-          const hka=(hk/6)*Math.PI*2+t*0.008;
-          const hpx=hx+Math.cos(hka)*hexR*0.48, hpy=hy+Math.sin(hka)*hexR*0.48;
+          const hka=(hk/6)*Math.PI*2+t*0.006;
+          const hpx=hx+Math.cos(hka)*hexR*0.49, hpy=hy+Math.sin(hka)*hexR*0.49;
           hk===0?ctx.moveTo(hpx,hpy):ctx.lineTo(hpx,hpy);
         }
-        ctx.closePath(); ctx.stroke();
+        ctx.closePath();
+        ctx.stroke();
+        // Fill lit hexes with subtle glow
+        if (isLit) {
+          ctx.globalAlpha = hexPhase*0.06*persp;
+          ctx.fillStyle = `rgba(${hRGB},1)`;
+          ctx.fill();
+        }
       }
     }
     ctx.globalAlpha=1;
@@ -380,31 +411,45 @@ function draw(canvas: HTMLCanvasElement, t: number, systems: SystemDef[], hovere
       const nx1=cx+Math.cos(si.angle)*orbR, ny1=cy+Math.sin(si.angle)*orbR;
       const nx2=cx+Math.cos(sj.angle)*orbR, ny2=cy+Math.sin(sj.angle)*orbR;
       const combined=(si.getValue()+sj.getValue())*0.5;
-      const webA = 0.03+combined*0.04;
-      // Curved arc
-      const mcx=(nx1+nx2)/2+Math.sin(t*0.06+i+j)*5;
-      const mcy=(ny1+ny2)/2+Math.cos(t*0.07+i*j)*5;
+      const webA = 0.06+combined*0.06;
+      // Curved arc control point with organic wobble
+      const mcx=(nx1+nx2)/2+Math.sin(t*0.06+i+j)*8;
+      const mcy=(ny1+ny2)/2+Math.cos(t*0.07+i*j)*8;
+      // Connection line — gradient from node colors
+      const lineGrad2=ctx.createLinearGradient(nx1,ny1,nx2,ny2);
+      lineGrad2.addColorStop(0,`rgba(${si.color.startsWith("#")?`${parseInt(si.color.slice(1,3),16)},${parseInt(si.color.slice(3,5),16)},${parseInt(si.color.slice(5,7),16)}`:hRGB},${webA*1.2})`);
+      lineGrad2.addColorStop(0.5,`rgba(${hRGB},${webA*0.7})`);
+      lineGrad2.addColorStop(1,`rgba(${sj.color.startsWith("#")?`${parseInt(sj.color.slice(1,3),16)},${parseInt(sj.color.slice(3,5),16)},${parseInt(sj.color.slice(5,7),16)}`:hRGB},${webA*1.2})`);
       ctx.beginPath(); ctx.moveTo(nx1,ny1); ctx.quadraticCurveTo(mcx,mcy,nx2,ny2);
-      ctx.strokeStyle=`rgba(${hRGB},${webA})`; ctx.lineWidth=0.5; ctx.stroke();
-      // Worm trail: 10-dot signal worm along bezier arc
-      const WORM_DOTS = 10;
+      ctx.strokeStyle=lineGrad2; ctx.lineWidth=0.7; ctx.stroke();
+
+      // Worm 1: 14-dot signal worm along bezier, vivid glow head
+      const WORM_DOTS = 14;
       for (let wi=0; wi<WORM_DOTS; wi++) {
-        const pp=((t*0.45+(i*3+j)*0.65) - wi*0.042 + 20)%1;
+        const pp=((t*0.50+(i*3+j)*0.65) - wi*0.038 + 40)%1;
         const pqx=nx1*(1-pp)**2+mcx*2*pp*(1-pp)+nx2*pp**2;
         const pqy=ny1*(1-pp)**2+mcy*2*pp*(1-pp)+ny2*pp**2;
-        const wAlpha=(1-wi/WORM_DOTS)**1.5*webA*8;
-        const wRadius=(1-wi/WORM_DOTS)*2.6;
-        if (wi===0) { ctx.shadowColor=`rgba(${hRGB},0.9)`; ctx.shadowBlur=6; }
-        ctx.beginPath(); ctx.arc(pqx,pqy,Math.max(wRadius,0.3),0,Math.PI*2);
-        ctx.fillStyle=`rgba(${hRGB},${wAlpha})`; ctx.fill();
+        const wAlpha=(1-wi/WORM_DOTS)**2*webA*14;
+        const wRadius=(1-wi/WORM_DOTS)*3.4;
+        if (wi===0) { ctx.shadowColor=healthCol; ctx.shadowBlur=10; }
+        ctx.beginPath(); ctx.arc(pqx,pqy,Math.max(wRadius,0.4),0,Math.PI*2);
+        ctx.fillStyle=`rgba(${hRGB},${Math.min(wAlpha,0.95)})`; ctx.fill();
         if (wi===0) { ctx.shadowBlur=0; }
       }
-      // Second worm (opposite direction, different speed)
-      const pp2=((t*0.28+(i*2+j)*1.1))%1;
-      const pqx2=nx1*(1-pp2)**2+mcx*2*pp2*(1-pp2)+nx2*pp2**2;
-      const pqy2=ny1*(1-pp2)**2+mcy*2*pp2*(1-pp2)+ny2*pp2**2;
-      ctx.beginPath(); ctx.arc(pqx2,pqy2,1.2,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${hRGB},${webA*3})`; ctx.fill();
+      // Worm 2: reverse direction, different palette (node color)
+      const sRGB2 = si.color.startsWith("#")
+        ? `${parseInt(si.color.slice(1,3),16)},${parseInt(si.color.slice(3,5),16)},${parseInt(si.color.slice(5,7),16)}`
+        : hRGB;
+      const WORM2_DOTS = 10;
+      for (let wi=0; wi<WORM2_DOTS; wi++) {
+        const pp2=(1-((t*0.32+(i*2+j)*1.1) - wi*0.044 + 40)%1);
+        const pqx2=nx1*(1-pp2)**2+mcx*2*pp2*(1-pp2)+nx2*pp2**2;
+        const pqy2=ny1*(1-pp2)**2+mcy*2*pp2*(1-pp2)+ny2*pp2**2;
+        const wA2=(1-wi/WORM2_DOTS)**2.2*webA*10;
+        const wR2=(1-wi/WORM2_DOTS)*2.8;
+        ctx.beginPath(); ctx.arc(pqx2,pqy2,Math.max(wR2,0.3),0,Math.PI*2);
+        ctx.fillStyle=`rgba(${sRGB2},${Math.min(wA2,0.85)})`; ctx.fill();
+      }
     }
   }
 

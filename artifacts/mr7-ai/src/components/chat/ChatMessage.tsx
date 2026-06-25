@@ -193,12 +193,22 @@ export function ChatMessage({
             </HoloChatBubble>
           </AnimatePresence>
         ) : (
-          /* ── Classic Mode: original bubble ───────────────────────────────── */
-          <div className={`relative px-4 py-3 rounded-2xl text-[var(--chat-font-size,15px)] leading-relaxed ${
+          /* ── Classic Mode: futuristic 3D colorful bubble ─────────────────── */
+          <div className={`relative px-3 py-2.5 rounded-xl text-[var(--chat-font-size,14px)] leading-relaxed ${
             msg.role === "user"
-              ? "msg-bubble-user text-foreground rounded-tr-sm max-w-[80%]"
-              : "msg-bubble-ai text-foreground/95 w-full"
-          }`}>
+              ? "msg-bubble-user rounded-tr-sm max-w-[78%]"
+              : "msg-bubble-ai w-full"
+          }`}
+          style={msg.role === "assistant" ? {
+            background: "linear-gradient(135deg, rgba(6,8,20,0.97) 0%, rgba(10,12,28,0.97) 50%, rgba(4,6,18,0.97) 100%)",
+            border: "1px solid rgba(0,229,255,0.12)",
+            boxShadow: "0 0 24px rgba(0,229,255,0.04), 0 2px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",
+          } : {
+            background: "linear-gradient(135deg, rgba(226,18,39,0.18) 0%, rgba(160,10,30,0.22) 100%)",
+            border: "1px solid rgba(226,18,39,0.28)",
+            boxShadow: "0 0 18px rgba(226,18,39,0.08), 0 2px 6px rgba(0,0,0,0.4)",
+          }}
+          >
             {msg.bookmarked && (
               <BookmarkCheck className="absolute -top-1 -left-1 w-4 h-4 text-amber-400 fill-amber-400/30" />
             )}

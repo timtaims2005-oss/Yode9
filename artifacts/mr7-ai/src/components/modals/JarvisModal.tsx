@@ -195,7 +195,73 @@ export function JarvisModal({ open, onOpenChange }: JarvisModalProps) {
   const [termLines, setTermLines] = useState<string[]>(TERMINAL_HISTORY);
   const [selectedNode, setSelectedNode] = useState<typeof THREAT_NODES[0] | null>(null);
 
-  // Simulated resource metrics
+  // ── Real system metrics via browser APIs ──────────────────────────────────
+  const [realFps, setRealFps] = useState(0);
+  const [realLatency, setRealLatency] = useState(0);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [realMemMB, setRealMemMB] = useState(0);
+  const [clock, setClock] = useState(() => new Date().toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }));
+  const fpsFramesRef = useRef<number[]>([]);
+  const fpsRafRef = useRef<number>(0);
+
+  // Real FPS counter via rAF
+  useEffect(() => {
+    let last = performance.now();
+    function tick(now: number) {
+      const delta = now - last;
+      last = now;
+      fpsFramesRef.current.push(1000 / delta);
+      if (fpsFramesRef.current.length > 30) fpsFramesRef.current.shift();
+      const avg = fpsFramesRef.current.reduce((a, b) => a + b, 0) / fpsFramesRef.current.length;
+      setRealFps(Math.round(avg));
+      fpsRafRef.current = requestAnimationFrame(tick);
+    }
+    fpsRafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(fpsRafRef.current);
+  }, []);
+
+  // Real memory via performance.memory (Chrome only)
+  useEffect(() => {
+    const id = setInterval(() => {
+      const perf = performance as Performance & { memory?: { usedJSHeapSize: number } };
+      if (perf.memory) {
+        setRealMemMB(Math.round(perf.memory.usedJSHeapSize / 1024 / 1024));
+      }
+    }, 2000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Real network latency via fetch timing
+  useEffect(() => {
+    async function pingLatency() {
+      const t0 = performance.now();
+      try { await fetch("/api/health", { method: "HEAD", cache: "no-store" }); } catch { /* no health endpoint, use navigation timing */ }
+      const lat = Math.round(performance.now() - t0);
+      setRealLatency(Math.min(lat, 999));
+    }
+    pingLatency();
+    const id = setInterval(pingLatency, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Real online/offline listener
+  useEffect(() => {
+    const onOn = () => setIsOnline(true);
+    const onOff = () => setIsOnline(false);
+    window.addEventListener("online", onOn);
+    window.addEventListener("offline", onOff);
+    return () => { window.removeEventListener("online", onOn); window.removeEventListener("offline", onOff); };
+  }, []);
+
+  // Real clock
+  useEffect(() => {
+    const id = setInterval(() => {
+      setClock(new Date().toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }));
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Resource metrics — blend real + simulated for visual richness
   const [cpu, setCpu] = useState(() => Array.from({ length: 20 }, () => Math.floor(Math.random() * 45) + 10));
   const [mem, setMem] = useState(() => Array.from({ length: 20 }, () => Math.floor(Math.random() * 30) + 55));
   const [net, setNet] = useState(() => Array.from({ length: 20 }, () => Math.floor(Math.random() * 60) + 5));
@@ -416,11 +482,17 @@ export function JarvisModal({ open, onOpenChange }: JarvisModalProps) {
                   <span className="text-[8px] font-mono px-1.5 py-0.5 rounded" style={{ color: DIM, background: "rgba(0,229,255,0.04)" }}>v4.0</span>
                   {activeModule && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded" style={{ color: "#a78bfa", background: "rgba(167,139,250,0.1)" }}>MOD:{activeModule.toUpperCase()}</span>}
                 </div>
-                <div className="flex items-center gap-3 mt-0.5">
+                <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                   <span className="text-[8px] font-mono" style={{ color: curCpu > 70 ? "#e21227" : C }}>CPU {curCpu}%</span>
-                  <span className="text-[8px] font-mono" style={{ color: curMem > 85 ? "#e21227" : "#10b981" }}>MEM {curMem}%</span>
+                  <span className="text-[8px] font-mono" style={{ color: curMem > 85 ? "#e21227" : "#10b981" }}>MEM {realMemMB > 0 ? `${realMemMB}MB` : `${curMem}%`}</span>
                   <span className="text-[8px] font-mono" style={{ color: "#a78bfa" }}>NET {curNet}Mbps</span>
-                  <span className="text-[8px] font-mono" style={{ color: DIM }}>24 MODULES ONLINE</span>
+                  <span className="text-[8px] font-mono" style={{ color: realFps >= 55 ? "#22c55e" : realFps >= 30 ? "#fbbf24" : "#e21227" }}>{realFps}fps</span>
+                  <span className="text-[8px] font-mono" style={{ color: realLatency < 100 ? "#22c55e" : realLatency < 300 ? "#fbbf24" : "#e21227" }}>{realLatency}ms</span>
+                  <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1, repeat: Infinity }}
+                    className="text-[8px] font-mono" style={{ color: isOnline ? "#22c55e" : "#e21227" }}>
+                    {isOnline ? "● ONLINE" : "● OFFLINE"}
+                  </motion.span>
+                  <span className="text-[8px] font-mono" style={{ color: DIM }}>{clock}</span>
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
