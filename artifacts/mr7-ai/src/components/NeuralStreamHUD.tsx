@@ -35,7 +35,10 @@ function HeartbeatCanvas({ color, tps }: { color: string; tps: number }) {
       return H * 0.5 + Math.sin(p * Math.PI * 3) * H * 0.04;
     }
 
-    function draw() {
+    let prevTs = 0;
+    function draw(ts: number) {
+      const dt = prevTs ? Math.min((ts - prevTs) / 1000, 0.05) : 1 / 144;
+      prevTs = ts;
       ctx.clearRect(0, 0, W, H);
       const phase = phaseRef.current;
 
@@ -91,7 +94,7 @@ function HeartbeatCanvas({ color, tps }: { color: string; tps: number }) {
         ctx.fill();
       }
 
-      phaseRef.current = (phaseRef.current + speed) % 10;
+      phaseRef.current = (phaseRef.current + speed * dt * 60) % 10;
       rafRef.current = requestAnimationFrame(draw);
     }
 

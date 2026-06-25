@@ -486,7 +486,10 @@ export function JarvisModal({ open, onOpenChange }: JarvisModalProps) {
                   <span className="text-[8px] font-mono" style={{ color: curCpu > 70 ? "#e21227" : C }}>CPU {curCpu}%</span>
                   <span className="text-[8px] font-mono" style={{ color: curMem > 85 ? "#e21227" : "#10b981" }}>MEM {realMemMB > 0 ? `${realMemMB}MB` : `${curMem}%`}</span>
                   <span className="text-[8px] font-mono" style={{ color: "#a78bfa" }}>NET {curNet}Mbps</span>
-                  <span className="text-[8px] font-mono" style={{ color: realFps >= 55 ? "#22c55e" : realFps >= 30 ? "#fbbf24" : "#e21227" }}>{realFps}fps</span>
+                  <span className="text-[8px] font-mono" style={{ color: realFps >= 120 ? "#22c55e" : realFps >= 60 ? "#fbbf24" : "#e21227" }}>
+                    {realFps}fps
+                  </span>
+                  <span className="text-[8px] font-mono px-1 py-0.5 rounded" style={{ color: "#00e5ff", background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.2)" }}>⚡144Hz</span>
                   <span className="text-[8px] font-mono" style={{ color: realLatency < 100 ? "#22c55e" : realLatency < 300 ? "#fbbf24" : "#e21227" }}>{realLatency}ms</span>
                   <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1, repeat: Infinity }}
                     className="text-[8px] font-mono" style={{ color: isOnline ? "#22c55e" : "#e21227" }}>

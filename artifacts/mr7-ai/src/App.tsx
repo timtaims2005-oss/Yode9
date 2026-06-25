@@ -13,6 +13,7 @@ class AppErrorBoundary extends Component<{ children: React.ReactNode; fallback?:
   }
 }
 import { BootScreen } from "./components/BootScreen";
+import { PerfMonitor } from "./components/PerfMonitor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -1199,6 +1200,9 @@ function AppContent() {
 
       {/* CISA KEV Global Alert Toaster — always-on 3D popup notifications */}
       <CisaKevAlertToaster />
+
+      {/* ── 144fps Performance Monitor ── */}
+      <PerfMonitor />
 
       {/* CVE Timeline 3D */}
       <CveTimeline3DModal open={modals.cveTimeline} onOpenChange={(v) => mDispatch({type:'SET',id:'cveTimeline',value:v})} />

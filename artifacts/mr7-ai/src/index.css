@@ -3,9 +3,18 @@
 
 /* ── Global box model safety ── */
 *, *::before, *::after { box-sizing: border-box; }
-body { overflow-x: hidden; }
+body {
+  overflow-x: hidden;
+  /* Smooth scrolling at 144fps */
+  scroll-behavior: smooth;
+  overscroll-behavior: none;
+  /* Eliminate subpixel rendering overhead */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeSpeed;
+}
 
-/* ── GPU acceleration for animated layers ── */
+/* ── 144fps GPU Compositing — promote all animated layers ── */
 [data-framer-component-type],
 .CHAT-GPT-topbar,
 .CHAT-GPT-sidebar {
@@ -14,11 +23,14 @@ body { overflow-x: hidden; }
   backface-visibility: hidden;
 }
 
-/* ── Canvas GPU compositing ── */
+/* ── Canvas — full GPU compositing pipeline ── */
 canvas {
   transform: translateZ(0);
   backface-visibility: hidden;
   image-rendering: auto;
+  will-change: contents;
+  /* Prevent canvas from blocking main thread compositing */
+  contain: strict;
 }
 
 /* ── Compositor layers only on intentional animated elements ── */
@@ -26,6 +38,32 @@ canvas {
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
+  isolation: isolate;
+}
+
+/* ── Motion elements — GPU-promote framer-motion animated divs ── */
+[style*="opacity"],[style*="transform"],[style*="translate"] {
+  backface-visibility: hidden;
+}
+
+/* ── Scroll containers — momentum & smoothness ── */
+[data-scroll], .overflow-y-auto, .overflow-auto, .overflow-y-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+/* ── Layout containment for modals/panels (prevents reflow cascade) ── */
+.modal-layer, [role="dialog"] {
+  contain: layout style;
+  isolation: isolate;
+}
+
+/* ── Reduce paint area for fixed-position HUD panels ── */
+.hud-panel {
+  contain: layout paint;
+  isolation: isolate;
+  transform: translateZ(0);
 }
 
 /* ── Performance Booster: kill canvas backgrounds ── */

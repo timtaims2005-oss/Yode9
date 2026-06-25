@@ -640,12 +640,15 @@ export function SystemMasterHUD3D(props: HUDPanel & { onOpenAnomalyLog?: () => v
     const dpr = Math.min(window.devicePixelRatio||1,2);
     cv.width = SIZE*dpr; cv.height = SIZE*dpr;
     const ctx = cv.getContext("2d")!; ctx.scale(dpr,dpr);
-    function animate() {
-      tRef.current += 0.016;
+    let prev = 0;
+    function animate(ts: number) {
+      const dt = prev ? Math.min((ts - prev) / 1000, 0.05) : 1 / 144;
+      prev = ts;
+      tRef.current += dt;
       draw(cv!, tRef.current, systemsRef.current, hoveredRef.current, masteroRef.current);
       rafRef.current = requestAnimationFrame(animate);
     }
-    animate();
+    rafRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(rafRef.current);
   }, []);
 
