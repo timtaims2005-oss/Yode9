@@ -1,3 +1,6 @@
+- [KaliGPT Stack](kaligpt-stack.md) — Monorepo: React+Vite (port 5000), Express API (port 8080). Auth: Replit OIDC via setupReplitAuth. API server needs rebuild (esbuild) + workflow restart after changes.
+- [4D Engine Architecture](four-d-engine.md) — True 4D math in `artifacts/mr7-ai/src/lib/four-d-engine.ts`; TESSERACT_VERTICES/EDGES + project4Dto2D; Rotation4D class. Canvas components use `gpu-layer` CSS class.
+- [Threat Intel API](threat-intel-api.md) — `/api/threat-intel/*` public GET routes in `artifacts/api-server/src/routes/threat-intel.ts`; engine singleton in `lib/threat-intelligence.ts`; registered before internalAuth in app.ts.
 - [mr7-ai streaming fix](mr7-ai-streaming.md) — server always sends SSE regardless of `stream` flag; all API consumers must use SSE reader, never `resp.json()`
 - [mr7-ai multi-provider AI](mr7-ai-multi-provider.md) — unified provider system supports OpenAI/Anthropic/Groq/Gemini/OpenRouter/Custom/Personal; "personal" is always available, URL editable from ProviderSettingsModal UI
 - [mr7-ai cloud sync](mr7-ai-cloud-sync.md) — chats synced to PostgreSQL `cloud_chats` table via deviceId; GET/POST `/api/cloud-chats`; debounced 3s push from StoreProvider

@@ -8,6 +8,7 @@ import FAQPage from "./pages/faq";
 import ContactPage from "./pages/contact";
 import RoadmapPage from "./pages/roadmap";
 import NotFound from "./pages/not-found";
+import CyberCommand4D from "./pages/CyberCommand4D";
 import "./index.css";
 
 const INTERNAL_KEY = import.meta.env.VITE_INTERNAL_KEY as string | undefined;
@@ -147,6 +148,7 @@ createRoot(document.getElementById("root")!).render(
       <Route path="/faq" component={FAQPage} />
       <Route path="/contact" component={ContactPage} />
       <Route path="/roadmap" component={RoadmapPage} />
+      <Route path="/cyber4d" component={CyberCommand4D} />
       <Route component={NotFound} />
     </Switch>
   </Router>
