@@ -5,6 +5,7 @@ import { MatrixRain } from "@/components/MatrixRain";
 import { HoloCoreOrb } from "@/components/HoloCoreOrb";
 import { Cyber3DGrid } from "@/components/Cyber3DGrid";
 import { ThreatFeedTicker } from "@/components/ThreatFeedTicker";
+import { WebGLParticleField } from "@/components/WebGLParticleField";
 
 /* ── 3D PARTICLE SYSTEM ── */
 interface Particle {
@@ -637,7 +638,8 @@ export default function LandingPage() {
         }
       `}</style>
 
-      <ParticleCanvas />
+      {/* WebGL GPU particle field — 5000 particles, vertex shader, zero CPU overhead */}
+      <WebGLParticleField count={5000} opacity={0.75} />
       <NeuralNetCanvas />
       {/* DATA STREAMS background */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>

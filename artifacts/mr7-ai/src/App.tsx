@@ -14,6 +14,7 @@ class AppErrorBoundary extends Component<{ children: React.ReactNode; fallback?:
 }
 import { BootScreen } from "./components/BootScreen";
 import { PerfMonitor } from "./components/PerfMonitor";
+import { GlobalStatusBar } from "./components/GlobalStatusBar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -1516,6 +1517,9 @@ function AppContent() {
 
       {/* Global Window Tray — minimized windows only */}
       <WindowTray />
+
+      {/* Always-on bottom status bar — FPS, memory, net, uptime */}
+      <GlobalStatusBar />
     </div>
     </>
   );
