@@ -1,0 +1,35 @@
+import fs from "node:fs";
+import OpenAI, { toFile } from "openai";
+import { Buffer } from "node:buffer";
+
+let _client: OpenAI | null = null;
+
+function getClient(): OpenAI {
+  if (_client) return _client;
+  const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+  const baseURL = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
+  if (!apiKey) throw new Error("OPENAI_API_KEY must be set. Please add your OpenAI API key to the Secrets tab.");
+  _client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) });
+  return _client;
+}
+
+export const openai = new Proxy({} as OpenAI, {
+  get(_target, prop: string | symbol) {
+    const client = getClient();
+    const value = (client as any)[prop];
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});
+
+export async function generateImageBuffer(prompt: string, size: "1024x1024" | "512x512" | "256x256" = "1024x1024"): Promise<Buffer> {
+  const response = await openai.images.generate({ model: "gpt-image-1", prompt, size });
+  return Buffer.from(response.data?.[0]?.b64_json ?? "", "base64");
+}
+
+export async function editImages(imageFiles: string[], prompt: string, outputPath?: string): Promise<Buffer> {
+  const images = await Promise.all(imageFiles.map((file) => toFile(fs.createReadStream(file), file, { type: "image/png" })));
+  const response = await openai.images.edit({ model: "gpt-image-1", image: images, prompt });
+  const imageBytes = Buffer.from(response.data?.[0]?.b64_json ?? "", "base64");
+  if (outputPath) fs.writeFileSync(outputPath, imageBytes);
+  return imageBytes;
+}
