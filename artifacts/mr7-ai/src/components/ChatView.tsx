@@ -31,7 +31,6 @@ import { ChatScrollArea } from "./chat/ChatScrollArea";
 import { ChatInput } from "./chat/ChatInput";
 import { QuickActionBar } from "./chat/QuickActionBar";
 import { SecurityMissionsBar } from "./SecurityMissionsBar";
-import { ChatPanelBar } from "./chat/ChatPanelBar";
 import { ChatFloatingPanelHub } from "./chat/ChatFloatingPanelHub";
 
 function escapeHtml(s: string) {
@@ -88,6 +87,21 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
   function closePanel(id: string) {
     setOpenPanels(prev => { const next = new Set(prev); next.delete(id); return next; });
   }
+
+  useEffect(() => {
+    function onToggle(e: Event) {
+      const { id } = (e as CustomEvent<{ id: string }>).detail;
+      togglePanel(id);
+    }
+    window.addEventListener("kali:toggle-panel", onToggle);
+    return () => window.removeEventListener("kali:toggle-panel", onToggle);
+  }, []);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("kali:panels-state", {
+      detail: { panels: [...openPanels] },
+    }));
+  }, [openPanels]);
 
   const abortRef = useRef<AbortController | null>(null);
   const liveAccRef = useRef("");
@@ -614,8 +628,6 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
           onShare={() => setShareOpen(true)}
         />
       )}
-
-      <ChatPanelBar openPanels={openPanels} onTogglePanel={togglePanel} />
 
       <SecurityMissionsBar
         onMissionSelect={(prompt) => { dispatch({ type: "SET_SETTINGS", patch: { customSystemPrompt: prompt } }); toast({ description: "تم تفعيل وضع المهمة الأمنية" }); }}

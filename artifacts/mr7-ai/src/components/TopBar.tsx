@@ -15,6 +15,7 @@ import { NotificationsBell } from "./NotificationsBell";
 import { ThemePopover } from "./ThemePopover";
 import { TokensPopover } from "./TokensPopover";
 import { LocalAIWindow } from "./LocalAIWindow";
+import { PANEL_DEFS } from "./chat/ChatPanelBar";
 import { AI_MODELS, getModel } from "@/lib/ai-config";
 import { tierAtLeast } from "@/lib/subscription";
 import {
@@ -23,6 +24,7 @@ import {
   Target, GitBranch, Bug, Activity, DollarSign, GitMerge, ShieldAlert, ShieldCheck,
   BrainCircuit, Gauge, Globe, AlertTriangle, Network, Cpu, Lock,
   Flame, Share2, PanelLeftClose, PanelLeftOpen, Swords, Crown, Users,
+  Layers, Monitor, Clock, BarChart3, Brain, Radio, Eye, TrendingUp,
 } from "lucide-react";
 
 // ── Compact mode context ───────────────────────────────────────────────────────
@@ -1782,6 +1784,196 @@ interface PinnedShortcutsBarProps {
   onOpenAttackGraph: () => void;
 }
 
+// ── Panels Hub Button ─────────────────────────────────────────────────────────
+const PANEL_CAT_COLORS: Record<string, string> = {
+  system: "#10b981", security: "#e21227", network: "#00e5ff", intel: "#f472b6", performance: "#3b82f6",
+};
+const PANEL_CAT_ORDER = ["system", "security", "network", "intel", "performance"] as const;
+const PANEL_CAT_LABELS: Record<string, string> = {
+  system: "نظام", security: "أمان", network: "شبكة", intel: "استخبارات", performance: "أداء",
+};
+
+function PanelsHubButton() {
+  const [open, setOpen]             = useState(false);
+  const [openPanels, setOpenPanels] = useState<Set<string>>(new Set());
+  const btnRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onState(e: Event) {
+      const { panels } = (e as CustomEvent<{ panels: string[] }>).detail;
+      setOpenPanels(new Set(panels));
+    }
+    window.addEventListener("kali:panels-state", onState);
+    return () => window.removeEventListener("kali:panels-state", onState);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (btnRef.current && !btnRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  const togglePanel = useCallback((id: string) => {
+    window.dispatchEvent(new CustomEvent("kali:toggle-panel", { detail: { id } }));
+    setOpenPanels(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const closeAll = useCallback(() => {
+    openPanels.forEach(id => window.dispatchEvent(new CustomEvent("kali:toggle-panel", { detail: { id } })));
+    setOpenPanels(new Set());
+  }, [openPanels]);
+
+  const openCount = openPanels.size;
+  const grouped = PANEL_CAT_ORDER.map(cat => ({
+    cat, color: PANEL_CAT_COLORS[cat], label: PANEL_CAT_LABELS[cat],
+    panels: PANEL_DEFS.filter(p => p.category === cat),
+  }));
+
+  return (
+    <div ref={btnRef} className="relative flex-shrink-0">
+      <motion.button
+        onClick={() => setOpen(o => !o)}
+        className="flex-shrink-0 relative flex items-center gap-1.5 px-2 py-1.5 rounded-xl overflow-hidden"
+        style={{
+          background: open || openCount > 0
+            ? "linear-gradient(135deg, rgba(226,18,39,0.16), rgba(139,92,246,0.10))"
+            : "rgba(255,255,255,0.04)",
+          border: `1px solid ${open || openCount > 0 ? "rgba(226,18,39,0.42)" : "rgba(255,255,255,0.10)"}`,
+          color: open || openCount > 0 ? "#e21227" : "rgba(255,255,255,0.45)",
+          boxShadow: open || openCount > 0 ? "0 0 16px rgba(226,18,39,0.22)" : "none",
+        }}
+        whileHover={{ scale: 1.05, y: -0.5 }}
+        whileTap={{ scale: 0.94 }}
+        title="نوافذ المراقبة"
+      >
+        <span className="btn-shimmer-inner" style={{ background: "linear-gradient(90deg,transparent,rgba(226,18,39,0.16),transparent)" }} />
+        <Layers style={{ width: 14, height: 14, flexShrink: 0 }} />
+        <div className="hidden sm:flex flex-col items-start leading-none gap-0.5">
+          <span className="text-[6.5px] font-black tracking-[0.3em] uppercase opacity-60">PANELS</span>
+          <span className="text-[8.5px] font-black tracking-wide">لوحات</span>
+        </div>
+        {openCount > 0 && (
+          <span className="flex-shrink-0 min-w-[16px] h-4 rounded-full text-[8px] font-black flex items-center justify-center px-1"
+            style={{ background: "#e21227", color: "#fff", boxShadow: "0 0 6px rgba(226,18,39,0.6)" }}>
+            {openCount}
+          </span>
+        )}
+      </motion.button>
+
+      <AnimatePresence>
+        {open && createPortal(
+          <>
+            <motion.div className="fixed inset-0 z-[9980]"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.92 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed z-[9981] rounded-2xl overflow-hidden"
+              style={{
+                top: 62, left: "50%", transform: "translateX(-50%)",
+                width: 500,
+                background: "linear-gradient(160deg, rgba(6,4,14,0.99) 0%, rgba(4,2,10,0.99) 100%)",
+                border: "1px solid rgba(226,18,39,0.28)",
+                boxShadow: "0 0 60px rgba(226,18,39,0.10), 0 24px 80px rgba(0,0,0,0.92)",
+                backdropFilter: "blur(36px)",
+                WebkitBackdropFilter: "blur(36px)",
+              }}
+            >
+              <div className="h-px w-full" style={{ background: "linear-gradient(90deg,transparent,#e21227,rgba(139,92,246,0.8),transparent)" }} />
+              <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+                <div className="flex items-center gap-2">
+                  <motion.div className="w-2 h-2 rounded-full"
+                    animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
+                    style={{ background: "#e21227", boxShadow: "0 0 6px #e21227" }} />
+                  <span className="font-mono font-black text-[8px] tracking-[0.4em]" style={{ color: "rgba(226,18,39,0.7)" }}>
+                    KALIGPT · PANELS CONTROL
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {openCount > 0 && (
+                    <button onClick={closeAll}
+                      className="text-[8px] font-black px-2 py-0.5 rounded font-mono transition-all"
+                      style={{ background: "rgba(226,18,39,0.12)", color: "#e21227", border: "1px solid rgba(226,18,39,0.25)" }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(226,18,39,0.24)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(226,18,39,0.12)"; }}
+                    >
+                      إغلاق الكل ({openCount})
+                    </button>
+                  )}
+                  <button onClick={() => setOpen(false)}
+                    className="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black"
+                    style={{ color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "#e21227"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.4)"; }}
+                  >×</button>
+                </div>
+              </div>
+
+              <div className="p-3 space-y-3 max-h-[420px] overflow-y-auto"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(226,18,39,0.3) transparent" }}>
+                {grouped.map(({ cat, color, label, panels }) => (
+                  <div key={cat}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="h-px flex-1" style={{ background: `linear-gradient(90deg, ${color}40, transparent)` }} />
+                      <span className="font-mono text-[7px] font-black tracking-[0.35em] uppercase px-2" style={{ color }}>{label}</span>
+                      <div className="h-px flex-1" style={{ background: `linear-gradient(90deg, transparent, ${color}40)` }} />
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {panels.map(panel => {
+                        const Icon = panel.icon;
+                        const isOpen = openPanels.has(panel.id);
+                        return (
+                          <motion.button
+                            key={panel.id}
+                            onClick={() => togglePanel(panel.id)}
+                            whileHover={{ scale: 1.07, y: -1 }}
+                            whileTap={{ scale: 0.93 }}
+                            className="relative flex items-center gap-1.5 px-2.5 h-7 rounded-lg overflow-hidden"
+                            style={{
+                              background: isOpen ? `linear-gradient(135deg, ${panel.color}22, ${panel.color}0a)` : "rgba(255,255,255,0.03)",
+                              border: `1px solid ${isOpen ? panel.color + "50" : "rgba(255,255,255,0.08)"}`,
+                              color: isOpen ? panel.color : "rgba(255,255,255,0.45)",
+                              boxShadow: isOpen ? `0 0 10px ${panel.glow}` : "none",
+                            }}
+                            title={panel.label}
+                          >
+                            {isOpen && (
+                              <motion.div className="absolute top-0.5 right-0.5 w-1 h-1 rounded-full"
+                                animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
+                                style={{ background: panel.color }} />
+                            )}
+                            <Icon style={{ width: 10, height: 10, color: isOpen ? panel.color : "rgba(255,255,255,0.35)", flexShrink: 0 } as React.CSSProperties} />
+                            <span className="font-mono font-bold text-[8px] tracking-wide whitespace-nowrap"
+                              style={{ color: isOpen ? panel.color : "rgba(255,255,255,0.35)" }}>
+                              {panel.shortLabel}
+                            </span>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="h-px w-full" style={{ background: "linear-gradient(90deg,transparent,rgba(226,18,39,0.28),transparent)" }} />
+            </motion.div>
+          </>,
+          document.body
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function PinnedShortcutsBar({
   onOpenArsenal, onOpenAgent, onOpenNexus, onOpenWarRoom, onOpenCisaLive,
   onOpenCyberHierarchy, onOpenCognitiveWarfare, onOpenAutonomousOffense,
@@ -2156,6 +2348,7 @@ export function TopBar({
         <HUDBtn icon={Bot} label="KaliAgent" color="#ff4d4d" onClick={onOpenAgent} iconOnly />
         <HUDBtn icon={Hexagon}   label="NEXUS"      color="#fbbf24" onClick={onOpenNexus}   badge="5X" />
         <HUDBtn icon={Shield}    label="Arsenal"    color="#e21227" onClick={onOpenArsenal} />
+        <PanelsHubButton />
         {onOpenDebate        && <HUDBtn icon={Swords}       label="Debate"       color="#ef4444" onClick={onOpenDebate}        shortLabel="Debate" />}
         {onOpenChainOfThought && <HUDBtn icon={BrainCircuit} label="Chain·Thought" color="#3b82f6" onClick={onOpenChainOfThought} shortLabel="CoT" />}
         {onOpenDynamicCouncil && <HUDBtn icon={Crown}        label="Council+"     color="#f59e0b" onClick={onOpenDynamicCouncil} shortLabel="Council" badge="+" />}
