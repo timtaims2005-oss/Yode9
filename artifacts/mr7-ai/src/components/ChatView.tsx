@@ -14,11 +14,7 @@ import { applyStm, activeCount as activeStmCount } from "@/lib/stm";
 import { applyToTriggers, transform, type Technique, type Intensity } from "@/lib/parseltongue";
 import { useT } from "@/lib/i18n";
 import { tierAtLeast } from "@/lib/subscription";
-import { NeuralPulseBackground } from "./NeuralPulseBackground";
-import { FuturisticBackground3D } from "./FuturisticBackground3D";
-import { QuantumVoidBackground3D } from "./QuantumVoidBackground3D";
 import { NeuralStreamHUD } from "./NeuralStreamHUD";
-import { FloatingNetworkPanel } from "./FloatingNetworkPanel";
 import { parseOrchestratorCommands, executeOrchestratorCommand, type OrchestratorCmd } from "@/lib/agent-orchestrator";
 import { streamChat, streamLocalChatViaProxy, streamCouncil, streamGodmode, autoTune, generateTitle, translateText, enhancePrompt, estimateTokens, streamAgent, compressContext, analyzeOsintFile, type ChatMessage, type AgentEvent } from "@/lib/chat-client";
 import { DEFAULT_COUNCIL_CONFIG, FUSION_COUNCIL_CONFIG, DEBATE_COUNCIL_CONFIG, HYDRA_COUNCIL_CONFIG, type CouncilConfig } from "./modals/CouncilSettingsModal";
@@ -31,7 +27,6 @@ import { ChatScrollArea } from "./chat/ChatScrollArea";
 import { ChatInput } from "./chat/ChatInput";
 import { QuickActionBar } from "./chat/QuickActionBar";
 import { SecurityMissionsBar } from "./SecurityMissionsBar";
-import { ChatFloatingPanelHub } from "./chat/ChatFloatingPanelHub";
 
 function escapeHtml(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
