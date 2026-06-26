@@ -69,40 +69,6 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
   const [streamTps, setStreamTps] = useState<number | null>(null);
   const [liveTps, setLiveTps] = useState(0);
   const [liveTokens, setLiveTokens] = useState(0);
-  const [openPanels, setOpenPanels] = useState<Set<string>>(new Set());
-
-  const togglePanel = useCallback((id: string) => {
-    setOpenPanels(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const closePanel = useCallback((id: string) => {
-    setOpenPanels(prev => { const next = new Set(prev); next.delete(id); return next; });
-  }, []);
-
-  useEffect(() => {
-    function onToggle(e: Event) {
-      const { id } = (e as CustomEvent<{ id: string }>).detail;
-      setOpenPanels(prev => {
-        const next = new Set(prev);
-        if (next.has(id)) next.delete(id);
-        else next.add(id);
-        return next;
-      });
-    }
-    window.addEventListener("kali:toggle-panel", onToggle);
-    return () => window.removeEventListener("kali:toggle-panel", onToggle);
-  }, []);
-
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent("kali:panels-state", {
-      detail: { panels: [...openPanels] },
-    }));
-  }, [openPanels]);
 
   const abortRef = useRef<AbortController | null>(null);
   const liveAccRef = useRef("");
@@ -611,10 +577,6 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
 
   return (
     <div className="flex-1 flex flex-col h-full relative overflow-hidden">
-      {(state.globeVisible ?? true) && <FloatingNetworkPanel />}
-      {(state.globeVisible ?? true) && <QuantumVoidBackground3D opacity={0.62} accentColor="#e21227" />}
-      {(state.globeVisible ?? true) && <FuturisticBackground3D opacity={0.18} />}
-      {(state.globeVisible ?? true) && <NeuralPulseBackground />}
 
       {chat && (
         <ChatHeader
@@ -636,24 +598,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
         onOpenShellGen={() => setShellGenOpen(true)}
       />
 
-      {/* 5D depth content area */}
       <div className="flex-1 relative overflow-hidden flex flex-col" style={{ isolation: "isolate" }}>
-        {/* Left depth rail */}
-        <div className="absolute left-0 top-0 bottom-0 w-px pointer-events-none" style={{ zIndex: 2, background: "linear-gradient(180deg, transparent 0%, rgba(226,18,39,0.08) 20%, rgba(139,92,246,0.06) 60%, transparent 100%)" }} />
-        {/* Right depth rail */}
-        <div className="absolute right-0 top-0 bottom-0 w-px pointer-events-none" style={{ zIndex: 2, background: "linear-gradient(180deg, transparent 0%, rgba(0,229,255,0.06) 40%, rgba(139,92,246,0.05) 70%, transparent 100%)" }} />
-        {/* Top depth accent */}
-        <div className="absolute top-0 inset-x-0 h-px pointer-events-none" style={{ zIndex: 2, background: "linear-gradient(90deg, transparent 0%, rgba(226,18,39,0.12) 30%, rgba(139,92,246,0.08) 70%, transparent 100%)" }} />
-        {/* Corner TL bracket */}
-        <div className="absolute top-0 left-0 w-4 h-4 pointer-events-none" style={{ zIndex: 3 }}>
-          <div className="absolute top-0 left-0 w-4 h-px" style={{ background: "rgba(226,18,39,0.3)" }} />
-          <div className="absolute top-0 left-0 w-px h-4" style={{ background: "rgba(226,18,39,0.3)" }} />
-        </div>
-        {/* Corner TR bracket */}
-        <div className="absolute top-0 right-0 w-4 h-4 pointer-events-none" style={{ zIndex: 3 }}>
-          <div className="absolute top-0 right-0 w-4 h-px" style={{ background: "rgba(0,229,255,0.2)" }} />
-          <div className="absolute top-0 right-0 w-px h-4" style={{ background: "rgba(0,229,255,0.2)" }} />
-        </div>
 
         <NeuralStreamHUD streaming={streaming} tps={liveTps} tokenCount={liveTokens} mode={mode} />
 
@@ -763,7 +708,6 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
         }}
       />
 
-      <ChatFloatingPanelHub openPanels={openPanels} onClose={closePanel} />
 
       {chat && <ShareModal open={shareOpen} onOpenChange={setShareOpen} chatId={chat.id} />}
       <VoiceChatModal open={voiceChatOpen} onOpenChange={setVoiceChatOpen} />

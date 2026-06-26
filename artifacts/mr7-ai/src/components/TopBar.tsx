@@ -16,6 +16,8 @@ import { ThemePopover } from "./ThemePopover";
 import { TokensPopover } from "./TokensPopover";
 import { LocalAIWindow } from "./LocalAIWindow";
 import { PANEL_DEFS } from "./chat/ChatPanelBar";
+import { PANEL_REGISTRY } from "./chat/ChatFloatingPanelHub";
+import { lazy, Suspense } from "react";
 import { AI_MODELS, getModel } from "@/lib/ai-config";
 import { tierAtLeast } from "@/lib/subscription";
 import {
@@ -1794,64 +1796,50 @@ const PANEL_CAT_LABELS: Record<string, string> = {
 };
 
 function PanelsHubButton() {
-  const [open, setOpen]             = useState(false);
-  const [openPanels, setOpenPanels] = useState<Set<string>>(new Set());
+  const [menuOpen, setMenuOpen]       = useState(false);
+  const [activePanel, setActivePanel] = useState<string | null>(null);
   const btnRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function onState(e: Event) {
-      const { panels } = (e as CustomEvent<{ panels: string[] }>).detail;
-      setOpenPanels(new Set(panels));
-    }
-    window.addEventListener("kali:panels-state", onState);
-    return () => window.removeEventListener("kali:panels-state", onState);
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
+    if (!menuOpen) return;
     function onDown(e: MouseEvent) {
-      if (btnRef.current && !btnRef.current.contains(e.target as Node)) setOpen(false);
+      if (btnRef.current && !btnRef.current.contains(e.target as Node)) setMenuOpen(false);
     }
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
-  }, [open]);
+  }, [menuOpen]);
 
-  const togglePanel = useCallback((id: string) => {
-    window.dispatchEvent(new CustomEvent("kali:toggle-panel", { detail: { id } }));
-    setOpenPanels(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
+  const selectPanel = useCallback((id: string) => {
+    setActivePanel(prev => (prev === id ? null : id));
+    setMenuOpen(false);
   }, []);
 
-  const closeAll = useCallback(() => {
-    openPanels.forEach(id => window.dispatchEvent(new CustomEvent("kali:toggle-panel", { detail: { id } })));
-    setOpenPanels(new Set());
-  }, [openPanels]);
-
-  const openCount = openPanels.size;
   const grouped = PANEL_CAT_ORDER.map(cat => ({
     cat, color: PANEL_CAT_COLORS[cat], label: PANEL_CAT_LABELS[cat],
     panels: PANEL_DEFS.filter(p => p.category === cat),
   }));
 
+  const activeDef  = activePanel ? PANEL_DEFS.find(p => p.id === activePanel) : null;
+  const activeCfg  = activePanel ? PANEL_REGISTRY[activePanel] : null;
+  const ActiveComp = activeCfg?.component ?? null;
+
   return (
     <div ref={btnRef} className="relative flex-shrink-0">
+      {/* ── Hub toggle button ── */}
       <motion.button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setMenuOpen(o => !o)}
         className="flex-shrink-0 relative flex items-center gap-1.5 px-2 py-1.5 rounded-xl overflow-hidden"
         style={{
-          background: open || openCount > 0
+          background: menuOpen || activePanel
             ? "linear-gradient(135deg, rgba(226,18,39,0.16), rgba(139,92,246,0.10))"
             : "rgba(255,255,255,0.04)",
-          border: `1px solid ${open || openCount > 0 ? "rgba(226,18,39,0.42)" : "rgba(255,255,255,0.10)"}`,
-          color: open || openCount > 0 ? "#e21227" : "rgba(255,255,255,0.45)",
-          boxShadow: open || openCount > 0 ? "0 0 16px rgba(226,18,39,0.22)" : "none",
+          border: `1px solid ${menuOpen || activePanel ? "rgba(226,18,39,0.42)" : "rgba(255,255,255,0.10)"}`,
+          color: menuOpen || activePanel ? "#e21227" : "rgba(255,255,255,0.45)",
+          boxShadow: menuOpen || activePanel ? "0 0 16px rgba(226,18,39,0.22)" : "none",
         }}
         whileHover={{ scale: 1.05, y: -0.5 }}
         whileTap={{ scale: 0.94 }}
-        title="نوافذ المراقبة"
+        title="لوحات المراقبة"
       >
         <span className="btn-shimmer-inner" style={{ background: "linear-gradient(90deg,transparent,rgba(226,18,39,0.16),transparent)" }} />
         <Layers style={{ width: 14, height: 14, flexShrink: 0 }} />
@@ -1859,20 +1847,21 @@ function PanelsHubButton() {
           <span className="text-[6.5px] font-black tracking-[0.3em] uppercase opacity-60">PANELS</span>
           <span className="text-[8.5px] font-black tracking-wide">لوحات</span>
         </div>
-        {openCount > 0 && (
+        {activePanel && (
           <span className="flex-shrink-0 min-w-[16px] h-4 rounded-full text-[8px] font-black flex items-center justify-center px-1"
             style={{ background: "#e21227", color: "#fff", boxShadow: "0 0 6px rgba(226,18,39,0.6)" }}>
-            {openCount}
+            1
           </span>
         )}
       </motion.button>
 
+      {/* ── Panel picker dropdown ── */}
       <AnimatePresence>
-        {open && createPortal(
+        {menuOpen && createPortal(
           <>
             <motion.div className="fixed inset-0 z-[9980]"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)} />
+              onClick={() => setMenuOpen(false)} />
             <motion.div
               initial={{ opacity: 0, y: -10, scale: 0.92 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -1896,21 +1885,21 @@ function PanelsHubButton() {
                     animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
                     style={{ background: "#e21227", boxShadow: "0 0 6px #e21227" }} />
                   <span className="font-mono font-black text-[8px] tracking-[0.4em]" style={{ color: "rgba(226,18,39,0.7)" }}>
-                    KALIGPT · PANELS CONTROL
+                    KALIGPT · PANELS
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {openCount > 0 && (
-                    <button onClick={closeAll}
+                  {activePanel && (
+                    <button onClick={() => setActivePanel(null)}
                       className="text-[8px] font-black px-2 py-0.5 rounded font-mono transition-all"
                       style={{ background: "rgba(226,18,39,0.12)", color: "#e21227", border: "1px solid rgba(226,18,39,0.25)" }}
                       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(226,18,39,0.24)"; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(226,18,39,0.12)"; }}
                     >
-                      إغلاق الكل ({openCount})
+                      إغلاق
                     </button>
                   )}
-                  <button onClick={() => setOpen(false)}
+                  <button onClick={() => setMenuOpen(false)}
                     className="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black"
                     style={{ color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "#e21227"; }}
@@ -1931,30 +1920,30 @@ function PanelsHubButton() {
                     <div className="flex flex-wrap gap-1.5">
                       {panels.map(panel => {
                         const Icon = panel.icon;
-                        const isOpen = openPanels.has(panel.id);
+                        const isActive = activePanel === panel.id;
                         return (
                           <motion.button
                             key={panel.id}
-                            onClick={() => togglePanel(panel.id)}
+                            onClick={() => selectPanel(panel.id)}
                             whileHover={{ scale: 1.07, y: -1 }}
                             whileTap={{ scale: 0.93 }}
                             className="relative flex items-center gap-1.5 px-2.5 h-7 rounded-lg overflow-hidden"
                             style={{
-                              background: isOpen ? `linear-gradient(135deg, ${panel.color}22, ${panel.color}0a)` : "rgba(255,255,255,0.03)",
-                              border: `1px solid ${isOpen ? panel.color + "50" : "rgba(255,255,255,0.08)"}`,
-                              color: isOpen ? panel.color : "rgba(255,255,255,0.45)",
-                              boxShadow: isOpen ? `0 0 10px ${panel.glow}` : "none",
+                              background: isActive ? `linear-gradient(135deg, ${panel.color}22, ${panel.color}0a)` : "rgba(255,255,255,0.03)",
+                              border: `1px solid ${isActive ? panel.color + "50" : "rgba(255,255,255,0.08)"}`,
+                              color: isActive ? panel.color : "rgba(255,255,255,0.45)",
+                              boxShadow: isActive ? `0 0 10px ${panel.glow}` : "none",
                             }}
                             title={panel.label}
                           >
-                            {isOpen && (
+                            {isActive && (
                               <motion.div className="absolute top-0.5 right-0.5 w-1 h-1 rounded-full"
                                 animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
                                 style={{ background: panel.color }} />
                             )}
-                            <Icon style={{ width: 10, height: 10, color: isOpen ? panel.color : "rgba(255,255,255,0.35)", flexShrink: 0 } as React.CSSProperties} />
+                            <Icon style={{ width: 10, height: 10, color: isActive ? panel.color : "rgba(255,255,255,0.35)", flexShrink: 0 } as React.CSSProperties} />
                             <span className="font-mono font-bold text-[8px] tracking-wide whitespace-nowrap"
-                              style={{ color: isOpen ? panel.color : "rgba(255,255,255,0.35)" }}>
+                              style={{ color: isActive ? panel.color : "rgba(255,255,255,0.35)" }}>
                               {panel.shortLabel}
                             </span>
                           </motion.button>
@@ -1967,6 +1956,78 @@ function PanelsHubButton() {
               <div className="h-px w-full" style={{ background: "linear-gradient(90deg,transparent,rgba(226,18,39,0.28),transparent)" }} />
             </motion.div>
           </>,
+          document.body
+        )}
+      </AnimatePresence>
+
+      {/* ── Inline panel — slides in below TopBar, not floating ── */}
+      <AnimatePresence>
+        {activePanel && activeDef && ActiveComp && createPortal(
+          <motion.div
+            key={activePanel}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              position: "fixed",
+              top: 112,
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: Math.min(activeCfg?.w ?? 380, window.innerWidth - 32),
+              maxHeight: `calc(100vh - 132px)`,
+              zIndex: 8500,
+              background: "linear-gradient(160deg, rgba(4,8,20,0.98) 0%, rgba(3,6,15,0.99) 100%)",
+              border: `1px solid ${activeDef.color}30`,
+              borderRadius: "14px",
+              overflow: "hidden",
+              boxShadow: `0 8px 48px rgba(0,0,0,0.88), 0 0 24px ${activeDef.glow}50`,
+              backdropFilter: "blur(28px)",
+              WebkitBackdropFilter: "blur(28px)",
+            }}
+          >
+            {/* Top accent bar */}
+            <div style={{ height: "2px", background: `linear-gradient(90deg, transparent, ${activeDef.color}80, ${activeDef.color}, ${activeDef.color}80, transparent)` }} />
+
+            {/* Header */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "7px 10px",
+              borderBottom: `1px solid ${activeDef.color}12`,
+              background: `linear-gradient(90deg, ${activeDef.color}10, transparent 70%)`,
+            }}>
+              <activeDef.icon style={{ width: 11, height: 11, color: activeDef.color, flexShrink: 0 }} />
+              <span className="font-mono font-black text-[8px] tracking-widest uppercase flex-1"
+                style={{ color: `${activeDef.color}cc` }}>{activeDef.label}</span>
+              <button
+                onClick={() => setActivePanel(null)}
+                style={{
+                  width: 18, height: 18, borderRadius: 5, cursor: "pointer",
+                  background: "rgba(226,18,39,0.07)", border: "1px solid rgba(226,18,39,0.22)",
+                  color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(226,18,39,0.24)"; (e.currentTarget as HTMLButtonElement).style.color = "#e21227"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(226,18,39,0.07)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.4)"; }}
+              >
+                <span style={{ fontSize: 10 }}>×</span>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{ height: activeCfg?.h ?? 320, overflow: "auto", scrollbarWidth: "thin", scrollbarColor: `${activeDef.color}30 transparent` }}>
+              <Suspense fallback={
+                <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <motion.span className="font-mono text-[10px] tracking-widest"
+                    animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity }}
+                    style={{ color: activeDef.color }}>LOADING…</motion.span>
+                </div>
+              }>
+                <ActiveComp />
+              </Suspense>
+            </div>
+
+            {/* Bottom accent */}
+            <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${activeDef.color}18, transparent)` }} />
+          </motion.div>,
           document.body
         )}
       </AnimatePresence>

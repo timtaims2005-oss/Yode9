@@ -104,7 +104,7 @@ function ThreatIntelPanel() {
 }
 
 // ── Panel registry ────────────────────────────────────────────────────────────
-const PANEL_REGISTRY: Record<string, { component: React.ComponentType; w: number; h: number }> = {
+export const PANEL_REGISTRY: Record<string, { component: React.ComponentType; w: number; h: number }> = {
   sysmon:      { component: SysMonitorOrb,          w: 230, h: 200 },
   idle:        { component: IdleTrackerOrb,          w: 230, h: 240 },
   threat:      { component: ThreatFeed3D,            w: 400, h: 380 },
