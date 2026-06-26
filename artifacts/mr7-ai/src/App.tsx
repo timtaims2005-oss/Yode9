@@ -1083,7 +1083,7 @@ function AppContent() {
           <ExploitChainModal open={modals.exploitChain} onOpenChange={(v) => mDispatch({type:'SET',id:'exploitChain',value:v})} />
         </WindowChrome>
         <WindowChrome open={modals.deepSearch} color="#3b82f6" title="DEEP SEARCH" onClose={() => close('deepSearch')}>
-          <DeepSearchModal open={modals.deepSearch} onOpenChange={(v) => mDispatch({type:'SET',id:'deepSearch',value:v})} />
+          <DeepSearchModal open={modals.deepSearch} onOpenChange={(v) => mDispatch({type:'SET',id:'deepSearch',value:v})} onOpenChainInvestigation={() => { close('deepSearch'); open('chainInvestigation'); }} />
         </WindowChrome>
         <WindowChrome open={modals.chainInvestigation} color="#f59e0b" title="CHAIN INVESTIGATION" onClose={() => close('chainInvestigation')}>
           <ChainInvestigationModal open={modals.chainInvestigation} onOpenChange={(v) => mDispatch({type:'SET',id:'chainInvestigation',value:v})} />
