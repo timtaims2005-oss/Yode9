@@ -169,6 +169,7 @@ interface SidebarProps {
   onOpenKgProjectGenerator?: () => void;
   onOpenKgAgentMemory?: () => void;
   onOpenKgAutonomousSwarm?: () => void;
+  onOpenKgSocialArsenal?: () => void;
 }
 
 const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: string }[] = [
@@ -291,7 +292,7 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: DbIcon, label: "Kali SQLi Guide", color: "text-blue-400" },
 ];
 
-export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution, onOpenKgProjectGenerator, onOpenKgAgentMemory, onOpenKgAutonomousSwarm }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution, onOpenKgProjectGenerator, onOpenKgAgentMemory, onOpenKgAutonomousSwarm, onOpenKgSocialArsenal }: SidebarProps) {
   const { toast } = useToast();
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -1203,6 +1204,13 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                 <button onClick={onOpenKgPentestLab} title="Pentest Lab Pro" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-[#e21227]/10 hover:bg-[#e21227]/20 border border-[#e21227]/20 hover:border-[#e21227]/40 transition-all group">
                   <Terminal className="w-3.5 h-3.5 text-[#e21227]/70 group-hover:text-[#e21227]" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Pentest</span>
+                </button>
+              )}
+              {onOpenKgSocialArsenal && (
+                <button onClick={onOpenKgSocialArsenal} title="مركز هجوم وسائل التواصل الاجتماعي" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-purple-900/20 hover:bg-purple-900/35 border border-purple-500/20 hover:border-purple-500/50 transition-all group relative">
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 border border-black animate-pulse" />
+                  <Users className="w-3.5 h-3.5 text-purple-400/70 group-hover:text-purple-400" />
+                  <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Social</span>
                 </button>
               )}
               {onOpenKgSecurity && (

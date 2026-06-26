@@ -275,6 +275,7 @@ const SecurityCompliancePage3D = lazy(() => import("./pages/SecurityCompliancePa
 const AdminDashboardPage    = lazy(() => import("./pages/AdminDashboard").then(m=>({default:m.AdminDashboard})));
 const OrganizationsPage     = lazy(() => import("./pages/OrganizationsPage").then(m=>({default:m.OrganizationsPage})));
 const PentestLabPage        = lazy(() => import("./pages/PentestLabPage").then(m=>({default:m.PentestLabPage})));
+const SocialMediaArsenalPage = lazy(() => import("./pages/SocialMediaArsenalPage").then(m=>({default:m.SocialMediaArsenalPage})));
 const MarketplacePage       = lazy(() => import("./pages/MarketplacePage").then(m=>({default:m.MarketplacePage})));
 const PaymentGatewayPage    = lazy(() => import("./pages/PaymentGatewayPage").then(m=>({default:m.PaymentGatewayPage})));
 const FinetunePage          = lazy(() => import("./pages/FinetunePage").then(m=>({default:m.FinetunePage})));
@@ -363,6 +364,7 @@ const MODAL_IDS = [
   'rateLimitPage',
   'systemsHub3D',
   'infraMap3D',
+  'socialMediaArsenal',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -799,6 +801,7 @@ function AppContent() {
         onOpenLogin={() => open('authModal')}
         onOpenMultiModelRace={() => open('multiModelRace')}
         onOpenLocalBenchmark={() => open('localBenchmark')}
+        onOpenKgSocialArsenal={() => open('socialMediaArsenal')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
@@ -1449,6 +1452,13 @@ function AppContent() {
         {modals.pentestLab && (
           <WindowChrome open={true} title="مختبر اختبار الاختراق" onClose={() => close('pentestLab')}>
             <PentestLabPage onClose={() => close('pentestLab')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.socialMediaArsenal && (
+          <WindowChrome open={true} title="◈ مركز هجوم وسائل التواصل الاجتماعي" color="#e21227" onClose={() => close('socialMediaArsenal')}>
+            <SocialMediaArsenalPage onClose={() => close('socialMediaArsenal')} />
           </WindowChrome>
         )}
       </Suspense>
