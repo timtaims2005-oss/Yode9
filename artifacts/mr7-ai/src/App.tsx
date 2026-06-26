@@ -1161,15 +1161,6 @@ function AppContent() {
       {/* ── Cyber Intelligence Layer — accessible via NET circular button in DockButton ── */}
       <CyberIntelCenter open={modals.cyberIntel} onClose={() => close('cyberIntel')} />
 
-      {/* Always-on ambient layers — lazy loaded via AmbientLayer component */}
-      <Suspense fallback={null}>
-        <AmbientLayer />
-      </Suspense>
-
-      {/* Ultra HUD overlay — performance stats + threat indicator + radar */}
-      <Suspense fallback={null}>
-        <UltraHUD />
-      </Suspense>
 
       {/* CyberWidgetsDock — accessible via TopBar "HUD" button */}
       <AnimatePresence>
@@ -1535,8 +1526,6 @@ function AppContent() {
       {/* Always-on bottom status bar — FPS, memory, net, uptime */}
       <GlobalStatusBar />
 
-      {/* 4D Quantum Floating Widgets */}
-      <Quantum4DWidget />
     </div>
     </>
   );
