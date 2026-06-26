@@ -118,7 +118,11 @@ function connectWs(): void {
 
 function scheduleReconnect(): void {
   if (usingFallback) return;
-  const delay = RECONNECT_DELAY_MS[Math.min(reconnectAttempt, RECONNECT_DELAY_MS.length - 1)];
+  if (reconnectAttempt >= RECONNECT_DELAY_MS.length) {
+    useFallback();
+    return;
+  }
+  const delay = RECONNECT_DELAY_MS[reconnectAttempt];
   reconnectAttempt++;
   setTimeout(connectWs, delay);
 }

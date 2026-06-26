@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useStore, useActiveChat, type CouncilPayload, type CouncilSeatState, type GodmodePayload, type GodmodeChampState } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { ShareModal } from "./modals/ShareModal";
@@ -76,22 +76,28 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
   const [liveTokens, setLiveTokens] = useState(0);
   const [openPanels, setOpenPanels] = useState<Set<string>>(new Set());
 
-  function togglePanel(id: string) {
+  const togglePanel = useCallback((id: string) => {
     setOpenPanels(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  }
-  function closePanel(id: string) {
+  }, []);
+
+  const closePanel = useCallback((id: string) => {
     setOpenPanels(prev => { const next = new Set(prev); next.delete(id); return next; });
-  }
+  }, []);
 
   useEffect(() => {
     function onToggle(e: Event) {
       const { id } = (e as CustomEvent<{ id: string }>).detail;
-      togglePanel(id);
+      setOpenPanels(prev => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
     }
     window.addEventListener("kali:toggle-panel", onToggle);
     return () => window.removeEventListener("kali:toggle-panel", onToggle);
