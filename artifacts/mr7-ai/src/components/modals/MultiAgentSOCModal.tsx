@@ -626,7 +626,7 @@ export function MultiAgentSOCModal({ open, onOpenChange }: Props) {
         }}
       >
         {/* Header */}
-        <div className="relative flex items-center gap-3 px-5 py-3 border-b border-white/6 flex-shrink-0"
+        <div className="relative flex items-center gap-3 px-4 pt-3 pb-[10px] border-b border-white/6 flex-shrink-0"
           style={{ background: "linear-gradient(90deg, rgba(0,229,255,0.04) 0%, transparent 50%, rgba(226,18,39,0.03) 100%)" }}>
           <div className="flex items-center gap-2">
             <div className="relative">

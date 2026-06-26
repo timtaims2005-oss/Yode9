@@ -148,7 +148,7 @@ export function ParseltongueModal({ open, onOpenChange }: ParseltongueModalProps
                   <div className="text-[10px]" style={{ color: "#1a3d1a" }}>Red-team obfuscation engine — 6 techniques × 3 intensities</div>
                 </div>
               </div>
-              <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg transition-colors" style={{ color: "#1a3d1a" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#00ff41")} onMouseLeave={(e) => (e.currentTarget.style.color = "#1a3d1a")}>
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors" style={{ color: "#1a3d1a" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#00ff41")} onMouseLeave={(e) => (e.currentTarget.style.color = "#1a3d1a")}>
                 <X className="w-4 h-4" />
               </button>
             </div>

@@ -80,7 +80,7 @@ export function OdysseusDocEditorModal({ open, onOpenChange }: OdysseusDocEditor
         style={{ background: "linear-gradient(145deg, #040407 0%, #030305 60%, #050408 100%)", border: "1px solid rgba(99,102,241,0.15)", boxShadow: "0 0 80px rgba(99,102,241,0.06), inset 0 1px 0 rgba(99,102,241,0.04)" }}>
 
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-3 border-b" style={{ borderColor: "rgba(99,102,241,0.1)", background: "rgba(0,0,0,0.4)" }}>
+        <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(99,102,241,0.1)", background: "rgba(0,0,0,0.4)" }}>
           <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}>
             <FileText className="w-3.5 h-3.5" style={{ color: "#6366f1" }} />
           </div>

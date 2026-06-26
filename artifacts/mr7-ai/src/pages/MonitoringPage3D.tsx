@@ -165,7 +165,7 @@ export function MonitoringPage3D({ onClose }: Props) {
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 0%,rgba(226,18,39,.05) 0%,transparent 55%)" }} />
 
       {/* Header */}
-      <div className="relative flex-shrink-0 px-5 py-3.5 border-b border-white/6 flex items-center justify-between">
+      <div className="relative flex-shrink-0 px-4 pt-3 pb-[10px] border-b border-white/6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
             <Activity className="w-5 h-5 text-red-400" />
@@ -202,7 +202,7 @@ export function MonitoringPage3D({ onClose }: Props) {
             { icon: CheckCircle2, label: "Uptime", value: `${Math.round((upCount / endpoints.length) * 100)}%`, color: "#10b981" },
           ].map(({ icon: Icon, label, value, color }) => (
             <div key={label} className="p-3 rounded-xl border border-white/6 bg-white/2 text-center">
-              <div className="w-8 h-8 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: `${color}20` }}>
+              <div className="w-9 h-9 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: `${color}20` }}>
                 <Icon className="w-4 h-4" style={{ color }} />
               </div>
               <p className="text-sm font-bold" style={{ color }}>{value}</p>

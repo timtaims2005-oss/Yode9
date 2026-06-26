@@ -38,7 +38,7 @@ export function MultiRealityModal({ open, onOpenChange }: Props) {
             <motion.div key={i} className="absolute inset-0 rounded-2xl pointer-events-none" style={{ background: `radial-gradient(ellipse at ${30 + i * 20}% ${40 + i * 10}%, rgba(99,102,241,0.04), transparent 60%)` }} animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, delay: i * 1, repeat: Infinity }} />
           ))}
 
-          <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(99,102,241,0.15)", background: "rgba(99,102,241,0.04)" }}>
+          <div className="relative z-10 flex items-center gap-4 px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(99,102,241,0.15)", background: "rgba(99,102,241,0.04)" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.4)" }}>
               <Layers className="w-5 h-5" style={{ color: "#6366f1" }} />
             </div>

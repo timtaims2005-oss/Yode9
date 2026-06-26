@@ -183,7 +183,7 @@ export function AccountSettingsPage({ onClose }: Props) {
     <div className="min-h-screen bg-black text-white" dir="rtl">
       {/* Header */}
       <div className="border-b border-red-900/30 bg-black/95 sticky top-0 z-10 backdrop-blur">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 pt-3 pb-[10px] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center text-sm font-bold">
               {user.firstName?.[0] ?? user.email[0].toUpperCase()}

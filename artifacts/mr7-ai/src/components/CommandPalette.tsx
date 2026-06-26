@@ -337,7 +337,7 @@ export function CommandPalette({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.94, opacity: 0, y: -20 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-2xl mx-4 rounded-xl overflow-hidden shadow-2xl"
+            className="relative w-full mx-4 rounded-[18px] overflow-hidden shadow-2xl"
             style={{ background: "linear-gradient(135deg, #0d0d0d 0%, #111111 100%)", border: "1px solid #1f1f1f" }}
           >
             <canvas

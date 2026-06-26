@@ -458,7 +458,6 @@ export function CveTimeline3DModal({ open, onOpenChange }: Props) {
               backdropFilter: "blur(40px)",
               background: "rgba(8, 8, 8, 0.96)",
               height: "min(880px, 92vh)",
-              background: "linear-gradient(145deg,#010408 0%,#050a14 55%,#010408 100%)",
               border: "1px solid rgba(255,32,32,0.2)",
               boxShadow: "0 0 120px rgba(255,32,32,0.08), 0 0 60px rgba(0,40,80,0.15), 0 40px 100px rgba(0,0,0,0.95)",
             }}
@@ -506,7 +505,7 @@ export function CveTimeline3DModal({ open, onOpenChange }: Props) {
                   </div>
                 ))}
                 <button onClick={() => onOpenChange(false)}
-                  className="p-2 rounded-xl"
+                  className="w-7 h-7 flex items-center justify-center rounded-xl"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
                   <X className="w-4 h-4" />
                 </button>

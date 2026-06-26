@@ -285,7 +285,7 @@ export function AdminPanel({ open, onOpenChange }: AdminPanelProps) {
                     <code className="flex-1 text-[11px] font-mono text-cyan-400 break-all">{generatedCode}</code>
                     <button
                       onClick={copyCode}
-                      className="p-2 rounded-lg border border-border hover:bg-accent transition-colors shrink-0"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:bg-accent transition-colors shrink-0"
                     >
                       {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
                     </button>

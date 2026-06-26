@@ -559,7 +559,6 @@ export function AutonomousOffensiveModal({ open, onOpenChange }: Props) {
               backdropFilter: "blur(40px)",
               background: "rgba(8, 8, 8, 0.96)",
             maxHeight: "92vh",
-            background: "linear-gradient(160deg,#040407 0%,#070709 60%,#0a0005 100%)",
             border: "1px solid rgba(226,18,39,0.25)",
             boxShadow: "0 0 80px rgba(226,18,39,0.1), 0 0 160px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.04)",
           }}
@@ -603,7 +602,7 @@ export function AutonomousOffensiveModal({ open, onOpenChange }: Props) {
               AI AUTO-PILOT {autoPilot ? "ON" : "OFF"}
             </button>
 
-            <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-white/10 transition-all flex-shrink-0">
+            <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 transition-all flex-shrink-0">
               <X className="w-4 h-4 text-white/50" />
             </button>
           </div>

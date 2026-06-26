@@ -135,7 +135,7 @@ export function BinaryAnalysisModal({ open, onOpenChange }: Props) {
               <div>
                 <div className="text-[9px] font-bold tracking-widest mb-2" style={{ color: "#333" }}>BINARY INPUT</div>
                 <textarea value={hexInput} onChange={e => setHexInput(e.target.value)}
-                  className="w-full h-28 p-2 rounded-lg font-mono text-[9px] bg-transparent outline-none resize-none"
+                  className="w-full h-28 w-7 h-7 flex items-center justify-center rounded-lg font-mono text-[9px] bg-transparent outline-none resize-none"
                   style={{ border: "1px solid #1a1a1a", color: "#3a3a3a" }} spellCheck={false} />
               </div>
               <input ref={fileRef} type="file" className="hidden" accept=".exe,.elf,.bin,.out,.dll,.so" />

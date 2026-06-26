@@ -190,7 +190,7 @@ export function OpenGravityModal({ open, onOpenChange, pipelineCode }: OpenGravi
               </div>
               <button
                 onClick={() => onOpenChange(false)}
-                className="p-1.5 rounded-lg transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors"
                 style={{ color: "#333" }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "#a78bfa")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "#333")}

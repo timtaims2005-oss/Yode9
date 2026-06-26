@@ -598,7 +598,6 @@ export function ThreatGlobeModal({ open, onOpenChange }: ThreatGlobeModalProps) 
               backdropFilter: "blur(40px)",
               background: "rgba(8, 8, 8, 0.96)",
               height: "min(860px, 90vh)",
-              background: "linear-gradient(145deg,#020810 0%,#050f1e 45%,#020810 100%)",
               border: "1px solid rgba(226,18,39,0.22)",
               boxShadow: "0 0 120px rgba(226,18,39,0.1), 0 0 60px rgba(0,40,120,0.12), 0 40px 100px rgba(0,0,0,0.9)",
             }}
@@ -659,7 +658,7 @@ export function ThreatGlobeModal({ open, onOpenChange }: ThreatGlobeModalProps) 
                   </motion.div>
                 ))}
                 <button onClick={() => onOpenChange(false)}
-                  className="p-2 rounded-xl transition-all hover:scale-105"
+                  className="w-7 h-7 flex items-center justify-center rounded-xl transition-all hover:scale-105"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
                   <X className="w-4 h-4" />
                 </button>

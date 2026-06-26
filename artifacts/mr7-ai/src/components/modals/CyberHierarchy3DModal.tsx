@@ -707,6 +707,8 @@ export function CyberHierarchy3DModal({ open, onOpenChange }: CyberHierarchy3DMo
                       onClick={() => setSupremeTier(prev => prev === tier.tier ? null : tier.tier)}
                       className="cursor-pointer rounded-[18px] overflow-hidden transition-all"
                       style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
                         background: supremeTier === tier.tier
                           ? `radial-gradient(circle at 20% 20%, ${tier.color}18 0%, rgba(0,0,0,0.8) 70%)`
                           : "rgba(0,0,0,0.5)",
@@ -801,7 +803,7 @@ export function CyberHierarchy3DModal({ open, onOpenChange }: CyberHierarchy3DMo
                 </button>
               </div>
               <button onClick={() => onOpenChange(false)}
-                className="p-1.5 rounded-lg border transition-all"
+                className="w-7 h-7 flex items-center justify-center rounded-lg border transition-all"
                 style={{ border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.4)" }}
                 onMouseEnter={e => { e.currentTarget.style.color = "#00ff41"; e.currentTarget.style.borderColor = "rgba(0,255,65,0.4)"; }}
                 onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.4)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}>

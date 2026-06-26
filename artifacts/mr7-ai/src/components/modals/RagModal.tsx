@@ -311,7 +311,7 @@ Language: ${lang === "ar" ? "Arabic" : "English"}`;
                 </div>
                 <button
                   onClick={() => onOpenChange(false)}
-                  className="p-1.5 rounded-lg transition-all"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg transition-all"
                   style={{ color: "rgba(255,255,255,0.25)" }}
                   onMouseEnter={e => (e.currentTarget.style.color = "#3b82f6")}
                   onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.25)")}

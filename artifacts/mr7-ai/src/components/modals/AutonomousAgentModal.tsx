@@ -730,7 +730,7 @@ export function AutonomousAgentModal({ open, onOpenChange }: Props) {
         }}>
 
         {/* ── Header ── */}
-        <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/8 flex-shrink-0"
+        <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b border-white/8 flex-shrink-0"
           style={{ background: "linear-gradient(90deg, rgba(162,78,246,0.08) 0%, rgba(226,18,39,0.05) 100%)" }}>
           <div className="relative flex-shrink-0">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -772,7 +772,7 @@ export function AutonomousAgentModal({ open, onOpenChange }: Props) {
               <span className="text-[9px] text-white/40">موافقة بشرية</span>
             </label>
             <button onClick={() => onOpenChange(false)}
-              className="p-1.5 rounded-lg hover:bg-white/8 text-white/40 hover:text-white/80 transition-all">
+              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/8 text-white/40 hover:text-white/80 transition-all">
               <X size={16} />
             </button>
           </div>

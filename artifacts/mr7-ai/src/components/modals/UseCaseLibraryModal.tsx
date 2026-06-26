@@ -484,7 +484,6 @@ export function UseCaseLibraryModal({ open, onOpenChange, onInject }: Props) {
               backdropFilter: "blur(40px)",
               background: "rgba(8, 8, 8, 0.96)",
             boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 0 120px rgba(226,18,39,0.18), 0 0 60px rgba(226,18,39,0.1), 0 40px 80px rgba(0,0,0,0.9)",
-            background: "#060606",
             transformStyle: "preserve-3d",
           }}
         >

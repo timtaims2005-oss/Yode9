@@ -194,7 +194,7 @@ export function BlockchainAuditModal({ open, onOpenChange }: BlockchainAuditModa
                   style={{ background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.25)", color: "#00e5ff" }}>
                   <Shield className="w-3 h-3" /> VERIFY CHAIN
                 </button>
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-white/5 ml-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 ml-1" style={{ color: "rgba(255,255,255,0.4)" }}>
                   <X className="w-4 h-4" />
                 </button>
               </div>

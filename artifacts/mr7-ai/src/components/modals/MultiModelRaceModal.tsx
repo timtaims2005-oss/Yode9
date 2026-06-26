@@ -165,6 +165,8 @@ function EngineCard({
       animate={{ opacity: 1, y: 0 }}
       className="rounded-[18px] overflow-hidden relative"
       style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
         background: `linear-gradient(135deg, ${eng.color}08 0%, #060810 100%)`,
         border: `1px solid ${isErr ? "#ef444444" : isDone ? eng.color + "55" : isStream ? eng.color + "33" : "#ffffff0a"}`,
         boxShadow: isDone ? `0 0 24px ${eng.color}15` : "none",
@@ -574,7 +576,7 @@ export function MultiModelRaceModal({ open, onOpenChange }: Props) {
             </div>
           </div>
 
-          <button onClick={() => onOpenChange(false)} className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/08 transition-colors">
+          <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/08 transition-colors">
             <X size={16} />
           </button>
         </div>

@@ -352,7 +352,7 @@ export function ChatInput({
                   const on = state.settings[m.key as "stmHedge" | "stmDirect" | "stmCuriosity"];
                   return (
                     <button key={m.key} onClick={() => dispatch({ type: "SET_SETTINGS", patch: { [m.key]: !on } as Parameters<AppDispatch>[0] })}
-                      className={`w-full flex items-start gap-2 p-2 rounded-lg text-left ${on ? "bg-primary/10 border border-primary/30" : "border border-transparent hover:bg-accent"}`}>
+                      className={`w-full flex items-start gap-2 w-7 h-7 flex items-center justify-center rounded-lg text-left ${on ? "bg-primary/10 border border-primary/30" : "border border-transparent hover:bg-accent"}`}>
                       <span className={`w-3 h-3 rounded-sm mt-0.5 ${on ? "bg-primary" : "border border-muted-foreground/40"}`} />
                       <span className="flex-1 min-w-0"><span className="text-[12px] font-semibold block">{m.label}</span><span className="text-[10.5px] text-muted-foreground leading-snug block">{m.desc}</span></span>
                     </button>
@@ -466,7 +466,7 @@ export function ChatInput({
                     const active = state.activePersona === p.id;
                     return (
                       <button key={p.id} onClick={() => { dispatch({ type: "SET_PERSONA", persona: active ? null : p.id }); setPersonaOpen(false); toast({ description: active ? "Persona cleared." : `Persona: ${p.id}.` }); }}
-                        className={`w-full flex items-start gap-2 p-2 rounded-lg text-left transition-colors ${active ? "bg-primary/10" : "hover:bg-accent"}`}>
+                        className={`w-full flex items-start gap-2 w-7 h-7 flex items-center justify-center rounded-lg text-left transition-colors ${active ? "bg-primary/10" : "hover:bg-accent"}`}>
                         <span className={`w-7 h-7 rounded-md border border-border flex items-center justify-center flex-shrink-0 mt-0.5 ${p.color}`}><Icon className="w-4 h-4" /></span>
                         <span className="flex-1 min-w-0"><span className="text-[12.5px] font-semibold block truncate">{p.id}</span><span className="text-[11px] text-muted-foreground leading-snug block">{p.desc}</span></span>
                         {active && <span className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />}
@@ -684,7 +684,7 @@ export function ChatInput({
           <AnimatePresence>
             {showSlash && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
-                className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden z-20 max-h-[min(60vh,420px)] overflow-y-auto">
+                className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-border rounded-[18px] shadow-2xl overflow-hidden z-20 max-h-[min(60vh,420px)] overflow-y-auto">
                 {SLASH.filter((s) => s.cmd.startsWith(input.trim().toLowerCase())).map((s) => (
                   <button key={s.cmd} onClick={() => { setInput(s.cmd + " "); taRef.current?.focus(); setShowSlash(false); }}
                     className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left hover:bg-accent transition-colors">

@@ -238,7 +238,7 @@ export function NetworkPacketInspector({ embedded = false }: { embedded?: boolea
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="rounded-2xl border border-[#1f1f1f] overflow-hidden shadow-[0_0_30px_rgba(0,229,255,0.12)]"
+        className="rounded-[18px] border border-[#1f1f1f] overflow-hidden shadow-[0_0_30px_rgba(0,229,255,0.12)]"
         style={{ width: PANEL_W, background: "rgba(1,4,16,0.97)", backdropFilter: "blur(20px)" }}
       >
         {/* Header */}

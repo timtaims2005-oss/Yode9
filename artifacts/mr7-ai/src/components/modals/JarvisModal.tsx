@@ -501,11 +501,11 @@ export function JarvisModal({ open, onOpenChange }: JarvisModalProps) {
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
-                {running && <button onClick={() => abortRef.current?.abort()} className="p-1.5 rounded-lg transition-colors" style={{ color: "#f97316" }}><Pause className="w-3.5 h-3.5" /></button>}
-                <button onClick={() => { setLog([]); setActiveModule(null); }} title="Clear log" className="p-1.5 rounded-lg transition-colors" style={{ color: DIM }} onMouseEnter={e => (e.currentTarget.style.color = C)} onMouseLeave={e => (e.currentTarget.style.color = DIM)}>
+                {running && <button onClick={() => abortRef.current?.abort()} className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors" style={{ color: "#f97316" }}><Pause className="w-3.5 h-3.5" /></button>}
+                <button onClick={() => { setLog([]); setActiveModule(null); }} title="Clear log" className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors" style={{ color: DIM }} onMouseEnter={e => (e.currentTarget.style.color = C)} onMouseLeave={e => (e.currentTarget.style.color = DIM)}>
                   <RefreshCw className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg transition-colors" style={{ color: DIM }} onMouseEnter={e => (e.currentTarget.style.color = "#e21227")} onMouseLeave={e => (e.currentTarget.style.color = DIM)}>
+                <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors" style={{ color: DIM }} onMouseEnter={e => (e.currentTarget.style.color = "#e21227")} onMouseLeave={e => (e.currentTarget.style.color = DIM)}>
                   <X className="w-4 h-4" />
                 </button>
               </div>

@@ -1207,7 +1207,7 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
       {/* ═══════════════════════════════════════════════════
           HEADER
       ══════════════════════════════════════════════════ */}
-      <div className="relative z-10 flex items-center justify-between px-5 py-3 flex-shrink-0"
+      <div className="relative z-10 flex items-center justify-between px-4 pt-3 pb-[10px] flex-shrink-0"
         style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(124,58,237,0.25)" }}>
 
         {/* Brand */}
@@ -1273,7 +1273,7 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
             {testConn.testing ? "TESTING..." : testConn.ok === true ? `OK ${testConn.latencyMs}ms` : testConn.ok === false ? "FAIL" : "TEST"}
           </button>
           <button onClick={fetchStatus}
-            className="p-1.5 rounded-lg border border-violet-800/30 text-violet-500 hover:text-violet-300 hover:border-violet-600/50 transition-all">
+            className="w-7 h-7 flex items-center justify-center rounded-lg border border-violet-800/30 text-violet-500 hover:text-violet-300 hover:border-violet-600/50 transition-all">
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
           {!status.running && (
@@ -1285,7 +1285,7 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
             </button>
           )}
           <button onClick={onClose}
-            className="p-1.5 rounded-lg border border-red-800/30 text-red-500 hover:text-red-300 hover:border-red-600/50 transition-all">
+            className="w-7 h-7 flex items-center justify-center rounded-lg border border-red-800/30 text-red-500 hover:text-red-300 hover:border-red-600/50 transition-all">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -1521,11 +1521,11 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
                           </div>
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => { setChatModel(model.name); setTab("chat"); }}
-                              className="p-1.5 rounded-lg text-cyan-400 hover:bg-cyan-900/30 transition-all" title="Chat">
+                              className="w-7 h-7 flex items-center justify-center rounded-lg text-cyan-400 hover:bg-cyan-900/30 transition-all" title="Chat">
                               <Terminal className="w-3.5 h-3.5" />
                             </button>
                             <button onClick={() => handleDelete(model.name)}
-                              className="p-1.5 rounded-lg text-red-400 hover:bg-red-900/30 transition-all" title="Delete">
+                              className="w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-900/30 transition-all" title="Delete">
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
@@ -1766,7 +1766,7 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
 
                     <div className="flex items-center gap-3 p-3.5">
                       {/* Tag badge */}
-                      <div className="w-11 h-11 rounded-xl flex-shrink-0 flex flex-col items-center justify-center border font-black text-[9px]"
+                      <div className="w-9 h-9 rounded-xl flex-shrink-0 flex flex-col items-center justify-center border font-black text-[9px]"
                         style={{ borderColor: `${m.color}50`, backgroundColor: `${m.color}12`, color: m.color }}>
                         <span>{m.tag}</span>
                         <span className="text-[7px] opacity-60 mt-0.5">{m.geo.slice(0,4).toUpperCase()}</span>
@@ -1866,7 +1866,7 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
                   </select>
                 </div>
                 <button onClick={() => setChatHistory([])}
-                  className="p-2 rounded-xl border border-violet-800/30 text-violet-500 hover:text-violet-300 transition-all" title="Clear chat">
+                  className="w-7 h-7 flex items-center justify-center rounded-xl border border-violet-800/30 text-violet-500 hover:text-violet-300 transition-all" title="Clear chat">
                   <RefreshCw className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -2056,7 +2056,7 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
           {tab === "groq" && (
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {/* Header */}
-              <div className="relative rounded-2xl border overflow-hidden p-5"
+              <div className="relative rounded-[18px] border overflow-hidden p-5"
                 style={{ borderColor: "rgba(251,191,36,0.25)", background: "linear-gradient(135deg, rgba(251,191,36,0.06) 0%, rgba(0,0,0,0.8) 100%)" }}>
                 <motion.div
                   animate={{ opacity: [0.15, 0.35, 0.15] }} transition={{ repeat: Infinity, duration: 3 }}
@@ -2143,7 +2143,7 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
                       className="absolute inset-0 pointer-events-none"
                       style={{ background: `radial-gradient(ellipse at left, ${m.badgeColor}12 0%, transparent 65%)` }} />
                     <div className="flex items-center gap-3 p-3.5">
-                      <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-[8px] font-black"
+                      <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-[8px] font-black"
                         style={{ background: `${m.badgeColor}15`, border: `1px solid ${m.badgeColor}40`, color: m.badgeColor }}>
                         <Bolt className="w-4 h-4" />
                       </div>
@@ -2415,7 +2415,7 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
               {/* Header */}
-              <div className="relative rounded-2xl border overflow-hidden p-4"
+              <div className="relative rounded-[18px] border overflow-hidden p-4"
                 style={{ borderColor: "rgba(244,63,94,0.25)", background: "linear-gradient(135deg, rgba(244,63,94,0.07) 0%, rgba(167,139,250,0.05) 100%)" }}>
                 <motion.div animate={{ opacity: [0.1, 0.25, 0.1] }} transition={{ repeat: Infinity, duration: 3 }}
                   className="absolute inset-0 pointer-events-none"
@@ -2487,7 +2487,7 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
 
               {/* Live race canvas */}
               {(cmpLoadA || cmpLoadB || cmpResA || cmpResB) && (
-                <div className="rounded-2xl overflow-hidden border" style={{ borderColor: "rgba(244,63,94,0.2)", background: "rgba(0,0,0,0.7)" }}>
+                <div className="rounded-[18px] overflow-hidden border" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", borderColor: "rgba(244,63,94,0.2)", background: "rgba(0,0,0,0.7)" }}>
                   <div className="px-4 py-2 border-b flex items-center justify-between"
                     style={{ borderColor: "rgba(255,255,255,0.06)" }}>
                     <div className="flex items-center gap-4 text-[9px] font-mono">
@@ -2525,7 +2525,7 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
                   ]).map(({ side, model, res, load, done, tps, tokens, ttft, elapsed, color }) => (
                     <motion.div key={side}
                       initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                      className="rounded-xl border overflow-hidden flex flex-col"
+                      className="rounded-[18px] border overflow-hidden flex flex-col"
                       style={{ borderColor: `${color}25`, background: `${color}06` }}>
                       {/* Header */}
                       <div className="flex items-center justify-between px-3 py-2 border-b"

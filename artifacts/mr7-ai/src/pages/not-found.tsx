@@ -12,14 +12,14 @@ export default function NotFound() {
       <div className="relative text-center max-w-lg">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-10">
-          <div className="w-8 h-8 rounded-xl bg-[#FF3C00] flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-[#FF3C00] flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
           </div>
           <span className="font-bold text-white">KaliGPT</span>
         </div>
 
         {/* Terminal card */}
-        <div className="rounded-xl border border-white/8 bg-[#111] overflow-hidden mb-8 text-left shadow-2xl">
+        <div className="rounded-[18px] border border-white/8 bg-[#111] overflow-hidden mb-8 text-left shadow-2xl">
           <div className="flex items-center gap-1.5 px-4 py-3 border-b border-white/5 bg-[#0d0d0d]">
             <div className="w-3 h-3 rounded-full bg-red-500/70" />
             <div className="w-3 h-3 rounded-full bg-yellow-500/70" />

@@ -77,7 +77,7 @@ export function RateLimitPage({ onClose }: Props) {
   return (
     <div className="relative flex flex-col h-full bg-[#080808] overflow-hidden" dir="rtl">
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 25% 15%,rgba(249,115,22,.05) 0%,transparent 50%)" }} />
-      <div className="relative flex-shrink-0 px-5 py-3.5 border-b border-white/6 flex items-center justify-between">
+      <div className="relative flex-shrink-0 px-4 pt-3 pb-[10px] border-b border-white/6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center"><Activity className="w-5 h-5 text-orange-400" /></div>
           <div><h2 className="text-base font-bold text-white">معدل الطلبات والحصص — 3D</h2><p className="text-xs text-zinc-600">Rate Limits · Quota Manager · Live Throttle</p></div>

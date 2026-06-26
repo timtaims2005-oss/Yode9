@@ -194,7 +194,7 @@ export function MarkXXXIXModal({ open, onOpenChange, pipelineContext }: MarkXXXI
             initial={{ scale: 0.96, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 16 }}
           >
             {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b" style={{ borderColor: "rgba(251,191,36,0.15)", background: "linear-gradient(135deg, #0a0800 0%, #080808 100%)" }}>
+            <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(251,191,36,0.15)", background: "linear-gradient(135deg, #0a0800 0%, #080808 100%)" }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.3)" }}>
                 <Cpu className="w-5 h-5" style={{ color: "#fbbf24" }} />
               </div>

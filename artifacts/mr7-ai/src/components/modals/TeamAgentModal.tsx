@@ -224,7 +224,7 @@ Your job: synthesize all perspectives into one unified, structured threat intell
                     </button>
                   ))}
                 </div>
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg" style={{ color: "#3a2010" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#f97316")} onMouseLeave={(e) => (e.currentTarget.style.color = "#3a2010")}>
+                <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg" style={{ color: "#3a2010" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#f97316")} onMouseLeave={(e) => (e.currentTarget.style.color = "#3a2010")}>
                   <X className="w-4 h-4" />
                 </button>
               </div>

@@ -222,7 +222,7 @@ export function GestureControlModal({ open, onOpenChange }: GestureControlModalP
                   style={{ background: isActive ? "rgba(226,18,39,0.12)" : "rgba(0,229,255,0.12)", border: `1px solid ${isActive ? "rgba(226,18,39,0.35)" : "rgba(0,229,255,0.35)"}`, color: isActive ? "#e21227" : "#00e5ff" }}>
                   {isActive ? <><Eye className="w-3 h-3" /> STOP</> : <><Camera className="w-3 h-3" /> START TRACKING</>}
                 </button>
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-white/5 ml-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 ml-1" style={{ color: "rgba(255,255,255,0.4)" }}>
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -273,7 +273,7 @@ export function GestureControlModal({ open, onOpenChange }: GestureControlModalP
                 </div>
                 <div className="flex-1 overflow-y-auto p-2 space-y-1">
                   {GESTURES.map(g => (
-                    <div key={g.id} className="p-2 rounded-lg transition-all"
+                    <div key={g.id} className="w-7 h-7 flex items-center justify-center rounded-lg transition-all"
                       style={{
                         background: activeGesture?.id === g.id ? `${g.color}10` : "rgba(255,255,255,0.02)",
                         border: `1px solid ${activeGesture?.id === g.id ? g.color + "35" : "#111"}`,

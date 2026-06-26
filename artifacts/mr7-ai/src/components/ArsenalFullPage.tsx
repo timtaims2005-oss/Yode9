@@ -237,7 +237,7 @@ function FullPageWrapper({ children, moduleId, onBack }: { children: React.React
 
       {/* 3D Futuristic Top Bar */}
       <div
-        className="relative z-10 flex items-center gap-3 px-5 py-3 shrink-0"
+        className="relative z-10 flex items-center gap-3 px-4 pt-3 pb-[10px] shrink-0"
         style={{
           borderBottom: `1px solid ${color}20`,
           background: `linear-gradient(90deg, ${color}06 0%, transparent 50%, ${color}03 100%)`,
@@ -320,7 +320,7 @@ function FullPageWrapper({ children, moduleId, onBack }: { children: React.React
             whileHover={{ scale: 1.1, rotate: 90 }}
             whileTap={{ scale: 0.9 }}
             onClick={onBack}
-            className="p-2 rounded-xl transition-all"
+            className="w-7 h-7 flex items-center justify-center rounded-xl transition-all"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", color: "#444" }}
           >
             <X className="w-4 h-4" />

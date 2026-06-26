@@ -128,7 +128,7 @@ export function SkillsLibraryModal({ open, onOpenChange, onInject }: SkillsLibra
                   <div className="text-[10px]" style={{ color: "#0d3520" }}>{SKILLS.length} curated security skill playbooks — click to inject into AI</div>
                 </div>
               </div>
-              <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg" style={{ color: "#0d3520" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#10b981")} onMouseLeave={(e) => (e.currentTarget.style.color = "#0d3520")}>
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg" style={{ color: "#0d3520" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#10b981")} onMouseLeave={(e) => (e.currentTarget.style.color = "#0d3520")}>
                 <X className="w-4 h-4" />
               </button>
             </div>

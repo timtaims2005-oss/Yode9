@@ -1191,7 +1191,7 @@ export function AIQuickSetupButton() {
               pointerEvents: "auto",
             }}
           >
-            <div className="rounded-2xl flex flex-col"
+            <div className="rounded-[18px] flex flex-col"
               style={{
                 background: "linear-gradient(160deg, rgba(0,12,8,0.99) 0%, rgba(2,8,6,0.99) 60%, rgba(0,10,6,0.99) 100%)",
                 border: "1px solid rgba(0,255,136,0.30)",

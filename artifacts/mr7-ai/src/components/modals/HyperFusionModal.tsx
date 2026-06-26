@@ -492,7 +492,7 @@ export function HyperFusionModal({ open, onClose, initialMessages = [] }: Props)
                     <span className="text-[8px] font-mono" style={{color:"rgba(167,139,250,0.7)"}}>{FUSION_MODES_100.length} MODES</span>
                   </div>
                 </div>
-                <button onClick={onClose} className="p-2 rounded-lg transition-all" style={{color:"rgba(255,255,255,0.4)",border:"1px solid rgba(255,255,255,0.07)"}} onMouseEnter={e=>(e.currentTarget.style.background="rgba(255,255,255,0.06)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}><X className="w-4 h-4" /></button>
+                <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg transition-all" style={{color:"rgba(255,255,255,0.4)",border:"1px solid rgba(255,255,255,0.07)"}} onMouseEnter={e=>(e.currentTarget.style.background="rgba(255,255,255,0.06)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}><X className="w-4 h-4" /></button>
               </div>
               {/* Quick stats strip */}
               <div className="px-5 pb-2 flex items-center gap-4 flex-wrap">
@@ -720,7 +720,7 @@ export function HyperFusionModal({ open, onClose, initialMessages = [] }: Props)
                             {!isExpanded&&result.content&&<p className="text-[10px] text-muted-foreground truncate mt-0.5">{result.content.slice(0,90)}...</p>}
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
-                            {result.content&&<button onClick={(e)=>{e.stopPropagation();copyText(result.content,result.modelId);}} className="p-1.5 rounded-lg hover:bg-[#1f1f1f] text-muted-foreground transition-colors">
+                            {result.content&&<button onClick={(e)=>{e.stopPropagation();copyText(result.content,result.modelId);}} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#1f1f1f] text-muted-foreground transition-colors">
                               {copiedId===result.modelId?<CheckCheck className="w-3.5 h-3.5 text-emerald-400"/>:<Copy className="w-3.5 h-3.5"/>}
                             </button>}
                             {isExpanded?<ChevronUp className="w-3.5 h-3.5 text-muted-foreground"/>:<ChevronDown className="w-3.5 h-3.5 text-muted-foreground"/>}
@@ -744,7 +744,7 @@ export function HyperFusionModal({ open, onClose, initialMessages = [] }: Props)
                         <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
                         <span className="text-[12px] font-black text-amber-400">SYNTHESIS — {selectedMode.nameAr}</span>
                         {synthStreaming&&<RefreshCw className="w-3.5 h-3.5 text-amber-400 animate-spin ml-auto"/>}
-                        {!synthStreaming&&synthesis&&<button onClick={()=>copyText(synthesis,"synthesis")} className="ml-auto p-1.5 rounded-lg hover:bg-[#1f1f1f] text-muted-foreground transition-colors">{copiedId==="synthesis"?<CheckCheck className="w-3.5 h-3.5 text-emerald-400"/>:<Copy className="w-3.5 h-3.5"/>}</button>}
+                        {!synthStreaming&&synthesis&&<button onClick={()=>copyText(synthesis,"synthesis")} className="ml-auto w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#1f1f1f] text-muted-foreground transition-colors">{copiedId==="synthesis"?<CheckCheck className="w-3.5 h-3.5 text-emerald-400"/>:<Copy className="w-3.5 h-3.5"/>}</button>}
                       </div>
                       <div className="px-4 pb-4 pt-1 border-t" style={{borderColor:"rgba(251,191,36,0.2)"}}>
                         <pre className="text-[11px] text-foreground/90 whitespace-pre-wrap leading-relaxed font-sans">{synthesis}</pre>
@@ -756,7 +756,7 @@ export function HyperFusionModal({ open, onClose, initialMessages = [] }: Props)
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 border-t flex items-center justify-between shrink-0" style={{borderColor:"rgba(167,139,250,0.2)"}}>
+            <div className="px-4 pt-3 pb-[10px] border-t flex items-center justify-between shrink-0" style={{borderColor:"rgba(167,139,250,0.2)"}}>
               <span className="text-[10px] text-muted-foreground">
                 {availableModels.length} متاح · {FUSION_MODES_100.length} وضع · <span style={{color:selectedMode.color}}>{selectedMode.nameAr}</span>
               </span>

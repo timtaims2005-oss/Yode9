@@ -1444,7 +1444,7 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
 
         {/* 3D Auto-Detect Radar */}
-        <div className="rounded-[18px] overflow-hidden" style={{ background: "linear-gradient(135deg, #060608, #0a0a10)", border: "1px solid rgba(0,229,255,0.15)", boxShadow: "0 0 30px rgba(0,229,255,0.06)" }}>
+        <div className="rounded-[18px] overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "linear-gradient(135deg, #060608, #0a0a10)", border: "1px solid rgba(0,229,255,0.15)", boxShadow: "0 0 30px rgba(0,229,255,0.06)" }}>
           <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid rgba(0,229,255,0.08)" }}>
             <div className="flex items-center gap-2">
               <Radio className="w-4 h-4" style={{ color: autoScanning ? "#00e5ff" : "rgba(0,229,255,0.5)" }} />
@@ -2180,7 +2180,7 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
               </div>
             ))}
           </div>
-          <div className="flex items-start gap-1.5 p-2 rounded-lg bg-amber-400/5 border border-amber-400/20 text-amber-300/90">
+          <div className="flex items-start gap-1.5 w-7 h-7 flex items-center justify-center rounded-lg bg-amber-400/5 border border-amber-400/20 text-amber-300/90">
             <WifiOff className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
             <div>ملاحظة: النموذج المحلي يعمل على جهازك فقط. تأكد أن متصفحك يسمح بالاتصال بـ localhost.</div>
           </div>

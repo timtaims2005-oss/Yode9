@@ -491,7 +491,7 @@ export function NeuralMatrixModal({ open, onOpenChange }: NeuralMatrixModalProps
                   <span className="text-[9px] font-bold" style={{ color: activeModel.color }}>{activeModel.name}</span>
                   <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full" style={{ background: activeModel.color }} />
                 </div>
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg transition-colors" style={{ color: "rgba(255,255,255,0.3)" }} onMouseEnter={e => (e.currentTarget.style.color = "#e21227")} onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}>
+                <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors" style={{ color: "rgba(255,255,255,0.3)" }} onMouseEnter={e => (e.currentTarget.style.color = "#e21227")} onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}>
                   <X className="w-4 h-4" />
                 </button>
               </div>

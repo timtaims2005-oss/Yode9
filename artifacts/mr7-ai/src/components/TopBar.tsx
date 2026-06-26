@@ -736,7 +736,7 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
 
             <motion.div
               ref={dragRef}
-              className="fixed z-[1999] rounded-2xl overflow-hidden flex flex-col"
+              className="fixed z-[1999] rounded-[18px] overflow-hidden flex flex-col"
               style={{
                 top: dragPos.y, left: dragPos.x, width: 380,
                 maxHeight: "min(88vh, 620px)",
@@ -950,13 +950,13 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-[8px] font-bold" style={{ color: "rgba(255,255,255,0.3)" }}>
-                        <div className="p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                        <div className="w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
                           <div className="mb-1">أمثلة Ollama</div>
                           {["llama3", "mistral", "codellama", "phi3"].map(m => (
                             <button key={m} onClick={() => setEditModel(m)} className="block w-full text-left text-[9px] px-1 py-0.5 rounded hover:bg-white/5 transition" style={{ color: hColor }}>{m}</button>
                           ))}
                         </div>
-                        <div className="p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                        <div className="w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
                           <div className="mb-1">Endpoints شائعة</div>
                           {["localhost:11434/v1","localhost:1234/v1","localhost:1337/v1"].map(ep => (
                             <button key={ep} onClick={() => setEditEndpoint(`http://${ep}`)} className="block w-full text-left text-[8px] px-1 py-0.5 rounded hover:bg-white/5 transition truncate" style={{ color: "#8b5cf6" }}>{ep}</button>
@@ -1269,7 +1269,7 @@ function OperationModeBtn3D() {
             {/* Window */}
             <motion.div
               ref={dragRef}
-              className="fixed z-[999] rounded-2xl overflow-hidden flex flex-col"
+              className="fixed z-[999] rounded-[18px] overflow-hidden flex flex-col"
               style={{
                 top: dragPos.y, left: dragPos.x,
                 width: "min(420px, 96vw)",
@@ -1325,7 +1325,7 @@ function OperationModeBtn3D() {
                     return (
                       <motion.button key={p.id}
                         onClick={() => savePerfMode(p.id)}
-                        className="flex flex-col items-center gap-2.5 py-4 px-2 rounded-2xl relative overflow-hidden"
+                        className="flex flex-col items-center gap-2.5 py-4 px-2 rounded-[18px] relative overflow-hidden"
                         style={{
                           background: isActive ? `${p.color}14` : "rgba(255,255,255,0.025)",
                           border: `1px solid ${isActive ? p.color + "55" : "rgba(255,255,255,0.07)"}`,
@@ -1381,7 +1381,7 @@ function OperationModeBtn3D() {
                     return (
                       <motion.button key={w.id}
                         onClick={() => saveWflowMode(w.id)}
-                        className="flex flex-col items-center gap-2 py-3.5 px-3 rounded-2xl relative overflow-hidden"
+                        className="flex flex-col items-center gap-2 py-3.5 px-3 rounded-[18px] relative overflow-hidden"
                         style={{
                           background: isActive ? `${w.color}14` : "rgba(255,255,255,0.025)",
                           border: `1px solid ${isActive ? w.color + "55" : "rgba(255,255,255,0.07)"}`,
@@ -1597,10 +1597,9 @@ function ModelSelector3D({
 
             <motion.div
               ref={dragRef}
-              className="fixed z-[1997] rounded-2xl overflow-hidden"
+              className="fixed z-[1997] rounded-[18px] overflow-hidden"
               style={{
                 top: dragPos.y, left: dragPos.x,
-                width: 338,
                 maxHeight: "min(76vh, 600px)",
                 background: "linear-gradient(160deg, rgba(6,4,14,0.99) 0%, rgba(4,2,10,0.99) 100%)",
                 border: "1px solid rgba(226,18,39,0.28)",
@@ -1704,7 +1703,7 @@ function ModelSelector3D({
                         dispatch({ type: "SET_MODEL", model: m.id });
                         setOpen(false);
                       }}
-                      className="w-full flex items-start gap-2.5 p-2 rounded-xl text-left relative overflow-hidden"
+                      className="w-full flex items-start gap-2.5 w-7 h-7 flex items-center justify-center rounded-xl text-left relative overflow-hidden"
                       style={{
                         background: isActive ? "rgba(226,18,39,0.1)" : "transparent",
                         border: `1px solid ${isActive ? "rgba(226,18,39,0.3)" : "transparent"}`,
@@ -1872,14 +1871,12 @@ function PanelsHubButton() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.92 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed z-[9981] rounded-2xl overflow-hidden"
+              className="fixed z-[9981] rounded-[18px] overflow-hidden"
               style={{
                 top: 62, left: "50%", transform: "translateX(-50%)",
-                width: 500,
                 background: "linear-gradient(160deg, rgba(6,4,14,0.99) 0%, rgba(4,2,10,0.99) 100%)",
                 border: "1px solid rgba(226,18,39,0.28)",
                 boxShadow: "0 0 60px rgba(226,18,39,0.10), 0 24px 80px rgba(0,0,0,0.92)",
-                backdropFilter: "blur(36px)",
                 WebkitBackdropFilter: "blur(36px)",
               }}
             >
@@ -2155,7 +2152,7 @@ function PinnedShortcutsBar({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -6, scale: 0.93 }}
                 transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute bottom-8 left-0 z-[9989] rounded-2xl overflow-hidden"
+                className="absolute bottom-8 left-0 z-[9989] rounded-[18px] overflow-hidden"
                 style={{
                   width: 200,
                   background: "linear-gradient(160deg, rgba(8,4,14,0.99), rgba(5,2,10,0.99))",
@@ -2356,7 +2353,7 @@ export function TopBar({
         {onToggleSidebar && (
           <motion.button
             onClick={onToggleSidebar}
-            className="hidden md:flex p-2 rounded-lg relative overflow-hidden flex-shrink-0"
+            className="hidden md:flex w-7 h-7 flex items-center justify-center rounded-lg relative overflow-hidden flex-shrink-0"
             style={{
               color: sidebarCollapsed ? "#e21227" : "rgba(255,255,255,0.42)",
               background: sidebarCollapsed ? "rgba(226,18,39,0.12)" : "rgba(255,255,255,0.03)",
@@ -2593,7 +2590,7 @@ export function TopBar({
 
         <motion.button
           onClick={onOpenHelp}
-          className="flex-shrink-0 hidden sm:flex p-2 rounded-lg"
+          className="flex-shrink-0 hidden sm:flex w-7 h-7 flex items-center justify-center rounded-lg"
           style={{ color: "rgba(255,255,255,0.3)", border: "1px solid rgba(255,255,255,0.07)" }}
           whileHover={{ color: "rgba(255,255,255,0.75)", background: "rgba(255,255,255,0.06)", scale: 1.06 }}
           whileTap={{ scale: 0.94 }}
@@ -2604,7 +2601,7 @@ export function TopBar({
 
         <motion.button
           onClick={toggleCompact}
-          className="flex-shrink-0 p-2 rounded-lg"
+          className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg"
           style={{
             color: compact ? "#00e5ff" : "rgba(255,255,255,0.3)",
             background: compact ? "rgba(0,229,255,0.08)" : "transparent",

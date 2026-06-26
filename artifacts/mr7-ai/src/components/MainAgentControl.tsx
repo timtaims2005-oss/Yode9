@@ -184,7 +184,7 @@ export function MainAgentControl({ compact = false, className = "" }: Props) {
               initial={{ opacity: 0, y: -4, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.97 }}
-              className="absolute bottom-full left-0 right-0 mb-1 z-50 rounded-xl border border-white/10 bg-black/95 shadow-2xl overflow-hidden"
+              className="absolute bottom-full left-0 right-0 mb-1 z-50 rounded-[18px] border border-white/10 bg-black/95 shadow-2xl overflow-hidden"
             >
               {QUICK_MODELS.map(m => (
                 <button

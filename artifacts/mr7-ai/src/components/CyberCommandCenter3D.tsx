@@ -477,7 +477,7 @@ export function CyberCommandCenter3D({ open, onClose, onOpenModal }: CyberComman
               {activeTab === 'hub' ? "DRAG TO ROTATE · CLICK RING TO EXPAND" : "DRAG TO ROTATE GLOBE · CISA KEV LIVE"}
             </span>
             <button onClick={onClose}
-              className="p-1.5 rounded-lg transition-all"
+              className="w-7 h-7 flex items-center justify-center rounded-lg transition-all"
               style={{ color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.1)" }}
               onMouseEnter={e => { e.currentTarget.style.color = "#ff2020"; e.currentTarget.style.borderColor = "#ff202055"; }}
               onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.5)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}>

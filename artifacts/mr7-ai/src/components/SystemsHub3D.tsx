@@ -382,18 +382,20 @@ export function SystemsHub3D({ open, onClose, onOpenSystem }: Props) {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.85, opacity: 0, y: 40 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="relative w-full h-full max-w-[1400px] max-h-[900px] mx-4 my-4 rounded-2xl overflow-hidden flex flex-col"
+            className="relative w-full h-full max-h-[900px] mx-4 my-4 rounded-[18px] overflow-hidden flex flex-col"
             style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
               background: "linear-gradient(135deg, #080808 0%, #0d0d0d 50%, #0a0a0a 100%)",
               border: "1px solid rgba(226,18,39,0.25)",
               boxShadow: "0 0 80px rgba(226,18,39,0.15), 0 0 200px rgba(226,18,39,0.05), inset 0 1px 0 rgba(255,255,255,0.04)",
             }}
           >
             {/* Header */}
-            <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-white/6" dir="rtl">
+            <div className="flex-shrink-0 flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-white/6" dir="rtl">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(226,18,39,0.2)", border: "1px solid rgba(226,18,39,0.4)" }}>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(226,18,39,0.2)", border: "1px solid rgba(226,18,39,0.4)" }}>
                     <Zap className="w-5 h-5 text-red-400" />
                   </div>
                   <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-green-500 border-2 border-black" />

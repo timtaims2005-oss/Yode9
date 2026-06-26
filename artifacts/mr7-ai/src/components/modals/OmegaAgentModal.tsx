@@ -300,7 +300,7 @@ function ActionBlockView({ block }: { block: ActionBlock }) {
     <motion.div
       initial={{ opacity: 0, y: 6, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      className="rounded-xl overflow-hidden flex flex-col"
+      className="rounded-[18px] overflow-hidden flex flex-col"
       style={{ border: `1px solid ${color}28`, background: `${color}0a` }}
     >
       <div className="flex items-center gap-2 px-3 py-2" style={{ borderBottom: `1px solid ${color}18`, background: `${color}12` }}>
@@ -658,7 +658,7 @@ export function OmegaAgentModal({ open, onOpenChange }: OmegaAgentModalProps) {
                   </button>
                 )}
                 <button onClick={() => onOpenChange(false)}
-                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors">
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -687,7 +687,7 @@ export function OmegaAgentModal({ open, onOpenChange }: OmegaAgentModalProps) {
                   const isActive = activeCapability === cap.id;
                   return (
                     <button key={cap.id} onClick={() => setActiveCapability(cap.id)}
-                      className="w-full flex items-start gap-2 p-2 rounded-xl text-left transition-all group"
+                      className="w-full flex items-start gap-2 w-7 h-7 flex items-center justify-center rounded-xl text-left transition-all group"
                       style={{
                         background: isActive ? `${cap.color}12` : "transparent",
                         border: `1px solid ${isActive ? cap.color + "40" : "transparent"}`,
@@ -939,7 +939,7 @@ export function OmegaAgentModal({ open, onOpenChange }: OmegaAgentModalProps) {
 
                     <div className="flex-1 min-h-0 grid grid-cols-2 gap-3 overflow-y-auto">
                       {parallelAgents.map(agent => (
-                        <div key={agent.id} className="flex flex-col rounded-xl overflow-hidden min-h-0"
+                        <div key={agent.id} className="flex flex-col rounded-[18px] overflow-hidden min-h-0"
                           style={{ border: `1px solid ${agent.color}30`, background: `${agent.color}08` }}>
                           <div className="flex items-center gap-2 px-3 py-2 flex-shrink-0"
                             style={{ borderBottom: `1px solid ${agent.color}20`, background: `${agent.color}12` }}>
@@ -1032,7 +1032,7 @@ export function OmegaAgentModal({ open, onOpenChange }: OmegaAgentModalProps) {
                           "أنشئ خرائط تدفق المستخدم",
                         ].map(s => (
                           <button key={s} onClick={() => { setTab("command"); setInput(s); }}
-                            className="text-[10px] p-2 rounded-lg text-left transition-all"
+                            className="text-[10px] w-7 h-7 flex items-center justify-center rounded-lg text-left transition-all"
                             style={{ background: "rgba(236,72,153,0.08)", border: "1px solid rgba(236,72,153,0.2)", color: "rgba(236,72,153,0.8)" }}>
                             {s}
                           </button>

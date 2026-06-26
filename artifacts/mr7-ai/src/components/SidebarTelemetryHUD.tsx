@@ -84,7 +84,7 @@ function MetricBar({ metric, history }: { metric: Metric; history: number[] }) {
   const barColor = danger ? "#e21227" : warn ? "#f59e0b" : metric.color;
 
   return (
-    <div className="relative flex flex-col gap-1 p-2 rounded-xl overflow-hidden"
+    <div className="relative flex flex-col gap-1 p-2 rounded-[18px] overflow-hidden"
       style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${metric.color}18` }}>
       {/* Subtle glow bg */}
       <div className="absolute inset-0 rounded-xl pointer-events-none"
@@ -262,8 +262,10 @@ export function SidebarTelemetryHUD() {
             transition={{ duration: 0.22, ease: "easeInOut" }}
             style={{ overflow: "hidden" }}
           >
-            <div className="mt-2 flex flex-col gap-1.5 relative rounded-2xl overflow-hidden p-2"
+            <div className="mt-2 flex flex-col gap-1.5 relative rounded-[18px] overflow-hidden p-2"
               style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
                 background: "linear-gradient(160deg, rgba(8,6,16,0.95) 0%, rgba(4,3,10,0.98) 100%)",
                 border: "1px solid rgba(226,18,39,0.12)",
                 boxShadow: "0 0 20px rgba(226,18,39,0.05), inset 0 1px 0 rgba(255,255,255,0.03)",

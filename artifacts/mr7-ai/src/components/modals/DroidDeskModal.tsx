@@ -201,7 +201,7 @@ Provide a specific, actionable answer for this Android Linux setup question.`;
                   </button>
                 </div>
                 {aiHelp && (
-                  <div className="mt-2 text-[10px] p-2 rounded-lg whitespace-pre-wrap" style={{ background: "rgba(255,255,255,0.02)", color: "#888" }}>
+                  <div className="mt-2 text-[10px] w-7 h-7 flex items-center justify-center rounded-lg whitespace-pre-wrap" style={{ background: "rgba(255,255,255,0.02)", color: "#888" }}>
                     {aiHelp}
                   </div>
                 )}

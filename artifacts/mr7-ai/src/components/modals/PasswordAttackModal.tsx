@@ -200,7 +200,7 @@ Always note these techniques require explicit authorization to use on target sys
               )}
             </div>
 
-            <div className="px-5 py-3 border-t flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.05)", background: "#060606" }}>
+            <div className="px-4 pt-3 pb-[10px] border-t flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.05)", background: "#060606" }}>
               <div className="text-[9px] font-mono" style={{ color: "#222" }}>Authorized testing only · Educational purposes</div>
               <Lock className="w-3.5 h-3.5" style={{ color: "#1a1a1a" }} />
             </div>

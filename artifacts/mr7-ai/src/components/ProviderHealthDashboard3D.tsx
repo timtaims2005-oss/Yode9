@@ -348,8 +348,10 @@ export function ProviderHealthDashboard3D() {
   return (
     <div className="space-y-4 p-4">
       {/* ── Header: overall status ── */}
-      <div className="rounded-2xl overflow-hidden border"
+      <div className="rounded-[18px] overflow-hidden border"
         style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
           borderColor: overallHealth === "operational" ? "rgba(34,197,94,0.25)" :
                        overallHealth === "degraded"    ? "rgba(245,158,11,0.25)" :
                        overallHealth === "critical"    ? "rgba(226,18,39,0.3)" : "rgba(255,255,255,0.1)",
@@ -507,7 +509,7 @@ export function ProviderHealthDashboard3D() {
                   <button
                     onClick={() => toggleDisable(p.id)}
                     title={p.disabled ? "تفعيل المزود" : "تعطيل مؤقت"}
-                    className="p-1.5 rounded-lg transition-all"
+                    className="w-7 h-7 flex items-center justify-center rounded-lg transition-all"
                     style={{
                       background: p.disabled ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
                       border: p.disabled ? "1px solid rgba(34,197,94,0.2)" : "1px solid rgba(239,68,68,0.2)",

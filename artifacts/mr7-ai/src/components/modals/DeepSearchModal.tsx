@@ -446,7 +446,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
 
                   <div className="grid grid-cols-2 gap-2">
                     <motion.button onClick={runScan} whileTap={{ scale: 0.97 }}
-                      className="flex flex-col items-center justify-center py-4 rounded-xl text-white font-bold transition-all relative overflow-hidden"
+                      className="flex flex-col items-center justify-center py-4 rounded-[18px] text-white font-bold transition-all relative overflow-hidden"
                       style={{ background: "linear-gradient(135deg,#e21227,#8b0000)" }}>
                       <motion.div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity"
                         style={{ background: "linear-gradient(135deg,#ff1a35,#a00000)" }} />
@@ -457,7 +457,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                     </motion.button>
 
                     <motion.button onClick={() => setShowUpgrade(true)} whileTap={{ scale: 0.97 }}
-                      className="flex flex-col items-center justify-center py-4 rounded-xl border border-[#262626] bg-[#0f0f14] transition-all relative overflow-hidden"
+                      className="flex flex-col items-center justify-center py-4 rounded-[18px] border border-[#262626] bg-[#0f0f14] transition-all relative overflow-hidden"
                       animate={{ borderColor: ["#7c3aed20", "#7c3aed50", "#7c3aed20"] }}
                       transition={{ duration: 3, repeat: Infinity }}>
                       <div className="absolute top-2 right-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-black" style={{ background: "#7c3aed" }}>
@@ -1124,6 +1124,8 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                         <motion.div key={i}
                           className="rounded-[18px] border overflow-hidden cursor-pointer"
                           style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
                             borderColor: expandedBreach === i ? b.color + "40" : "#1a1a1a",
                             background: expandedBreach === i ? b.color + "06" : "#0c0c10",
                           }}

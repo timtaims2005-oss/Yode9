@@ -336,7 +336,7 @@ function DeepfakeTab() {
         <div className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-3">مؤشرات التحليل</div>
         <div className="grid grid-cols-1 gap-2">
           {indicators.map((ind, i) => (
-            <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-muted/10 border border-border/30">
+            <div key={i} className="flex items-center gap-3 w-7 h-7 flex items-center justify-center rounded-lg bg-muted/10 border border-border/30">
               <div className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ background: ind.score === 0 ? "#374151" : ind.score > 70 ? "#10b981" : ind.score > 40 ? "#f59e0b" : "#ef4444" }} />
               <span className="text-xs text-foreground flex-1">{ind.name}</span>

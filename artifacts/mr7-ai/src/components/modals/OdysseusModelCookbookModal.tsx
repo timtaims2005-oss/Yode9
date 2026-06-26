@@ -144,7 +144,7 @@ Be specific, technical, and practical. Include actual shell commands.`;
             <div>
               <div className="text-[9px] font-black tracking-widest mb-2" style={{ color: "rgba(16,185,129,0.5)" }}>CUSTOM DETAILS</div>
               <textarea value={customHw} onChange={e => setCustomHw(e.target.value)} placeholder="e.g. RTX 3090 24GB, 64GB RAM, Ubuntu 22.04..."
-                rows={3} className="w-full resize-none text-[9px] font-mono outline-none p-2 rounded-xl"
+                rows={3} className="w-full resize-none text-[9px] font-mono outline-none w-7 h-7 flex items-center justify-center rounded-xl"
                 style={{ background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.12)", color: "#aaa" }} />
             </div>
             <motion.button onClick={getAIAdvice} disabled={running} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
@@ -199,7 +199,7 @@ Be specific, technical, and practical. Include actual shell commands.`;
 
               {/* AI Advice panel */}
               {(aiAdvice || running) && (
-                <div className="rounded-[18px] overflow-hidden" style={{ border: "1px solid rgba(16,185,129,0.2)" }}>
+                <div className="rounded-[18px] overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", border: "1px solid rgba(16,185,129,0.2)" }}>
                   <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: "rgba(16,185,129,0.12)", background: "rgba(16,185,129,0.06)" }}>
                     <motion.div animate={{ opacity: running ? [1, 0.3, 1] : 1 }} transition={{ duration: 1, repeat: Infinity }}
                       className="w-1.5 h-1.5 rounded-full" style={{ background: running ? "#10b981" : "#10b981" }} />

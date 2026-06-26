@@ -203,7 +203,7 @@ export function E2ESessionModal({ open, onOpenChange }: E2ESessionModalProps) {
                   style={{ background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.3)", color: "#00e5ff" }}>
                   <Plus className="w-3 h-3" /> NEW SESSION
                 </button>
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-white/5 ml-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 ml-1" style={{ color: "rgba(255,255,255,0.4)" }}>
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -265,7 +265,7 @@ export function E2ESessionModal({ open, onOpenChange }: E2ESessionModalProps) {
                             <RefreshCw className="w-2.5 h-2.5" /> REKEY
                           </button>
                           <button onClick={() => setSessions(prev => { const n = prev.filter(s => s.id !== selected.id); setSelected(null); return n; })}
-                            className="p-1.5 rounded-lg hover:bg-white/5"
+                            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5"
                             style={{ color: "#e21227" }}>
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -282,7 +282,7 @@ export function E2ESessionModal({ open, onOpenChange }: E2ESessionModalProps) {
                           ["KDF", "HKDF-SHA256"],
                           ["SESSION ID", "#" + selected.id.slice(0, 6)],
                         ].map(([k, v]) => (
-                          <div key={k} className="p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid #111" }}>
+                          <div key={k} className="w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid #111" }}>
                             <div className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.2)" }}>{k}</div>
                             <div className="text-[9px] font-mono font-bold mt-0.5 truncate" style={{ color: "#00e5ff" }}>{v}</div>
                           </div>
@@ -305,7 +305,7 @@ export function E2ESessionModal({ open, onOpenChange }: E2ESessionModalProps) {
                               </button>
                             </div>
                           </div>
-                          <div className="text-[8px] font-mono p-2 rounded-lg break-all"
+                          <div className="text-[8px] font-mono w-7 h-7 flex items-center justify-center rounded-lg break-all"
                             style={{ background: "rgba(0,229,255,0.03)", border: "1px solid rgba(0,229,255,0.1)", color: showKey || k === "PUBLIC KEY" ? "#00e5ff" : "rgba(0,229,255,0.4)" }}>
                             {showKey || k === "PUBLIC KEY" ? v : v.replace(/./g, "•")}
                           </div>

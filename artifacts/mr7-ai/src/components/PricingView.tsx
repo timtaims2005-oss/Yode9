@@ -400,7 +400,7 @@ export function PricingView({ onClose }: PricingViewProps) {
                     {card.badge}
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-xl border ${card.iconBg} flex items-center justify-center shrink-0`}>
+                    <div className={`w-9 h-9 rounded-xl border ${card.iconBg} flex items-center justify-center shrink-0`}>
                       {card.icon}
                     </div>
                     <div className="flex-1 min-w-0">

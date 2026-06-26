@@ -300,7 +300,7 @@ export function GodMod3Modal({ open, onOpenChange }: { open: boolean; onOpenChan
               <div className="grid grid-cols-3 gap-2">
                 {PARSELTONGUE_TECHNIQUES.filter(t => t.tier <= intensity).map(tech => (
                   <button key={tech.id} onClick={() => setSelectedTech(p => p.includes(tech.id) ? p.filter(x => x !== tech.id) : [...p, tech.id])}
-                    className="p-2 rounded-xl text-left transition-all"
+                    className="w-7 h-7 flex items-center justify-center rounded-xl text-left transition-all"
                     style={{ background: selectedTech.includes(tech.id) ? Gg(0.08) : "#111", border: `1px solid ${selectedTech.includes(tech.id) ? Gg(0.3) : "#1a1a1a"}`, color: selectedTech.includes(tech.id) ? G : "#555" }}>
                     <div className="text-[10px] font-bold font-mono">{tech.name}</div>
                     <div className="text-[8px] mt-0.5" style={{ color: "#333" }}>{tech.desc}</div>
@@ -338,7 +338,7 @@ export function GodMod3Modal({ open, onOpenChange }: { open: boolean; onOpenChan
               <div className="grid grid-cols-5 gap-2">
                 {AUTOTUNE_PRESETS.map(p => (
                   <button key={p.name} onClick={() => setActivePreset(p.name)}
-                    className="p-2 rounded-xl text-center transition-all"
+                    className="w-7 h-7 flex items-center justify-center rounded-xl text-center transition-all"
                     style={{ background: activePreset === p.name ? `${p.color}15` : "#111", border: `1px solid ${activePreset === p.name ? p.color + "40" : "#1a1a1a"}` }}>
                     <div className="text-[10px] font-bold font-mono" style={{ color: activePreset === p.name ? p.color : "#555" }}>{p.name}</div>
                     <div className="text-[8px] font-mono mt-1" style={{ color: "#333" }}>T:{p.temp}</div>

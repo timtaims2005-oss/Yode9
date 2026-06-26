@@ -192,7 +192,7 @@ export function OnboardingTourModal({ open, onClose }: Props) {
             >
               <button
                 onClick={handleClose}
-                className="absolute top-3 right-3 p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/10 transition-colors"
+                className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-white hover:bg-white/10 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>

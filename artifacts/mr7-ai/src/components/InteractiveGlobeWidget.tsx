@@ -350,7 +350,7 @@ export function InteractiveGlobeWidget({ embedded = false }: { embedded?: boolea
   return (
     <div ref={rootRef} style={{left:pos.x,top:pos.y}} className="fixed z-[96] select-none">
       <motion.div initial={{opacity:0,scale:0.9}} animate={{opacity:1,scale:1}}
-        className="rounded-2xl border border-[#1f1f1f] overflow-hidden shadow-[0_0_40px_rgba(0,229,255,0.12)]"
+        className="rounded-[18px] border border-[#1f1f1f] overflow-hidden shadow-[0_0_40px_rgba(0,229,255,0.12)]"
         style={{background:"rgba(3,5,18,0.97)",backdropFilter:"blur(20px)"}}>
         <div className="flex items-center gap-2 px-3 py-1.5 cursor-grab border-b border-[#1f1f1f]"
           onMouseDown={onDragMouseDown} onTouchStart={onDragTouchStart}>

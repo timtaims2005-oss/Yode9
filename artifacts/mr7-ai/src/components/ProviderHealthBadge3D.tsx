@@ -1206,7 +1206,7 @@ export function ProviderHealthBadge3D() {
               pointerEvents: "auto",
             }}
           >
-            <div className="rounded-2xl flex flex-col"
+            <div className="rounded-[18px] flex flex-col"
               style={{
                 background: "linear-gradient(160deg, rgba(6,2,20,0.99) 0%, rgba(4,2,14,0.99) 60%, rgba(8,2,18,0.99) 100%)",
                 border: "1px solid rgba(139,92,246,0.35)",
@@ -1602,7 +1602,7 @@ export function ProviderHealthBadge3D() {
                 <div className="p-3 space-y-2 overflow-y-auto" style={{ maxHeight: "55vh", scrollbarWidth: "thin", scrollbarColor: "rgba(139,92,246,0.18) transparent" }}>
                   <div className="text-[7px] font-bold tracking-[0.25em] uppercase mb-2" style={{ color: "rgba(255,255,255,0.28)" }}>توزيع المزودين العالمي</div>
                   {/* Stylized globe visualization */}
-                  <div className="relative h-32 rounded-2xl overflow-hidden mb-3"
+                  <div className="relative h-32 rounded-[18px] overflow-hidden mb-3"
                     style={{ background: "radial-gradient(ellipse at center, rgba(139,92,246,0.12) 0%, rgba(0,0,0,0.8) 70%)", border: "1px solid rgba(139,92,246,0.15)" }}>
                     {/* Grid lines */}
                     {[...Array(5)].map((_, i) => (

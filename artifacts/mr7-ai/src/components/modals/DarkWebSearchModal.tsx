@@ -224,7 +224,7 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
                             </div>
                             <div className="flex gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button onClick={() => copyText(tpl.prompt, `tpl-${i}`)}
-                                className="p-1.5 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
+                                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
                                 {copiedId === `tpl-${i}` ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                               </button>
                               <button onClick={() => inject(tpl.prompt)}
@@ -312,7 +312,7 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
                       </div>
                       <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={(e) => { e.stopPropagation(); copyText(t.prompt, `threat-${i}`); }}
-                          className="p-1.5 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white">
+                          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 text-slate-500 hover:text-white">
                           {copiedId === `threat-${i}` ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
                         <ArrowRight className="w-4 h-4 self-center" style={{ color: t.color }} />
@@ -343,7 +343,7 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
                           </div>
                           <div className="flex gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => copyText(s.query, `shodan-q-${i}`)}
-                              className="p-1.5 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
+                              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
                               {copiedId === `shodan-q-${i}` ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                             </button>
                             <button onClick={() => inject(s.prompt)}
@@ -377,7 +377,7 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
                         </div>
                         <div className="flex gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button onClick={() => copyText(tpl.prompt, `dw-${i}`)}
-                            className="p-1.5 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white">
+                            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 text-slate-500 hover:text-white">
                             {copiedId === `dw-${i}` ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                           </button>
                           <button onClick={() => inject(tpl.prompt)}
@@ -405,7 +405,7 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 border-t border-[#1a1a2e] flex items-center justify-between shrink-0">
+            <div className="px-4 pt-3 pb-[10px] border-t border-[#1a1a2e] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2 text-[9px] font-mono" style={{ color: "rgba(139,92,246,0.5)" }}>
                 <div className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] animate-pulse" />
                 DARK WEB INTELLIGENCE MODULE · RESEARCH ONLY · KALIGPT

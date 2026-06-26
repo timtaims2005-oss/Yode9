@@ -304,15 +304,17 @@ function EnginePanel({ engine, status, onConnect }: {
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-      className="rounded-2xl overflow-hidden"
+      className="rounded-[18px] overflow-hidden"
       style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
         background: `linear-gradient(135deg, ${engine.color}0a 0%, rgba(0,0,0,0.6) 100%)`,
         border: `1px solid ${engine.color}${status.online ? "55" : "22"}`,
         boxShadow: status.online ? `0 0 30px ${engine.color}18` : "none",
       }}
     >
       <div className="flex items-center gap-3 px-4 py-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl shrink-0"
           style={{ background: `${engine.color}18`, border: `1px solid ${engine.color}33`, boxShadow: status.online ? `0 0 16px ${engine.color}40` : "none" }}>
           {engine.icon}
         </div>
@@ -507,8 +509,10 @@ function ModelCard({ model, ollamaOnline }: { model: OllamaModel; ollamaOnline: 
       onMouseLeave={() => setHovered(false)}
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2 }}
-      className="relative overflow-hidden rounded-2xl flex flex-col"
+      className="relative overflow-hidden rounded-[18px] flex flex-col"
       style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
         background: `linear-gradient(135deg, ${model.color}0d 0%, rgba(4,6,12,0.9) 100%)`,
         border: `1px solid ${model.color}${hovered ? "55" : "20"}`,
         boxShadow: hovered ? `0 0 24px ${model.color}20, 0 4px 24px rgba(0,0,0,0.5)` : "0 2px 12px rgba(0,0,0,0.4)",
@@ -526,7 +530,7 @@ function ModelCard({ model, ollamaOnline }: { model: OllamaModel; ollamaOnline: 
 
       {/* Header */}
       <div className="flex items-start gap-3 p-4 pb-2">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: `${model.color}15`, border: `1px solid ${model.color}30` }}>
           <Package size={16} style={{ color: model.color }} />
         </div>
@@ -732,7 +736,7 @@ export function LocalAIModelNexus({ open, onClose }: LocalAIModelNexusProps) {
       ))}
 
       {/* Header */}
-      <div className="relative flex items-center justify-between px-6 py-4 shrink-0"
+      <div className="relative flex items-center justify-between px-4 pt-3 pb-[10px] shrink-0"
         style={{ borderBottom: "1px solid rgba(0,229,255,0.1)" }}>
         <div className="flex items-center gap-4">
           <motion.div className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -801,7 +805,7 @@ export function LocalAIModelNexus({ open, onClose }: LocalAIModelNexusProps) {
           </button>
 
           <button onClick={onClose}
-            className="w-8 h-8 rounded-xl flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-red-500/10 transition-all"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-red-500/10 transition-all"
             style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
             <X size={14} />
           </button>
@@ -826,13 +830,14 @@ export function LocalAIModelNexus({ open, onClose }: LocalAIModelNexusProps) {
                   disabled={scanning}
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.95 }}
-                  className="relative overflow-hidden flex items-center gap-2.5 px-6 py-3 rounded-2xl font-bold text-sm tracking-wider"
+                  className="relative overflow-hidden flex items-center gap-2.5 px-6 py-3 rounded-[18px] font-bold text-sm tracking-wider"
                   style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
                     background: "linear-gradient(135deg, #00e5ff18 0%, #a78bfa18 100%)",
                     border: `1px solid ${scanning ? "#fbbf24aa" : onlineCount > 0 ? "#22c55eaa" : "#00e5ffaa"}`,
                     color: scanning ? "#fbbf24" : onlineCount > 0 ? "#22c55e" : "#00e5ff",
                     boxShadow: scanning ? "0 0 24px #fbbf2430" : onlineCount > 0 ? "0 0 24px #22c55e30" : "0 0 24px #00e5ff20",
-                    backdropFilter: "blur(12px)",
                   }}>
                   <motion.div className="absolute inset-0 pointer-events-none"
                     style={{ background: "linear-gradient(90deg,transparent,rgba(0,229,255,0.12),transparent)" }}
@@ -984,7 +989,7 @@ export function LocalAIFAB({ onOpen, onlineCount }: { onOpen: () => void; online
       animate={{ opacity: 1, scale: 1, y: 0 }}
       whileHover={{ scale: 1.1, y: -3 }}
       whileTap={{ scale: 0.92 }}
-      className="relative overflow-hidden flex flex-col items-center justify-center rounded-2xl"
+      className="relative overflow-hidden flex flex-col items-center justify-center rounded-[18px]"
       style={{
         width: 52, height: 52,
         background: "linear-gradient(135deg, rgba(0,229,255,0.15) 0%, rgba(167,139,250,0.1) 100%)",

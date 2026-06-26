@@ -349,7 +349,7 @@ export function LocalBenchmarkModal({ open, onOpenChange }: Props) {
           >
             {autoRun ? "⏹ Auto" : "▶ Auto"}
           </button>
-          <button onClick={() => onOpenChange(false)} className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/08 transition-colors">
+          <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/08 transition-colors">
             <X size={16} />
           </button>
         </div>

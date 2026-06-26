@@ -812,7 +812,7 @@ function LiveTicker() {
   return (
     <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
       {items.map(it => (
-        <div key={it.label} className="flex flex-col items-center p-2 rounded-lg border"
+        <div key={it.label} className="flex flex-col items-center w-7 h-7 flex items-center justify-center rounded-lg border"
           style={{ borderColor: it.color + "30", background: it.color + "08" }}>
           <div className="text-base font-bold font-mono" style={{ color: it.color, textShadow: `0 0 10px ${it.color}80` }}>{it.val}</div>
           <div className="text-[8px] text-gray-500 font-mono tracking-wider text-center mt-0.5">{it.label}</div>
@@ -845,13 +845,13 @@ function FrameworkCard({ fw }: { fw: typeof FRAMEWORKS[0] }) {
   }, [fw]);
 
   return (
-    <motion.div layout className="rounded-2xl border overflow-hidden"
+    <motion.div layout className="rounded-[18px] border overflow-hidden"
       style={{ borderColor: fw.color + "30", background: "rgba(0,0,0,0.75)", boxShadow: `0 0 25px ${fw.color}10` }}>
       <div className="p-4 cursor-pointer" onClick={() => setExpanded(!expanded)}
         style={{ background: `linear-gradient(135deg, ${fw.color}0d 0%, transparent 65%)` }}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl font-bold"
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl font-bold"
               style={{ background: fw.color + "20", border: `1px solid ${fw.color}40`, color: fw.color, textShadow: `0 0 12px ${fw.color}` }}>
               {fw.icon}
             </div>
@@ -872,7 +872,7 @@ function FrameworkCard({ fw }: { fw: typeof FRAMEWORKS[0] }) {
         <p className="text-[10px] text-gray-400 font-mono leading-relaxed">{fw.desc}</p>
         <div className="grid grid-cols-4 gap-2 mt-3">
           {Object.entries(fw.stats).map(([k, v]) => (
-            <div key={k} className="text-center p-1.5 rounded-lg" style={{ background: fw.color + "0a" }}>
+            <div key={k} className="text-center w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: fw.color + "0a" }}>
               <div className="text-sm font-bold font-mono" style={{ color: fw.color }}>{v}</div>
               <div className="text-[8px] text-gray-600 font-mono uppercase">{k}</div>
             </div>
@@ -963,12 +963,12 @@ function OsintCard({ tool }: { tool: typeof OSINT_TOOLS[0] }) {
   }, [tool.name]);
 
   return (
-    <div className="rounded-2xl border overflow-hidden" style={{ borderColor: tool.color + "30", background: "rgba(0,0,0,0.78)" }}>
+    <div className="rounded-[18px] border overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", borderColor: tool.color + "30", background: "rgba(0,0,0,0.78)" }}>
       <div className="p-4 cursor-pointer" onClick={() => setExpanded(!expanded)}
         style={{ background: `linear-gradient(135deg, ${tool.color}0a 0%, transparent 60%)` }}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold"
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold"
               style={{ background: tool.color + "18", border: `1px solid ${tool.color}35`, color: tool.color }}>
               {tool.icon}
             </div>
@@ -1001,7 +1001,7 @@ function OsintCard({ tool }: { tool: typeof OSINT_TOOLS[0] }) {
                   const detail = "detail" in cap ? (cap as {detail: string}).detail : String(cap);
                   return (
                     <motion.div key={i} initial={{ x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.04 }}
-                      className="flex items-start gap-2 p-2 rounded-lg"
+                      className="flex items-start gap-2 w-7 h-7 flex items-center justify-center rounded-lg"
                       style={{ background: tool.color + "07", border: `1px solid ${tool.color}15` }}>
                       <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: tool.color + "18" }}>
                         <IconEl size={11} style={{ color: tool.color }} />
@@ -1118,7 +1118,7 @@ function AttackVectorCard({ av }: { av: typeof ATTACK_VECTORS[0] }) {
                   {av.tools.map(t => <span key={t} className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-gray-300">{t}</span>)}
                 </div>
               </div>
-              <div className="flex items-start gap-1.5 p-2 rounded-lg" style={{ background: "#10b98115", border: "1px solid #10b98125" }}>
+              <div className="flex items-start gap-1.5 w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: "#10b98115", border: "1px solid #10b98125" }}>
                 <Shield size={10} className="text-emerald-400 mt-0.5 flex-shrink-0" />
                 <span className="text-[9px] font-mono text-emerald-400">{av.defense}</span>
               </div>
@@ -1135,7 +1135,7 @@ function CredentialCard({ tech }: { tech: typeof CREDENTIAL_TECHNIQUES[0] }) {
   const Icon = tech.icon;
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-2xl border overflow-hidden" style={{ borderColor: tech.color + "30", background: "rgba(0,0,0,0.78)" }}>
+    <div className="rounded-[18px] border overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", borderColor: tech.color + "30", background: "rgba(0,0,0,0.78)" }}>
       <div className="p-4 cursor-pointer" onClick={() => setOpen(!open)}
         style={{ background: `linear-gradient(135deg, ${tech.color}0d, transparent 60%)` }}>
         <div className="flex items-center justify-between mb-2">
@@ -1193,11 +1193,11 @@ function SupportToolCard({ tool }: { tool: typeof SUPPORT_TOOLS[0] }) {
   const Icon = tool.icon;
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-2xl border overflow-hidden" style={{ borderColor: tool.color + "30", background: "rgba(0,0,0,0.78)" }}>
+    <div className="rounded-[18px] border overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", borderColor: tool.color + "30", background: "rgba(0,0,0,0.78)" }}>
       <div className="p-4 cursor-pointer" onClick={() => setOpen(!open)}
         style={{ background: `linear-gradient(135deg, ${tool.color}0a, transparent 60%)` }}>
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{ background: tool.color + "20", border: `1px solid ${tool.color}40` }}>
             <Icon size={16} style={{ color: tool.color }} />
           </div>
@@ -1222,7 +1222,7 @@ function SupportToolCard({ tool }: { tool: typeof SUPPORT_TOOLS[0] }) {
             <div className="px-4 pb-4 grid grid-cols-1 md:grid-cols-2 gap-1.5">
               {tool.features.map((f, i) => (
                 <motion.div key={i} initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.05 }}
-                  className="flex items-start gap-1.5 p-2 rounded-lg"
+                  className="flex items-start gap-1.5 w-7 h-7 flex items-center justify-center rounded-lg"
                   style={{ background: tool.color + "07", border: `1px solid ${tool.color}15` }}>
                   <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: tool.color, boxShadow: `0 0 5px ${tool.color}` }} />
                   <div>
@@ -1646,7 +1646,7 @@ function HackTerminal() {
   }, []);
 
   return (
-    <div className="rounded-2xl overflow-hidden border" style={{ borderColor: "#e2122730", background: "#020208" }}>
+    <div className="rounded-[18px] overflow-hidden border" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", borderColor: "#e2122730", background: "#020208" }}>
       <div className="flex items-center gap-2 px-4 py-2.5" style={{ background: "rgba(226,18,39,0.08)", borderBottom: "1px solid rgba(226,18,39,0.18)" }}>
         <div className="flex gap-1.5">
           <div className="w-3 h-3 rounded-full" style={{ background: "#ef4444" }} />
@@ -1689,7 +1689,7 @@ function OverviewSection() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-2xl border p-4 flex flex-col items-center gap-3"
+        <div className="rounded-[18px] border p-4 flex flex-col items-center gap-3"
           style={{ borderColor: "#e2122730", background: "rgba(0,0,0,0.75)", boxShadow: "0 0 30px rgba(226,18,39,0.06)" }}>
           <div className="text-[9px] font-mono tracking-[0.2em] text-red-400">ATTACK RADAR — LIVE</div>
           <AttackRadar size={200} />
@@ -1900,7 +1900,7 @@ export function SocialMediaArsenalPage({ onClose }: Props) {
               style={{ borderColor: "rgba(226,18,39,0.2)", background: "rgba(0,0,0,0.88)", backdropFilter: "blur(24px)" }}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center"
                     style={{ background: "rgba(226,18,39,0.15)", border: "1px solid rgba(226,18,39,0.3)" }}>
                     <Crosshair size={18} className="text-red-400" />
                   </div>

@@ -392,7 +392,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
   return (
     <div className="flex flex-col h-full bg-black/95 text-white overflow-hidden">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10 shrink-0">
+      <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b border-white/10 shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#e21227] to-[#8b5cf6] flex items-center justify-center">
             <Brain className="w-4 h-4 text-white" />
@@ -531,7 +531,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                     initial={{ opacity: 0, y: -4, scale: 0.97 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -4, scale: 0.97 }}
-                    className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl border border-white/10 bg-black/95 shadow-2xl overflow-hidden max-h-64 overflow-y-auto"
+                    className="absolute top-full left-0 right-0 mt-1 z-50 rounded-[18px] border border-white/10 bg-black/95 shadow-2xl overflow-hidden max-h-64 overflow-y-auto"
                   >
                     {Object.entries(
                       models.reduce<Record<string, SwarmModel[]>>((acc, m) => {
@@ -632,7 +632,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                 {memContextOpen && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mt-2 space-y-1.5 overflow-hidden">
                     {memoryContext.map((m, i) => (
-                      <div key={i} className="p-2 rounded-lg bg-black/30 cursor-pointer hover:bg-black/50 transition" onClick={() => setGoal(m.goal)}>
+                      <div key={i} className="w-7 h-7 flex items-center justify-center rounded-lg bg-black/30 cursor-pointer hover:bg-black/50 transition" onClick={() => setGoal(m.goal)}>
                         <div className="text-[10px] text-white/65 line-clamp-1">{m.goal}</div>
                         <div className="text-[9px] text-white/35 mt-0.5 line-clamp-1">{m.summary}</div>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -700,7 +700,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                 ) : (
                   <div className="space-y-2">
                     {evolutionInsights.map((ins, i) => (
-                      <div key={i} className="flex gap-2 p-2 rounded-lg bg-black/30">
+                      <div key={i} className="flex gap-2 w-7 h-7 flex items-center justify-center rounded-lg bg-black/30">
                         <div className="w-4 h-4 rounded-full bg-[#8b5cf6]/20 flex items-center justify-center shrink-0 mt-0.5">
                           <Star className="w-2.5 h-2.5 text-[#8b5cf6]" />
                         </div>
@@ -741,7 +741,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                   />
                   <button
                     onClick={addToQueue}
-                    className="p-2 rounded-lg bg-[#22d3ee]/15 text-[#22d3ee] hover:bg-[#22d3ee]/25 transition"
+                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-[#22d3ee]/15 text-[#22d3ee] hover:bg-[#22d3ee]/25 transition"
                   >
                     <PlusCircle className="w-4 h-4" />
                   </button>
@@ -868,7 +868,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                     const Icon = meta.icon;
                     return (
                       <div key={id} className="flex flex-col items-center gap-1.5">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: meta.color + "20", border: `1px solid ${meta.color}40` }}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: meta.color + "20", border: `1px solid ${meta.color}40` }}>
                           {React.createElement(Icon as React.FC<React.SVGProps<SVGSVGElement>>, { className: "w-5 h-5", style: { color: meta.color } })}
                         </div>
                         <div className="text-[10px] text-white/40">{meta.label}</div>

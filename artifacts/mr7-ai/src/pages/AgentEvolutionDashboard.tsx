@@ -175,7 +175,7 @@ export function AgentEvolutionDashboard({ onClose }: Props) {
   return (
     <div className="flex flex-col h-full bg-black/95 text-white overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10 shrink-0">
+      <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b border-white/10 shrink-0">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8b5cf6] to-[#22d3ee] flex items-center justify-center">
           <Brain className="w-4 h-4 text-white" />
         </div>
@@ -203,7 +203,7 @@ export function AgentEvolutionDashboard({ onClose }: Props) {
           </div>
         )}
 
-        <button onClick={reload} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-white/40 hover:text-white">
+        <button onClick={reload} className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition text-white/40 hover:text-white">
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
         </button>
         {onClose && (

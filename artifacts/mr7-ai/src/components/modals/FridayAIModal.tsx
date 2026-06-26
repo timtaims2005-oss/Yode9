@@ -424,7 +424,7 @@ export function FridayAIModal({ open, onOpenChange }: Props) {
             style={{ backgroundImage: `linear-gradient(${ARC_COLOR} 1px, transparent 1px), linear-gradient(90deg, ${ARC_COLOR} 1px, transparent 1px)`, backgroundSize: "40px 40px" }} />
 
           {/* Header */}
-          <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b"
+          <div className="relative z-10 flex items-center gap-4 px-4 pt-3 pb-[10px] border-b"
             style={{ borderColor: `${ARC_COLOR}33`, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(20px)" }}>
             <div className="flex items-center gap-3">
               <ArcReactor size={36} />

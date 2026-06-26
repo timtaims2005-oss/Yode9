@@ -499,7 +499,7 @@ export function LiveCVEModal({ open, onOpenChange }: Props) {
             style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background:"#080808",borderColor:"rgba(226,18,39,0.4)",boxShadow:"0 0 80px rgba(226,18,39,0.15),0 25px 60px rgba(0,0,0,0.9)"}}>
 
             {/* Header */}
-            <div className="px-5 py-3 border-b flex items-center gap-3 shrink-0"
+            <div className="px-4 pt-3 pb-[10px] border-b flex items-center gap-3 shrink-0"
               style={{borderColor:"rgba(226,18,39,0.2)",background:"linear-gradient(135deg,rgba(226,18,39,0.1),rgba(0,0,0,0))"}}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:"rgba(226,18,39,0.15)",border:"1px solid rgba(226,18,39,0.4)"}}>
                 <Radio className="w-4 h-4" style={{color:"#e21227"}} />
@@ -571,7 +571,7 @@ export function LiveCVEModal({ open, onOpenChange }: Props) {
                         </div>
                       ))}
                     </div>
-                    <div className="mt-3 w-full p-2 rounded-xl border" style={{borderColor:"rgba(226,18,39,0.2)",background:"rgba(226,18,39,0.05)"}}>
+                    <div className="mt-3 w-full w-7 h-7 flex items-center justify-center rounded-xl border" style={{borderColor:"rgba(226,18,39,0.2)",background:"rgba(226,18,39,0.05)"}}>
                       <p className="text-[8px] text-muted-foreground/50 mb-1">LIVE EVENTS</p>
                       {liveEvents.slice(0,4).map((ev,i)=>(
                         <motion.p key={ev+i} initial={{opacity:0,x:-5}} animate={{opacity:1,x:0}}
@@ -717,7 +717,7 @@ export function LiveCVEModal({ open, onOpenChange }: Props) {
                         <span className="text-[11px] font-black">محاولات الاختراق الحديثة</span>
                       </div>
                       <button onClick={()=>setIntrusionEvents(generateIntrusionEvents())}
-                        className="p-1.5 rounded-lg hover:bg-[#1f1f1f] text-muted-foreground transition-colors">
+                        className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#1f1f1f] text-muted-foreground transition-colors">
                         <RefreshCw className="w-3 h-3" />
                       </button>
                     </div>

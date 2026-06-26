@@ -170,7 +170,7 @@ export function ChangelogModal({ open, onOpenChange }: { open: boolean; onOpenCh
           })}
         </div>
 
-        <div className="px-5 py-3 border-t border-border shrink-0 text-[9px] font-mono text-muted-foreground/50 flex items-center justify-between">
+        <div className="px-4 pt-3 pb-[10px] border-t border-border shrink-0 text-[9px] font-mono text-muted-foreground/50 flex items-center justify-between">
           <span>All versions · KaliGPT / mr7.ai platform</span>
           <span className="text-primary/70">v3.1.0 current</span>
         </div>

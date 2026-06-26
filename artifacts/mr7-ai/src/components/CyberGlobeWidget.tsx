@@ -591,7 +591,7 @@ export function CyberGlobeWidget({ embedded = false }: { embedded?: boolean } = 
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="rounded-2xl border border-[#1f1f1f] overflow-hidden shadow-[0_0_40px_rgba(226,18,39,0.2),0_0_80px_rgba(0,0,0,0.8)]"
+        className="rounded-[18px] border border-[#1f1f1f] overflow-hidden shadow-[0_0_40px_rgba(226,18,39,0.2),0_0_80px_rgba(0,0,0,0.8)]"
         style={{ background: "rgba(4,2,12,0.97)", backdropFilter: "blur(20px)" }}
       >
         {/* Header */}

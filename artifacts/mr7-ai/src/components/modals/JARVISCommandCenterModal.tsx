@@ -658,7 +658,7 @@ export function JARVISCommandCenterModal({ open, onOpenChange }: Props) {
                                     { l: "Size",     v: selectedFile.size || "—" },
                                     { l: "Modified", v: selectedFile.modified || "—" },
                                   ].map(m => (
-                                    <div key={m.l} className="p-2 rounded-lg bg-white/5">
+                                    <div key={m.l} className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/5">
                                       <div className="text-muted-foreground mb-0.5">{m.l}</div>
                                       <div className="text-white">{m.v}</div>
                                     </div>

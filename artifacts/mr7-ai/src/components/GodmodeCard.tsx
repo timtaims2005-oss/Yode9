@@ -50,7 +50,7 @@ export function GodmodeCard({ godmode }: { godmode: GodmodePayload }) {
 
   return (
     <div className="space-y-3 w-full">
-      <div className="rounded-2xl border border-primary/30 bg-card/60 backdrop-blur-sm p-3 relative overflow-hidden">
+      <div className="rounded-[18px] border border-primary/30 bg-card/60 backdrop-blur-sm p-3 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] to-transparent pointer-events-none" />
         <div className="flex items-center justify-between gap-2 mb-2.5 relative">
           <div className="flex items-center gap-2">

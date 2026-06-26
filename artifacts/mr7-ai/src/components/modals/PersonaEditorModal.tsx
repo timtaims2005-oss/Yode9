@@ -2467,7 +2467,7 @@ export function PersonaEditorModal({ open, onOpenChange }: PersonaEditorModalPro
             <button
               onClick={() => setFloatingWindow(f => !f)}
               title={floatingWindow ? (lang === "ar" ? "عودة للنافذة العادية" : "Exit Fullscreen") : (lang === "ar" ? "نافذة عائمة / شاشة كاملة" : "Floating / Fullscreen")}
-              className="p-1.5 rounded-lg border transition-all hover:bg-accent"
+              className="w-7 h-7 flex items-center justify-center rounded-lg border transition-all hover:bg-accent"
               style={{
                 borderColor: floatingWindow ? "rgba(99,102,241,0.5)" : "rgba(255,255,255,0.08)",
                 background: floatingWindow ? "rgba(99,102,241,0.12)" : "transparent",
@@ -2489,7 +2489,7 @@ export function PersonaEditorModal({ open, onOpenChange }: PersonaEditorModalPro
             {floatingWindow && (
               <button
                 onClick={() => onOpenChange(false)}
-                className="p-1.5 rounded-lg border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
               >
                 <RotateCcw className="w-3 h-3" style={{transform:"rotate(90deg) scaleX(-1)"}} />
               </button>

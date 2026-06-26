@@ -492,7 +492,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
             <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#e21227", boxShadow: "0 0 6px rgba(226,18,39,0.8)", animation: "neon-pulse 2s ease-in-out infinite" }} />
             Featured Tools
           </h3>
-          <button onClick={onOpenTool} className="w-full flex items-center justify-between p-2 rounded-xl transition-all group"
+          <button onClick={onOpenTool} className="w-full flex items-center justify-between w-7 h-7 flex items-center justify-center rounded-xl transition-all group"
             style={{ border: "1px solid transparent" }}
             onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(16,185,129,0.06)"; e.currentTarget.style.borderColor = "rgba(16,185,129,0.15)"; e.currentTarget.style.transform = "translateX(2px)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = ""; e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.transform = ""; }}>
@@ -509,7 +509,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
             <span className="bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded mr-1" style={{ boxShadow: "0 0 8px rgba(226,18,39,0.4)" }}>HOT</span>
           </button>
 
-          <button onClick={() => onOpenUtility("Agent IDE")} className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-accent transition-colors">
+          <button onClick={() => onOpenUtility("Agent IDE")} className="w-full flex items-center justify-between w-7 h-7 flex items-center justify-center rounded-xl hover:bg-accent transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                 <Code className="w-4 h-4" />
@@ -522,7 +522,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
             <span className="border border-emerald-500/60 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1">Free</span>
           </button>
 
-          <button onClick={() => onOpenUtility("Dark Web Search")} className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-accent transition-colors">
+          <button onClick={() => onOpenUtility("Dark Web Search")} className="w-full flex items-center justify-between w-7 h-7 flex items-center justify-center rounded-xl hover:bg-accent transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
                 <Globe className="w-4 h-4" />
@@ -554,7 +554,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                 <button
                   key={m.id}
                   onClick={() => handleSelectModel(m.id)}
-                  className="w-full flex items-center justify-between p-2 rounded-xl transition-all"
+                  className="w-full flex items-center justify-between w-7 h-7 flex items-center justify-center rounded-xl transition-all"
                   style={active ? {
                     background: "rgba(226,18,39,0.08)",
                     border: "1px solid rgba(226,18,39,0.25)",
@@ -583,7 +583,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
 
         {/* API & Automation */}
         <div className="space-y-1.5">
-          <button onClick={onOpenApi} className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-accent transition-colors">
+          <button onClick={onOpenApi} className="w-full flex items-center justify-between w-7 h-7 flex items-center justify-center rounded-xl hover:bg-accent transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center text-emerald-400">
                 <KeyRound className="w-4 h-4" />
@@ -593,7 +593,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
             <span className="border border-emerald-500/60 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1">New</span>
           </button>
 
-          <button onClick={onOpenTool} className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-accent transition-colors">
+          <button onClick={onOpenTool} className="w-full flex items-center justify-between w-7 h-7 flex items-center justify-center rounded-xl hover:bg-accent transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center text-blue-400">
                 <TerminalSquare className="w-4 h-4" />
@@ -619,7 +619,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                 <button
                   key={label}
                   onClick={() => { onOpenUtility(label as UtilityTool); onClose(); }}
-                  className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-accent transition-colors"
+                  className="w-full flex items-center gap-3 w-7 h-7 flex items-center justify-center rounded-xl hover:bg-accent transition-colors"
                 >
                   <div className={`w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center ${tool.color ?? "text-foreground/80"}`}>
                     {typeof tool.icon === "function" ? (tool.icon as any)({ className: "w-4 h-4" }) : <Sparkles className="w-4 h-4" />}
@@ -642,7 +642,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
             <button
               key={tool.label}
               onClick={() => { onOpenUtility(tool.label as UtilityTool); onClose(); }}
-              className="w-full flex items-center justify-between p-2 rounded-xl transition-all group"
+              className="w-full flex items-center justify-between w-7 h-7 flex items-center justify-center rounded-xl transition-all group"
               style={{ border: "1px solid transparent" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = "rgba(255,255,255,0.04)";
@@ -1087,158 +1087,158 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
             <div className="text-[9px] font-bold tracking-[0.2em] text-[#e21227]/60 uppercase mb-1.5 px-1">KaliGPT Systems</div>
             <div className="grid grid-cols-3 gap-1">
               {onOpenKgAdmin && (
-                <button onClick={onOpenKgAdmin} title="Admin Panel" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-[#e21227]/10 hover:bg-[#e21227]/20 border border-[#e21227]/20 hover:border-[#e21227]/40 transition-all group">
+                <button onClick={onOpenKgAdmin} title="Admin Panel" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-[#e21227]/10 hover:bg-[#e21227]/20 border border-[#e21227]/20 hover:border-[#e21227]/40 transition-all group">
                   <Shield className="w-3.5 h-3.5 text-[#e21227]/70 group-hover:text-[#e21227]" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Admin</span>
                 </button>
               )}
               {onOpenKgAnalytics && (
-                <button onClick={onOpenKgAnalytics} title="Analytics Dashboard" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 hover:border-indigo-500/40 transition-all group">
+                <button onClick={onOpenKgAnalytics} title="Analytics Dashboard" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 hover:border-indigo-500/40 transition-all group">
                   <Activity className="w-3.5 h-3.5 text-indigo-400/70 group-hover:text-indigo-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Analytics</span>
                 </button>
               )}
               {onOpenKgRAG && (
-                <button onClick={onOpenKgRAG} title="RAG Knowledge Base" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/40 transition-all group">
+                <button onClick={onOpenKgRAG} title="RAG Knowledge Base" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/40 transition-all group">
                   <Brain className="w-3.5 h-3.5 text-blue-400/70 group-hover:text-blue-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">RAG</span>
                 </button>
               )}
               {onOpenKgMemory && (
-                <button onClick={onOpenKgMemory} title="Long-term Memory" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-500/40 transition-all group">
+                <button onClick={onOpenKgMemory} title="Long-term Memory" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-500/40 transition-all group">
                   <Sparkles className="w-3.5 h-3.5 text-purple-400/70 group-hover:text-purple-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Memory</span>
                 </button>
               )}
               {onOpenKgMultiAgent && (
-                <button onClick={onOpenKgMultiAgent} title="Multi-Agent Council" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 hover:border-emerald-500/40 transition-all group">
+                <button onClick={onOpenKgMultiAgent} title="Multi-Agent Council" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 hover:border-emerald-500/40 transition-all group">
                   <Network className="w-3.5 h-3.5 text-emerald-400/70 group-hover:text-emerald-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Agents</span>
                 </button>
               )}
               {onOpenKgSwarmEvolution && (
-                <button onClick={onOpenKgSwarmEvolution} title="Swarm Evolution AI — نظام الوكلاء المتطور" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 hover:border-violet-500/40 transition-all group">
+                <button onClick={onOpenKgSwarmEvolution} title="Swarm Evolution AI — نظام الوكلاء المتطور" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 hover:border-violet-500/40 transition-all group">
                   <Brain className="w-3.5 h-3.5 text-violet-400/70 group-hover:text-violet-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Swarm</span>
                 </button>
               )}
               {onOpenKgAutonomousSwarm && (
-                <button onClick={onOpenKgAutonomousSwarm} title="Autonomous Swarm System — GLM-5 Primary · AutoGPT-style" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 hover:border-cyan-500/40 transition-all group">
+                <button onClick={onOpenKgAutonomousSwarm} title="Autonomous Swarm System — GLM-5 Primary · AutoGPT-style" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 hover:border-cyan-500/40 transition-all group">
                   <Bot className="w-3.5 h-3.5 text-cyan-400/70 group-hover:text-cyan-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">AutoSwarm</span>
                 </button>
               )}
               {onOpenKgProjectGenerator && (
-                <button onClick={onOpenKgProjectGenerator} title="Auto Project Generator — مولّد المشاريع التلقائي" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 transition-all group">
+                <button onClick={onOpenKgProjectGenerator} title="Auto Project Generator — مولّد المشاريع التلقائي" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 transition-all group">
                   <Rocket className="w-3.5 h-3.5 text-red-400/70 group-hover:text-red-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">ProjectGen</span>
                 </button>
               )}
               {onOpenKgAgentMemory && (
-                <button onClick={onOpenKgAgentMemory} title="ذاكرة الوكيل الذكي — Agent Memory" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-500/40 transition-all group">
+                <button onClick={onOpenKgAgentMemory} title="ذاكرة الوكيل الذكي — Agent Memory" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-500/40 transition-all group">
                   <Database className="w-3.5 h-3.5 text-purple-400/70 group-hover:text-purple-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">AgentMem</span>
                 </button>
               )}
               {onOpenKgOrganizations && (
-                <button onClick={onOpenKgOrganizations} title="Organizations & Teams" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 hover:border-orange-500/40 transition-all group">
+                <button onClick={onOpenKgOrganizations} title="Organizations & Teams" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 hover:border-orange-500/40 transition-all group">
                   <Users className="w-3.5 h-3.5 text-orange-400/70 group-hover:text-orange-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Orgs</span>
                 </button>
               )}
               {onOpenKgMarketplace && (
-                <button onClick={onOpenKgMarketplace} title="Plugin Marketplace" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 hover:border-pink-500/40 transition-all group">
+                <button onClick={onOpenKgMarketplace} title="Plugin Marketplace" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 hover:border-pink-500/40 transition-all group">
                   <Globe className="w-3.5 h-3.5 text-pink-400/70 group-hover:text-pink-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Market</span>
                 </button>
               )}
               {onOpenKgPayment && (
-                <button onClick={onOpenKgPayment} title="Subscription Plans" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 hover:border-amber-500/40 transition-all group">
+                <button onClick={onOpenKgPayment} title="Subscription Plans" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 hover:border-amber-500/40 transition-all group">
                   <CreditCard className="w-3.5 h-3.5 text-amber-400/70 group-hover:text-amber-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Plans</span>
                 </button>
               )}
               {onOpenKgMonitoring && (
-                <button onClick={onOpenKgMonitoring} title="System Monitoring" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 hover:border-cyan-500/40 transition-all group">
+                <button onClick={onOpenKgMonitoring} title="System Monitoring" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 hover:border-cyan-500/40 transition-all group">
                   <Activity className="w-3.5 h-3.5 text-cyan-400/70 group-hover:text-cyan-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Monitor</span>
                 </button>
               )}
               {onOpenKgAPIKeys && (
-                <button onClick={onOpenKgAPIKeys} title="API Keys" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-lime-500/10 hover:bg-lime-500/20 border border-lime-500/20 hover:border-lime-500/40 transition-all group">
+                <button onClick={onOpenKgAPIKeys} title="API Keys" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-lime-500/10 hover:bg-lime-500/20 border border-lime-500/20 hover:border-lime-500/40 transition-all group">
                   <KeyRound className="w-3.5 h-3.5 text-lime-400/70 group-hover:text-lime-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">API Keys</span>
                 </button>
               )}
               {onOpenKgSemanticSearch && (
-                <button onClick={onOpenKgSemanticSearch} title="Semantic Search" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 hover:border-violet-500/40 transition-all group">
+                <button onClick={onOpenKgSemanticSearch} title="Semantic Search" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 hover:border-violet-500/40 transition-all group">
                   <Search className="w-3.5 h-3.5 text-violet-400/70 group-hover:text-violet-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Search</span>
                 </button>
               )}
               {onOpenKgCollaboration && (
-                <button onClick={onOpenKgCollaboration} title="Real-time Collaboration" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-fuchsia-500/10 hover:bg-fuchsia-500/20 border border-fuchsia-500/20 hover:border-fuchsia-500/40 transition-all group">
+                <button onClick={onOpenKgCollaboration} title="Real-time Collaboration" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-fuchsia-500/10 hover:bg-fuchsia-500/20 border border-fuchsia-500/20 hover:border-fuchsia-500/40 transition-all group">
                   <Users className="w-3.5 h-3.5 text-fuchsia-400/70 group-hover:text-fuchsia-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Collab</span>
                 </button>
               )}
               {onOpenKgContext && (
-                <button onClick={onOpenKgContext} title="Context Management" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 hover:border-teal-500/40 transition-all group">
+                <button onClick={onOpenKgContext} title="Context Management" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 hover:border-teal-500/40 transition-all group">
                   <Layers className="w-3.5 h-3.5 text-teal-400/70 group-hover:text-teal-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Context</span>
                 </button>
               )}
               {onOpenKgFinetune && (
-                <button onClick={onOpenKgFinetune} title="Fine-Tuning Pipeline" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 hover:border-sky-500/40 transition-all group">
+                <button onClick={onOpenKgFinetune} title="Fine-Tuning Pipeline" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 hover:border-sky-500/40 transition-all group">
                   <Wand2 className="w-3.5 h-3.5 text-sky-400/70 group-hover:text-sky-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Finetune</span>
                 </button>
               )}
               {onOpenKgNotifications && (
-                <button onClick={onOpenKgNotifications} title="Notifications" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 transition-all group">
+                <button onClick={onOpenKgNotifications} title="Notifications" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 transition-all group">
                   <Bell className="w-3.5 h-3.5 text-rose-400/70 group-hover:text-rose-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Alerts</span>
                 </button>
               )}
               {onOpenKgPentestLab && (
-                <button onClick={onOpenKgPentestLab} title="Pentest Lab Pro" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-[#e21227]/10 hover:bg-[#e21227]/20 border border-[#e21227]/20 hover:border-[#e21227]/40 transition-all group">
+                <button onClick={onOpenKgPentestLab} title="Pentest Lab Pro" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-[#e21227]/10 hover:bg-[#e21227]/20 border border-[#e21227]/20 hover:border-[#e21227]/40 transition-all group">
                   <Terminal className="w-3.5 h-3.5 text-[#e21227]/70 group-hover:text-[#e21227]" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Pentest</span>
                 </button>
               )}
               {onOpenKgSocialArsenal && (
-                <button onClick={onOpenKgSocialArsenal} title="مركز هجوم وسائل التواصل الاجتماعي" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-purple-900/20 hover:bg-purple-900/35 border border-purple-500/20 hover:border-purple-500/50 transition-all group relative">
+                <button onClick={onOpenKgSocialArsenal} title="مركز هجوم وسائل التواصل الاجتماعي" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-purple-900/20 hover:bg-purple-900/35 border border-purple-500/20 hover:border-purple-500/50 transition-all group relative">
                   <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 border border-black animate-pulse" />
                   <Users className="w-3.5 h-3.5 text-purple-400/70 group-hover:text-purple-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Social</span>
                 </button>
               )}
               {onOpenKgSecurity && (
-                <button onClick={onOpenKgSecurity} title="Security & Compliance" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-red-900/20 hover:bg-red-900/30 border border-red-900/30 hover:border-red-900/50 transition-all group">
+                <button onClick={onOpenKgSecurity} title="Security & Compliance" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-red-900/20 hover:bg-red-900/30 border border-red-900/30 hover:border-red-900/50 transition-all group">
                   <ShieldAlert className="w-3.5 h-3.5 text-red-400/70 group-hover:text-red-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Security</span>
                 </button>
               )}
               {onOpenKgReports && (
-                <button onClick={onOpenKgReports} title="PDF Reports" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-purple-900/20 hover:bg-purple-900/30 border border-purple-900/30 hover:border-purple-900/50 transition-all group">
+                <button onClick={onOpenKgReports} title="PDF Reports" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-purple-900/20 hover:bg-purple-900/30 border border-purple-900/30 hover:border-purple-900/50 transition-all group">
                   <FileText className="w-3.5 h-3.5 text-purple-400/70 group-hover:text-purple-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Reports</span>
                 </button>
               )}
               {onOpenKgRateLimit && (
-                <button onClick={onOpenKgRateLimit} title="Rate Limits" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-orange-900/20 hover:bg-orange-900/30 border border-orange-900/30 hover:border-orange-900/50 transition-all group">
+                <button onClick={onOpenKgRateLimit} title="Rate Limits" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-orange-900/20 hover:bg-orange-900/30 border border-orange-900/30 hover:border-orange-900/50 transition-all group">
                   <Activity className="w-3.5 h-3.5 text-orange-400/70 group-hover:text-orange-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Limits</span>
                 </button>
               )}
               {onOpenKgHelpCenter && (
-                <button onClick={onOpenKgHelpCenter} title="Help Center" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-[#e21227]/10 hover:bg-[#e21227]/20 border border-[#e21227]/20 hover:border-[#e21227]/40 transition-all group">
+                <button onClick={onOpenKgHelpCenter} title="Help Center" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-[#e21227]/10 hover:bg-[#e21227]/20 border border-[#e21227]/20 hover:border-[#e21227]/40 transition-all group">
                   <BookOpenCheck className="w-3.5 h-3.5 text-red-400/70 group-hover:text-red-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Help</span>
                 </button>
               )}
               {onOpenKgSystemsHub && (
-                <button onClick={onOpenKgSystemsHub} title="Systems Hub 3D" className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg bg-[#e21227]/15 hover:bg-[#e21227]/30 border border-[#e21227]/30 hover:border-[#e21227]/60 transition-all group relative">
+                <button onClick={onOpenKgSystemsHub} title="Systems Hub 3D" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-[#e21227]/15 hover:bg-[#e21227]/30 border border-[#e21227]/30 hover:border-[#e21227]/60 transition-all group relative">
                   <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-500 border border-black animate-pulse" />
                   <div className="relative">
                     <Activity className="w-3.5 h-3.5 text-red-400/80 group-hover:text-red-400" />
@@ -1417,7 +1417,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
             {/* Collapse button (desktop only) */}
             <button
               onClick={onToggleCollapsed}
-              className="absolute top-4 right-2 z-10 p-1.5 rounded-lg transition-colors text-muted-foreground/50 hover:text-foreground hover:bg-white/5"
+              className="absolute top-4 right-2 z-10 w-7 h-7 flex items-center justify-center rounded-lg transition-colors text-muted-foreground/50 hover:text-foreground hover:bg-white/5"
               title="طي الشريط الجانبي"
               aria-label="Collapse sidebar"
             >

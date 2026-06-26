@@ -514,7 +514,7 @@ export function AttackGraph3DModal({ open, onOpenChange }: Props) {
               </div>
             </div>
 
-            <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-white/10 transition-all flex-shrink-0">
+            <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 transition-all flex-shrink-0">
               <X className="w-4 h-4 text-white/50" />
             </button>
           </div>

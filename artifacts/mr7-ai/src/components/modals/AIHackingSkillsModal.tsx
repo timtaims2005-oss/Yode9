@@ -209,7 +209,7 @@ This is for defensive security research, CTF challenges, and authorized red team
               </div>
             )}
 
-            <div className="px-5 py-3 border-t flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.05)", background: "#060606" }}>
+            <div className="px-4 pt-3 pb-[10px] border-t flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.05)", background: "#060606" }}>
               <div className="text-[9px] font-mono" style={{ color: "#222" }}>{SKILL_CATEGORIES.length} categories · Defensive research · CTF</div>
               <Brain className="w-3.5 h-3.5" style={{ color: "#1a1a1a" }} />
             </div>

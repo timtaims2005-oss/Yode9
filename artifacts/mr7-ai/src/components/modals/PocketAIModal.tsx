@@ -81,7 +81,7 @@ export function PocketAIModal({ open, onOpenChange }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.92)" }}>
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full h-[90vh] flex flex-col rounded-xl border overflow-hidden"
+        className="w-full h-[90vh] flex flex-col rounded-[18px] border overflow-hidden"
         style={{ background: "#0a0a0a", borderColor: `${COL}30` }}>
         <div className="flex items-center gap-3 px-4 py-3 border-b shrink-0" style={{ borderColor: `${COL}20`, background: `${COL}08` }}>
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${COL}15`, border: `1px solid ${COL}30` }}>
@@ -95,7 +95,7 @@ export function PocketAIModal({ open, onOpenChange }: Props) {
             <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#10b981" }} />
             LOCAL · OFFLINE
           </div>
-          <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors ml-2">
+          <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors ml-2">
             <X className="w-4 h-4 text-gray-500" />
           </button>
         </div>

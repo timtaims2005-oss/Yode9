@@ -79,7 +79,7 @@ export function NotificationsPage({ onClose }: Props) {
   return (
     <div className="relative flex flex-col h-full bg-[#080808] overflow-hidden" dir="rtl">
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 20% 20%,rgba(6,182,212,.05) 0%,transparent 50%)" }} />
-      <div className="relative flex-shrink-0 px-5 py-3.5 border-b border-white/6 flex items-center justify-between">
+      <div className="relative flex-shrink-0 px-4 pt-3 pb-[10px] border-b border-white/6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="relative w-9 h-9 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center">
             <Bell className="w-5 h-5 text-cyan-400" />
@@ -117,7 +117,7 @@ export function NotificationsPage({ onClose }: Props) {
               <motion.div key={n.id} layout initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }} transition={{ delay: i * 0.03 }}
                 onClick={() => markRead(n.id)}
                 className={`flex items-start gap-3 p-3.5 rounded-xl mb-2 border cursor-pointer transition-all hover:border-white/12 ${!n.read ? "border-white/8 bg-white/3" : "border-white/4 bg-transparent opacity-60"}`}>
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}20` }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}20` }}>
                   {React.createElement(Icon as React.FC<React.SVGProps<SVGSVGElement>>, { className: "w-4 h-4", style: { color } })}
                 </div>
                 <div className="flex-1 min-w-0">

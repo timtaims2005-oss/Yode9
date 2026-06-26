@@ -303,7 +303,7 @@ export default function Agent4DesignCanvasModal({ open, onOpenChange }: Props) {
               {/* Viewport Selector */}
               {([["desktop", Monitor], ["tablet", Tablet], ["mobile", Smartphone]] as const).map(([vp, Icon]) => (
                 <button key={vp} onClick={() => setViewport(vp)}
-                  className="p-2 rounded-lg border transition-all"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg border transition-all"
                   style={viewport === vp
                     ? { borderColor: "#a78bfa55", background: "#a78bfa15", color: "#a78bfa" }
                     : { borderColor: "#222", background: "transparent", color: "#555" }}>
@@ -320,7 +320,7 @@ export default function Agent4DesignCanvasModal({ open, onOpenChange }: Props) {
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 {isGenerating ? <><Loader2 size={13} className="animate-spin" />توليد...</> : <><Code2 size={13} />توليد الكود</>}
               </motion.button>
-              <button onClick={() => onOpenChange(false)} className="p-2 rounded-xl border border-[#2a2a2a] bg-[#111] text-slate-400 hover:text-white hover:border-red-500/50 transition-all">
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-xl border border-[#2a2a2a] bg-[#111] text-slate-400 hover:text-white hover:border-red-500/50 transition-all">
                 <X size={16} />
               </button>
             </div>
@@ -338,7 +338,7 @@ export default function Agent4DesignCanvasModal({ open, onOpenChange }: Props) {
                   className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-transparent cursor-grab active:cursor-grabbing hover:border-[#2a2a2a] hover:bg-[#111] transition-all"
                   whileHover={{ x: 3, scale: 1.02 }}
                   whileTap={{ scale: 0.95 }}>
-                  <div className="p-1.5 rounded-lg flex-shrink-0" style={{ background: `${p.color}20` }}>
+                  <div className="w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0" style={{ background: `${p.color}20` }}>
                     <p.icon size={12} color={p.color} />
                   </div>
                   <span className="text-xs text-slate-400">{p.label}</span>

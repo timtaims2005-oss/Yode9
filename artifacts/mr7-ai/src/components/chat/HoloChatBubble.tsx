@@ -74,7 +74,7 @@ export function HoloChatBubble({ content, isUser = false, timestamp }: HoloChatB
       transition={{ duration: 0.3, ease: "easeOut" }}
       className={`relative group ${isUser ? "ml-auto" : "mr-auto"} max-w-[80%] mb-4`}
     >
-      <div className={`relative bg-gradient-to-br ${gradientFrom} to-black/60 backdrop-blur-md rounded-2xl p-4 border-2 ${borderColor} overflow-hidden`}>
+      <div className={`relative bg-gradient-to-br ${gradientFrom} to-black/60 backdrop-blur-md rounded-[18px] p-4 border-2 ${borderColor} overflow-hidden`}>
         {/* 3D Icon */}
         <div className="absolute top-2 left-2 w-8 h-8 pointer-events-none">
           <Canvas

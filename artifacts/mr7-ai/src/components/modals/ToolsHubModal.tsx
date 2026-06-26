@@ -255,7 +255,7 @@ function CveFeedPanel() {
                   <div className="flex items-center gap-1.5 shrink-0">
                     <a href={`https://nvd.nist.gov/vuln/detail/${cve.id}`} target="_blank" rel="noopener noreferrer"
                       onClick={e => e.stopPropagation()}
-                      className="p-1.5 rounded-lg border border-[#1f1f1f] text-muted-foreground hover:text-foreground hover:border-[#2a2a2a] transition-colors">
+                      className="w-7 h-7 flex items-center justify-center rounded-lg border border-[#1f1f1f] text-muted-foreground hover:text-foreground hover:border-[#2a2a2a] transition-colors">
                       <ExternalLink className="w-3 h-3" />
                     </a>
                     {isExp ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
@@ -1038,7 +1038,7 @@ function ImageToolsPanel() {
                   className="flex-1 bg-background border border-border rounded-lg px-2 py-1.5 text-[12px] font-mono outline-none focus:border-primary"
                   placeholder="#e21227" />
                 <button onClick={() => { navigator.clipboard.writeText(colorHex); toast({ description: "Hex copied." }); }}
-                  className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
+                  className="w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
                   <Copy className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -1046,7 +1046,7 @@ function ImageToolsPanel() {
                 <span className="text-[10px] font-bold text-muted-foreground w-8">RGB</span>
                 <span className="flex-1 text-[11px] font-mono text-muted-foreground bg-background border border-border rounded-lg px-2 py-1.5">{hexToRgb(colorPicked)}</span>
                 <button onClick={() => { navigator.clipboard.writeText(hexToRgb(colorPicked)); toast({ description: "RGB copied." }); }}
-                  className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
+                  className="w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
                   <Copy className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -1054,7 +1054,7 @@ function ImageToolsPanel() {
                 <span className="text-[10px] font-bold text-muted-foreground w-8">HSL</span>
                 <span className="flex-1 text-[11px] font-mono text-muted-foreground bg-background border border-border rounded-lg px-2 py-1.5">{hexToHsl(colorPicked)}</span>
                 <button onClick={() => { navigator.clipboard.writeText(hexToHsl(colorPicked)); toast({ description: "HSL copied." }); }}
-                  className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
+                  className="w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
                   <Copy className="w-3.5 h-3.5" />
                 </button>
               </div>

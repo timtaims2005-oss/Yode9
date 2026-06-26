@@ -90,12 +90,12 @@ export function PaymentModal({ open, onOpenChange, plan, yearly, onActivate }: P
                     </code>
                     <button
                       onClick={() => copy(tab === "usdt_trc20" ? pay.usdt_trc20 : pay.usdt_bep20, tab)}
-                      className="p-2 rounded-lg border border-border hover:bg-accent transition-colors shrink-0"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:bg-accent transition-colors shrink-0"
                     >
                       {copied === tab ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
                     </button>
                   </div>
-                  <div className="text-[11px] text-amber-400/80 bg-amber-400/5 border border-amber-400/20 p-2 rounded-lg">
+                  <div className="text-[11px] text-amber-400/80 bg-amber-400/5 border border-amber-400/20 w-7 h-7 flex items-center justify-center rounded-lg">
                     Send exactly <strong className="text-amber-400">${price} USDT</strong> on the{" "}
                     <strong>{tab === "usdt_trc20" ? "TRON TRC20" : "BEP20"}</strong> network only.
                   </div>
@@ -113,12 +113,12 @@ export function PaymentModal({ open, onOpenChange, plan, yearly, onActivate }: P
                     </code>
                     <button
                       onClick={() => copy(pay.btc, "btc")}
-                      className="p-2 rounded-lg border border-border hover:bg-accent transition-colors shrink-0"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:bg-accent transition-colors shrink-0"
                     >
                       {copied === "btc" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
                     </button>
                   </div>
-                  <div className="text-[11px] text-amber-400/80 bg-amber-400/5 border border-amber-400/20 p-2 rounded-lg">
+                  <div className="text-[11px] text-amber-400/80 bg-amber-400/5 border border-amber-400/20 w-7 h-7 flex items-center justify-center rounded-lg">
                     Send BTC equivalent to <strong className="text-amber-400">${price} USD</strong> at current rate.
                   </div>
                 </div>
@@ -133,7 +133,7 @@ export function PaymentModal({ open, onOpenChange, plan, yearly, onActivate }: P
                     <span className="flex-1 text-[13px] font-mono text-blue-400">{pay.paypal_handle}</span>
                     <button
                       onClick={() => copy(pay.paypal_handle, "paypal")}
-                      className="p-2 rounded-lg border border-border hover:bg-accent transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:bg-accent transition-colors"
                     >
                       {copied === "paypal" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
                     </button>
@@ -146,7 +146,7 @@ export function PaymentModal({ open, onOpenChange, plan, yearly, onActivate }: P
                       Open <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
-                  <div className="text-[11px] text-amber-400/80 bg-amber-400/5 border border-amber-400/20 p-2 rounded-lg">
+                  <div className="text-[11px] text-amber-400/80 bg-amber-400/5 border border-amber-400/20 w-7 h-7 flex items-center justify-center rounded-lg">
                     Send <strong className="text-amber-400">${price} USD</strong> via PayPal Friends &amp; Family.
                     Include your plan name in the note: <strong>{label}</strong>
                   </div>
@@ -169,13 +169,13 @@ export function PaymentModal({ open, onOpenChange, plan, yearly, onActivate }: P
                       <code className="flex-1 text-[11px] font-mono text-purple-400 break-all bg-accent/30 px-2 py-1 rounded">{value}</code>
                       <button
                         onClick={() => copy(value, lbl)}
-                        className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors shrink-0"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:bg-accent transition-colors shrink-0"
                       >
                         {copied === lbl ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-muted-foreground" />}
                       </button>
                     </div>
                   ))}
-                  <div className="text-[11px] text-amber-400/80 bg-amber-400/5 border border-amber-400/20 p-2 rounded-lg">
+                  <div className="text-[11px] text-amber-400/80 bg-amber-400/5 border border-amber-400/20 w-7 h-7 flex items-center justify-center rounded-lg">
                     Transfer <strong className="text-amber-400">${price} USD</strong>. Include "<strong>{label} Plan</strong>" in transfer notes.
                   </div>
                 </div>

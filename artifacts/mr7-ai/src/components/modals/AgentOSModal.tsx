@@ -278,7 +278,7 @@ export function AgentOSModal({ open, onOpenChange }: AgentOSModalProps) {
                 </button>
                 <button
                   onClick={() => onOpenChange(false)}
-                  className="p-1.5 rounded-lg transition-colors"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors"
                   style={{ color: "#333" }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = "#fb923c")}
                   onMouseLeave={(e) => (e.currentTarget.style.color = "#333")}

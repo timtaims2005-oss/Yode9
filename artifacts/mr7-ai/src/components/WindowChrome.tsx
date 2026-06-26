@@ -99,7 +99,7 @@ function MinBar({ color, title, icon, onRestore, onClose }: MinBarProps) {
       exit={{ opacity: 0, scale: 0.85 }}
       transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
       onMouseDown={onMouseDown}
-      className="rounded-2xl overflow-hidden select-none"
+      className="rounded-[18px] overflow-hidden select-none"
     >
       {/* Top glow line */}
       <div className="h-[2px]"

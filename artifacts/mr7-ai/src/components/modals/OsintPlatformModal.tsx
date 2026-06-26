@@ -490,7 +490,7 @@ export function OsintPlatformModal({ open, onOpenChange }: Props) {
         }}>
 
         {/* ── Header ────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-3 px-5 py-3 border-b border-white/7 flex-shrink-0"
+        <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b border-white/7 flex-shrink-0"
           style={{ background: "linear-gradient(90deg, rgba(59,130,246,0.08), rgba(226,18,39,0.04))" }}>
           <ScanOrb scanning={scanning} />
           <div>
@@ -532,7 +532,7 @@ export function OsintPlatformModal({ open, onOpenChange }: Props) {
               <Lock size={9} /> مفاتيح API
             </button>
             <button onClick={() => onOpenChange(false)}
-              className="p-1.5 rounded-lg hover:bg-white/8 text-white/40 hover:text-white/80 transition-all">
+              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/8 text-white/40 hover:text-white/80 transition-all">
               <X size={15} />
             </button>
           </div>

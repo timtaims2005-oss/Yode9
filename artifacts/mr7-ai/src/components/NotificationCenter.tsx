@@ -138,7 +138,7 @@ export function NotificationCenter({ compact = false }: Props) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="absolute top-11 right-0 w-80 bg-[#0c0c0c] border border-white/10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden z-50"
+            className="absolute top-11 right-0 w-80 bg-[#0c0c0c] border border-white/10 rounded-[18px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden z-50"
             style={{ maxHeight: compact ? "320px" : "480px" }}
           >
             {/* Top glow */}
@@ -193,7 +193,7 @@ export function NotificationCenter({ compact = false }: Props) {
                         {!n.is_read && (
                           <div className="absolute right-3 top-3 w-1.5 h-1.5 rounded-full bg-red-500" />
                         )}
-                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15`, border: `1px solid ${color}30` }}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15`, border: `1px solid ${color}30` }}>
                           <span style={{ color }}><Icon className="w-4 h-4" /></span>
                         </div>
                         <div className="flex-1 min-w-0 pr-2">

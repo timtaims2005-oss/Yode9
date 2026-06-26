@@ -39,7 +39,7 @@ export function FullSpectrumAIModal({ open, onOpenChange }: Props) {
           {/* Omniscient glow effect */}
           <motion.div className="absolute inset-0 rounded-2xl pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06), transparent 70%)" }} animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 4, repeat: Infinity }} />
 
-          <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(167,139,250,0.15)", background: "rgba(167,139,250,0.04)" }}>
+          <div className="relative z-10 flex items-center gap-4 px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(167,139,250,0.15)", background: "rgba(167,139,250,0.04)" }}>
             <div className="relative w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.4)", boxShadow: "0 0 25px rgba(167,139,250,0.3)" }}>
               <Brain className="w-6 h-6" style={{ color: "#a78bfa" }} />
               {[0, 1, 2].map(i => (

@@ -704,11 +704,11 @@ export function ModelCompareModal({ open, onClose }: ModelCompareModalProps) {
                   <Download className="w-3.5 h-3.5" /> تصدير
                 </button>
               )}
-              <button onClick={reset} className="p-2 rounded-lg transition-all hover:scale-105"
+              <button onClick={reset} className="w-7 h-7 flex items-center justify-center rounded-lg transition-all hover:scale-105"
                 style={{ background: "#ffffff08", border: "1px solid #ffffff12", color: "#ffffff60" }}>
                 <RotateCcw className="w-4 h-4" />
               </button>
-              <button onClick={onClose} className="p-2 rounded-lg transition-all hover:scale-105"
+              <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg transition-all hover:scale-105"
                 style={{ background: "#e2122708", border: "1px solid #e2122730", color: "#e21227" }}>
                 <X className="w-4 h-4" />
               </button>
@@ -787,6 +787,8 @@ export function ModelCompareModal({ open, onClose }: ModelCompareModalProps) {
           <div className="relative flex-shrink-0 px-4 pb-4">
             <div className="relative flex gap-2 rounded-[18px] overflow-hidden"
               style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
                 background: "rgba(8,8,8,0.95)",
                 border: running ? "1px solid rgba(0,229,255,0.3)" : "1px solid rgba(255,255,255,0.08)",
                 boxShadow: running ? "0 0 20px rgba(0,229,255,0.1)" : "none",

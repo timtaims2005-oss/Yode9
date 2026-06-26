@@ -101,7 +101,7 @@ export function ShortcutsModal({ open, onOpenChange }: { open: boolean; onOpenCh
             );
           })}
         </div>
-        <div className="px-5 py-3 border-t border-border shrink-0 text-[9px] font-mono text-muted-foreground/50 flex items-center justify-between">
+        <div className="px-4 pt-3 pb-[10px] border-t border-border shrink-0 text-[9px] font-mono text-muted-foreground/50 flex items-center justify-between">
           <span>⌘ = Ctrl on Windows/Linux, Cmd on Mac</span>
           <span>KaliGPT v3.0</span>
         </div>

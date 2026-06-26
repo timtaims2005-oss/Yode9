@@ -287,6 +287,8 @@ function PersonaCard({
       exit={{ opacity: 0, y: -8 }}
       className="rounded-[18px] border overflow-hidden cursor-pointer transition-all"
       style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
         background: isActive ? `${catColor}10` : "rgba(255,255,255,0.02)",
         borderColor: isActive ? `${catColor}55` : "rgba(255,255,255,0.06)",
         boxShadow: isActive ? `0 0 20px ${catColor}18, 0 0 40px ${catColor}08` : "none",
@@ -330,7 +332,7 @@ function PersonaCard({
         <div className="flex items-center gap-1 shrink-0">
           {onToggleFavorite && (
             <button onClick={e => { e.stopPropagation(); onToggleFavorite(); }}
-              className="p-1.5 rounded-lg hover:bg-white/5 transition-colors"
+              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors"
               title={isFavorite ? "إزالة من المفضلة" : "إضافة للمفضلة"}>
               <Heart className="w-3 h-3 transition-colors"
                 style={{ color: isFavorite ? "#e21227" : "rgba(255,255,255,0.2)", fill: isFavorite ? "#e21227" : "transparent" }} />
@@ -367,7 +369,7 @@ function PersonaCard({
                 </div>
               )}
               {"desc" in persona && (
-                <div className="mt-1.5 p-2 rounded-lg" style={{ background: `${catColor}08`, border: `1px solid ${catColor}15` }}>
+                <div className="mt-1.5 w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: `${catColor}08`, border: `1px solid ${catColor}15` }}>
                   <p className="text-[9px] leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
                     {persona.desc}
                   </p>
@@ -638,15 +640,15 @@ export function PersonaManagerModal({ open, onClose }: { open: boolean; onClose:
                 </button>
                 <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
                 <button onClick={() => importRef.current?.click()}
-                  className="p-2 rounded-xl border border-[#2a2a2a] text-muted-foreground hover:text-foreground transition-colors" title="استيراد JSON">
+                  className="w-7 h-7 flex items-center justify-center rounded-xl border border-[#2a2a2a] text-muted-foreground hover:text-foreground transition-colors" title="استيراد JSON">
                   <Upload className="w-3.5 h-3.5" />
                 </button>
                 <button onClick={exportAll}
-                  className="p-2 rounded-xl border border-[#2a2a2a] text-muted-foreground hover:text-foreground transition-colors" title="تصدير JSON">
+                  className="w-7 h-7 flex items-center justify-center rounded-xl border border-[#2a2a2a] text-muted-foreground hover:text-foreground transition-colors" title="تصدير JSON">
                   <Download className="w-3.5 h-3.5" />
                 </button>
                 <button onClick={onClose}
-                  className="p-2 rounded-xl border border-[#2a2a2a] text-muted-foreground hover:text-foreground transition-colors">
+                  className="w-7 h-7 flex items-center justify-center rounded-xl border border-[#2a2a2a] text-muted-foreground hover:text-foreground transition-colors">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -713,7 +715,7 @@ export function PersonaManagerModal({ open, onClose }: { open: boolean; onClose:
                     <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
                       {([["list", List], ["grid", Grid]] as const).map(([v, Icon]) => (
                         <button key={v} onClick={() => setViewMode(v)}
-                          className="p-1.5 rounded-lg transition-all"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg transition-all"
                           style={{ background: viewMode === v ? "rgba(226,18,39,0.2)" : "transparent", color: viewMode === v ? "#e21227" : "rgba(255,255,255,0.3)" }}>
                           <Icon className="w-3.5 h-3.5" />
                         </button>
@@ -763,7 +765,7 @@ export function PersonaManagerModal({ open, onClose }: { open: boolean; onClose:
                           <div className="flex items-center gap-2 mb-2">
                             <Edit3 className="w-4 h-4" style={{ color: "#a78bfa" }} />
                             <span className="text-sm font-black">{editor.editingId ? "تعديل الشخصية" : "شخصية جديدة"}</span>
-                            <button onClick={() => setEditor(EMPTY_EDITOR)} className="ml-auto p-1.5 rounded-lg hover:bg-white/5">
+                            <button onClick={() => setEditor(EMPTY_EDITOR)} className="ml-auto w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5">
                               <X className="w-3.5 h-3.5 text-muted-foreground/50" />
                             </button>
                           </div>
@@ -961,11 +963,11 @@ export function PersonaManagerModal({ open, onClose }: { open: boolean; onClose:
                   <AnimatePresence>
                     {editor.open && (
                       <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                        className="space-y-4 overflow-hidden rounded-[18px] border p-4" style={{ borderColor: "rgba(167,139,250,0.25)", background: "rgba(167,139,250,0.04)" }}>
+                        className="space-y-4 overflow-hidden rounded-[18px] border p-4" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", borderColor: "rgba(167,139,250,0.25)", background: "rgba(167,139,250,0.04)" }}>
                         <div className="flex items-center gap-2">
                           <Edit3 className="w-4 h-4" style={{ color: "#a78bfa" }} />
                           <span className="text-sm font-black">{editor.editingId ? "تعديل الشخصية" : "شخصية جديدة"}</span>
-                          <button onClick={() => setEditor(EMPTY_EDITOR)} className="ml-auto p-1.5 rounded-lg hover:bg-white/5">
+                          <button onClick={() => setEditor(EMPTY_EDITOR)} className="ml-auto w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5">
                             <X className="w-3.5 h-3.5 text-muted-foreground/50" />
                           </button>
                         </div>

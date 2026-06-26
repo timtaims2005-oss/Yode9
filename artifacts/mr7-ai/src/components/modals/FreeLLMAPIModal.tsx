@@ -135,7 +135,7 @@ export function FreeLLMAPIModal({ open, onOpenChange, pipelineContext }: FreeLLM
           <motion.div className="w-full flex flex-col rounded-[18px] border overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#080808", borderColor: "rgba(16,185,129,0.25)", maxHeight: "88vh", boxShadow: "0 0 60px rgba(16,185,129,0.06)" }} initial={{ scale: 0.96, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 16 }}>
 
             {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b" style={{ borderColor: "rgba(16,185,129,0.15)", background: "#080a08" }}>
+            <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(16,185,129,0.15)", background: "#080a08" }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)" }}>
                 <Zap className="w-5 h-5" style={{ color: "#10b981" }} />
               </div>

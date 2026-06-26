@@ -1845,7 +1845,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
               </div>
               <div className="flex items-center gap-1.5">
                 <button onClick={reloadProviders} disabled={reloading}
-                  className="p-2 rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors" title="تحديث">
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors" title="تحديث">
                   <RefreshCw className={`w-3.5 h-3.5 ${reloading ? "animate-spin" : ""}`} />
                 </button>
                 <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors">
@@ -2690,7 +2690,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
             </div>
 
             {/* ── Footer ── */}
-            <div className="px-5 py-3 border-t border-[#1a1a1a] flex items-center justify-between shrink-0">
+            <div className="px-4 pt-3 pb-[10px] border-t border-[#1a1a1a] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                 {loadingProviders ? (
                   <><RefreshCw className="w-3 h-3 animate-spin" /> جاري التحميل...</>

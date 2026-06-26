@@ -157,12 +157,12 @@ export function AgentKanbanModal({ open, onOpenChange }: AgentKanbanModalProps) 
         onClick={e => { if (e.target === e.currentTarget) onOpenChange(false); }}
       >
         <motion.div
-          className="relative w-full rounded-xl border overflow-hidden flex flex-col"
+          className="relative w-full rounded-[18px] border overflow-hidden flex flex-col"
           style={{ background: "#0d0d0d", borderColor: "rgba(251,191,36,0.35)", maxHeight: "92vh" }}
           initial={{ scale: 0.92, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, y: 30 }}
         >
           {/* Header */}
-          <div className="flex items-center gap-3 px-5 py-4 border-b" style={{ borderColor: "rgba(251,191,36,0.2)", background: "rgba(251,191,36,0.04)" }}>
+          <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(251,191,36,0.2)", background: "rgba(251,191,36,0.04)" }}>
             <GitMerge size={20} color="#fbbf24" />
             <div>
               <div className="font-bold text-sm tracking-widest text-white">AGENT KANBAN</div>

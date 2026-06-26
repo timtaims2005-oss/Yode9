@@ -191,7 +191,7 @@ export default function Agent4GitDashboardModal({ open, onOpenChange }: Props) {
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#222] text-slate-500 hover:text-white text-xs transition-all">
                 <RefreshCw size={12} className={loading ? "animate-spin" : ""} />تحديث
               </button>
-              <button onClick={() => onOpenChange(false)} className="p-2 rounded-xl border border-[#2a2a2a] bg-[#111] text-slate-400 hover:text-white hover:border-red-500/50 transition-all">
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-xl border border-[#2a2a2a] bg-[#111] text-slate-400 hover:text-white hover:border-red-500/50 transition-all">
                 <X size={16} />
               </button>
             </div>

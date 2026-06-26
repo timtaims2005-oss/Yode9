@@ -207,7 +207,7 @@ export function TokenOptimizerModal({ open, onOpenChange, pipelineContext }: Tok
           <motion.div className="w-full flex flex-col rounded-[18px] border overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#080808", borderColor: "rgba(34,197,94,0.25)", maxHeight: "90vh", boxShadow: "0 0 60px rgba(34,197,94,0.06)" }} initial={{ scale: 0.96, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 16 }}>
 
             {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b" style={{ borderColor: "rgba(34,197,94,0.15)", background: "#08090a" }}>
+            <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(34,197,94,0.15)", background: "#08090a" }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)" }}>
                 <BarChart2 className="w-5 h-5" style={{ color: "#22c55e" }} />
               </div>
@@ -232,7 +232,7 @@ export function TokenOptimizerModal({ open, onOpenChange, pipelineContext }: Tok
               ].map(s => {
                 const Icon = s.icon;
                 return (
-                  <div key={s.label} className="flex items-center gap-2 p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div key={s.label} className="flex items-center gap-2 w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
                     <Icon className="w-3 h-3 flex-shrink-0" style={{ color: s.color }} />
                     <div>
                       <div className="text-[8px] font-mono" style={{ color: "#444" }}>{s.label}</div>

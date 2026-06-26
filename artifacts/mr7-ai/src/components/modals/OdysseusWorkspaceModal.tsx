@@ -496,7 +496,7 @@ function DocumentsSection({ color }: { color: string }) {
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {docs.map(d => (
             <div key={d.id} onClick={() => { setSelectedDoc(d.id); setContent(d.content); }}
-              className="p-2 rounded-lg cursor-pointer border transition-all"
+              className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer border transition-all"
               style={{ border: selectedDoc === d.id ? `1px solid ${color}55` : "1px solid rgba(255,255,255,0.05)", background: selectedDoc === d.id ? `${color}0e` : "transparent" }}>
               <div className="text-xs font-semibold text-gray-300 truncate">{d.title}</div>
               <div className="text-xs text-gray-600 mt-0.5">{d.format} · {d.ts}</div>
@@ -738,7 +738,7 @@ function ResearchSection({ color }: { color: string }) {
           {PHASES.slice(0, DEPTHS[depth]).map((p, i) => (
             <motion.div key={p}
               animate={{ borderColor: i === phase ? color : i < phase ? "#10b981" : "rgba(255,255,255,0.08)" }}
-              className="text-xs p-2 rounded-lg text-center border transition-all"
+              className="text-xs w-7 h-7 flex items-center justify-center rounded-lg text-center border transition-all"
               style={{ background: i < phase ? "#10b98112" : i === phase ? `${color}18` : "transparent", color: i < phase ? "#10b981" : i === phase ? color : "#4b5563" }}>
               {i < phase ? "✓ " : i === phase ? "⟳ " : ""}{p.split(" ")[0]}
             </motion.div>
@@ -808,7 +808,7 @@ function CompareSection({ color }: { color: string }) {
           const res = side === "A" ? resA : resB;
           const sc = SIDE_COLOR[side];
           return (
-            <div key={side} className="flex flex-col rounded-xl border overflow-hidden min-h-0"
+            <div key={side} className="flex flex-col rounded-[18px] border overflow-hidden min-h-0"
               style={{ border: `1px solid ${sc}44`, boxShadow: voted === side ? `0 0 16px ${sc}33` : "none" }}>
               <div className="px-3 py-2 flex items-center justify-between text-xs font-bold flex-shrink-0"
                 style={{ background: `${sc}18`, color: sc }}>
@@ -1231,7 +1231,7 @@ function GallerySection({ color }: { color: string }) {
       <div className="grid grid-cols-2 gap-2">
         {EXAMPLES.map(e => (
           <button key={e} onClick={() => generate(e)}
-            className="text-xs p-2 rounded-lg border text-left transition-all hover:opacity-80"
+            className="text-xs w-7 h-7 flex items-center justify-center rounded-lg border text-left transition-all hover:opacity-80"
             style={{ border: `1px solid ${color}22`, background: `${color}06`, color: "#9ca3af" }}>
             {e}
           </button>
@@ -1353,7 +1353,7 @@ function BrainSection({ color }: { color: string }) {
       <div className="grid grid-cols-2 gap-2">
         {TOPICS.map(t => (
           <button key={t} onClick={() => think(t)}
-            className="text-xs p-2 rounded-lg border text-left transition-all hover:opacity-80"
+            className="text-xs w-7 h-7 flex items-center justify-center rounded-lg border text-left transition-all hover:opacity-80"
             style={{ border: `1px solid ${color}22`, background: `${color}07`, color: "#9ca3af" }}>
             {t}
           </button>
@@ -1587,7 +1587,7 @@ export function OdysseusWorkspaceModal({ open, onOpenChange }: Props) {
             <div className="flex items-center gap-3 px-4 py-3 border-b flex-shrink-0"
               style={{ borderColor: `${color}18`, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(12px)" }}>
               <button onClick={() => setSidebarOpen(v => !v)}
-                className="p-1.5 rounded-lg transition-all hover:opacity-70"
+                className="w-7 h-7 flex items-center justify-center rounded-lg transition-all hover:opacity-70"
                 style={{ border: `1px solid ${color}2a` }}>
                 <Menu size={13} style={{ color }} />
               </button>
@@ -1599,7 +1599,7 @@ export function OdysseusWorkspaceModal({ open, onOpenChange }: Props) {
                   <div className="w-1.5 h-1.5 rounded-full" style={{ background: color }} /> LIVE
                 </motion.div>
                 <button onClick={() => onOpenChange(false)}
-                  className="p-1.5 rounded-lg transition-all hover:opacity-70"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg transition-all hover:opacity-70"
                   style={{ border: "1px solid rgba(255,255,255,0.09)" }}>
                   <X size={13} className="text-gray-500" />
                 </button>

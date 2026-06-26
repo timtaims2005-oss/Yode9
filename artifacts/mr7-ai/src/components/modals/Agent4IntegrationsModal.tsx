@@ -297,7 +297,7 @@ export default function Agent4IntegrationsModal({ open, onOpenChange }: Props) {
                 <p className="text-[11px] text-slate-500 mt-0.5">Slack · Notion · BigQuery · Linear · GitHub · Discord · Airtable · Zapier</p>
               </div>
             </div>
-            <button onClick={() => onOpenChange(false)} className="p-2 rounded-xl border border-[#2a2a2a] bg-[#111] text-slate-400 hover:text-white hover:border-red-500/50 transition-all">
+            <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-xl border border-[#2a2a2a] bg-[#111] text-slate-400 hover:text-white hover:border-red-500/50 transition-all">
               <X size={16} />
             </button>
           </div>

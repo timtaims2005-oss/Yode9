@@ -497,15 +497,15 @@ export function ARTPlatformModal({ open, onOpenChange }: Props) {
                             <Square className="w-3 h-3" /> KILL SWITCH
                           </button>
                         )}
-                        <button onClick={()=>{setActivePhase(-1);setLogs([]);setRunning(false);clearInterval(timerRef.current!);}} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-colors"><RotateCcw className="w-3 h-3" /></button>
+                        <button onClick={()=>{setActivePhase(-1);setLogs([]);setRunning(false);clearInterval(timerRef.current!);}} className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-colors"><RotateCcw className="w-3 h-3" /></button>
                       </div>
                     </div>
-                    {!authorized && <div className="mb-2 p-2 rounded-lg bg-yellow-950/30 border border-yellow-700/30 text-[9px] font-mono text-yellow-400">⚠ Set target scope in Exploit Engine tab and authorize to begin</div>}
+                    {!authorized && <div className="mb-2 w-7 h-7 flex items-center justify-center rounded-lg bg-yellow-950/30 border border-yellow-700/30 text-[9px] font-mono text-yellow-400">⚠ Set target scope in Exploit Engine tab and authorize to begin</div>}
                     <div className="space-y-1.5">
                       {PHASES.map((ph,i)=>{
                         const done = activePhase > i; const active = activePhase === i;
                         return (
-                          <div key={ph.id} className={`flex items-center gap-3 p-2 rounded-lg transition-all ${active?"bg-red-950/25 border border-red-700/30":"done?bg-white/4:bg-black/20"}`}>
+                          <div key={ph.id} className={`flex items-center gap-3 w-7 h-7 flex items-center justify-center rounded-lg transition-all ${active?"bg-red-950/25 border border-red-700/30":"done?bg-white/4:bg-black/20"}`}>
                             <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0`} style={{background:done||active?ph.color+"25":"rgba(255,255,255,0.04)",border:`1px solid ${ph.color}${done||active?"40":"18"}`}}>
                               {done?<CheckCircle className="w-3 h-3" style={{color:ph.color}}/>:active?<div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:ph.color}}/>:<span className="text-[9px] font-mono text-white/25">{i+1}</span>}
                             </div>
@@ -580,7 +580,7 @@ export function ARTPlatformModal({ open, onOpenChange }: Props) {
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
                     {["Subfinder/Amass","Cloud Asset Enum","GitHub TruffleHog","WHOIS/DNS History","Social Media OSINT","Shodan/Censys","HaveIBeenPwned","LinkedIn Scraper"].map(t=>(
-                      <div key={t} className="flex items-center gap-1.5 p-2 rounded-lg bg-white/3 border border-white/5">
+                      <div key={t} className="flex items-center gap-1.5 w-7 h-7 flex items-center justify-center rounded-lg bg-white/3 border border-white/5">
                         <CheckCircle className="w-3 h-3 text-cyan-400 shrink-0" />
                         <span className="text-[9px] font-mono text-white/60">{t}</span>
                       </div>
@@ -637,7 +637,7 @@ export function ARTPlatformModal({ open, onOpenChange }: Props) {
                   )}
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mt-3">
                     {["OpenVAS","Nessus API","Nmap NSE","OWASP ZAP","Burp Suite","testssl.sh","Prowler","ScoutSuite","Nikto","Sqlmap","Nuclei","Trivy"].map(t=>(
-                      <div key={t} className="p-2 rounded-lg bg-white/3 border border-white/5 text-center">
+                      <div key={t} className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/3 border border-white/5 text-center">
                         <div className="w-1.5 h-1.5 bg-green-400 rounded-full mx-auto mb-1" />
                         <span className="text-[8px] font-mono text-white/50">{t}</span>
                       </div>
@@ -762,7 +762,7 @@ export function ARTPlatformModal({ open, onOpenChange }: Props) {
                           <motion.div initial={{height:0,opacity:0}} animate={{height:"auto",opacity:1}} exit={{height:0,opacity:0}} className="overflow-hidden border-t border-white/5">
                             <div className="p-3 space-y-1.5">
                               {tactic.techniques.map(tech=>(
-                                <div key={tech} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/4 transition-colors cursor-pointer">
+                                <div key={tech} className="flex items-center gap-2 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/4 transition-colors cursor-pointer">
                                   <ChevronRight className="w-3 h-3 shrink-0" style={{color:tactic.color+"70"}} />
                                   <span className="text-[9.5px] font-mono text-white/55">{tech}</span>
                                 </div>
@@ -927,7 +927,7 @@ export function ARTPlatformModal({ open, onOpenChange }: Props) {
                   )}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
                     {["Explain this CVE","Suggest remediation","Map to MITRE ATT&CK","Generate pentest report","Prioritize vulnerabilities","Write Sigma detection rule"].map(q=>(
-                      <button key={q} onClick={()=>setAiQuery(q)} className="p-2 rounded-lg bg-white/3 border border-white/6 hover:border-purple-700/40 text-[9px] font-mono text-white/50 hover:text-purple-400 transition-all text-left">{q}</button>
+                      <button key={q} onClick={()=>setAiQuery(q)} className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/3 border border-white/6 hover:border-purple-700/40 text-[9px] font-mono text-white/50 hover:text-purple-400 transition-all text-left">{q}</button>
                     ))}
                   </div>
                 </div>
@@ -979,7 +979,7 @@ export function ARTPlatformModal({ open, onOpenChange }: Props) {
                   <h3 className="text-[10px] font-mono text-white/50 tracking-widest uppercase mb-3">Integrations</h3>
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                     {["JIRA","ServiceNow","Trello","Splunk","ELK Stack","Slack","Teams","PagerDuty","GitHub","GitLab","Confluence","Webhook"].map(t=>(
-                      <div key={t} className="flex items-center gap-1.5 p-2 rounded-lg bg-white/3 border border-white/5 hover:bg-white/6 transition-colors cursor-pointer">
+                      <div key={t} className="flex items-center gap-1.5 w-7 h-7 flex items-center justify-center rounded-lg bg-white/3 border border-white/5 hover:bg-white/6 transition-colors cursor-pointer">
                         <div className="w-1.5 h-1.5 bg-green-400 rounded-full shrink-0" />
                         <span className="text-[9px] font-mono text-white/50">{t}</span>
                       </div>

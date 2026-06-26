@@ -88,7 +88,7 @@ export function CodexBarModal({ open, onOpenChange }: CodexBarModalProps) {
             </div>
 
             {/* Summary row */}
-            <div className="px-5 py-3 flex items-center gap-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+            <div className="px-4 pt-3 pb-[10px] flex items-center gap-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
               <div className="text-[10px] font-mono" style={{ color: "#333" }}>
                 Last refresh: {lastRefresh.toLocaleTimeString()}
               </div>
@@ -142,7 +142,7 @@ export function CodexBarModal({ open, onOpenChange }: CodexBarModalProps) {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 border-t flex items-center gap-2" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+            <div className="px-4 pt-3 pb-[10px] border-t flex items-center gap-2" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
               <Zap className="w-3 h-3" style={{ color: "#10b981" }} />
               <span className="text-[10px]" style={{ color: "#333" }}>Privacy-first — reuses existing sessions, no passwords stored. Simulated data for display.</span>
             </div>

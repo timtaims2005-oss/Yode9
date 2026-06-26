@@ -66,7 +66,7 @@ export function DeepfakeDetectorModal({ open, onOpenChange }: Props) {
           </motion.div>
 
           {/* Header */}
-          <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(139,92,246,0.15)", background: "rgba(139,92,246,0.04)" }}>
+          <div className="relative z-10 flex items-center gap-4 px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(139,92,246,0.15)", background: "rgba(139,92,246,0.04)" }}>
             <div className="relative w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.4)", boxShadow: "0 0 20px rgba(139,92,246,0.3)" }}>
               <Eye className="w-5 h-5" style={{ color: "#a78bfa" }} />
             </div>
@@ -174,7 +174,7 @@ export function DeepfakeDetectorModal({ open, onOpenChange }: Props) {
             )}
             {tab === "live" && (
               <div className="h-full flex flex-col items-center justify-center gap-6">
-                <div className="relative w-80 h-60 rounded-[18px] overflow-hidden" style={{ background: "rgba(0,0,0,0.6)", border: "2px solid rgba(139,92,246,0.3)", boxShadow: "0 0 40px rgba(139,92,246,0.15)" }}>
+                <div className="relative w-80 h-60 rounded-[18px] overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "rgba(0,0,0,0.6)", border: "2px solid rgba(139,92,246,0.3)", boxShadow: "0 0 40px rgba(139,92,246,0.15)" }}>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-24 h-24 rounded-full" style={{ background: "rgba(139,92,246,0.1)", border: "2px solid rgba(139,92,246,0.3)" }}>
                       <User className="w-full h-full p-6" style={{ color: "#a78bfa44" }} />

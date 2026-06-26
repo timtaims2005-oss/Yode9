@@ -2447,7 +2447,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
             }}
           >
             {/* Animated background layers */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[18px]" style={{ zIndex: 0 }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[18px]" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "rgba(8, 8, 8, 0.96)", zIndex: 0 }}>
               {/* Hex grid */}
               <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.035 }} preserveAspectRatio="xMidYMid slice">
                 <defs>
@@ -2541,7 +2541,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
                 <motion.button
                   whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
                   onClick={() => onOpenChange(false)}
-                  className="p-2 rounded-xl transition-all"
+                  className="w-7 h-7 flex items-center justify-center rounded-xl transition-all"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", color: "#555" }}
                 >
                   <X className="w-4 h-4" />
@@ -2643,6 +2643,8 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
                           whileHover={{ scale: 1.04, y: -2 }}
                           className="rounded-[18px] p-4 relative overflow-hidden"
                           style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
                             background: `radial-gradient(circle at 30% 30%, ${s.color}12 0%, rgba(3,3,6,0.9) 70%)`,
                             border: `1px solid ${s.color}30`,
                             boxShadow: `0 0 25px ${s.glow}, inset 0 1px 0 rgba(255,255,255,0.04)`
@@ -2659,7 +2661,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
                     </div>
 
                     {/* Module status grid */}
-                    <div className="rounded-[18px] border overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
+                    <div className="rounded-[18px] border overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
                       <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#e21227", boxShadow: "0 0 6px #e21227" }} />
                         <span className="text-[9px] font-black tracking-widest" style={{ color: "#e21227" }}>MODULE STATUS MATRIX</span>
@@ -2670,7 +2672,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
                           const isOn = enabled.has(mod.id);
                           const lastEvent = history.find(h => h.source === mod.name || h.source.toUpperCase() === mod.name.toUpperCase());
                           return (
-                            <div key={mod.id} className="flex items-center gap-2.5 p-2 rounded-xl border transition-all"
+                            <div key={mod.id} className="flex items-center gap-2.5 w-7 h-7 flex items-center justify-center rounded-xl border transition-all"
                               style={{ borderColor: isOn ? `${mod.color}25` : "rgba(255,255,255,0.04)", background: isOn ? `${mod.color}08` : "rgba(255,255,255,0.01)" }}>
                               <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{
                                 background: isOn ? `${mod.color}18` : "#0a0a0a",
@@ -2691,7 +2693,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
 
                     {/* Recent events + categories */}
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-[18px] border overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
+                      <div className="rounded-[18px] border overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
                         <div className="px-4 py-2.5 border-b" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                           <span className="text-[9px] font-black tracking-widest" style={{ color: "#00e5cc" }}>RECENT EVENTS</span>
                         </div>
@@ -2700,7 +2702,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
                         ) : (
                           <div className="space-y-1 p-2 max-h-32 overflow-y-auto">
                             {history.slice(0, 8).map(entry => (
-                              <div key={entry.id} className="flex items-center gap-2 p-1.5 rounded-lg">
+                              <div key={entry.id} className="flex items-center gap-2 w-7 h-7 flex items-center justify-center rounded-lg">
                                 <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: entry.sourceColor }} />
                                 <span className="text-[8px] font-bold font-mono truncate flex-1" style={{ color: entry.sourceColor }}>{entry.source}</span>
                                 <span className="text-[7px] font-mono" style={{ color: "#222" }}>{new Date(entry.timestamp).toLocaleTimeString("en-US", { hour12: false })}</span>
@@ -2710,7 +2712,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
                         )}
                       </div>
 
-                      <div className="rounded-[18px] border overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
+                      <div className="rounded-[18px] border overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
                         <div className="px-4 py-2.5 border-b" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                           <span className="text-[9px] font-black tracking-widest" style={{ color: "#a78bfa" }}>CATEGORIES</span>
                         </div>
@@ -2762,6 +2764,8 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
                           <motion.div key={entry.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.02 }}
                             className="rounded-[18px] p-3.5 relative overflow-hidden"
                             style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
                               background: "linear-gradient(135deg, rgba(6,6,10,0.98) 0%, rgba(4,4,8,0.98) 100%)",
                               border: `1px solid ${entry.sourceColor}18`
                             }}>

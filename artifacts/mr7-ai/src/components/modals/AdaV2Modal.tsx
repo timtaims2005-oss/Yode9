@@ -146,7 +146,7 @@ Output:
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.92)" }}>
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full h-[90vh] flex flex-col rounded-xl border overflow-hidden"
+        className="w-full h-[90vh] flex flex-col rounded-[18px] border overflow-hidden"
         style={{ background: "#0a0a0a", borderColor: "#00e5ff30" }}>
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b shrink-0" style={{ borderColor: "#00e5ff20", background: "#00e5ff08" }}>
@@ -161,7 +161,7 @@ Output:
             <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#00e5ff" }} />
             <span className="text-[9px] font-mono" style={{ color: "#00e5ff" }}>ONLINE</span>
           </div>
-          <button onClick={() => { abortRef.current?.abort(); onOpenChange(false); }} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors ml-2">
+          <button onClick={() => { abortRef.current?.abort(); onOpenChange(false); }} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors ml-2">
             <X className="w-4 h-4 text-gray-500" />
           </button>
         </div>
@@ -220,7 +220,7 @@ Output:
                 </div>
                 <div className="p-3 border-t flex gap-2" style={{ borderColor: "#1f1f1f" }}>
                   <button onClick={() => setListening(!listening)}
-                    className="p-2 rounded-lg border transition-all"
+                    className="w-7 h-7 flex items-center justify-center rounded-lg border transition-all"
                     style={{ background: listening ? "#00e5ff15" : "#111", borderColor: listening ? "#00e5ff50" : "#262626", color: listening ? "#00e5ff" : "#555" }}>
                     {listening ? <Mic className="w-4 h-4 animate-pulse" /> : <MicOff className="w-4 h-4" />}
                   </button>

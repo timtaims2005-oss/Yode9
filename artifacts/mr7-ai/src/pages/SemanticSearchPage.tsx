@@ -100,7 +100,7 @@ export function SemanticSearchPage({ onClose }: Props) {
   return (
     <div className="relative flex flex-col h-full bg-[#080808] overflow-hidden" dir="rtl">
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 25% 15%,rgba(139,92,246,.06) 0%,transparent 50%)" }} />
-      <div className="relative flex-shrink-0 px-5 py-3.5 border-b border-white/6 flex items-center justify-between">
+      <div className="relative flex-shrink-0 px-4 pt-3 pb-[10px] border-b border-white/6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center"><Search className="w-5 h-5 text-purple-400" /></div>
           <div><h2 className="text-base font-bold text-white">البحث الدلالي — Semantic Search</h2><p className="text-xs text-zinc-600">Vector Embeddings · Neural Similarity · 3D Graph</p></div>
@@ -117,7 +117,7 @@ export function SemanticSearchPage({ onClose }: Props) {
         <div className="grid grid-cols-4 gap-1.5">
           {SEARCH_MODES.map(m => (
             <button key={m.id} onClick={() => setMode(m.id)}
-              className={`p-2 rounded-lg text-center border transition-all ${mode === m.id ? "text-white" : "bg-white/3 border-white/6 text-zinc-500 hover:text-zinc-300"}`}
+              className={`w-7 h-7 flex items-center justify-center rounded-lg text-center border transition-all ${mode === m.id ? "text-white" : "bg-white/3 border-white/6 text-zinc-500 hover:text-zinc-300"}`}
               style={mode === m.id ? { backgroundColor: `${m.color}18`, borderColor: `${m.color}35`, color: m.color } : {}}>
               <p className="text-xs font-semibold">{m.label}</p>
               <p className="text-[8px] text-zinc-500 mt-0.5">{m.description}</p>

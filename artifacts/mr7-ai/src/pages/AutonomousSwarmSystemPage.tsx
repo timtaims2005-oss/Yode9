@@ -325,7 +325,7 @@ export function AutonomousSwarmSystemPage({ onClose }: Props) {
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className="absolute top-full left-0 mt-1 w-48 z-50 rounded-xl border border-white/10 bg-black/95 shadow-2xl overflow-hidden"
+                className="absolute top-full left-0 mt-1 w-48 z-50 rounded-[18px] border border-white/10 bg-black/95 shadow-2xl overflow-hidden"
               >
                 {GLM5_MODELS.map(m => (
                   <button

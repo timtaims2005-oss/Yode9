@@ -213,7 +213,7 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
           />
 
           {/* Header */}
-          <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(255,0,64,0.15)", background: "rgba(255,0,64,0.04)" }}>
+          <div className="relative z-10 flex items-center gap-4 px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(255,0,64,0.15)", background: "rgba(255,0,64,0.04)" }}>
             <div className="relative">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,0,64,0.15)", border: "1px solid rgba(255,0,64,0.4)", boxShadow: "0 0 20px rgba(255,0,64,0.3)" }}>
                 <Shield className="w-5 h-5" style={{ color: "#ff0040" }} />
@@ -435,7 +435,7 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
                       setCveRefreshing(true);
                       setTimeout(() => setCveRefreshing(false), 1200);
                     }}
-                    className="p-1.5 rounded-lg transition-all"
+                    className="w-7 h-7 flex items-center justify-center rounded-lg transition-all"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#666" }}
                   >
                     <RefreshCw className={`w-3 h-3 ${cveRefreshing ? "animate-spin" : ""}`} />

@@ -343,7 +343,7 @@ export default function Agent4SlidesModal({ open, onOpenChange }: Props) {
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 <Monitor size={14} />عرض تقديمي
               </motion.button>
-              <button onClick={() => onOpenChange(false)} className="p-2 rounded-xl border border-[#2a2a2a] bg-[#111] text-slate-400 hover:text-white hover:border-red-500/50 transition-all">
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-xl border border-[#2a2a2a] bg-[#111] text-slate-400 hover:text-white hover:border-red-500/50 transition-all">
                 <X size={16} />
               </button>
             </div>
@@ -407,7 +407,7 @@ export default function Agent4SlidesModal({ open, onOpenChange }: Props) {
                 <div className="grid grid-cols-3 gap-1">
                   {LAYOUTS.slice(0, 6).map(l => (
                     <button key={l.id} onClick={() => addSlide(l.id)}
-                      className="flex flex-col items-center p-1.5 rounded-lg border border-[#222] hover:border-amber-500/30 hover:bg-[#1a1a1a] transition-all"
+                      className="flex flex-col items-center w-7 h-7 flex items-center justify-center rounded-lg border border-[#222] hover:border-amber-500/30 hover:bg-[#1a1a1a] transition-all"
                       title={l.label}>
                       <l.icon size={12} color="#666" />
                       <span className="text-[8px] text-slate-700 mt-0.5">{l.label}</span>
@@ -422,12 +422,12 @@ export default function Agent4SlidesModal({ open, onOpenChange }: Props) {
               <div className="flex items-center justify-between px-4 py-2 border-b border-[#1a1a1a] flex-shrink-0">
                 <div className="flex items-center gap-3">
                   <button onClick={() => setCurrent(p => Math.max(0, p-1))} disabled={current===0}
-                    className="p-1.5 rounded-lg border border-[#222] text-slate-500 disabled:opacity-30 hover:text-white transition-all">
+                    className="w-7 h-7 flex items-center justify-center rounded-lg border border-[#222] text-slate-500 disabled:opacity-30 hover:text-white transition-all">
                     <ChevronLeft size={14} />
                   </button>
                   <span className="text-sm text-slate-500">{current+1} / {slides.length}</span>
                   <button onClick={() => setCurrent(p => Math.min(p+1, slides.length-1))} disabled={current===slides.length-1}
-                    className="p-1.5 rounded-lg border border-[#222] text-slate-500 disabled:opacity-30 hover:text-white transition-all">
+                    className="w-7 h-7 flex items-center justify-center rounded-lg border border-[#222] text-slate-500 disabled:opacity-30 hover:text-white transition-all">
                     <ChevronRight size={14} />
                   </button>
                 </div>
@@ -517,7 +517,7 @@ export default function Agent4SlidesModal({ open, onOpenChange }: Props) {
                   <div className="grid grid-cols-3 gap-1">
                     {LAYOUTS.map(l => (
                       <button key={l.id} onClick={() => setSlides(prev => prev.map((s,i) => i === current ? { ...s, layout: l.id } : s))}
-                        className="flex flex-col items-center p-1.5 rounded-lg border transition-all"
+                        className="flex flex-col items-center w-7 h-7 flex items-center justify-center rounded-lg border transition-all"
                         style={currentSlide.layout === l.id
                           ? { borderColor: `${currentSlide.color}55`, background: `${currentSlide.color}15`, color: currentSlide.color }
                           : { borderColor: "#1f1f1f", color: "#555" }}>

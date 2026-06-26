@@ -362,7 +362,7 @@ export function LiveCodingModal({ open, onOpenChange }: LiveCodingModalProps) {
                   style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
                   {copied ? <><CheckCheck className="w-3 h-3" style={{ color: "#10b981" }} /> COPIED</> : <><Copy className="w-3 h-3" /> COPY</>}
                 </button>
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-white/5" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5" style={{ color: "rgba(255,255,255,0.4)" }}>
                   <X className="w-4 h-4" />
                 </button>
               </div>

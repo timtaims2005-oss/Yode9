@@ -1000,7 +1000,7 @@ export function ChainInvestigationModal({ open, onOpenChange }: Props) {
                               <p className="text-[9px] text-[#383838] font-mono uppercase tracking-widest mb-2 flex items-center gap-1"><FileWarning size={9} /> ثغرات CVE</p>
                               <div className="space-y-1.5">
                                 {selected.intel.cves.map((cve, i) => (
-                                  <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-[#0a0a0a] border border-[#171717]">
+                                  <div key={i} className="flex items-start gap-2 w-7 h-7 flex items-center justify-center rounded-lg bg-[#0a0a0a] border border-[#171717]">
                                     <span className="text-[10px] font-bold font-mono text-[#e21227] shrink-0 mt-0.5">{cve.id}</span>
                                     <p className="flex-1 text-[10px] text-[#888]">{cve.desc}</p>
                                     <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold shrink-0"

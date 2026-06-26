@@ -130,7 +130,7 @@ Text to convert: ${input}`;
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => { setNodes([]); setEdges([]); setInput(""); }} className="p-1.5 rounded-lg text-gray-600 hover:text-purple-400 transition-colors">
+                <button onClick={() => { setNodes([]); setEdges([]); setInput(""); }} className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-purple-400 transition-colors">
                   <RotateCcw className="w-4 h-4" />
                 </button>
                 <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-white transition-colors">

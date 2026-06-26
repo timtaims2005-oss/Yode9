@@ -226,7 +226,7 @@ export function AgentMemoryPanel({ onClose, compact = false }: Props) {
 
       {/* ── Header ── */}
       <div className="flex-shrink-0 px-4 pt-3 pb-2 border-b border-white/6 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center relative overflow-hidden"
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center relative overflow-hidden"
           style={{ background: `${currentTabColor}18`, border: `1px solid ${currentTabColor}35` }}>
           <Brain className="w-4 h-4" style={{ color: currentTabColor }} />
           <span className="absolute inset-0 pointer-events-none"

@@ -217,12 +217,12 @@ function ParallelAgentViz({ active }: { active: boolean }) {
   return (
     <div className="flex gap-3 p-3 bg-[#0a0a0a] rounded-xl border border-[#1f1f1f]">
       {agents.map((ag, i) => (
-        <motion.div key={ag.name} className="flex-1 flex flex-col items-center gap-2 p-2 rounded-lg border"
+        <motion.div key={ag.name} className="flex-1 flex flex-col items-center gap-2 w-7 h-7 flex items-center justify-center rounded-lg border"
           style={{ borderColor: active ? `${ag.color}44` : "#1f1f1f", background: active ? `${ag.color}08` : "transparent" }}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: active ? 1 : 0.4, y: 0 }}
           transition={{ delay: i * 0.1 }}>
-          <motion.div className="p-2 rounded-lg"
+          <motion.div className="w-7 h-7 flex items-center justify-center rounded-lg"
             style={{ background: `${ag.color}22` }}
             animate={active ? { boxShadow: [`0 0 6px ${ag.color}44`, `0 0 16px ${ag.color}88`, `0 0 6px ${ag.color}44`] } : {}}
             transition={{ duration: 1.5 + i * 0.3, repeat: Infinity }}>
@@ -441,7 +441,7 @@ export default function AgentFourModal({ open, onOpenChange }: Props) {
                 ))}
               </div>
               <button onClick={() => onOpenChange(false)}
-                className="p-2 rounded-xl border border-[#2a2a2a] bg-[#111] text-slate-400 hover:text-white hover:border-red-500/50 hover:bg-red-500/10 transition-all">
+                className="w-7 h-7 flex items-center justify-center rounded-xl border border-[#2a2a2a] bg-[#111] text-slate-400 hover:text-white hover:border-red-500/50 hover:bg-red-500/10 transition-all">
                 <X size={16} />
               </button>
             </div>
@@ -490,7 +490,7 @@ export default function AgentFourModal({ open, onOpenChange }: Props) {
                     boxShadow: `0 0 12px ${f.color}22`,
                   } : { border: "1px solid transparent", background: "transparent" }}
                   whileHover={{ x: 2 }} whileTap={{ scale: 0.98 }}>
-                  <div className="p-1.5 rounded-lg flex-shrink-0" style={{ background: `${f.color}22` }}>
+                  <div className="w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0" style={{ background: `${f.color}22` }}>
                     {feature === f.id ? (
                       <motion.div animate={{ rotate: [0, 5, -5, 0] }} transition={{ duration: 2, repeat: Infinity }}>
                         <f.icon size={13} color={f.color} />
@@ -517,8 +517,8 @@ export default function AgentFourModal({ open, onOpenChange }: Props) {
             <div className="flex flex-col flex-1 overflow-hidden">
 
               {/* Feature Header */}
-              <div className="flex items-center gap-3 px-5 py-3 border-b border-[#1a1a1a] flex-shrink-0">
-                <div className="p-2 rounded-xl" style={{ background: `${activeFeature.color}22` }}>
+              <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b border-[#1a1a1a] flex-shrink-0">
+                <div className="w-7 h-7 flex items-center justify-center rounded-xl" style={{ background: `${activeFeature.color}22` }}>
                   <activeFeature.icon size={18} color={activeFeature.color} />
                 </div>
                 <div>
@@ -664,7 +664,7 @@ export default function AgentFourModal({ open, onOpenChange }: Props) {
                         { icon: Sparkles,   label: "إخراج احترافي"       },
                       ].map((item, i) => (
                         <motion.div key={i}
-                          className="flex items-center gap-2 p-2 rounded-xl bg-[#0d0d0d] border border-[#1a1a1a]"
+                          className="flex items-center gap-2 w-7 h-7 flex items-center justify-center rounded-xl bg-[#0d0d0d] border border-[#1a1a1a]"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.1 }}>

@@ -257,7 +257,7 @@ export function CognitiveWarfareModal({ open, onOpenChange }: Props) {
                 <span className="text-[10px] font-mono" style={{ color: "#e21227" }}>THREAT LEVEL: OMEGA</span>
               </div>
             </div>
-            <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg transition-all hover:bg-white/10">
+            <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg transition-all hover:bg-white/10">
               <X className="w-4 h-4 text-white/50" />
             </button>
           </div>

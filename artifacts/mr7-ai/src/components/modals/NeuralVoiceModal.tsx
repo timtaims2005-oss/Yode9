@@ -228,7 +228,7 @@ export function NeuralVoiceModal({ open, onOpenChange }: NeuralVoiceModalProps) 
                   style={{ background: isSpeaking ? "rgba(226,18,39,0.12)" : `${profile.color}15`, border: `1px solid ${isSpeaking ? "rgba(226,18,39,0.35)" : profile.color + "40"}`, color: isSpeaking ? "#e21227" : profile.color }}>
                   {isSpeaking ? <><Square className="w-3 h-3" /> STOP</> : <><Play className="w-3 h-3" /> TRANSMIT</>}
                 </button>
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-white/5 ml-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 ml-1" style={{ color: "rgba(255,255,255,0.4)" }}>
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -286,7 +286,7 @@ export function NeuralVoiceModal({ open, onOpenChange }: NeuralVoiceModalProps) 
                 <div className="p-2 space-y-1">
                   {VOICE_PROFILES.map(p => (
                     <button key={p.id} onClick={() => setProfile(p)}
-                      className="w-full text-left p-2 rounded-lg transition-all"
+                      className="w-full text-left w-7 h-7 flex items-center justify-center rounded-lg transition-all"
                       style={{ background: profile.id === p.id ? `${p.color}10` : "transparent", border: `1px solid ${profile.id === p.id ? p.color + "35" : "transparent"}` }}>
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color, boxShadow: profile.id === p.id ? `0 0 8px ${p.color}` : "none" }} />
@@ -302,7 +302,7 @@ export function NeuralVoiceModal({ open, onOpenChange }: NeuralVoiceModalProps) 
                   <div className="space-y-1 max-h-[220px] overflow-y-auto">
                     {PRESETS.map(p => (
                       <button key={p.id} onClick={() => { setSelectedPreset(p); setCustomText(""); }}
-                        className="w-full text-left p-2 rounded-lg transition-all"
+                        className="w-full text-left w-7 h-7 flex items-center justify-center rounded-lg transition-all"
                         style={{ background: selectedPreset?.id === p.id ? `${profile.color}10` : "rgba(255,255,255,0.02)", border: `1px solid ${selectedPreset?.id === p.id ? profile.color + "35" : "#111"}` }}>
                         <div className="flex items-center gap-1.5 mb-0.5">
                           <span className="text-[7px] font-mono font-bold px-1 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.35)" }}>{p.category}</span>

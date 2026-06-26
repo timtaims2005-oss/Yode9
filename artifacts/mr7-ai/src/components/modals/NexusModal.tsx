@@ -524,7 +524,7 @@ export function NexusModal({ open, onOpenChange }: NexusModalProps) {
                     ? <ChevronUp className="w-3 h-3 text-gray-600" />
                     : <ChevronDown className="w-3 h-3 text-gray-600" />}
                 </button>}
-                <button onClick={close} className="p-1.5 rounded-lg transition-colors" style={{ color: "#555", border: "1px solid rgba(255,255,255,0.07)" }}
+                <button onClick={close} className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors" style={{ color: "#555", border: "1px solid rgba(255,255,255,0.07)" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#fff"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.08)"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#555"; (e.currentTarget as HTMLElement).style.background = ""; }}>
                   <X className="w-4 h-4" />

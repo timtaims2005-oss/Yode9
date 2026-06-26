@@ -64,7 +64,7 @@ export function Quantum4DWidget() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.85, y: 20 }}
             transition={{ type: "spring", stiffness: 300, damping: 24 }}
-            className="mb-3 w-72 rounded-2xl border border-red-900/40 bg-black/90 backdrop-blur-xl overflow-hidden"
+            className="mb-3 w-72 rounded-[18px] border border-red-900/40 bg-black/90 backdrop-blur-xl overflow-hidden"
             style={{ boxShadow: "0 0 60px rgba(226,18,39,0.2), inset 0 0 40px rgba(0,0,0,0.5)" }}>
 
             <div className="relative h-40 overflow-hidden">

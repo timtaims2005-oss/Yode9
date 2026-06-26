@@ -399,7 +399,7 @@ export default function AgentV2Modal({ onClose }: { onClose: () => void }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="relative w-full max-h-[90vh] flex flex-col rounded-xl border border-[#2a2a2a] bg-[#0a0a0a] shadow-2xl overflow-hidden"
+        className="relative w-full max-h-[90vh] flex flex-col rounded-[18px] border border-[#2a2a2a] bg-[#0a0a0a] shadow-2xl overflow-hidden"
         style={{ boxShadow: "0 0 60px rgba(226,18,39,0.12), 0 0 120px rgba(226,18,39,0.05)" }}
       >
         {/* Header */}

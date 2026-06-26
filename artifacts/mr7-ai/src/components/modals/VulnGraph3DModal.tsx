@@ -222,7 +222,7 @@ export function VulnGraph3DModal({ open, onOpenChange }: VulnGraph3DModalProps) 
                     <span className="text-[8px] font-mono uppercase" style={{ color: v }}>{k}</span>
                   </div>
                 ))}
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-white/5 ml-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 ml-2" style={{ color: "rgba(255,255,255,0.4)" }}>
                   <X className="w-4 h-4" />
                 </button>
               </div>

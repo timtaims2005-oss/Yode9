@@ -692,8 +692,10 @@ export function CyberIntelCenter({ open, onClose }: CyberIntelCenterProps) {
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.93, y: 20 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="flex-1 flex flex-col overflow-hidden m-2 rounded-2xl border"
+            className="flex-1 flex flex-col overflow-hidden m-2 rounded-[18px] border"
             style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
               background: "#06060e",
               borderColor: threatColor + "44",
               boxShadow: `0 0 60px ${threatColor}22, inset 0 1px 0 rgba(255,255,255,0.05)`,
@@ -701,7 +703,7 @@ export function CyberIntelCenter({ open, onClose }: CyberIntelCenterProps) {
           >
             {/* ── Header ── */}
             <div
-              className="flex items-center gap-4 px-6 py-4 shrink-0"
+              className="flex items-center gap-4 px-4 pt-3 pb-[10px] shrink-0"
               style={{ borderBottom: `1px solid ${threatColor}22` }}
             >
               <div className="flex items-center gap-3">
@@ -748,7 +750,7 @@ export function CyberIntelCenter({ open, onClose }: CyberIntelCenterProps) {
 
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-lg border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition-all ml-2"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition-all ml-2"
                 >
                   <X size={16} />
                 </button>

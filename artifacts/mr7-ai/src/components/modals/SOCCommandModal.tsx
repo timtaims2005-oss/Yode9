@@ -313,7 +313,7 @@ export function SOCCommandModal({ open, onOpenChange }: Props) {
                   <div className="space-y-1.5 max-h-64 overflow-y-auto">
                     {alerts.slice(0,8).map((a,i)=>(
                       <motion.div key={a.id} initial={{opacity:0,x:-6}} animate={{opacity:1,x:0}} transition={{delay:i*0.03}}
-                        className="flex items-center gap-2 p-2 rounded-lg border border-white/5 bg-black/30 hover:border-white/10 transition-all cursor-pointer"
+                        className="flex items-center gap-2 w-7 h-7 flex items-center justify-center rounded-lg border border-white/5 bg-black/30 hover:border-white/10 transition-all cursor-pointer"
                         onClick={()=>setTab("alerts")}>
                         <div className="w-1.5 h-1.5 rounded-full shrink-0 animate-pulse" style={{background:SEV_COLORS[a.sev]}}/>
                         <div className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold shrink-0" style={{background:SEV_COLORS[a.sev]+"20",color:SEV_COLORS[a.sev]}}>{a.sev}</div>
@@ -367,7 +367,7 @@ export function SOCCommandModal({ open, onOpenChange }: Props) {
                               <div className="p-3 space-y-2">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[9px] font-mono">
                                   {[{k:"Rule",v:a.rule},{k:"Protocol",v:a.proto},{k:"Analyst",v:a.analyst??"-"},{k:"MITRE",v:a.mitre}].map(({k,v})=>(
-                                    <div key={k} className="p-2 rounded-lg bg-white/3 border border-white/5">
+                                    <div key={k} className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/3 border border-white/5">
                                       <div className="text-white/35">{k}</div>
                                       <div className="text-white/70 font-bold mt-0.5">{v}</div>
                                     </div>
@@ -477,7 +477,7 @@ export function SOCCommandModal({ open, onOpenChange }: Props) {
                         <motion.div initial={{height:0,opacity:0}} animate={{height:"auto",opacity:1}} exit={{height:0,opacity:0}} className="overflow-hidden border-t border-white/6">
                           <div className="p-3 space-y-1.5">
                             {pb.steps.map((step,si)=>(
-                              <div key={si} className="flex items-center gap-3 p-2 rounded-lg bg-white/3 hover:bg-white/5 transition-colors cursor-pointer">
+                              <div key={si} className="flex items-center gap-3 w-7 h-7 flex items-center justify-center rounded-lg bg-white/3 hover:bg-white/5 transition-colors cursor-pointer">
                                 <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-mono font-bold shrink-0" style={{background:pb.color+"25",color:pb.color}}>{si+1}</div>
                                 <span className="text-[10px] font-mono text-white/60">{step}</span>
                                 <CheckCircle className="w-3 h-3 text-white/15 ml-auto shrink-0"/>

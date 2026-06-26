@@ -46,7 +46,7 @@ export function CyberConsciousnessModal({ open, onOpenChange }: Props) {
           {/* Pulsing organism effect */}
           <motion.div className="absolute inset-0 rounded-2xl pointer-events-none" style={{ border: "1px solid rgba(0,229,255,0.1)" }} animate={{ opacity: [0.3, 0.8, 0.3], scale: [1, 1.001, 1] }} transition={{ duration: 2, repeat: Infinity }} />
 
-          <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(0,229,255,0.12)", background: "rgba(0,229,255,0.03)" }}>
+          <div className="relative z-10 flex items-center gap-4 px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(0,229,255,0.12)", background: "rgba(0,229,255,0.03)" }}>
             <div className="relative w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,229,255,0.12)", border: "1px solid rgba(0,229,255,0.35)" }}>
               <Brain className="w-5 h-5" style={{ color: "#00e5ff" }} />
               <motion.div className="absolute inset-0 rounded-xl" style={{ border: "1px solid #00e5ff" }} animate={{ scale: [1, 1.6, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 1.5, repeat: Infinity }} />

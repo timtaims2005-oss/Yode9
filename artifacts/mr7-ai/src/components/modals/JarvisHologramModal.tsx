@@ -193,7 +193,7 @@ function ThreatPanel() {
         <motion.div key={i}
           initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
           transition={{ delay: i * 0.08 }}
-          className="flex items-center gap-2 p-2 rounded-lg border"
+          className="flex items-center gap-2 w-7 h-7 flex items-center justify-center rounded-lg border"
           style={{ border: `1px solid ${t.color}22`, background: `${t.color}07` }}>
           <motion.div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
             style={{ background: t.color }}
@@ -262,7 +262,7 @@ function ArsenalPanel() {
     <div className="p-3 space-y-1.5 overflow-y-auto" style={{ height: "calc(100% - 44px)" }}>
       {MODULES.map((m, i) => (
         <motion.div key={i} whileHover={{ x: 3 }}
-          className="flex items-center gap-2.5 p-2 rounded-lg border cursor-pointer transition-all hover:opacity-80"
+          className="flex items-center gap-2.5 w-7 h-7 flex items-center justify-center rounded-lg border cursor-pointer transition-all hover:opacity-80"
           style={{ border: `1px solid ${m.color}22`, background: `${m.color}07` }}>
           <motion.div className="w-2 h-2 rounded-full flex-shrink-0"
             style={{ background: m.color }}
@@ -457,7 +457,7 @@ function IntelPanel() {
       <div className="flex-1 overflow-y-auto p-3 space-y-1.5 min-h-0">
         {feeds.map((f, i) => (
           <motion.div key={i} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
-            className="flex items-start gap-2 p-2 rounded-lg border"
+            className="flex items-start gap-2 w-7 h-7 flex items-center justify-center rounded-lg border"
             style={{ border: `1px solid ${f.color}22`, background: `${f.color}08` }}>
             <span className="text-sm flex-shrink-0 mt-0.5">{f.icon}</span>
             <div className="flex-1 min-w-0">
@@ -519,6 +519,8 @@ export function JarvisHologramModal({ open, onOpenChange }: Props) {
           transition={{ type: "spring", stiffness: 260, damping: 28 }}
           className="relative w-full h-[93vh] rounded-[18px] overflow-hidden"
           style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
             background: "linear-gradient(135deg, #020210 0%, #030318 50%, #020210 100%)",
             border: `1px solid ${JARVIS_BLUE}44`,
             boxShadow: `0 0 100px ${JARVIS_BLUE}18, 0 0 200px ${JARVIS_BLUE}08, inset 0 0 100px rgba(0,0,20,0.8)`,
@@ -528,7 +530,7 @@ export function JarvisHologramModal({ open, onOpenChange }: Props) {
           <HUDCorners />
 
           {/* ── Header ── */}
-          <div className="relative z-20 flex items-center gap-4 px-6 py-3.5 border-b"
+          <div className="relative z-20 flex items-center gap-4 px-4 pt-3 pb-[10px] border-b"
             style={{ borderColor: `${JARVIS_BLUE}22`, background: "rgba(0,0,20,0.7)", backdropFilter: "blur(20px)" }}>
             <HolographicOrb size={44} />
             <div>
@@ -565,7 +567,7 @@ export function JarvisHologramModal({ open, onOpenChange }: Props) {
                 <Radio size={11} /> ONLINE
               </motion.div>
               <button onClick={() => onOpenChange(false)}
-                className="p-2 rounded-lg transition-all hover:opacity-70"
+                className="w-7 h-7 flex items-center justify-center rounded-lg transition-all hover:opacity-70"
                 style={{ border: `1px solid ${JARVIS_BLUE}33` }}>
                 <X size={14} style={{ color: JARVIS_BLUE }} />
               </button>

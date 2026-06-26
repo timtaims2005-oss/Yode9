@@ -442,14 +442,14 @@ function EnginePanel({
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={onRefresh}
-            className="p-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/08 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/08 transition-colors"
             title="Refresh"
           >
             <RefreshCw size={12} />
           </button>
           <button
             onClick={copyPort}
-            className="p-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/08 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/08 transition-colors"
             title="Copy port"
           >
             {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
@@ -480,7 +480,7 @@ function EnginePanel({
           </button>
           <button
             onClick={() => setExpanded(v => !v)}
-            className="p-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/08 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white/80 hover:bg-white/08 transition-colors"
           >
             {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </button>
@@ -777,7 +777,7 @@ export function LocalEngineHubModal({ open, onOpenChange }: Props) {
             {scanning ? "Scanning..." : "Scan All"}
           </button>
 
-          <button onClick={() => onOpenChange(false)} className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/08 transition-colors">
+          <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/08 transition-colors">
             <X size={16} />
           </button>
         </div>

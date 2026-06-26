@@ -410,7 +410,7 @@ export default function CollabModal({ open, onOpenChange }: Props) {
                 </button>
               )}
               <button onClick={() => onOpenChange(false)}
-                className="p-2 rounded-xl border border-[#2a2a2a] bg-[#111] text-slate-400 hover:text-white hover:border-red-500/50 transition-all">
+                className="w-7 h-7 flex items-center justify-center rounded-xl border border-[#2a2a2a] bg-[#111] text-slate-400 hover:text-white hover:border-red-500/50 transition-all">
                 <X size={16} />
               </button>
             </div>
@@ -444,7 +444,7 @@ export default function CollabModal({ open, onOpenChange }: Props) {
                   { label: "رسائل",    value: messages.filter(m => m.type === "message").length, color: "#10b981" },
                   { label: "يكتب",     value: activeTypers.length, color: "#f59e0b" },
                 ].map(s => (
-                  <div key={s.label} className="flex flex-col items-center p-2 rounded-xl bg-[#0d0d0d] border border-[#1a1a1a]">
+                  <div key={s.label} className="flex flex-col items-center w-7 h-7 flex items-center justify-center rounded-xl bg-[#0d0d0d] border border-[#1a1a1a]">
                     <motion.div className="text-lg font-black" style={{ color: s.color }}
                       animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity }}>
                       {s.value}
@@ -461,7 +461,7 @@ export default function CollabModal({ open, onOpenChange }: Props) {
               <div className="flex items-center gap-0 border-b border-[#1a1a1a] flex-shrink-0">
                 {([["chat","المحادثة",MessageSquare],["room","الغرفة",Link2],["users","المستخدمون",Users]] as const).map(([t, l, Icon]) => (
                   <button key={t} onClick={() => setTab(t as typeof tab)}
-                    className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 transition-all ${tab === t ? "text-red-400 border-red-500" : "text-slate-600 border-transparent hover:text-slate-400"}`}>
+                    className={`flex items-center gap-2 px-4 pt-3 pb-[10px] text-xs font-bold border-b-2 transition-all ${tab === t ? "text-red-400 border-red-500" : "text-slate-600 border-transparent hover:text-slate-400"}`}>
                     <Icon size={12} />{l}
                   </button>
                 ))}

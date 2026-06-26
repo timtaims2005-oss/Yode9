@@ -131,7 +131,7 @@ export function AgentProjectGeneratorPage({ onClose }: Props) {
   return (
     <div className="flex flex-col h-full bg-[#080808] text-white overflow-hidden" dir="rtl">
       {/* Header */}
-      <div className="flex-shrink-0 px-5 py-3.5 border-b border-white/6 flex items-center gap-3">
+      <div className="flex-shrink-0 px-4 pt-3 pb-[10px] border-b border-white/6 flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-[#e21227]/20 border border-[#e21227]/30 flex items-center justify-center">
           <Rocket className="w-5 h-5 text-[#e21227]" />
         </div>
@@ -252,7 +252,7 @@ export function AgentProjectGeneratorPage({ onClose }: Props) {
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
-                  className="absolute top-full mt-1 left-0 right-0 z-50 rounded-xl border border-white/10 bg-black/95 shadow-2xl overflow-hidden"
+                  className="absolute top-full mt-1 left-0 right-0 z-50 rounded-[18px] border border-white/10 bg-black/95 shadow-2xl overflow-hidden"
                 >
                   {QUICK_MODELS.map(m => (
                     <button

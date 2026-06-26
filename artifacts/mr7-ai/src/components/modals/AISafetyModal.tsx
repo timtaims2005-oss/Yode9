@@ -38,7 +38,7 @@ export function AISafetyModal({ open, onOpenChange }: Props) {
     <AnimatePresence>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.94)", backdropFilter: "blur(18px)" }}>
         <motion.div initial={{ scale: 0.92, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} transition={{ type: "spring", stiffness: 280, damping: 26 }} className="relative w-full h-full w-full h-full flex flex-col overflow-hidden" style={{ background: "linear-gradient(135deg, #020808 0%, #030a0a 100%)", border: "1px solid rgba(0,229,255,0.2)", borderRadius: 16, boxShadow: "0 0 120px rgba(0,229,255,0.08)" }}>
-          <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(0,229,255,0.12)", background: "rgba(0,229,255,0.03)" }}>
+          <div className="relative z-10 flex items-center gap-4 px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(0,229,255,0.12)", background: "rgba(0,229,255,0.03)" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,229,255,0.12)", border: "1px solid rgba(0,229,255,0.35)" }}>
               <Shield className="w-5 h-5" style={{ color: "#00e5ff" }} />
             </div>
@@ -81,7 +81,7 @@ export function AISafetyModal({ open, onOpenChange }: Props) {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {[{ label: "Checks", val: m.checks.toLocaleString() }, { label: "Blocks", val: m.blocks }].map((stat, j) => (
-                        <div key={j} className="text-center p-2 rounded-lg" style={{ background: "rgba(0,0,0,0.3)" }}>
+                        <div key={j} className="text-center w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: "rgba(0,0,0,0.3)" }}>
                           <div className="text-[14px] font-black" style={{ color: j === 1 && m.blocks > 0 ? "#f97316" : m.color }}>{stat.val}</div>
                           <div className="text-[8px] font-mono" style={{ color: "#444" }}>{stat.label}</div>
                         </div>

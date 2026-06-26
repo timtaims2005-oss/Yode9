@@ -513,7 +513,7 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
                           }}
                           whileHover={{ background: `rgba(${pc[0]},${pc[1]},${pc[2]},0.09)`, borderColor: `rgba(${pc[0]},${pc[1]},${pc[2]},0.25)` }}
                           whileTap={{ scale: 0.98 }}>
-                          <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                             style={{ background: `rgba(${pc[0]},${pc[1]},${pc[2]},0.18)`, border: `1px solid rgba(${pc[0]},${pc[1]},${pc[2]},0.30)` }}>
                             {(Icon ? React.createElement(Icon, { className: "w-4 h-4", style: { color: `rgba(${pc[0]},${pc[1]},${pc[2]},0.95)` } }) : null)}
                           </div>

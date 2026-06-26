@@ -101,7 +101,7 @@ export function PaseoModal({ open, onOpenChange }: Props) {
             </div>
 
             {/* Provider Strip */}
-            <div className="px-5 py-3 border-b flex items-center gap-2" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+            <div className="px-4 pt-3 pb-[10px] border-b flex items-center gap-2" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
               {PROVIDERS.map(p => (
                 <button key={p.id} onClick={() => setSelectedProvider(p.id)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all"
@@ -233,7 +233,7 @@ export function PaseoModal({ open, onOpenChange }: Props) {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 border-t flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.05)", background: "#060606" }}>
+            <div className="px-4 pt-3 pb-[10px] border-t flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.05)", background: "#060606" }}>
               <div className="flex items-center gap-3 text-[9px] font-mono" style={{ color: "#2a2a2a" }}>
                 <span>{agents.length} agents</span><span>·</span><span>1 host</span><span>·</span><span>Paseo v2.0</span>
               </div>

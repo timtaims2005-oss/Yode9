@@ -1274,7 +1274,7 @@ function UuidGenerator() {
       <div className="flex items-center gap-2">
         <FieldLabel>Count</FieldLabel>
         <input type="number" min={1} max={100} value={count} onChange={(e) => setCount(Math.min(100, Math.max(1, Number(e.target.value))))} className="w-20 bg-background border border-border rounded-lg px-2 py-1 text-sm font-mono" />
-        <button onClick={generate} className="ml-auto text-muted-foreground hover:text-foreground p-2 rounded-lg hover:bg-accent" aria-label="Regenerate"><RefreshCw className="w-4 h-4" /></button>
+        <button onClick={generate} className="ml-auto text-muted-foreground hover:text-foreground w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent" aria-label="Regenerate"><RefreshCw className="w-4 h-4" /></button>
         <CopyButton value={list.join("\n")} label="All" />
       </div>
       <div className="space-y-1 max-h-64 overflow-y-auto">
@@ -1701,7 +1701,7 @@ function AiTranslator() {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <button onClick={() => setDirection("en-ar")} className={`flex-1 py-2 rounded-xl text-sm font-bold border ${direction === "en-ar" ? "bg-primary text-white border-primary" : "bg-background border-border"}`}>English</button>
-        <button onClick={swap} className="p-2 rounded-lg hover:bg-accent text-muted-foreground" aria-label="Swap"><RefreshCw className="w-4 h-4" /></button>
+        <button onClick={swap} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent text-muted-foreground" aria-label="Swap"><RefreshCw className="w-4 h-4" /></button>
         <button onClick={() => setDirection("ar-en")} className={`flex-1 py-2 rounded-xl text-sm font-bold border ${direction === "ar-en" ? "bg-primary text-white border-primary" : "bg-background border-border"}`}>العربية</button>
       </div>
       <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4} placeholder={direction === "en-ar" ? "Type English text..." : "اكتب نصا عربيا..."} className={inputCls + " resize-none"} dir={direction === "en-ar" ? "ltr" : "rtl"} />

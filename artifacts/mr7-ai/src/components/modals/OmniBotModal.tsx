@@ -79,7 +79,7 @@ export function OmniBotModal({ open, onOpenChange }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.92)" }}>
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full h-[90vh] flex flex-col rounded-xl border overflow-hidden"
+        className="w-full h-[90vh] flex flex-col rounded-[18px] border overflow-hidden"
         style={{ background: "#0a0a0a", borderColor: "#fbbf2430" }}>
         <div className="flex items-center gap-3 px-4 py-3 border-b shrink-0" style={{ borderColor: "#fbbf2420", background: "#fbbf2408" }}>
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#fbbf2415", border: "1px solid #fbbf2430" }}>
@@ -96,7 +96,7 @@ export function OmniBotModal({ open, onOpenChange }: Props) {
               </span>
             ))}
           </div>
-          <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
+          <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors">
             <X className="w-4 h-4 text-gray-500" />
           </button>
         </div>

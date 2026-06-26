@@ -248,8 +248,10 @@ export function StreamMetrics3D({ metrics, visible }: { metrics: StreamMetrics; 
           animate={{ opacity: 1, y: 0,  scale: 1 }}
           exit={{ opacity: 0, y: 8, scale: 0.97 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-2xl"
+          className="relative overflow-hidden rounded-[18px]"
           style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
             background: "linear-gradient(135deg, rgba(0,0,0,0.92) 0%, rgba(8,4,24,0.95) 100%)",
             border: `1px solid ${qc.main}30`,
             boxShadow: `0 0 24px ${qc.glow}40, inset 0 1px 0 rgba(255,255,255,0.04)`,

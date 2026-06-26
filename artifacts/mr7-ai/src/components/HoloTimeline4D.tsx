@@ -176,7 +176,7 @@ export function HoloTimeline4D() {
       </div>
 
       {hovered && (
-        <div className="mx-3 mb-3 p-2 rounded-lg border border-white/10 bg-white/3">
+        <div className="mx-3 mb-3 w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 bg-white/3">
           <div className="text-[10px] text-gray-400 font-mono">{hovered.details}</div>
         </div>
       )}

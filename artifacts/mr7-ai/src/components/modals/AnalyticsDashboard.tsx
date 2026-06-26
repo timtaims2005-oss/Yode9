@@ -220,7 +220,7 @@ export function AnalyticsDashboard({ open, onClose }: Props) {
                     </button>
                   ))}
                 </div>
-                <button className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/5">
+                <button className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/5">
                   <Download className="w-3.5 h-3.5" />
                 </button>
                 <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/5">

@@ -125,7 +125,7 @@ export function CCSwitchModal({ open, onOpenChange }: CCSwitchModalProps) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => { setResults([]); setInput(""); }} className="p-1.5 rounded-lg text-gray-600 hover:text-indigo-400 transition-colors">
+                <button onClick={() => { setResults([]); setInput(""); }} className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-indigo-400 transition-colors">
                   <RotateCcw className="w-4 h-4" />
                 </button>
                 <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-white transition-colors">

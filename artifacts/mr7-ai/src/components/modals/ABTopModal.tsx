@@ -106,12 +106,12 @@ export function ABTopModal({ open, onOpenChange }: ABTopModalProps) {
         onClick={e => { if (e.target === e.currentTarget) onOpenChange(false); }}
       >
         <motion.div
-          className="relative w-full rounded-xl border overflow-hidden flex flex-col"
+          className="relative w-full rounded-[18px] border overflow-hidden flex flex-col"
           style={{ background: "#0d0d0d", borderColor: "rgba(226,18,39,0.35)", maxHeight: "90vh" }}
           initial={{ scale: 0.92, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, y: 30 }}
         >
           {/* Header — btop-style */}
-          <div className="flex items-center gap-3 px-5 py-3 border-b" style={{ borderColor: "rgba(226,18,39,0.2)", background: "#111" }}>
+          <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(226,18,39,0.2)", background: "#111" }}>
             <Activity size={18} color="#e21227" />
             <div>
               <div className="font-bold text-sm tracking-widest text-white">ABTOP</div>

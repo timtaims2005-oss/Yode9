@@ -959,7 +959,7 @@ export function CyberWarfareMatrixModal({ open, onOpenChange }: Props) {
           </div>
 
           {/* Header */}
-          <div className="flex items-center gap-3 px-5 py-3.5 border-b border-[#1f1f1f] flex-shrink-0">
+          <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b border-[#1f1f1f] flex-shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(226,18,39,0.15)", border: "1px solid rgba(226,18,39,0.35)" }}>
                 <Crosshair className="w-4 h-4 text-[#e21227]" />
@@ -980,7 +980,7 @@ export function CyberWarfareMatrixModal({ open, onOpenChange }: Props) {
             </div>
             <button
               onClick={() => onOpenChange(false)}
-              className="p-1.5 rounded-lg transition-all hover:scale-110"
+              className="w-7 h-7 flex items-center justify-center rounded-lg transition-all hover:scale-110"
               style={{ color: "#e21227", background: "rgba(226,18,39,0.1)", border: "1px solid rgba(226,18,39,0.2)" }}
             >
               <X className="w-4 h-4" />

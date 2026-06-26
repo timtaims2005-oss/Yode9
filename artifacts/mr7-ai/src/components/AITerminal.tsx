@@ -397,7 +397,7 @@ export function AITerminal({ onBack }: AITerminalProps) {
       <AnimatePresence>
         {showSessions && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-            className="absolute top-14 left-24 z-50 rounded-xl border overflow-hidden shadow-2xl"
+            className="absolute top-14 left-24 z-50 rounded-[18px] border overflow-hidden shadow-2xl"
             style={{ background: "#0a0a0a", borderColor: "#1f1f1f", minWidth: 260 }}>
             {SESSIONS.map(s => (
               <button key={s.id} onClick={() => switchSession(s.id)}

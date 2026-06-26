@@ -757,7 +757,7 @@ export function SystemMasterHUD3D(props: HUDPanel & { onOpenAnomalyLog?: () => v
       <AnimatePresence>
         {showPanel && (
           <motion.div initial={{opacity:0,height:0,y:-5}} animate={{opacity:1,height:"auto",y:0}} exit={{opacity:0,height:0,y:-5}}
-            className="w-full overflow-hidden rounded-2xl border"
+            className="w-full overflow-hidden rounded-[18px] border"
             style={{background:"rgba(6,8,18,0.98)",borderColor:"rgba(226,18,39,0.3)",boxShadow:"0 0 40px rgba(226,18,39,0.12)"}}>
 
             {/* STATUS PANEL */}
@@ -801,7 +801,7 @@ export function SystemMasterHUD3D(props: HUDPanel & { onOpenAnomalyLog?: () => v
                     const Icon=mode.icon;
                     return (
                       <motion.button key={mode.id} onClick={()=>setMasteroMode(isActive?null:mode.id)}
-                        className="flex flex-col items-center gap-1 p-2 rounded-xl border text-center transition-all"
+                        className="flex flex-col items-center gap-1 w-7 h-7 flex items-center justify-center rounded-xl border text-center transition-all"
                         style={{background:isActive?`${mode.color}15`:"rgba(255,255,255,0.02)",borderColor:isActive?`${mode.color}55`:"rgba(255,255,255,0.07)",boxShadow:isActive?`0 0 12px ${mode.color}22`:"none"}}
                         whileHover={{scale:1.03}} whileTap={{scale:0.97}}>
                         <Icon className="w-4 h-4" style={{color:mode.color}} />
@@ -837,7 +837,7 @@ export function SystemMasterHUD3D(props: HUDPanel & { onOpenAnomalyLog?: () => v
                   صفحة {modePage+1} من {Math.ceil(MASTERO_MODES.length/MODES_PER_PAGE)} · {modePage*MODES_PER_PAGE+1}–{Math.min((modePage+1)*MODES_PER_PAGE,MASTERO_MODES.length)} من {MASTERO_MODES.length}
                 </div>
                 {masteroMode && (
-                  <div className="p-2 rounded-xl border" style={{borderColor:"rgba(226,18,39,0.2)",background:"rgba(226,18,39,0.05)"}}>
+                  <div className="w-7 h-7 flex items-center justify-center rounded-xl border" style={{borderColor:"rgba(226,18,39,0.2)",background:"rgba(226,18,39,0.05)"}}>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full animate-pulse" style={{background:MASTERO_MODES.find(m=>m.id===masteroMode)?.color}} />
                       <span className="text-[9px] font-bold" style={{color:MASTERO_MODES.find(m=>m.id===masteroMode)?.color}}>
@@ -985,7 +985,7 @@ export function SystemMasterHUD3D(props: HUDPanel & { onOpenAnomalyLog?: () => v
                     const Icon=btn.icon;
                     return (
                       <button key={btn.label} onClick={btn.fn}
-                        className="flex flex-col items-center gap-1 p-2 rounded-xl border transition-all hover:border-[rgba(255,255,255,0.15)]"
+                        className="flex flex-col items-center gap-1 w-7 h-7 flex items-center justify-center rounded-xl border transition-all hover:border-[rgba(255,255,255,0.15)]"
                         style={{background:"rgba(255,255,255,0.02)",borderColor:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.5)"}}>
                         <Icon className="w-3.5 h-3.5" />
                         <span className="text-[8px]">{btn.label}</span>

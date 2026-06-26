@@ -50,8 +50,10 @@ export function PipelineHUD({ onSendToRag, onSendToCLI, onSendToAgent, onSendToI
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
-      className="fixed bottom-20 right-4 z-40 w-72 rounded-2xl overflow-hidden"
+      className="fixed bottom-20 right-4 z-40 w-72 rounded-[18px] overflow-hidden"
       style={{
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
         background: "#0d0d0d",
         border: `1px solid ${flash ? "rgba(0,229,204,0.6)" : "rgba(0,229,204,0.25)"}`,
         boxShadow: flash

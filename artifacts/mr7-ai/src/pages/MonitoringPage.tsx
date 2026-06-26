@@ -77,7 +77,7 @@ export function MonitoringPage({onClose}:Props) {
   return (
     <div className="relative flex flex-col h-full bg-[#080808] overflow-hidden" dir="rtl">
       <div className="absolute inset-0 pointer-events-none" style={{background:`radial-gradient(ellipse at 25% 15%,${overallColor}0d 0%,transparent 50%)`}}/>
-      <div className="relative flex-shrink-0 px-5 py-3.5 border-b border-white/6 flex items-center justify-between">
+      <div className="relative flex-shrink-0 px-4 pt-3 pb-[10px] border-b border-white/6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center border" style={{backgroundColor:`${overallColor}20`,borderColor:`${overallColor}30`}}>
             <Activity className="w-5 h-5" style={{color:overallColor}}/>
@@ -120,7 +120,7 @@ export function MonitoringPage({onClose}:Props) {
           {services.map((svc,i)=>(
             <motion.div key={svc.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:i*0.04}}
               className="flex items-center gap-3 p-3.5 rounded-xl border" style={{background:`${svc.color}08`,borderColor:`${svc.color}15`}}>
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{backgroundColor:`${svc.color}20`}}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{backgroundColor:`${svc.color}20`}}>
                 {React.createElement(svc.icon as React.FC<React.SVGProps<SVGSVGElement>>, { className: "w-4 h-4", style: { color: svc.color } })}
               </div>
               <div className="flex-1">

@@ -255,7 +255,7 @@ export function ThreatFeedButton({ onClick, active }: { onClick: () => void; act
   return (
     <button
       onClick={onClick}
-      className={`flex-shrink-0 p-2 rounded-lg transition-colors ${active ? "text-[#e21227] bg-[#e21227]/15 ring-1 ring-[#e21227]/40" : "text-muted-foreground hover:text-[#e21227] hover:bg-[#e21227]/10"}`}
+      className={`flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${active ? "text-[#e21227] bg-[#e21227]/15 ring-1 ring-[#e21227]/40" : "text-muted-foreground hover:text-[#e21227] hover:bg-[#e21227]/10"}`}
       aria-label="Threat Intelligence Feed 3D"
       title="Threat Intelligence Feed 3D"
     >

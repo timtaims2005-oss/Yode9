@@ -614,9 +614,9 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
               <div className="h-[2px]" style={{ background: `linear-gradient(90deg,transparent,${activeColor},#ffffff33,${activeColor},transparent)` }} />
 
               {/* Header — drag handle */}
-              <div className="px-5 py-3.5 flex items-center justify-between cursor-move select-none" style={{ borderBottom: `1px solid ${activeColor}14` }} onMouseDown={onPanelDragDown}>
+              <div className="px-4 pt-3 pb-[10px] flex items-center justify-between cursor-move select-none" style={{ borderBottom: `1px solid ${activeColor}14` }} onMouseDown={onPanelDragDown}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: `${activeColor}18`, border: `1px solid ${activeColor}35` }}>
                     <QuantumBrain3D open={true} hover={false} activeColor={activeColor} />
                   </div>
@@ -776,7 +776,7 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
                             border: `1px solid ${isActive ? pc+"40" : "rgba(255,255,255,0.05)"}`,
                           }}
                           whileHover={{ background: `${pc}0c`, borderColor: `${pc}28` }} whileTap={{ scale: 0.98 }}>
-                          <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                             style={{ background: `${pc}18`, border: `1px solid ${pc}30` }}>
                             {(Icon ? React.createElement(Icon, { className: "w-4 h-4", style: { color: `${pc}ee` } }) : null)}
                           </div>

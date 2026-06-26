@@ -483,7 +483,7 @@ export function InfrastructureMap3D() {
       />
 
       {/* ── Top HUD bar ── */}
-      <div className="absolute top-0 left-0 right-0 z-20 px-6 py-4 flex items-center justify-between">
+      <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-3 pb-[10px] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-[#00ff88] animate-pulse" />
           <span className="text-[#00ff88] text-xs tracking-[0.3em] uppercase font-bold">

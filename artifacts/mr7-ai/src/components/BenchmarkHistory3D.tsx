@@ -368,15 +368,15 @@ export function BenchmarkHistory3D({ className = "" }: BenchmarkHistory3DProps) 
               {v.toUpperCase()}
             </button>
           ))}
-          <button onClick={refresh} className="p-1.5 rounded-lg border border-violet-800/30 text-violet-500 hover:text-violet-300 transition-all">
+          <button onClick={refresh} className="w-7 h-7 flex items-center justify-center rounded-lg border border-violet-800/30 text-violet-500 hover:text-violet-300 transition-all">
             <RefreshCw className="w-3 h-3" />
           </button>
           {history.length > 0 && (
             <>
-              <button onClick={handleExport} className="p-1.5 rounded-lg border border-cyan-800/30 text-cyan-600 hover:text-cyan-400 transition-all" title="تصدير JSON">
+              <button onClick={handleExport} className="w-7 h-7 flex items-center justify-center rounded-lg border border-cyan-800/30 text-cyan-600 hover:text-cyan-400 transition-all" title="تصدير JSON">
                 <Download className="w-3 h-3" />
               </button>
-              <button onClick={handleClear} className="p-1.5 rounded-lg border border-red-800/30 text-red-600 hover:text-red-400 transition-all" title="مسح">
+              <button onClick={handleClear} className="w-7 h-7 flex items-center justify-center rounded-lg border border-red-800/30 text-red-600 hover:text-red-400 transition-all" title="مسح">
                 <Trash2 className="w-3 h-3" />
               </button>
             </>
