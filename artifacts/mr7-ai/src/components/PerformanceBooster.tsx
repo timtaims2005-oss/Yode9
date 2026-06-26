@@ -351,35 +351,6 @@ export function PerformanceBooster() {
 
   return (
     <>
-      {/* ── Always-visible FPS badge ─────────────────────────────── */}
-      <div
-        onClick={() => setOpen(v => !v)}
-        title="Ctrl+Shift+B — Performance Booster"
-        style={{
-          position: "fixed", left: 10, bottom: 10, zIndex: 99998,
-          background: "rgba(5,5,7,0.92)", border: `1px solid ${liveFpsColor}33`,
-          borderRadius: 6, padding: "3px 8px",
-          fontFamily: "monospace", fontSize: 11, cursor: "pointer",
-          userSelect: "none", backdropFilter: "blur(6px)",
-          display: "flex", alignItems: "center", gap: 5,
-          boxShadow: `0 0 10px ${liveFpsColor}22`,
-          transition: "border-color .3s, box-shadow .3s",
-        }}
-      >
-        {/* health dot */}
-        <div style={{
-          width: 5, height: 5, borderRadius: "50%",
-          background: liveFpsColor,
-          boxShadow: `0 0 5px ${liveFpsColor}`,
-          animation: pipeline.health === "critical" ? "pulse-dot 0.6s ease-in-out infinite alternate" : "none",
-        }} />
-        <span style={{ color: liveFpsColor, fontWeight: 700, minWidth: 26, textAlign: "right" }}>{fps}</span>
-        <span style={{ color: DIM }}>fps</span>
-        <span style={{ color: "#2a2a2a", margin: "0 1px" }}>|</span>
-        <span style={{ color: "#444", fontSize: 9 }}>{targetFPS}↑</span>
-        <span style={{ color: DIMMER, fontSize: 9 }}>{displayHz}Hz</span>
-      </div>
-
       {/* ── Full booster panel ──────────────────────────────────── */}
       {open && (
         <div

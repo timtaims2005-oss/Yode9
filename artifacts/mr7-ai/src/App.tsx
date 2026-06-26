@@ -13,8 +13,6 @@ class AppErrorBoundary extends Component<{ children: React.ReactNode; fallback?:
   }
 }
 import { BootScreen } from "./components/BootScreen";
-import { PerfMonitor } from "./components/PerfMonitor";
-import { GlobalStatusBar } from "./components/GlobalStatusBar";
 import { Quantum4DWidget } from "./components/Quantum4DWidget";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -49,6 +47,8 @@ import { SystemHealthBar } from "./components/SystemHealthBar";
 import { PerformanceHUD } from "./components/PerformanceHUD";
 import { PerformanceBooster } from "./components/PerformanceBooster";
 import { OfflineQueueBanner } from "./components/OfflineQueueBanner";
+import { PerfMonitor } from "./components/PerfMonitor";
+import { GlobalStatusBar } from "./components/GlobalStatusBar";
 import { PerformanceCommandCenter } from "./components/PerformanceCommandCenter";
 import { frameScheduler } from "./lib/frame-scheduler";
 import { memoryPressure } from "./lib/memory-pressure";
@@ -457,6 +457,11 @@ function AppContent() {
   const [pipelineKeyRef] = useState(() => ({ n: 0 }));
   const [hudsVisible, setHudsVisible] = useState(true);
   const [perfCCOpen, setPerfCCOpen] = useState(false);
+  const [showSysHealth, setShowSysHealth] = useState(false);
+  const [showPerfHud, setShowPerfHud] = useState(false);
+  const [showPerfMon, setShowPerfMon] = useState(false);
+  const [showGlobalStatus, setShowGlobalStatus] = useState(false);
+  const [showOfflineQueue, setShowOfflineQueue] = useState(false);
   const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
   void addCostEntry; void shellGeneratorInject;
 
@@ -856,6 +861,11 @@ function AppContent() {
           onOpenFinetune={() => open('finetune')}
           onOpenSwarmEvolution={() => open('swarmEvolution')}
           onOpenPerfCC={() => setPerfCCOpen(v => !v)}
+          onToggleSysHealth={() => setShowSysHealth(v => !v)}
+          onTogglePerfHud={() => setShowPerfHud(v => !v)}
+          onTogglePerfMon={() => setShowPerfMon(v => !v)}
+          onToggleGlobalStatus={() => setShowGlobalStatus(v => !v)}
+          onToggleOfflineQueue={() => setShowOfflineQueue(v => !v)}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
@@ -1163,6 +1173,13 @@ function AppContent() {
       <AnimatePresence>
         {modals.widgetsDock && <CyberHUDOverlay key="widgets-dock" onClose={() => close('widgetsDock')} />}
       </AnimatePresence>
+
+      {/* HUD overlays — toggled via TopBar buttons */}
+      {showSysHealth    && <SystemHealthBar />}
+      {showPerfHud      && <PerformanceHUD />}
+      {showPerfMon      && <PerfMonitor />}
+      {showGlobalStatus && <GlobalStatusBar />}
+      {showOfflineQueue && <OfflineQueueBanner />}
 
       <div className="hidden md:block">
         <PipelineHUD

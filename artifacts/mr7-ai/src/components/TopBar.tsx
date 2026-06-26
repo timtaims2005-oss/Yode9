@@ -92,6 +92,11 @@ interface TopBarProps {
   sidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
   onOpenPerfCC?: () => void;
+  onToggleSysHealth?: () => void;
+  onTogglePerfHud?: () => void;
+  onTogglePerfMon?: () => void;
+  onToggleGlobalStatus?: () => void;
+  onToggleOfflineQueue?: () => void;
 }
 
 // ── Ultra 3D HUD Canvas — optimised (adaptive FPS, visibility API, reduced O(n²)) ──
@@ -2235,6 +2240,11 @@ export function TopBar({
   sidebarCollapsed,
   onToggleSidebar,
   onOpenPerfCC,
+  onToggleSysHealth,
+  onTogglePerfHud,
+  onTogglePerfMon,
+  onToggleGlobalStatus,
+  onToggleOfflineQueue,
 }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -2440,6 +2450,12 @@ export function TopBar({
         {(onOpenNeuralMatrix || onOpenModelCompare || onOpenAnalytics || onOpenPerfDash || onOpenCostDash) && <VDivider />}
 
         {/* ── GROUP 4 — Cyber Intel ────────────────────────────────────── */}
+        {onToggleSysHealth    && <HUDBtn icon={Activity}      label="SYS·HEALTH"   color="#22c55e" onClick={onToggleSysHealth} shortLabel="HEALTH" />}
+        {onTogglePerfMon      && <HUDBtn icon={Monitor}       label="PERF·MON"     color="#f97316" onClick={onTogglePerfMon}   shortLabel="MON" />}
+        {onTogglePerfHud      && <HUDBtn icon={Gauge}         label="PERF·HUD"     color="#fbbf24" onClick={onTogglePerfHud}   shortLabel="PHUD" />}
+        {onToggleGlobalStatus && <HUDBtn icon={Radio}         label="SYS·STATUS"   color="#06b6d4" onClick={onToggleGlobalStatus} shortLabel="STATUS" />}
+        {onToggleOfflineQueue && <HUDBtn icon={Clock}         label="OFFLINE·Q"    color="#a78bfa" onClick={onToggleOfflineQueue} shortLabel="QUEUE" />}
+        {(onToggleSysHealth || onTogglePerfMon || onTogglePerfHud || onToggleGlobalStatus || onToggleOfflineQueue) && <VDivider />}
         {onOpenCisaLive       && <HUDBtn icon={ShieldAlert}  label="CISA Live"    color="#e21227" onClick={onOpenCisaLive} />}
         {onOpenCveTimeline    && <HUDBtn icon={BarChart2}    label="CVE Timeline" color="#f97316" onClick={onOpenCveTimeline} />}
         {onOpenThreatMap      && <HUDBtn icon={Globe}        label="Threat Map"   color="#00e5ff" onClick={onOpenThreatMap}   badge="3D" />}
