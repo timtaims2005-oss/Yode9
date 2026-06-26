@@ -200,10 +200,10 @@ export function VulnGraph3DModal({ open, onOpenChange }: VulnGraph3DModalProps) 
           onClick={e => e.target === e.currentTarget && onOpenChange(false)}>
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="relative w-full h-full flex flex-col rounded-2xl overflow-hidden border border-[#1a1a1a]"
-            style={{ background: "linear-gradient(135deg,#050510 0%,#080818 50%,#050510 100%)" }}>
+            className="relative w-full h-full flex flex-col rounded-[18px] overflow-hidden border border-[#1a1a1a]"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "linear-gradient(135deg,#050510 0%,#080818 50%,#050510 100%)" }}>
 
-            <div className="flex items-center justify-between px-5 py-3 border-b border-[#111] shrink-0"
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#111] shrink-0"
               style={{ background: "rgba(167,139,250,0.04)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center"

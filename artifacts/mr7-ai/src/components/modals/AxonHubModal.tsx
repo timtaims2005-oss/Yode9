@@ -62,10 +62,10 @@ Provide expert gateway configuration advice, routing strategies, and cost optimi
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-3xl rounded-2xl overflow-hidden flex flex-col"
-        style={{ background: "#0a0a0a", border: `1px solid ${Ag(0.25)}`, maxHeight: "88vh" }}
+        className="w-full rounded-[18px] overflow-hidden flex flex-col"
+        style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#0a0a0a", border: `1px solid ${Ag(0.25)}`, maxHeight: "88vh" }}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0" style={{ borderColor: Ag(0.12) }}>
+        <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b flex-shrink-0" style={{ borderColor: Ag(0.12) }}>
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: Ag(0.1), border: `1px solid ${Ag(0.3)}` }}>
               <Globe className="w-5 h-5" style={{ color: A }} />

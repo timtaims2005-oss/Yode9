@@ -52,7 +52,7 @@ function SlidePreview({ slide, active }: { slide: Slide; active: boolean }) {
 
   return (
     <motion.div
-      className="relative rounded-2xl overflow-hidden cursor-pointer select-none"
+      className="relative rounded-[18px] overflow-hidden cursor-pointer select-none"
       style={{
         width: "100%", aspectRatio: "16/9",
         background: slide.bg,
@@ -316,9 +316,9 @@ export default function Agent4SlidesModal({ open, onOpenChange }: Props) {
           transition={{ type: "spring", stiffness: 240, damping: 28 }}>
 
           {/* Header */}
-          <div className="relative flex items-center justify-between px-6 py-4 border-b border-[#1a1a1a] flex-shrink-0">
+          <div className="relative flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#1a1a1a] flex-shrink-0">
             <div className="flex items-center gap-4">
-              <motion.div className="w-12 h-12 rounded-xl flex items-center justify-center"
+              <motion.div className="w-9 h-9 rounded-xl flex items-center justify-center"
                 style={{ background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)" }}
                 animate={{ boxShadow: ["0 0 10px rgba(245,158,11,0.2)","0 0 30px rgba(245,158,11,0.5)","0 0 10px rgba(245,158,11,0.2)"] }}
                 transition={{ duration: 2, repeat: Infinity }}>

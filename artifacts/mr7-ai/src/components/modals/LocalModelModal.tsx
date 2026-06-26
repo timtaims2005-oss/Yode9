@@ -150,7 +150,7 @@ function RadarScan3D({ results, scanning }: { results: ScanResult[]; scanning: b
     <canvas
       ref={canvasRef}
       width={240} height={160}
-      className="w-full max-w-[240px] mx-auto rounded-xl"
+      className="w-full mx-auto rounded-xl"
       style={{ imageRendering: "crisp-edges", border: "1px solid rgba(0,229,255,0.12)" }}
     />
   );
@@ -1419,7 +1419,7 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
   return (
     <FullPageOverlay open={open} onClose={() => onOpenChange(false)}>
       <div className="flex flex-col h-full w-full">
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-[#1f1f1f] bg-[#0d0d0d] shrink-0">
+        <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b border-[#1f1f1f] bg-[#0d0d0d] shrink-0">
           <Server className="w-5 h-5 text-primary" />
           <div>
             <h2 className="text-sm font-bold text-white">نموذج محلي (Ollama / LM Studio / Jan)</h2>
@@ -1444,7 +1444,7 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
 
         {/* 3D Auto-Detect Radar */}
-        <div className="rounded-2xl overflow-hidden" style={{ background: "linear-gradient(135deg, #060608, #0a0a10)", border: "1px solid rgba(0,229,255,0.15)", boxShadow: "0 0 30px rgba(0,229,255,0.06)" }}>
+        <div className="rounded-[18px] overflow-hidden" style={{ background: "linear-gradient(135deg, #060608, #0a0a10)", border: "1px solid rgba(0,229,255,0.15)", boxShadow: "0 0 30px rgba(0,229,255,0.06)" }}>
           <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid rgba(0,229,255,0.08)" }}>
             <div className="flex items-center gap-2">
               <Radio className="w-4 h-4" style={{ color: autoScanning ? "#00e5ff" : "rgba(0,229,255,0.5)" }} />
@@ -1897,7 +1897,7 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
         )}
 
         {/* ── 3D Neural Connection Probe ─────────────────────────────────────── */}
-        <div className="rounded-2xl overflow-hidden" style={{
+        <div className="rounded-[18px] overflow-hidden" style={{
           background: "linear-gradient(135deg,#030508,#06090f)",
           border: testStatus === "ok"  ? "1px solid rgba(34,197,94,0.25)"
                 : testStatus === "fail"? "1px solid rgba(239,68,68,0.25)"
@@ -1998,7 +1998,7 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
         </div>
 
         {/* ── Model Health Scanner ─────────────────────────────────────────── */}
-        <div className="rounded-2xl overflow-hidden" style={{
+        <div className="rounded-[18px] overflow-hidden" style={{
           background: "linear-gradient(135deg,#030508,#060a10)",
           border: "1px solid rgba(34,197,94,0.15)",
         }}>

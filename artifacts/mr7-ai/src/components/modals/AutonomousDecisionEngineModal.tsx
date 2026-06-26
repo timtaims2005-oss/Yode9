@@ -558,7 +558,7 @@ export function AutonomousDecisionEngineModal({ open, onOpenChange }: Props) {
           <div className="relative flex items-center gap-4 px-6 py-3 border-b border-white/5 shrink-0">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center"
                   style={{ background: "linear-gradient(135deg,#e21227,#8b5cf6)", boxShadow: "0 0 20px #e2122766" }}>
                   <Brain size={20} className="text-white" />
                 </div>

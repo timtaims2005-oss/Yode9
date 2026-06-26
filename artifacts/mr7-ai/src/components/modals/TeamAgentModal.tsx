@@ -193,11 +193,11 @@ Your job: synthesize all perspectives into one unified, structured threat intell
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="w-full max-w-3xl max-h-[88dvh] flex flex-col rounded-2xl overflow-hidden"
-            style={{ background: "#07070d", border: "1px solid rgba(249,115,22,0.25)", boxShadow: "0 0 60px rgba(249,115,22,0.1)" }}
+            className="w-full max-h-[88dvh] flex flex-col rounded-[18px] overflow-hidden"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#07070d", border: "1px solid rgba(249,115,22,0.25)", boxShadow: "0 0 60px rgba(249,115,22,0.1)" }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: "rgba(249,115,22,0.2)", background: "rgba(249,115,22,0.04)" }}>
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(249,115,22,0.2)", background: "rgba(249,115,22,0.04)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center border" style={{ background: "rgba(249,115,22,0.1)", borderColor: "rgba(249,115,22,0.35)" }}>
                   <Users className="w-4.5 h-4.5" style={{ color: "#f97316", width: 18, height: 18 }} />

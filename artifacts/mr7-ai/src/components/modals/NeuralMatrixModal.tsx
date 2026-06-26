@@ -448,15 +448,17 @@ export function NeuralMatrixModal({ open, onOpenChange }: NeuralMatrixModalProps
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="w-full max-w-3xl max-h-[94vh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-h-[94vh] flex flex-col rounded-[18px] overflow-hidden"
             style={{
-              background: "linear-gradient(160deg, #050818 0%, #080810 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
               border: "1px solid rgba(226,18,39,0.25)",
               boxShadow: "0 0 80px rgba(226,18,39,0.12), 0 0 160px rgba(100,0,180,0.06), inset 0 1px 0 rgba(255,255,255,0.04)",
             }}
           >
             {/* Scan line */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl z-10">
+            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[18px] z-10">
               <motion.div
                 className="absolute left-0 right-0 h-px opacity-20"
                 animate={{ top: `${scanLine}%` }}
@@ -466,7 +468,7 @@ export function NeuralMatrixModal({ open, onOpenChange }: NeuralMatrixModalProps
             </div>
 
             {/* HEADER */}
-            <div className="relative px-4 sm:px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: "rgba(226,18,39,0.15)", background: "rgba(226,18,39,0.03)" }}>
+            <div className="relative px-4 sm:px-4 pt-3 pb-[10px] border-b flex items-center justify-between" style={{ borderColor: "rgba(226,18,39,0.15)", background: "rgba(226,18,39,0.03)" }}>
               <div className="flex items-center gap-3">
                 <div className="relative w-10 h-10 flex-shrink-0">
                   <div className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ background: "#e21227", animationDuration: "2s" }} />

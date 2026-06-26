@@ -224,12 +224,11 @@ export function CognitiveWarfareModal({ open, onOpenChange }: Props) {
         onClick={(e) => { if (e.target === e.currentTarget) onOpenChange(false); }}
       >
         <motion.div
-          className="relative w-full max-w-4xl rounded-2xl overflow-hidden flex flex-col"
-          initial={{ scale: 0.92, y: 30 }}
-          animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.92, y: 30 }}
+          className="relative w-full rounded-[18px] overflow-hidden flex flex-col"
           style={{
-            background: "linear-gradient(160deg, #0a0a14 0%, #080810 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
             border: "1px solid rgba(139,92,246,0.3)",
             boxShadow: "0 0 60px rgba(139,92,246,0.15), 0 0 120px rgba(226,18,39,0.08)",
             maxHeight: "90vh",
@@ -244,7 +243,7 @@ export function CognitiveWarfareModal({ open, onOpenChange }: Props) {
           <NeuralBackground canvasRef={canvasRef} />
 
           {/* Header */}
-          <div className="relative z-10 flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: "rgba(139,92,246,0.2)" }}>
+          <div className="relative z-10 flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(139,92,246,0.2)" }}>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.4)" }}>
                 <Brain className="w-4 h-4" style={{ color: "#8b5cf6" }} />
@@ -308,7 +307,7 @@ export function CognitiveWarfareModal({ open, onOpenChange }: Props) {
                   {/* Capability header */}
                   <div className="rounded-xl p-4" style={{ background: `${cap.color}10`, border: `1px solid ${cap.color}30` }}>
                     <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${cap.color}20`, border: `1px solid ${cap.color}40` }}>
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${cap.color}20`, border: `1px solid ${cap.color}40` }}>
                         <CapIcon className="w-6 h-6" style={{ color: cap.color }} />
                       </div>
                       <div className="flex-1">

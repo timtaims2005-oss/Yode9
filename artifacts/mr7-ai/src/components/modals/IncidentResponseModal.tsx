@@ -42,7 +42,7 @@ export function IncidentResponseModal({ open, onOpenChange }: Props) {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.93)", backdropFilter: "blur(18px)" }}>
         <motion.div initial={{ scale: 0.92, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} transition={{ type: "spring", stiffness: 280, damping: 26 }} className="relative w-full h-full w-full h-full flex flex-col overflow-hidden" style={{ background: "linear-gradient(135deg, #0a0200 0%, #080000 100%)", border: "1px solid rgba(249,115,22,0.2)", borderRadius: 16, boxShadow: "0 0 120px rgba(249,115,22,0.08)" }}>
           <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(249,115,22,0.12)", background: "rgba(249,115,22,0.04)" }}>
-            <div className="relative w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.4)" }}>
+            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.4)" }}>
               <Flame className="w-5 h-5" style={{ color: "#f97316" }} />
             </div>
             <div>
@@ -58,7 +58,7 @@ export function IncidentResponseModal({ open, onOpenChange }: Props) {
                 <div className="text-[20px] font-black" style={{ color: "#f97316" }}>5</div>
                 <div className="text-[8px] font-mono" style={{ color: "#f9731655" }}>OPEN INCIDENTS</div>
               </div>
-              <button onClick={() => onOpenChange(false)} className="p-2 rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
             </div>
           </div>
 
@@ -88,7 +88,7 @@ export function IncidentResponseModal({ open, onOpenChange }: Props) {
                 <div className="flex-1 flex flex-col gap-4">
                   <div className="p-5 rounded-xl" style={{ background: `${inc.color}06`, border: `1px solid ${inc.color}25` }}>
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${inc.color}15`, border: `1px solid ${inc.color}30` }}>
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${inc.color}15`, border: `1px solid ${inc.color}30` }}>
                         <Flame className="w-5 h-5" style={{ color: inc.color }} />
                       </div>
                       <div>

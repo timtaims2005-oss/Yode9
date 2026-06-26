@@ -915,7 +915,7 @@ export function ClaudeCodeModal({ open, onOpenChange }: ClaudeCodeModalProps) {
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             style={{ background:"rgba(0,0,0,0.85)", backdropFilter:"blur(6px)" }}>
             <motion.div initial={{scale:0.95,y:12}} animate={{scale:1,y:0}} exit={{scale:0.95,y:12}}
-              className="w-full max-w-lg flex flex-col rounded-xl overflow-hidden"
+              className="w-full flex flex-col rounded-xl overflow-hidden"
               style={{ background:"#0c0c10", border:"1px solid rgba(6,182,212,0.3)", maxHeight:"90vh" }}>
               <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor:"rgba(255,255,255,0.06)", background:"#121218" }}>
                 <div className="flex items-center gap-1.5">
@@ -948,7 +948,7 @@ export function ClaudeCodeModal({ open, onOpenChange }: ClaudeCodeModalProps) {
           style={{ background:"rgba(0,0,0,0.88)", backdropFilter:"blur(6px)" }}
           onClick={e=>{ if(e.target===e.currentTarget) onOpenChange(false); }}>
           <motion.div initial={{scale:0.96,y:16}} animate={{scale:1,y:0}} exit={{scale:0.96,y:16}} transition={{duration:0.18}}
-            className="w-full max-w-4xl flex flex-col rounded-xl overflow-hidden shadow-2xl"
+            className="w-full flex flex-col rounded-xl overflow-hidden shadow-2xl"
             style={{ background:"#0c0c10", border:"1px solid rgba(6,182,212,0.25)", boxShadow:"0 0 80px rgba(6,182,212,0.2),0 30px 60px rgba(0,0,0,0.9)", height:"min(90vh,800px)" }}>
 
             {/* ── Title bar ── */}

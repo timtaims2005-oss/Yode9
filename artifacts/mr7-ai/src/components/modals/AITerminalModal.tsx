@@ -217,8 +217,8 @@ export function AITerminalModal({ open, onOpenChange }: AITerminalModalProps) {
           style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(6px)" }}
           onClick={e => { if (e.target === e.currentTarget) onOpenChange(false); }}>
           <motion.div initial={{ scale: 0.95, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 16 }}
-            className="w-full max-w-3xl flex flex-col rounded-2xl overflow-hidden shadow-2xl"
-            style={{ background: "#0c0c10", border: "1px solid rgba(226,18,39,0.3)", boxShadow: "0 0 80px rgba(226,18,39,0.1)", height: "min(90vh,700px)" }}>
+            className="w-full flex flex-col rounded-[18px] overflow-hidden shadow-2xl"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#0c0c10", border: "1px solid rgba(226,18,39,0.3)", boxShadow: "0 0 80px rgba(226,18,39,0.1)", height: "min(90vh,700px)" }}>
 
             {/* Title bar */}
             <div className="flex items-center gap-2 px-4 py-2.5 shrink-0 border-b" style={{ borderColor: "rgba(255,255,255,0.06)", background: "#121218" }}>
@@ -261,7 +261,7 @@ export function AITerminalModal({ open, onOpenChange }: AITerminalModalProps) {
                 <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0 font-mono" style={{ background: "#0c0c10" }}>
                   {history.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-full gap-3">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "rgba(226,18,39,0.08)", border: "1px solid rgba(226,18,39,0.2)" }}>
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(226,18,39,0.08)", border: "1px solid rgba(226,18,39,0.2)" }}>
                         <Terminal className="w-6 h-6" style={{ color: "rgba(226,18,39,0.4)" }} />
                       </div>
                       <span className="text-[10px] font-mono" style={{ color: "#2a1a1a" }}>AI Terminal — تنفيذ أوامر Shell مع تحليل AI</span>

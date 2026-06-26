@@ -93,11 +93,11 @@ function AgentOrb({ agent, onClick, active }: { agent: Agent; onClick: () => voi
       onClick={onClick}
       whileHover={{ scale: 1.08 }}
       whileTap={{ scale: 0.95 }}
-      className={`relative flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all ${active ? `${agent.ring} bg-white/5` : "border-white/10 bg-white/2 hover:border-white/20"}`}
+      className={`relative flex flex-col items-center gap-2 p-3 rounded-[18px] border transition-all ${active ? `${agent.ring} bg-white/5` : "border-white/10 bg-white/2 hover:border-white/20"}`}
       style={{ boxShadow: active ? `0 0 20px ${agent.glow}` : undefined }}
     >
       <div className="relative">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: `${agent.glow}`, border: `1px solid ${agent.color}40` }}>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${agent.glow}`, border: `1px solid ${agent.color}40` }}>
           <Icon className="w-6 h-6" style={{ color: agent.color }} />
         </div>
         <span className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-[#0a0a0f] ${agent.status === "running" ? "bg-emerald-400 animate-pulse" : agent.status === "done" ? "bg-blue-400" : agent.status === "error" ? "bg-red-400" : "bg-gray-600"}`} />

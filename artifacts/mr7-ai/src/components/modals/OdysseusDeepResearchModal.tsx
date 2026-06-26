@@ -148,12 +148,12 @@ Make the report comprehensive, analytically rigorous, and practically useful.`;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3" style={{ background: "rgba(0,0,0,0.93)", backdropFilter: "blur(20px)" }}>
       <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
-        className="relative w-full max-w-5xl h-[90vh] rounded-3xl overflow-hidden flex flex-col"
+        className="relative w-full h-[90vh] rounded-3xl overflow-hidden flex flex-col"
         style={{ background: "linear-gradient(145deg, #030408 0%, #020304 60%, #030408 100%)", border: "1px solid rgba(0,229,204,0.15)", boxShadow: "0 0 80px rgba(0,229,204,0.06), inset 0 1px 0 rgba(0,229,204,0.04)" }}>
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 
         {/* Header */}
-        <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "rgba(0,229,204,0.1)", background: "rgba(0,0,0,0.4)" }}>
+        <div className="relative z-10 flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(0,229,204,0.1)", background: "rgba(0,0,0,0.4)" }}>
           <div className="flex items-center gap-3">
             <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 3, repeat: Infinity }}
               className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,229,204,0.12)", border: "1px solid rgba(0,229,204,0.3)", boxShadow: "0 0 16px rgba(0,229,204,0.2)" }}>
@@ -246,8 +246,9 @@ Make the report comprehensive, analytically rigorous, and practically useful.`;
             </div>
 
             {/* Output */}
-            <div className="flex-1 rounded-2xl overflow-hidden flex flex-col" style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(0,229,204,0.08)" }}>
-              <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: "rgba(0,229,204,0.08)" }}>
+            <div className="flex-1 rounded-[18px] overflow-hidden flex flex-col" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "rgba(0,0,0,0.4)", border: "1px solid rgba(0,229,204,0.08)" }}>
+              <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", borderColor: "rgba(0,229,204,0.08)" }}>
+              background: "rgba(8, 8, 8, 0.96)",
                 <div className="flex items-center gap-2">
                   <motion.div animate={{ opacity: running ? [1, 0.3, 1] : 1 }} transition={{ duration: 1, repeat: Infinity }}
                     className="w-1.5 h-1.5 rounded-full" style={{ background: running ? "#00e5cc" : output ? "#10b981" : "#333" }} />

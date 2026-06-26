@@ -131,11 +131,11 @@ export function FinetuneModal({ open, onClose }: Props) {
           className="fixed inset-0 z-[200] flex items-center justify-center p-4"
           style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}>
           <motion.div initial={{ scale: 0.94, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.94, y: 20 }}
-            className="w-full max-w-2xl max-h-[88vh] flex flex-col rounded-2xl overflow-hidden"
-            style={{ background: "#0a0a0a", border: "1px solid rgba(226,18,39,0.2)", boxShadow: "0 0 60px rgba(226,18,39,0.08)" }}>
+            className="w-full max-h-[88vh] flex flex-col rounded-[18px] overflow-hidden"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#0a0a0a", border: "1px solid rgba(226,18,39,0.2)", boxShadow: "0 0 60px rgba(226,18,39,0.08)" }}>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/6">
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-white/6">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-violet-500/10 border border-violet-500/30 flex items-center justify-center">
                   <Brain className="w-4.5 h-4.5 text-violet-400" />

@@ -140,10 +140,10 @@ Task: ${task.text}`,
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-2xl max-h-[92dvh] flex flex-col rounded-2xl overflow-hidden"
-            style={{ background: "#080808", border: "1px solid rgba(249,115,22,0.25)", boxShadow: "0 0 60px rgba(249,115,22,0.1)" }}
+            className="w-full max-h-[92dvh] flex flex-col rounded-[18px] overflow-hidden"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#080808", border: "1px solid rgba(249,115,22,0.25)", boxShadow: "0 0 60px rgba(249,115,22,0.1)" }}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "rgba(249,115,22,0.2)", background: "rgba(249,115,22,0.04)" }}>
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(249,115,22,0.2)", background: "rgba(249,115,22,0.04)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center border" style={{ background: "rgba(249,115,22,0.1)", borderColor: "rgba(249,115,22,0.4)" }}>
                   <Zap className="w-4 h-4" style={{ color: "#f97316" }} />
@@ -157,7 +157,7 @@ Task: ${task.text}`,
                 <button onClick={() => setTasks([])} className="p-1.5 rounded-lg text-gray-600 hover:text-orange-400 transition-colors">
                   <RotateCcw className="w-4 h-4" />
                 </button>
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg text-gray-600 hover:text-white transition-colors">
+                <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-white transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>

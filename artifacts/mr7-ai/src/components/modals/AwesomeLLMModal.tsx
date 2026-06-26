@@ -87,9 +87,9 @@ export function AwesomeLLMModal({ open, onOpenChange }: AwesomeLLMModalProps) {
           className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
           style={{ backdropFilter: "blur(10px)", background: "rgba(0,0,0,0.85)" }}>
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-3xl max-h-[92dvh] flex flex-col rounded-2xl overflow-hidden"
-            style={{ background: "#080808", border: "1px solid rgba(251,191,36,0.2)", boxShadow: "0 0 60px rgba(251,191,36,0.08)" }}>
-            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "rgba(251,191,36,0.2)", background: "rgba(251,191,36,0.03)" }}>
+            className="w-full max-h-[92dvh] flex flex-col rounded-[18px] overflow-hidden"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#080808", border: "1px solid rgba(251,191,36,0.2)", boxShadow: "0 0 60px rgba(251,191,36,0.08)" }}>
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(251,191,36,0.2)", background: "rgba(251,191,36,0.03)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center border" style={{ background: "rgba(251,191,36,0.1)", borderColor: "rgba(251,191,36,0.4)" }}>
                   <Sparkles className="w-4 h-4" style={{ color: "#fbbf24" }} />
@@ -99,7 +99,7 @@ export function AwesomeLLMModal({ open, onOpenChange }: AwesomeLLMModalProps) {
                   <div className="text-[10px] mt-0.5" style={{ color: "#555" }}>{LLM_APPS.length} AI applications — launch any directly into chat</div>
                 </div>
               </div>
-              <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg text-gray-600 hover:text-white transition-colors"><X className="w-4 h-4" /></button>
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-white transition-colors"><X className="w-4 h-4" /></button>
             </div>
 
             <div className="px-4 py-3 border-b space-y-2" style={{ borderColor: "rgba(255,255,255,0.06)" }}>

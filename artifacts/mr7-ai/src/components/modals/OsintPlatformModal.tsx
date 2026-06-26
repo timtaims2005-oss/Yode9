@@ -480,9 +480,11 @@ export function OsintPlatformModal({ open, onOpenChange }: Props) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-7xl h-[92vh] flex flex-col rounded-2xl overflow-hidden"
+        className="w-full h-[92vh] flex flex-col rounded-[18px] overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, #070712 0%, #0b0b18 60%, #070710 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
           border: "1px solid rgba(59,130,246,0.22)",
           boxShadow: "0 0 80px rgba(59,130,246,0.1), 0 0 40px rgba(226,18,39,0.06), inset 0 1px 0 rgba(255,255,255,0.04)",
         }}>

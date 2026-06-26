@@ -47,7 +47,7 @@ export function CyberConsciousnessModal({ open, onOpenChange }: Props) {
           <motion.div className="absolute inset-0 rounded-2xl pointer-events-none" style={{ border: "1px solid rgba(0,229,255,0.1)" }} animate={{ opacity: [0.3, 0.8, 0.3], scale: [1, 1.001, 1] }} transition={{ duration: 2, repeat: Infinity }} />
 
           <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(0,229,255,0.12)", background: "rgba(0,229,255,0.03)" }}>
-            <div className="relative w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,229,255,0.12)", border: "1px solid rgba(0,229,255,0.35)" }}>
+            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,229,255,0.12)", border: "1px solid rgba(0,229,255,0.35)" }}>
               <Brain className="w-5 h-5" style={{ color: "#00e5ff" }} />
               <motion.div className="absolute inset-0 rounded-xl" style={{ border: "1px solid #00e5ff" }} animate={{ scale: [1, 1.6, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 1.5, repeat: Infinity }} />
             </div>
@@ -66,7 +66,7 @@ export function CyberConsciousnessModal({ open, onOpenChange }: Props) {
                 <motion.div className="w-3 h-3 rounded-full" style={{ background: "#00e5ff" }} animate={{ scale: heartbeat % 10 < 2 ? [1, 1.8, 1] : 1 }} transition={{ duration: 0.3 }} />
                 <span className="text-[9px] font-mono" style={{ color: "#00e5ff" }}>ALIVE</span>
               </div>
-              <button onClick={() => onOpenChange(false)} className="p-2 rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
             </div>
           </div>
 
@@ -95,7 +95,7 @@ export function CyberConsciousnessModal({ open, onOpenChange }: Props) {
                       const rx = Math.cos(angle) * 130, ry = Math.sin(angle) * 130;
                       return (
                         <motion.div key={n.id} className="absolute flex flex-col items-center gap-1 cursor-pointer" style={{ left: rx, top: ry, transform: "translate(-50%, -50%)" }} animate={{ x: Math.sin(Date.now() / 2000 + i) * 3, y: Math.cos(Date.now() / 2000 + i) * 3 }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${n.color}20`, border: `1px solid ${n.color}50`, boxShadow: `0 0 15px ${n.color}30` }}>
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${n.color}20`, border: `1px solid ${n.color}50`, boxShadow: `0 0 15px ${n.color}30` }}>
                             <Activity className="w-4 h-4" style={{ color: n.color }} />
                           </div>
                           <div className="text-[7px] font-mono font-bold whitespace-nowrap" style={{ color: n.color }}>{n.label}</div>

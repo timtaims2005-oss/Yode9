@@ -407,9 +407,11 @@ export function FridayAIModal({ open, onOpenChange }: Props) {
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative w-full max-w-4xl h-[86vh] rounded-2xl overflow-hidden flex flex-col"
+          className="relative w-full h-[86vh] rounded-[18px] overflow-hidden flex flex-col"
           style={{
-            background: "linear-gradient(135deg, #080810 0%, #0c0c18 50%, #080810 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
             border: `1px solid ${ARC_COLOR}44`,
             boxShadow: `0 0 80px ${ARC_COLOR}20, 0 0 160px ${ARC_COLOR}08, inset 0 0 80px rgba(0,0,0,0.5)`,
           }}>

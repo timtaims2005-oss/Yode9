@@ -171,11 +171,11 @@ export function VulnTopologyModal({ open, onOpenChange }: Props) {
       <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4"
         style={{ background: "rgba(0,0,0,0.92)" }}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-        <motion.div className="relative w-full rounded-2xl overflow-hidden flex flex-col"
-          style={{ maxWidth: 1200, maxHeight: "90vh", background: "#050505", border: "1px solid #1a1a1a" }}
+        <motion.div className="relative w-full rounded-[18px] overflow-hidden flex flex-col"
+          style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", maxWidth: 1200, maxHeight: "90vh", background: "#050505", border: "1px solid #1a1a1a" }}
           initial={{ scale: 0.95 }} animate={{ scale: 1 }}>
 
-          <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "#111" }}>
+          <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "#111" }}>
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.25)" }}>
                 <Globe className="w-5 h-5" style={{ color: "#f97316" }} />

@@ -241,9 +241,11 @@ Language: ${lang === "ar" ? "Arabic" : "English"}`;
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-3xl max-h-[92dvh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-h-[92dvh] flex flex-col rounded-[18px] overflow-hidden"
             style={{
-              background: "linear-gradient(160deg, #040c1a 0%, #020810 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
               border: "1px solid rgba(59,130,246,0.3)",
               boxShadow: "0 0 80px rgba(59,130,246,0.12), 0 24px 80px rgba(0,0,0,0.95)",
             }}
@@ -253,7 +255,7 @@ Language: ${lang === "ar" ? "Arabic" : "English"}`;
 
             {/* Header */}
             <div
-              className="flex items-center justify-between px-5 py-3.5 flex-shrink-0"
+              className="flex items-center justify-between px-4 pt-3 pb-[10px] flex-shrink-0"
               style={{ background: "rgba(59,130,246,0.05)", borderBottom: "1px solid rgba(59,130,246,0.15)" }}
             >
               <div className="flex items-center gap-3">

@@ -163,7 +163,7 @@ function EngineCard({
       layout
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl overflow-hidden relative"
+      className="rounded-[18px] overflow-hidden relative"
       style={{
         background: `linear-gradient(135deg, ${eng.color}08 0%, #060810 100%)`,
         border: `1px solid ${isErr ? "#ef444444" : isDone ? eng.color + "55" : isStream ? eng.color + "33" : "#ffffff0a"}`,
@@ -517,9 +517,11 @@ export function MultiModelRaceModal({ open, onOpenChange }: Props) {
   return (
     <FullPageOverlay open={open} onClose={() => onOpenChange(false)}>
       <div
-        className="relative w-full max-w-6xl mx-auto rounded-2xl overflow-hidden flex flex-col"
+        className="relative w-full mx-auto rounded-[18px] overflow-hidden flex flex-col"
         style={{
-          background: "linear-gradient(160deg, #060810 0%, #040609 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
           border: "1px solid rgba(0,229,255,0.12)",
           boxShadow: "0 0 80px rgba(0,229,255,0.06), 0 0 160px rgba(167,139,250,0.04)",
           maxHeight: "92vh",
@@ -532,11 +534,11 @@ export function MultiModelRaceModal({ open, onOpenChange }: Props) {
 
         {/* Header */}
         <div
-          className="relative flex items-center gap-4 px-6 py-4 border-b shrink-0"
+          className="relative flex items-center gap-4 px-4 pt-3 pb-[10px] border-b shrink-0"
           style={{ borderColor: "rgba(0,229,255,0.1)", background: "rgba(0,0,0,0.4)", backdropFilter: "blur(12px)" }}
         >
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xl"
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-xl"
             style={{ background: "rgba(0,229,255,0.12)", border: "1px solid rgba(0,229,255,0.3)" }}
           >
             🏁

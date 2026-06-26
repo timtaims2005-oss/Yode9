@@ -453,8 +453,8 @@ export function HyperFusionModal({ open, onClose, initialMessages = [] }: Props)
           style={{background:"rgba(0,0,0,0.93)"}}
           onClick={(e)=>{if(e.target===e.currentTarget)onClose();}}>
           <motion.div initial={{scale:0.93,opacity:0,y:20}} animate={{scale:1,opacity:1,y:0}} exit={{scale:0.93,opacity:0}} transition={{duration:0.22}}
-            className="relative w-full max-w-4xl max-h-[96vh] flex flex-col rounded-2xl border overflow-hidden"
-            style={{background:"#080808",borderColor:"rgba(167,139,250,0.45)",boxShadow:"0 0 100px rgba(167,139,250,0.2),0 25px 60px rgba(0,0,0,0.9)"}}>
+            className="relative w-full max-h-[96vh] flex flex-col rounded-[18px] border overflow-hidden"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background:"#080808",borderColor:"rgba(167,139,250,0.45)",boxShadow:"0 0 100px rgba(167,139,250,0.2),0 25px 60px rgba(0,0,0,0.9)"}}>
 
             {/* Header */}
             <div className="shrink-0" style={{background:"linear-gradient(135deg,rgba(15,5,35,0.99) 0%,rgba(10,3,22,0.99) 100%)",borderBottom:"1px solid rgba(167,139,250,0.22)"}}>
@@ -463,7 +463,7 @@ export function HyperFusionModal({ open, onClose, initialMessages = [] }: Props)
               <div className="px-5 pt-3 pb-2 flex items-center gap-3">
                 {/* Animated icon cluster */}
                 <div className="relative shrink-0">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:"linear-gradient(135deg,rgba(167,139,250,0.22),rgba(226,18,39,0.12))",border:"1px solid rgba(167,139,250,0.45)",boxShadow:"0 0 20px rgba(167,139,250,0.18)"}}>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{background:"linear-gradient(135deg,rgba(167,139,250,0.22),rgba(226,18,39,0.12))",border:"1px solid rgba(167,139,250,0.45)",boxShadow:"0 0 20px rgba(167,139,250,0.18)"}}>
                     <InfinityIcon className="w-5 h-5" style={{color:"#a78bfa"}} />
                   </div>
                   {running && (

@@ -189,8 +189,8 @@ export function MarkXXXIXModal({ open, onOpenChange, pipelineContext }: MarkXXXI
           onClick={e => e.target === e.currentTarget && onOpenChange(false)}
         >
           <motion.div
-            className="w-full max-w-3xl flex flex-col rounded-2xl border overflow-hidden"
-            style={{ background: "#080808", borderColor: "rgba(251,191,36,0.25)", maxHeight: "88vh", boxShadow: "0 0 60px rgba(251,191,36,0.08)" }}
+            className="w-full flex flex-col rounded-[18px] border overflow-hidden"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#080808", borderColor: "rgba(251,191,36,0.25)", maxHeight: "88vh", boxShadow: "0 0 60px rgba(251,191,36,0.08)" }}
             initial={{ scale: 0.96, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 16 }}
           >
             {/* Header */}

@@ -427,7 +427,7 @@ export function ARTPlatformModal({ open, onOpenChange }: Props) {
             <Activity className="w-3 h-3 text-cyan-400" />
             <span className="text-[10px] font-mono text-cyan-400">v2.5.0</span>
           </div>
-          <button onClick={()=>onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors"><X className="w-4 h-4" /></button>
+          <button onClick={()=>onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors"><X className="w-4 h-4" /></button>
         </div>
       </div>
 

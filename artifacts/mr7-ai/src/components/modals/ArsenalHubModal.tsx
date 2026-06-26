@@ -1444,7 +1444,7 @@ function ChainBuilderTab() {
           <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(0,229,204,0.12) transparent" }}>
             {rules.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 px-3 text-center">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-2"
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2"
                   style={{ background: "rgba(0,229,204,0.04)", border: "1px solid rgba(0,229,204,0.12)" }}>
                   <Link2 className="w-4 h-4" style={{ color: "#1a3a38" }} />
                 </div>
@@ -1636,7 +1636,7 @@ function Arsenal3DCard({
     >
       <motion.div
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className="relative rounded-2xl overflow-hidden cursor-pointer arsenal-card-shimmer"
+        className="relative rounded-[18px] overflow-hidden cursor-pointer arsenal-card-shimmer"
         whileHover={{ scale: 1.02 }}
         transition={{ type: "spring", stiffness: 300, damping: 22 }}
         onClick={() => { if (isEnabled) { onLaunch(mod.id); onClose(); } }}
@@ -1697,7 +1697,7 @@ function Arsenal3DCard({
             <motion.div
               whileHover={{ rotateY: 180, scale: 1.15 }}
               transition={{ duration: 0.5, type: "spring" }}
-              className="w-11 h-11 rounded-xl flex-shrink-0 flex items-center justify-center relative"
+              className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center relative"
               style={{ transformStyle: "preserve-3d" }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -2331,7 +2331,7 @@ function CouncilStreamingPanel() {
       <AnimatePresence>
         {(synthesis || synthStreaming) && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-            className="rounded-2xl overflow-hidden shrink-0"
+            className="rounded-[18px] overflow-hidden shrink-0"
             style={{ background: "linear-gradient(135deg, rgba(226,18,39,0.06) 0%, rgba(251,191,36,0.04) 100%)", border: "1px solid rgba(226,18,39,0.25)" }}>
             <div className="px-4 py-2 border-b flex items-center gap-2" style={{ borderColor: "rgba(226,18,39,0.15)" }}>
               <motion.div animate={{ opacity: synthStreaming ? [1, 0.3, 1] : 1 }} transition={{ duration: 0.6, repeat: synthStreaming ? Infinity : 0 }}
@@ -2437,15 +2437,17 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
             animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
             exit={{ opacity: 0, scale: 0.91, y: 40 }}
             transition={{ duration: 0.3, type: "spring", stiffness: 180, damping: 26 }}
-            className="w-full max-w-4xl max-h-[94vh] flex flex-col rounded-2xl overflow-hidden relative"
+            className="w-full max-h-[94vh] flex flex-col rounded-[18px] overflow-hidden relative"
             style={{
-              background: "linear-gradient(160deg, #050508 0%, #020204 50%, #04040a 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
               border: "1px solid rgba(226,18,39,0.22)",
               boxShadow: "0 0 0 1px rgba(226,18,39,0.06), 0 0 120px rgba(226,18,39,0.08), 0 40px 120px rgba(0,0,0,0.98), inset 0 0 100px rgba(226,18,39,0.015)"
             }}
           >
             {/* Animated background layers */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl" style={{ zIndex: 0 }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[18px]" style={{ zIndex: 0 }}>
               {/* Hex grid */}
               <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.035 }} preserveAspectRatio="xMidYMid slice">
                 <defs>
@@ -2467,7 +2469,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
             </div>
 
             {/* ── HEADER ── */}
-            <div className="relative z-10 flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: "rgba(226,18,39,0.15)", background: "rgba(226,18,39,0.025)" }}>
+            <div className="relative z-10 flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(226,18,39,0.15)", background: "rgba(226,18,39,0.025)" }}>
               <div className="flex items-center gap-4">
                 {/* Animated Logo */}
                 <div className="relative flex-shrink-0">
@@ -2639,7 +2641,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
                         <motion.div
                           key={s.label}
                           whileHover={{ scale: 1.04, y: -2 }}
-                          className="rounded-2xl p-4 relative overflow-hidden"
+                          className="rounded-[18px] p-4 relative overflow-hidden"
                           style={{
                             background: `radial-gradient(circle at 30% 30%, ${s.color}12 0%, rgba(3,3,6,0.9) 70%)`,
                             border: `1px solid ${s.color}30`,
@@ -2657,7 +2659,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
                     </div>
 
                     {/* Module status grid */}
-                    <div className="rounded-2xl border overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
+                    <div className="rounded-[18px] border overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
                       <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#e21227", boxShadow: "0 0 6px #e21227" }} />
                         <span className="text-[9px] font-black tracking-widest" style={{ color: "#e21227" }}>MODULE STATUS MATRIX</span>
@@ -2689,7 +2691,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
 
                     {/* Recent events + categories */}
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-2xl border overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
+                      <div className="rounded-[18px] border overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
                         <div className="px-4 py-2.5 border-b" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                           <span className="text-[9px] font-black tracking-widest" style={{ color: "#00e5cc" }}>RECENT EVENTS</span>
                         </div>
@@ -2708,7 +2710,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
                         )}
                       </div>
 
-                      <div className="rounded-2xl border overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
+                      <div className="rounded-[18px] border overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(255,255,255,0.05)" }}>
                         <div className="px-4 py-2.5 border-b" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                           <span className="text-[9px] font-black tracking-widest" style={{ color: "#a78bfa" }}>CATEGORIES</span>
                         </div>
@@ -2758,7 +2760,7 @@ export function ArsenalHubModal({ open, onOpenChange, onLaunch }: ArsenalHubModa
                       <div className="flex flex-col gap-2">
                         {history.map((entry, idx) => (
                           <motion.div key={entry.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.02 }}
-                            className="rounded-2xl p-3.5 relative overflow-hidden"
+                            className="rounded-[18px] p-3.5 relative overflow-hidden"
                             style={{
                               background: "linear-gradient(135deg, rgba(6,6,10,0.98) 0%, rgba(4,4,8,0.98) 100%)",
                               border: `1px solid ${entry.sourceColor}18`

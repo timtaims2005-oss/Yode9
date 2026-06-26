@@ -446,9 +446,11 @@ export function JarvisModal({ open, onOpenChange }: JarvisModalProps) {
           style={{ backdropFilter: "blur(14px)", background: "rgba(0,5,12,0.93)" }}>
           <motion.div initial={{ opacity: 0, scale: 0.93, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.93 }}
             transition={{ duration: 0.22 }}
-            className="w-full max-w-3xl max-h-[96vh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-h-[96vh] flex flex-col rounded-[18px] overflow-hidden"
             style={{
-              background: BG,
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
               border: `1px solid ${alertFlash ? "rgba(226,18,39,0.6)" : "rgba(0,229,255,0.22)"}`,
               boxShadow: `0 0 80px rgba(0,229,255,0.10), 0 0 240px rgba(0,80,160,0.06)`,
               transition: "border-color 0.3s",
@@ -569,7 +571,7 @@ export function JarvisModal({ open, onOpenChange }: JarvisModalProps) {
                           style={{ background: entry.role === "user" ? "rgba(226,18,39,0.18)" : "rgba(0,229,255,0.12)", color: entry.role === "user" ? "#e21227" : C, border: `1px solid ${entry.role === "user" ? "rgba(226,18,39,0.3)" : "rgba(0,229,255,0.25)"}` }}>
                           {entry.role === "user" ? "YOU" : "AI"}
                         </div>
-                        <div className={`flex-1 max-w-[85%] flex flex-col gap-0.5 ${entry.role === "user" ? "items-end" : "items-start"}`}>
+                        <div className={`flex-1 flex flex-col gap-0.5 ${entry.role === "user" ? "items-end" : "items-start"}`}>
                           <div className="flex items-center gap-2">
                             <span className="text-[7px] font-mono" style={{ color: DIM }}>[{entry.ts}] {entry.role === "user" ? "OPERATOR" : "J.A.R.V.I.S."}</span>
                             {entry.module && <span className="text-[7px] font-mono px-1 py-0.5 rounded" style={{ color: "#a78bfa", background: "rgba(167,139,250,0.1)" }}>{entry.module.toUpperCase()}</span>}
@@ -595,7 +597,7 @@ export function JarvisModal({ open, onOpenChange }: JarvisModalProps) {
                   </div>
                   <div className="px-3 py-2.5 border-t" style={{ borderColor: "rgba(0,229,255,0.12)" }}>
                     <div className="flex gap-2 items-end">
-                      <div className="flex-1 rounded-xl border overflow-hidden" style={{ borderColor: "rgba(0,229,255,0.18)", background: "rgba(0,10,25,0.7)" }}>
+                      <div className="flex-1 rounded-xl border overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", borderColor: "rgba(0,229,255,0.18)", background: "rgba(0,10,25,0.7)" }}>
                         <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
                           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
                           placeholder="Your command, Sir…"

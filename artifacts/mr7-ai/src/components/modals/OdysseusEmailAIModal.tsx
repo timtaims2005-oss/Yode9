@@ -121,13 +121,13 @@ Be decisive and efficient.`;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3" style={{ background: "rgba(0,0,0,0.93)", backdropFilter: "blur(20px)" }}>
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
-        className="relative w-full max-w-6xl h-[90vh] rounded-3xl overflow-hidden flex flex-col"
+        className="relative w-full h-[90vh] rounded-3xl overflow-hidden flex flex-col"
         style={{ background: "linear-gradient(145deg, #040407 0%, #030305 60%, #040407 100%)", border: "1px solid rgba(59,130,246,0.15)", boxShadow: "0 0 80px rgba(59,130,246,0.05), inset 0 1px 0 rgba(59,130,246,0.04)" }}>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: "rgba(59,130,246,0.1)", background: "rgba(0,0,0,0.4)" }}>
+        <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(59,130,246,0.1)", background: "rgba(0,0,0,0.4)" }}>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center relative" style={{ background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.3)" }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center relative" style={{ background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.3)" }}>
               <Mail className="w-4 h-4" style={{ color: "#3b82f6" }} />
               {unread > 0 && <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black" style={{ background: "#e21227", color: "white" }}>{unread}</div>}
             </div>

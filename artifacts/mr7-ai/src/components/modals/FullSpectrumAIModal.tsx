@@ -40,7 +40,7 @@ export function FullSpectrumAIModal({ open, onOpenChange }: Props) {
           <motion.div className="absolute inset-0 rounded-2xl pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.06), transparent 70%)" }} animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 4, repeat: Infinity }} />
 
           <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(167,139,250,0.15)", background: "rgba(167,139,250,0.04)" }}>
-            <div className="relative w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.4)", boxShadow: "0 0 25px rgba(167,139,250,0.3)" }}>
+            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.4)", boxShadow: "0 0 25px rgba(167,139,250,0.3)" }}>
               <Brain className="w-6 h-6" style={{ color: "#a78bfa" }} />
               {[0, 1, 2].map(i => (
                 <motion.div key={i} className="absolute inset-0 rounded-xl" style={{ border: "1px solid rgba(167,139,250,0.5)" }} animate={{ scale: [1, 1.5 + i * 0.3, 1], opacity: [0.6, 0, 0.6] }} transition={{ duration: 2, delay: i * 0.6, repeat: Infinity }} />
@@ -55,7 +55,7 @@ export function FullSpectrumAIModal({ open, onOpenChange }: Props) {
                 <motion.div className="text-[20px] font-black" style={{ color: "#a78bfa" }} animate={{ opacity: [1, 0.8, 1] }} transition={{ duration: 2, repeat: Infinity }}>{awareness.toFixed(4)}%</motion.div>
                 <div className="text-[8px] font-mono" style={{ color: "#a78bfa44" }}>FULL AWARENESS</div>
               </div>
-              <button onClick={() => onOpenChange(false)} className="p-2 rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
             </div>
           </div>
 

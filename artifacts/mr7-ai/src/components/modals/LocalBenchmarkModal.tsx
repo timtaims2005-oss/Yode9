@@ -296,9 +296,11 @@ export function LocalBenchmarkModal({ open, onOpenChange }: Props) {
   return (
     <FullPageOverlay open={open} onClose={() => onOpenChange(false)}>
       <div
-        className="w-full max-w-4xl mx-auto rounded-2xl overflow-hidden flex flex-col"
+        className="w-full mx-auto rounded-[18px] overflow-hidden flex flex-col"
         style={{
-          background: "linear-gradient(160deg, #060810 0%, #040609 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
           border: "1px solid rgba(167,139,250,0.15)",
           boxShadow: "0 0 60px rgba(167,139,250,0.06)",
           maxHeight: "90vh",
@@ -306,7 +308,7 @@ export function LocalBenchmarkModal({ open, onOpenChange }: Props) {
       >
         {/* Header */}
         <div
-          className="flex items-center gap-3 px-6 py-4 border-b shrink-0"
+          className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b shrink-0"
           style={{ borderColor: "rgba(167,139,250,0.1)", background: "rgba(0,0,0,0.3)" }}
         >
           <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0"

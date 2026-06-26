@@ -134,8 +134,8 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={onClose} />
           <motion.div
-            className="relative w-full max-w-3xl max-h-[96vh] flex flex-col overflow-hidden rounded-2xl border border-[#1f1f1f] shadow-[0_0_80px_rgba(139,92,246,0.2)]"
-            style={{ background: "#070010" }}
+            className="relative w-full max-h-[96vh] flex flex-col overflow-hidden rounded-[18px] border border-[#1f1f1f] shadow-[0_0_80px_rgba(139,92,246,0.2)]"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#070010" }}
             initial={{ scale: 0.92, opacity: 0, y: 24 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.92, opacity: 0, y: 24 }}
@@ -146,9 +146,9 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-8 bg-[#8b5cf6]/10 blur-xl" />
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1a1a2e] shrink-0">
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#1a1a2e] shrink-0">
               <div className="flex items-center gap-3">
-                <div className="relative w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)" }}>
+                <div className="relative w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)" }}>
                   <Globe className="w-5 h-5 text-[#8b5cf6]" />
                   <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#8b5cf6] animate-pulse" />
                 </div>
@@ -162,7 +162,7 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
                   <div className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] animate-pulse" />
                   DARK MODE ACTIVE
                 </div>
-                <button onClick={onClose} className="p-2 rounded-lg text-slate-500 hover:text-white transition-colors hover:bg-white/5">
+                <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-white transition-colors hover:bg-white/5">
                   <X className="w-4 h-4" />
                 </button>
               </div>

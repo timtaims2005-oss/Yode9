@@ -154,7 +154,7 @@ export function LerimCLIModal({ open, onOpenChange }: LerimCLIModalProps) {
           className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
           style={{ backdropFilter: "blur(8px)", background: "rgba(0,0,0,0.92)" }}>
           <motion.div initial={{ opacity: 0, scale: 0.97, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 10 }}
-            className="w-full max-w-2xl max-h-[92dvh] flex flex-col rounded-xl overflow-hidden"
+            className="w-full max-h-[92dvh] flex flex-col rounded-xl overflow-hidden"
             style={{ background: "#030303", border: "1px solid rgba(129,140,248,0.3)", boxShadow: "0 0 60px rgba(129,140,248,0.1), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
             {/* Title bar */}
             <div className="flex items-center justify-between px-4 py-2 border-b" style={{ borderColor: "rgba(129,140,248,0.15)", background: "#060606" }}>

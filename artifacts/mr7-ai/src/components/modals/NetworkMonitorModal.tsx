@@ -219,7 +219,7 @@ export function NetworkMonitorModal({ open, onOpenChange }: NetworkMonitorModalP
         className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => onOpenChange(false)} />
 
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-        className="relative z-10 flex flex-col rounded-2xl border overflow-hidden shadow-2xl"
+        className="relative z-10 flex flex-col rounded-[18px] border overflow-hidden shadow-2xl"
         style={{ width: "min(1300px, 98vw)", height: "min(880px, 96vh)", background: "#080808", borderColor: "rgba(0,229,255,0.2)" }}>
 
         {/* Header */}

@@ -101,7 +101,7 @@ export function PluginMarketplaceModal({ open, onClose }: Props) {
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
         <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
-        <motion.div className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl border border-red-900/40 bg-[#080808] shadow-[0_0_80px_rgba(226,18,39,0.1)] flex flex-col"
+        <motion.div className="relative w-full max-h-[90vh] overflow-hidden rounded-[18px] border border-red-900/40 bg-[#080808] shadow-[0_0_80px_rgba(226,18,39,0.1)] flex flex-col"
           initial={{ scale: 0.94, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.94, opacity: 0 }}>
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
 
@@ -181,7 +181,7 @@ export function PluginMarketplaceModal({ open, onClose }: Props) {
                     <motion.div key={p.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                       className="bg-white/3 border border-white/8 hover:border-white/15 rounded-xl p-4 transition-all">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0" style={{ background: `${catColor}15`, border: `1px solid ${catColor}30` }}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl shrink-0" style={{ background: `${catColor}15`, border: `1px solid ${catColor}30` }}>
                           {p.icon}
                         </div>
                         <div className="flex-1 min-w-0">

@@ -109,13 +109,13 @@ Be specific, actionable, and strategic.`;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3" style={{ background: "rgba(0,0,0,0.93)", backdropFilter: "blur(20px)" }}>
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
-        className="relative w-full max-w-5xl h-[88vh] rounded-3xl overflow-hidden flex flex-col"
+        className="relative w-full h-[88vh] rounded-3xl overflow-hidden flex flex-col"
         style={{ background: "linear-gradient(145deg, #040507 0%, #030305 60%, #050407 100%)", border: "1px solid rgba(245,158,11,0.15)", boxShadow: "0 0 80px rgba(245,158,11,0.05), inset 0 1px 0 rgba(245,158,11,0.04)" }}>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: "rgba(245,158,11,0.1)", background: "rgba(0,0,0,0.4)" }}>
+        <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(245,158,11,0.1)", background: "rgba(0,0,0,0.4)" }}>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)", boxShadow: "0 0 12px rgba(245,158,11,0.15)" }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)", boxShadow: "0 0 12px rgba(245,158,11,0.15)" }}>
               <CheckSquare className="w-4 h-4" style={{ color: "#f59e0b" }} />
             </div>
             <div>
@@ -167,7 +167,7 @@ Be specific, actionable, and strategic.`;
                     className="w-20 bg-transparent outline-none text-[9px] font-black px-2 py-1 rounded-lg"
                     style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }} />
                   <motion.button onClick={addTask} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                    className="w-8 h-8 rounded-xl flex items-center justify-center"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center"
                     style={{ background: "rgba(245,158,11,0.2)", border: "1px solid rgba(245,158,11,0.4)", color: "#f59e0b" }}>
                     <Plus className="w-4 h-4" />
                   </motion.button>
@@ -242,8 +242,9 @@ Be specific, actionable, and strategic.`;
                   </motion.button>
                 </div>
                 {/* AI Output */}
-                <div className="flex-1 rounded-2xl overflow-hidden flex flex-col" style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(245,158,11,0.1)" }}>
-                  <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: "rgba(245,158,11,0.08)" }}>
+                <div className="flex-1 rounded-[18px] overflow-hidden flex flex-col" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "rgba(0,0,0,0.4)", border: "1px solid rgba(245,158,11,0.1)" }}>
+                  <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", borderColor: "rgba(245,158,11,0.08)" }}>
+              background: "rgba(8, 8, 8, 0.96)",
                     <span className="text-[9px] font-black tracking-widest font-mono" style={{ color: running ? "#f59e0b" : aiOutput ? "#10b981" : "#333" }}>
                       {running ? "AI PLANNING IN PROGRESS..." : aiOutput ? "PLAN READY" : "AWAITING REQUEST"}
                     </span>

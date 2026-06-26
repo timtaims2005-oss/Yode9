@@ -720,9 +720,11 @@ export function AutonomousAgentModal({ open, onOpenChange }: Props) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-6xl h-[90vh] flex flex-col rounded-2xl overflow-hidden"
+        className="w-full h-[90vh] flex flex-col rounded-[18px] overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, #08080f 0%, #0d0d1a 50%, #080814 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
           border: "1px solid rgba(162,78,246,0.25)",
           boxShadow: "0 0 80px rgba(162,78,246,0.12), 0 0 40px rgba(226,18,39,0.08), inset 0 1px 0 rgba(255,255,255,0.04)",
         }}>

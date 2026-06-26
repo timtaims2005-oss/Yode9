@@ -279,7 +279,7 @@ export default function Agent4DesignCanvasModal({ open, onOpenChange }: Props) {
           <StarBG />
 
           {/* Header */}
-          <div className="relative flex items-center justify-between px-6 py-4 border-b border-[#1a1a1a] flex-shrink-0">
+          <div className="relative flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#1a1a1a] flex-shrink-0">
             <div className="flex items-center gap-4">
               <motion.div className="relative w-12 h-12 flex items-center justify-center"
                 animate={{ rotate: [0, 360] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}>

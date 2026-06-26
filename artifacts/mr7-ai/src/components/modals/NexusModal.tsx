@@ -435,21 +435,23 @@ export function NexusModal({ open, onOpenChange }: NexusModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.93, y: 24 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-3xl max-h-[94vh] flex flex-col rounded-2xl overflow-hidden"
+            className="w-full max-h-[94vh] flex flex-col rounded-[18px] overflow-hidden"
             style={{
-              background: "#070707",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
               border: `1px solid ${activeTier.border}`,
               boxShadow: `0 0 80px ${activeTier.glow}, 0 30px 60px rgba(0,0,0,0.9)`,
             }}
           >
             {/* ── Header ── */}
             <div
-              className="flex items-center justify-between px-5 py-3 border-b"
+              className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b"
               style={{ borderColor: activeTier.border, background: activeTier.bg }}
             >
               <div className="flex items-center gap-3">
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center border flex-shrink-0"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center border flex-shrink-0"
                   style={{ background: activeTier.bg, borderColor: activeTier.border }}
                 >
                   <NexusIcon className="w-6 h-6" style={{ color: activeTier.color }} />

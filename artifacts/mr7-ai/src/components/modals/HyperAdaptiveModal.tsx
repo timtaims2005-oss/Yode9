@@ -29,7 +29,7 @@ export function HyperAdaptiveModal({ open, onOpenChange }: Props) {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.94)", backdropFilter: "blur(18px)" }}>
         <motion.div initial={{ scale: 0.92, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} transition={{ type: "spring", stiffness: 280, damping: 26 }} className="relative w-full h-full w-full h-full flex flex-col overflow-hidden" style={{ background: "linear-gradient(135deg, #080204 0%, #0c0208 100%)", border: "1px solid rgba(239,68,68,0.22)", borderRadius: 16, boxShadow: "0 0 120px rgba(239,68,68,0.1)" }}>
           <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(239,68,68,0.12)", background: "rgba(239,68,68,0.03)" }}>
-            <div className="relative w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.4)" }}>
+            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.4)" }}>
               <Zap className="w-5 h-5" style={{ color: "#ef4444" }} />
               <motion.div className="absolute inset-0 rounded-xl" style={{ border: "1px solid rgba(239,68,68,0.6)" }} animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }} transition={{ duration: 1.5, repeat: Infinity }} />
             </div>
@@ -42,7 +42,7 @@ export function HyperAdaptiveModal({ open, onOpenChange }: Props) {
                 <motion.div className="text-[22px] font-black" style={{ color: "#ef4444" }} animate={{ opacity: [1, 0.7, 1] }} transition={{ duration: 1, repeat: Infinity }}>{eradScore.toFixed(1)}%</motion.div>
                 <div className="text-[8px] font-mono" style={{ color: "#ef444455" }}>ERADICATION PROGRESS</div>
               </div>
-              <button onClick={() => onOpenChange(false)} className="p-2 rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
             </div>
           </div>
 

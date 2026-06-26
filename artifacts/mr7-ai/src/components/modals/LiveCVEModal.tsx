@@ -495,8 +495,8 @@ export function LiveCVEModal({ open, onOpenChange }: Props) {
           onClick={(e)=>{ if(e.target===e.currentTarget) onOpenChange(false); }}>
 
           <motion.div initial={{scale:0.93,opacity:0,y:20}} animate={{scale:1,opacity:1,y:0}} exit={{scale:0.93,opacity:0}}
-            className="relative w-full max-w-5xl max-h-[96vh] flex flex-col rounded-2xl border overflow-hidden"
-            style={{background:"#080808",borderColor:"rgba(226,18,39,0.4)",boxShadow:"0 0 80px rgba(226,18,39,0.15),0 25px 60px rgba(0,0,0,0.9)"}}>
+            className="relative w-full max-h-[96vh] flex flex-col rounded-[18px] border overflow-hidden"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background:"#080808",borderColor:"rgba(226,18,39,0.4)",boxShadow:"0 0 80px rgba(226,18,39,0.15),0 25px 60px rgba(0,0,0,0.9)"}}>
 
             {/* Header */}
             <div className="px-5 py-3 border-b flex items-center gap-3 shrink-0"
@@ -515,7 +515,7 @@ export function LiveCVEModal({ open, onOpenChange }: Props) {
                   تهديدات 2024-2025 · {LIVE_CVE_FEED.length} CVE · شبكة مراقبة مباشرة · {blockedCount} محجوب | {allowedCount} مسموح
                 </p>
               </div>
-              <button onClick={()=>onOpenChange(false)} className="p-2 rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors"><X className="w-4 h-4" /></button>
+              <button onClick={()=>onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors"><X className="w-4 h-4" /></button>
             </div>
 
             {/* Threat Level Bar */}

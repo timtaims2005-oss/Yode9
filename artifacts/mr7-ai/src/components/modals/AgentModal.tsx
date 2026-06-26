@@ -207,9 +207,11 @@ export function AgentModal({ open, onOpenChange, pipelineTask }: AgentModalProps
             animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 20, rotateX: 4 }}
             transition={{ duration: 0.30, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-2xl max-h-[88dvh] flex flex-col rounded-2xl overflow-hidden shadow-2xl relative"
+            className="w-full max-h-[88dvh] flex flex-col rounded-[18px] overflow-hidden shadow-2xl relative"
             style={{
-              background: "linear-gradient(160deg, rgba(6,2,14,0.99) 0%, rgba(4,1,10,0.99) 60%, rgba(8,2,16,0.99) 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
               border: "1px solid rgba(255,77,77,0.32)",
               boxShadow: "0 0 140px rgba(255,77,77,0.18), 0 0 60px rgba(255,77,77,0.08), 0 32px 80px rgba(0,0,0,0.97), inset 0 1px 0 rgba(255,77,77,0.18), inset 0 0 100px rgba(255,77,77,0.02)",
             }}
@@ -230,7 +232,7 @@ export function AgentModal({ open, onOpenChange, pipelineTask }: AgentModalProps
             <div className="h-[2px]" style={{ background: "linear-gradient(90deg, transparent, #ff4d4d, #00e5ff44, #ff4d4d, transparent)" }} />
 
             {/* ── Header ── */}
-            <div className="flex items-center justify-between px-4 py-3.5 relative" style={{ borderBottom: "1px solid rgba(255,77,77,0.14)", background: "rgba(255,77,77,0.03)" }}>
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] relative" style={{ borderBottom: "1px solid rgba(255,77,77,0.14)", background: "rgba(255,77,77,0.03)" }}>
               {/* Left: branding */}
               <div className="flex items-center gap-3">
                 <div className="relative">

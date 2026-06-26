@@ -320,7 +320,7 @@ export function ShellGeneratorModal({ open, onOpenChange, onInjectToChat }: Prop
         >
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => onOpenChange(false)} />
           <motion.div
-            className="relative w-full max-w-3xl max-h-[96vh] bg-[#060606] border border-[#e21227]/30 rounded-2xl overflow-hidden flex flex-col shadow-[0_0_60px_rgba(226,18,39,0.15)]"
+            className="relative w-full max-h-[96vh] bg-[#060606] border border-[#e21227]/30 rounded-[18px] overflow-hidden flex flex-col shadow-[0_0_60px_rgba(226,18,39,0.15)]"
             initial={{ scale: 0.93, opacity: 0, y: 30 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.93, opacity: 0, y: 30 }}
@@ -330,9 +330,9 @@ export function ShellGeneratorModal({ open, onOpenChange, onInjectToChat }: Prop
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#e21227] to-transparent" />
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#1f1f1f] shrink-0">
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#1f1f1f] shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#e21227]/10 border border-[#e21227]/30 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-[#e21227]/10 border border-[#e21227]/30 flex items-center justify-center">
                   <Terminal className="w-5 h-5 text-[#e21227]" />
                 </div>
                 <div>
@@ -345,7 +345,7 @@ export function ShellGeneratorModal({ open, onOpenChange, onInjectToChat }: Prop
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-[#262626] text-muted-foreground hover:text-foreground text-[11px] font-semibold transition-colors">
                   <RefreshCw className="w-3.5 h-3.5" /> توليد
                 </button>
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>

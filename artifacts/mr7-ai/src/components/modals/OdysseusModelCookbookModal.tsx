@@ -106,14 +106,14 @@ Be specific, technical, and practical. Include actual shell commands.`;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3" style={{ background: "rgba(0,0,0,0.93)", backdropFilter: "blur(20px)" }}>
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
-        className="relative w-full max-w-5xl h-[88vh] rounded-3xl overflow-hidden flex flex-col"
+        className="relative w-full h-[88vh] rounded-3xl overflow-hidden flex flex-col"
         style={{ background: "linear-gradient(145deg, #040507 0%, #030305 60%, #040508 100%)", border: "1px solid rgba(16,185,129,0.15)", boxShadow: "0 0 80px rgba(16,185,129,0.05), inset 0 1px 0 rgba(16,185,129,0.04)" }}>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: "rgba(16,185,129,0.1)", background: "rgba(0,0,0,0.4)" }}>
+        <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(16,185,129,0.1)", background: "rgba(0,0,0,0.4)" }}>
           <div className="flex items-center gap-3">
             <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-              className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.3)" }}>
+              className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.3)" }}>
               <Cpu className="w-4 h-4" style={{ color: "#10b981" }} />
             </motion.div>
             <div>
@@ -170,7 +170,7 @@ Be specific, technical, and practical. Include actual shell commands.`;
                     style={{ background: selected === m.name ? `${profile.color}10` : "rgba(255,255,255,0.02)", border: `1px solid ${selected === m.name ? `${profile.color}30` : "rgba(255,255,255,0.05)"}` }}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-[11px]"
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-[11px]"
                           style={{ background: `${profile.color}12`, border: `1px solid ${profile.color}25`, color: profile.color }}>{m.size}</div>
                         <div>
                           <div className="font-black text-[11px]" style={{ color: "#ddd" }}>{m.name}</div>
@@ -199,7 +199,7 @@ Be specific, technical, and practical. Include actual shell commands.`;
 
               {/* AI Advice panel */}
               {(aiAdvice || running) && (
-                <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(16,185,129,0.2)" }}>
+                <div className="rounded-[18px] overflow-hidden" style={{ border: "1px solid rgba(16,185,129,0.2)" }}>
                   <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: "rgba(16,185,129,0.12)", background: "rgba(16,185,129,0.06)" }}>
                     <motion.div animate={{ opacity: running ? [1, 0.3, 1] : 1 }} transition={{ duration: 1, repeat: Infinity }}
                       className="w-1.5 h-1.5 rounded-full" style={{ background: running ? "#10b981" : "#10b981" }} />

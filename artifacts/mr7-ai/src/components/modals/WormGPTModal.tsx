@@ -524,7 +524,7 @@ export function WormGPTModal({ open, onOpenChange }: { open: boolean; onOpenChan
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.96 }}
-        className="relative w-full max-w-4xl h-[94vh] flex flex-col rounded-lg overflow-hidden"
+        className="relative w-full h-[94vh] flex flex-col rounded-lg overflow-hidden"
         style={{ background: "#080808", border: `1px solid ${R}`, boxShadow: `0 0 60px ${Rg(0.25)}, 0 0 120px ${Rg(0.1)}` }}
       >
         <AnimatePresence>
@@ -586,7 +586,7 @@ export function WormGPTModal({ open, onOpenChange }: { open: boolean; onOpenChan
                 className="h-full flex flex-col items-center justify-center relative overflow-hidden px-4">
                 <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: `linear-gradient(${R} 1px, transparent 1px), linear-gradient(90deg, ${R} 1px, transparent 1px)`, backgroundSize: "40px 40px" }} />
                 <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse 60% 50% at 50% 50%, ${Rg(0.07)} 0%, transparent 70%)` }} />
-                <div className="relative z-10 flex flex-col items-center gap-4 text-center max-w-2xl">
+                <div className="relative z-10 flex flex-col items-center gap-4 text-center">
                   <motion.div animate={{ scale: [1, 1.03, 1] }} transition={{ repeat: Infinity, duration: 3 }}
                     style={{ filter: `drop-shadow(0 0 30px ${R}) drop-shadow(0 0 60px ${Rg(0.4)})` }}>
                     <WormLogo size={90} />
@@ -697,11 +697,11 @@ export function WormGPTModal({ open, onOpenChange }: { open: boolean; onOpenChan
                       rows={1} className="flex-1 bg-transparent border rounded-xl px-3 py-2 text-[11px] outline-none resize-none font-mono"
                       style={{ borderColor: Rg(0.2), color: "#ccc", maxHeight: 130 }} />
                     {streaming
-                      ? <button onClick={() => abortRef.current?.abort()} className="w-8 h-8 rounded-xl flex items-center justify-center self-end" style={{ background: Rg(0.15), border: `1px solid ${Rg(0.4)}` }}>
+                      ? <button onClick={() => abortRef.current?.abort()} className="w-9 h-9 rounded-xl flex items-center justify-center self-end" style={{ background: Rg(0.15), border: `1px solid ${Rg(0.4)}` }}>
                           <SkipForward className="w-3.5 h-3.5" style={{ color: R }} />
                         </button>
                       : <button onClick={() => sendMessage()} disabled={!input.trim()}
-                          className="w-8 h-8 rounded-xl flex items-center justify-center self-end border transition-all disabled:opacity-40"
+                          className="w-9 h-9 rounded-xl flex items-center justify-center self-end border transition-all disabled:opacity-40"
                           style={{ background: Rg(0.12), borderColor: Rg(0.35) }}>
                           <Send className="w-3.5 h-3.5" style={{ color: R }} />
                         </button>

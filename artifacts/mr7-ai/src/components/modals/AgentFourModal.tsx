@@ -395,7 +395,7 @@ export default function AgentFourModal({ open, onOpenChange }: Props) {
           ))}
 
           {/* Header */}
-          <div className="relative flex items-center justify-between px-6 py-4 border-b border-[#1a1a1a] flex-shrink-0">
+          <div className="relative flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#1a1a1a] flex-shrink-0">
             <div className="flex items-center gap-4">
               <HexOrb color={activeMode.color} size={52} />
               <div>

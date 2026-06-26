@@ -213,11 +213,11 @@ export function AutonomousRedTeamModal({ open, onOpenChange }: Props) {
       <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4"
         style={{ background: "rgba(0,0,0,0.92)" }}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-        <motion.div className="relative w-full flex flex-col rounded-2xl overflow-hidden"
-          style={{ maxWidth: 1200, maxHeight: "90vh", background: "#080808", border: "1px solid #1f1f1f" }}
+        <motion.div className="relative w-full flex flex-col rounded-[18px] overflow-hidden"
+          style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", maxWidth: 1200, maxHeight: "90vh", background: "#080808", border: "1px solid #1f1f1f" }}
           initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }}>
 
-          <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "#1a1a1a" }}>
+          <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "#1a1a1a" }}>
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(226,18,39,0.12)", border: "1px solid rgba(226,18,39,0.3)" }}>
                 <Target className="w-5 h-5" style={{ color: "#e21227" }} />

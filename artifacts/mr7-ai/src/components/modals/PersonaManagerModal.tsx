@@ -285,7 +285,7 @@ function PersonaCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      className="rounded-2xl border overflow-hidden cursor-pointer transition-all"
+      className="rounded-[18px] border overflow-hidden cursor-pointer transition-all"
       style={{
         background: isActive ? `${catColor}10` : "rgba(255,255,255,0.02)",
         borderColor: isActive ? `${catColor}55` : "rgba(255,255,255,0.06)",
@@ -593,7 +593,7 @@ export function PersonaManagerModal({ open, onClose }: { open: boolean; onClose:
           onClick={e => e.target === e.currentTarget && onClose()}>
           <motion.div initial={{ scale: 0.91, y: 28 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.91, y: 28 }}
             transition={{ type: "spring", stiffness: 340, damping: 30 }}
-            className="w-full max-w-4xl max-h-[92vh] flex flex-col rounded-3xl border overflow-hidden"
+            className="w-full max-h-[92vh] flex flex-col rounded-3xl border overflow-hidden"
             style={{ background: "rgba(7,7,12,0.99)", borderColor: "rgba(226,18,39,0.32)", boxShadow: "0 0 90px rgba(226,18,39,0.16), 0 0 200px rgba(0,0,0,0.85), inset 0 1px 0 rgba(226,18,39,0.08)" }}>
 
             <HolographicHeader />
@@ -905,7 +905,7 @@ export function PersonaManagerModal({ open, onClose }: { open: boolean; onClose:
                           }}
                           whileHover={{ scale: 1.01, background: `rgba(255,255,255,0.03)` }}
                           whileTap={{ scale: 0.98 }}>
-                          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                             style={{ background: `${p.color}18`, border: `1px solid ${p.color}33` }}>
                             <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.color, boxShadow: isActive ? `0 0 8px ${p.color}` : "none" }} />
                           </div>
@@ -961,7 +961,7 @@ export function PersonaManagerModal({ open, onClose }: { open: boolean; onClose:
                   <AnimatePresence>
                     {editor.open && (
                       <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                        className="space-y-4 overflow-hidden rounded-2xl border p-4" style={{ borderColor: "rgba(167,139,250,0.25)", background: "rgba(167,139,250,0.04)" }}>
+                        className="space-y-4 overflow-hidden rounded-[18px] border p-4" style={{ borderColor: "rgba(167,139,250,0.25)", background: "rgba(167,139,250,0.04)" }}>
                         <div className="flex items-center gap-2">
                           <Edit3 className="w-4 h-4" style={{ color: "#a78bfa" }} />
                           <span className="text-sm font-black">{editor.editingId ? "تعديل الشخصية" : "شخصية جديدة"}</span>

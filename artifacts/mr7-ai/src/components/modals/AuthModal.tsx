@@ -171,7 +171,7 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: Props) {
         <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
 
         <motion.div
-          className="relative w-full max-w-md overflow-hidden rounded-2xl border border-red-900/40 bg-[#0a0a0a] shadow-[0_0_60px_rgba(226,18,39,0.15)]"
+          className="relative w-full overflow-hidden rounded-[18px] border border-red-900/40 bg-[#0a0a0a] shadow-[0_0_60px_rgba(226,18,39,0.15)]"
           initial={{ scale: 0.92, y: 30, opacity: 0 }}
           animate={{ scale: 1, y: 0, opacity: 1 }}
           exit={{ scale: 0.92, y: 30, opacity: 0 }}

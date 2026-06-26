@@ -399,11 +399,11 @@ export default function AgentV2Modal({ onClose }: { onClose: () => void }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="relative w-full max-w-5xl max-h-[90vh] flex flex-col rounded-xl border border-[#2a2a2a] bg-[#0a0a0a] shadow-2xl overflow-hidden"
+        className="relative w-full max-h-[90vh] flex flex-col rounded-xl border border-[#2a2a2a] bg-[#0a0a0a] shadow-2xl overflow-hidden"
         style={{ boxShadow: "0 0 60px rgba(226,18,39,0.12), 0 0 120px rgba(226,18,39,0.05)" }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1a1a1a] bg-[#0d0d0d]">
+        <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#1a1a1a] bg-[#0d0d0d]">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#e21227]/10 border border-[#e21227]/30 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-[#e21227]" />
@@ -419,7 +419,7 @@ export default function AgentV2Modal({ onClose }: { onClose: () => void }) {
                 {taskId}
               </span>
             )}
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#1a1a1a] text-zinc-500 hover:text-white transition">
+            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#1a1a1a] text-zinc-500 hover:text-white transition">
               <X className="w-4 h-4" />
             </button>
           </div>

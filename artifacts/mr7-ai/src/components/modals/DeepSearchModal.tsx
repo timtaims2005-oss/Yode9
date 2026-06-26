@@ -199,7 +199,7 @@ function ProofToast({ p, onDone }: { p: typeof PROOFS[0]; onDone: () => void }) 
   return (
     <motion.div initial={{ x: -100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -100, opacity: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed bottom-4 left-4 z-[60] flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl max-w-[260px]"
+      className="fixed bottom-4 left-4 z-[60] flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl"
       style={{ background: "linear-gradient(135deg, #0f0f0f, #111)", border: "1px solid #1f1f1f", boxShadow: "0 0 20px rgba(226,18,39,0.15)" }}>
       <div className="w-8 h-8 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center shrink-0">
         <Shield size={13} className="text-green-400" />
@@ -411,7 +411,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
               </div>
 
               {/* Input Card */}
-              <div className="mx-4 rounded-2xl border border-[#1f1f1f] bg-[#0c0c10] overflow-hidden mb-4 relative"
+              <div className="mx-4 rounded-[18px] border border-[#1f1f1f] bg-[#0c0c10] overflow-hidden mb-4 relative"
                 style={{ boxShadow: "0 0 30px rgba(226,18,39,0.06)" }}>
                 <div className="flex border-b border-[#1a1a1a]">
                   {INPUT_TABS.map(t => (
@@ -531,7 +531,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
               </div>
 
               {/* Recent Community Scans */}
-              <div className="mx-4 mb-4 rounded-2xl border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
+              <div className="mx-4 mb-4 rounded-[18px] border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-[#1a1a1a]">
                   <div className="flex items-center gap-2">
                     <Activity size={11} className="text-[#e21227]" />
@@ -570,7 +570,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
               </div>
 
               {/* 15 Features */}
-              <div className="mx-4 mb-6 rounded-2xl border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
+              <div className="mx-4 mb-6 rounded-[18px] border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
                 <div className="px-4 py-3 border-b border-[#1a1a1a] flex items-center gap-2">
                   <div className="w-5 h-5 rounded-md bg-violet-600/30 flex items-center justify-center">
                     <Layers size={10} className="text-violet-400" />
@@ -772,7 +772,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                       </div>
 
                       {/* Flagged card */}
-                      <div className="rounded-2xl border border-[#e21227]/20 overflow-hidden"
+                      <div className="rounded-[18px] border border-[#e21227]/20 overflow-hidden"
                         style={{ background: "linear-gradient(135deg, #e21227 / 5%, transparent)" }}>
                         <div className="flex items-center gap-2 px-4 py-3 border-b border-[#e21227]/10 bg-[#e21227]/05">
                           <motion.div animate={{ rotate: [0, 5, -5, 0] }} transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}>
@@ -807,7 +807,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                       </div>
 
                       {/* Extra sources */}
-                      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
+                      <div className="rounded-[18px] border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
                         <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1a1a1a]">
                           <Eye size={13} className="text-[#fbbf24]" />
                           <div>
@@ -845,7 +845,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                       </div>
 
                       {/* PRO findings */}
-                      <div className="rounded-2xl border border-[#7c3aed]/25 overflow-hidden"
+                      <div className="rounded-[18px] border border-[#7c3aed]/25 overflow-hidden"
                         style={{ background: "linear-gradient(135deg, #7c3aed08, transparent)" }}>
                         <div className="flex items-center gap-2 px-4 py-3 border-b border-[#7c3aed]/15">
                           <motion.div className="w-7 h-7 rounded-lg bg-violet-600/25 flex items-center justify-center"
@@ -897,7 +897,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                       )}
 
                       {/* CTA */}
-                      <div className="rounded-2xl border border-[#e21227]/15 p-5 text-center relative overflow-hidden"
+                      <div className="rounded-[18px] border border-[#e21227]/15 p-5 text-center relative overflow-hidden"
                         style={{ background: "linear-gradient(135deg, #e21227/08, transparent)" }}>
                         <h3 className="text-[14px] font-black text-white mb-1">Try Deep Search AI</h3>
                         <p className="text-[10px] text-[#555] mb-3">Scan <span className="text-white font-bold">12,000+</span> private sources</p>
@@ -923,7 +923,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                   {resultTab === "ai-report" && (
                     <motion.div key="air" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                       className="p-4 space-y-3">
-                      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
+                      <div className="rounded-[18px] border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
                         <div className="flex items-center justify-between px-4 py-3 border-b border-[#1a1a1a]"
                           style={{ background: "linear-gradient(90deg, #e2122710, transparent)" }}>
                           <div className="flex items-center gap-2">
@@ -995,11 +995,11 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                       className="p-4 space-y-3">
 
                       {/* Identity card header */}
-                      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
-                        <div className="px-4 py-4 border-b border-[#1a1a1a] flex items-center gap-4"
+                      <div className="rounded-[18px] border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
+                        <div className="px-4 pt-3 pb-[10px] border-b border-[#1a1a1a] flex items-center gap-4"
                           style={{ background: "linear-gradient(135deg, #10b98108, transparent)" }}>
                           <motion.div
-                            className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 relative overflow-hidden"
+                            className="w-16 h-16 rounded-[18px] flex items-center justify-center shrink-0 relative overflow-hidden"
                             style={{ background: "linear-gradient(135deg, #1a1a2e, #16213e)", border: "2px solid #10b98130" }}
                             animate={{ boxShadow: ["0 0 0 #10b981", "0 0 15px #10b98130", "0 0 0 #10b981"] }}
                             transition={{ duration: 3, repeat: Infinity }}>
@@ -1039,7 +1039,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                       </div>
 
                       {/* Devices & Languages */}
-                      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
+                      <div className="rounded-[18px] border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
                         <div className="px-4 py-3 border-b border-[#1a1a1a] flex items-center gap-2">
                           <Cpu size={11} className="text-[#8b5cf6]" />
                           <span className="text-[11px] font-bold text-white">Device & Language Profile</span>
@@ -1065,7 +1065,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                       </div>
 
                       {/* IP History */}
-                      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
+                      <div className="rounded-[18px] border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
                         <div className="px-4 py-3 border-b border-[#1a1a1a] flex items-center gap-2">
                           <Globe size={11} className="text-[#3b82f6]" />
                           <span className="text-[11px] font-bold text-white">IP Address History</span>
@@ -1122,7 +1122,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
 
                       {BREACH_RECORDS.map((b, i) => (
                         <motion.div key={i}
-                          className="rounded-2xl border overflow-hidden cursor-pointer"
+                          className="rounded-[18px] border overflow-hidden cursor-pointer"
                           style={{
                             borderColor: expandedBreach === i ? b.color + "40" : "#1a1a1a",
                             background: expandedBreach === i ? b.color + "06" : "#0c0c10",
@@ -1205,7 +1205,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                       <div className="grid grid-cols-2 gap-2">
                         {MEDIA_INTEL.map((m, i) => (
                           <motion.div key={i}
-                            className="rounded-2xl border border-[#1a1a1a] bg-[#0c0c10] p-3 relative overflow-hidden"
+                            className="rounded-[18px] border border-[#1a1a1a] bg-[#0c0c10] p-3 relative overflow-hidden"
                             whileHover={{ borderColor: m.color + "30" }}
                             style={m.locked ? { opacity: 0.7 } : {}}>
                             {m.locked && (
@@ -1218,7 +1218,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                                 </div>
                               </div>
                             )}
-                            <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2"
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2"
                               style={{ background: m.color + "20", color: m.color }}>
                               {m.icon}
                             </div>
@@ -1235,7 +1235,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                       </div>
 
                       {/* Photo grid preview */}
-                      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
+                      <div className="rounded-[18px] border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
                         <div className="px-4 py-3 border-b border-[#1a1a1a] flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Camera size={11} className="text-[#10b981]" />
@@ -1271,7 +1271,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                       </div>
 
                       {/* Video content */}
-                      <div className="rounded-2xl border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
+                      <div className="rounded-[18px] border border-[#1a1a1a] bg-[#0c0c10] overflow-hidden">
                         <div className="px-4 py-3 border-b border-[#1a1a1a] flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Video size={11} className="text-[#3b82f6]" />
@@ -1319,7 +1319,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                             transition={{ delay: i * 0.05 }}
                             className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-[#1a1a1a] bg-[#0c0c10] transition-all"
                             style={{ borderLeft: `3px solid ${p.color}40` }}>
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-black text-[11px]"
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-black text-[11px]"
                               style={{ background: p.color + "20", color: p.color, border: `1px solid ${p.color}30` }}>
                               {p.platform.slice(0, 2).toUpperCase()}
                             </div>
@@ -1396,7 +1396,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                           <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: i * 0.06 }}
                             className="flex gap-3 pb-4 relative">
-                            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 z-10"
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 z-10"
                               style={{ background: a.color + "18", border: `1px solid ${a.color}30` }}>
                               <span style={{ color: a.color }}>{a.icon}</span>
                             </div>
@@ -1416,7 +1416,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
 
                         {/* Locked entries */}
                         <div className="flex gap-3 pb-2 relative opacity-50">
-                          <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[#1a1a1a] border border-[#222] z-10">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#1a1a1a] border border-[#222] z-10">
                             <Lock size={11} className="text-[#444]" />
                           </div>
                           <div className="flex-1 py-3 rounded-xl border border-dashed border-[#1f1f1f] px-3 flex items-center justify-between">
@@ -1671,7 +1671,7 @@ export function DeepSearchModal({ open, onOpenChange, onOpenChainInvestigation }
                       ) : (
                         <div className="space-y-2">
                           <div className="flex items-center gap-3 p-3.5 bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl">
-                            <div className="w-10 h-10 rounded-xl bg-blue-600/20 flex items-center justify-center font-black text-[18px] text-blue-400 shrink-0">P</div>
+                            <div className="w-9 h-9 rounded-xl bg-blue-600/20 flex items-center justify-center font-black text-[18px] text-blue-400 shrink-0">P</div>
                             <div className="flex-1">
                               <p className="text-[12px] font-bold text-white">PayPal</p>
                               <p className="text-[10px] text-[#555] font-mono">{PAYMENT_ADDRESSES.paypal}</p>

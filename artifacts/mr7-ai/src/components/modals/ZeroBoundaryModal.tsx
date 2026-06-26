@@ -32,7 +32,7 @@ export function ZeroBoundaryModal({ open, onOpenChange }: Props) {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.94)", backdropFilter: "blur(20px)" }}>
         <motion.div initial={{ scale: 0.92, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} transition={{ type: "spring", stiffness: 280, damping: 26 }} className="relative w-full h-full w-full h-full flex flex-col overflow-hidden" style={{ background: "linear-gradient(135deg, #030508 0%, #050310 100%)", border: "1px solid rgba(251,191,36,0.2)", borderRadius: 16, boxShadow: "0 0 120px rgba(251,191,36,0.08)" }}>
           <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(251,191,36,0.12)", background: "rgba(251,191,36,0.03)" }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.4)" }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.4)" }}>
               <Layers className="w-5 h-5" style={{ color: "#fbbf24" }} />
             </div>
             <div>
@@ -44,7 +44,7 @@ export function ZeroBoundaryModal({ open, onOpenChange }: Props) {
                 <div className="text-[20px] font-black" style={{ color: "#fbbf24" }}>6</div>
                 <div className="text-[8px] font-mono" style={{ color: "#fbbf2455" }}>DOMAINS MERGED</div>
               </div>
-              <button onClick={() => onOpenChange(false)} className="p-2 rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
             </div>
           </div>
 
@@ -59,7 +59,7 @@ export function ZeroBoundaryModal({ open, onOpenChange }: Props) {
           <div className="flex-1 overflow-auto p-6 pt-4">
             {tab === "mesh" && (
               <div className="h-full flex gap-5">
-                <div className="flex-1 relative rounded-xl overflow-hidden" style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(251,191,36,0.1)", minHeight: 400 }}>
+                <div className="flex-1 relative rounded-xl overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "rgba(0,0,0,0.5)", border: "1px solid rgba(251,191,36,0.1)", minHeight: 400 }}>
                   <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 160" preserveAspectRatio="xMidYMid meet">
                     {DOMAINS.flatMap((d, i) => DOMAINS.slice(i + 1).map((d2, j) => (
                       <motion.line key={`${i}-${j}`} x1={30 + (i % 3) * 70} y1={40 + Math.floor(i / 3) * 80} x2={30 + (DOMAINS.indexOf(d2) % 3) * 70} y2={40 + Math.floor(DOMAINS.indexOf(d2) / 3) * 80} stroke="rgba(251,191,36,0.25)" strokeWidth="0.8" animate={{ strokeOpacity: [0.15, 0.5, 0.15] }} transition={{ duration: 3, delay: i * 0.5, repeat: Infinity }} />
@@ -138,7 +138,7 @@ export function ZeroBoundaryModal({ open, onOpenChange }: Props) {
                   {DOMAINS.map((d, i) => {
                     const angle = (i / DOMAINS.length) * Math.PI * 2 - Math.PI / 2;
                     return (
-                      <motion.div key={i} className="absolute w-12 h-12 rounded-xl flex items-center justify-center" style={{ left: Math.cos(angle) * 110 - 24, top: Math.sin(angle) * 110 - 24, background: `${d.color}15`, border: `1px solid ${d.color}40`, boxShadow: `0 0 15px ${d.color}30` }} animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, delay: i * 0.4, repeat: Infinity }}>
+                      <motion.div key={i} className="absolute w-9 h-9 rounded-xl flex items-center justify-center" style={{ left: Math.cos(angle) * 110 - 24, top: Math.sin(angle) * 110 - 24, background: `${d.color}15`, border: `1px solid ${d.color}40`, boxShadow: `0 0 15px ${d.color}30` }} animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, delay: i * 0.4, repeat: Infinity }}>
                         <d.icon className="w-5 h-5" style={{ color: d.color }} />
                       </motion.div>
                     );

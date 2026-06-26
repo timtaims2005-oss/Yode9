@@ -452,9 +452,11 @@ export function CveTimeline3DModal({ open, onOpenChange }: Props) {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 12 }}
             transition={{ type: "spring", stiffness: 260, damping: 26 }}
-            className="relative flex flex-col overflow-hidden rounded-2xl"
+            className="relative flex flex-col overflow-hidden rounded-[18px]"
             style={{
-              width: "min(1380px, 97vw)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
               height: "min(880px, 92vh)",
               background: "linear-gradient(145deg,#010408 0%,#050a14 55%,#010408 100%)",
               border: "1px solid rgba(255,32,32,0.2)",
@@ -465,12 +467,12 @@ export function CveTimeline3DModal({ open, onOpenChange }: Props) {
             <div className="h-[2px] w-full" style={{ background: "linear-gradient(90deg,transparent 0%,#ff2020 20%,#f97316 50%,#ff2020 80%,transparent 100%)" }} />
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 shrink-0"
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] shrink-0"
               style={{ background: "rgba(255,32,32,0.03)", borderBottom: "1px solid rgba(255,32,32,0.1)" }}>
               <div className="flex items-center gap-3">
                 <motion.div
                   animate={{ rotate: [0, 360] }} transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center"
                   style={{ background: "rgba(255,32,32,0.15)", border: "1px solid rgba(255,32,32,0.4)" }}>
                   <Database className="w-4 h-4" style={{ color: "#ff2020" }} />
                 </motion.div>

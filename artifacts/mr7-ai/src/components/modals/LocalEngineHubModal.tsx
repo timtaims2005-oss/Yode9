@@ -712,9 +712,11 @@ export function LocalEngineHubModal({ open, onOpenChange }: Props) {
   return (
     <FullPageOverlay open={open} onClose={() => onOpenChange(false)}>
       <div
-        className="relative w-full max-w-5xl mx-auto rounded-2xl overflow-hidden flex flex-col"
+        className="relative w-full mx-auto rounded-[18px] overflow-hidden flex flex-col"
         style={{
-          background: "linear-gradient(160deg, #0a0f1a 0%, #060810 50%, #0a0a12 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
           border: "1px solid rgba(0,229,255,0.15)",
           boxShadow: "0 0 80px rgba(0,229,255,0.08), inset 0 0 40px rgba(0,229,255,0.02)",
           maxHeight: "90vh",
@@ -722,13 +724,13 @@ export function LocalEngineHubModal({ open, onOpenChange }: Props) {
       >
         {/* Header */}
         <div
-          className="flex items-center gap-4 px-6 py-4 border-b shrink-0"
+          className="flex items-center gap-4 px-4 pt-3 pb-[10px] border-b shrink-0"
           style={{ borderColor: "rgba(0,229,255,0.1)", background: "rgba(0,229,255,0.03)" }}
         >
           {/* Animated logo */}
           <div className="relative shrink-0">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              className="w-9 h-9 rounded-xl flex items-center justify-center"
               style={{ background: "rgba(0,229,255,0.15)", border: "1px solid rgba(0,229,255,0.4)" }}
             >
               <Server size={18} className="text-cyan-400" />
@@ -818,7 +820,7 @@ export function LocalEngineHubModal({ open, onOpenChange }: Props) {
                 style={{ minHeight: 400 }}
               >
                 {/* Canvas */}
-                <div className="flex-1 rounded-xl overflow-hidden relative" style={{ border: "1px solid rgba(0,229,255,0.08)", minHeight: 360 }}>
+                <div className="flex-1 rounded-xl overflow-hidden relative" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", border: "1px solid rgba(0,229,255,0.08)", minHeight: 360 }}>
                   <HolographicHub
                     statuses={statuses}
                     scanning={scanning}

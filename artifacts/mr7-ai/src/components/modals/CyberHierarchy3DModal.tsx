@@ -663,7 +663,7 @@ export function CyberHierarchy3DModal({ open, onOpenChange }: CyberHierarchy3DMo
 
                 {/* Final pyramid summary */}
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-                  className="mb-8 rounded-2xl overflow-hidden"
+                  className="mb-8 rounded-[18px] overflow-hidden"
                   style={{ background: "rgba(0,0,0,0.6)", border: "1px solid rgba(251,191,36,0.2)" }}>
                   <div className="px-5 py-3 border-b" style={{ borderColor: "rgba(251,191,36,0.15)", background: "rgba(251,191,36,0.04)" }}>
                     <span className="font-mono text-xs font-black tracking-widest" style={{ color: "#fbbf24" }}>هرم القوة المطلقة — الترتيب النهائي</span>
@@ -705,7 +705,7 @@ export function CyberHierarchy3DModal({ open, onOpenChange }: CyberHierarchy3DMo
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.06 + 0.3 }}
                       onClick={() => setSupremeTier(prev => prev === tier.tier ? null : tier.tier)}
-                      className="cursor-pointer rounded-2xl overflow-hidden transition-all"
+                      className="cursor-pointer rounded-[18px] overflow-hidden transition-all"
                       style={{
                         background: supremeTier === tier.tier
                           ? `radial-gradient(circle at 20% 20%, ${tier.color}18 0%, rgba(0,0,0,0.8) 70%)`
@@ -719,7 +719,7 @@ export function CyberHierarchy3DModal({ open, onOpenChange }: CyberHierarchy3DMo
                       <div className="absolute top-0 inset-x-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${tier.color}60, transparent)` }} />
                       <div className="p-4">
                         <div className="flex items-start gap-3 mb-3">
-                          <div className="w-8 h-8 rounded-xl flex items-center justify-center font-mono text-xs font-black flex-shrink-0"
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center font-mono text-xs font-black flex-shrink-0"
                             style={{ background: `${tier.color}15`, border: `1px solid ${tier.color}35`, color: tier.color }}>
                             {tier.tier}
                           </div>
@@ -766,7 +766,7 @@ export function CyberHierarchy3DModal({ open, onOpenChange }: CyberHierarchy3DMo
           )}
 
           {/* Header */}
-          <div className="relative z-10 flex items-center justify-between px-5 py-3 border-b"
+          <div className="relative z-10 flex items-center justify-between px-4 pt-3 pb-[10px] border-b"
             style={{
               borderColor: "rgba(0,255,65,0.15)",
               background: tab === "supreme"

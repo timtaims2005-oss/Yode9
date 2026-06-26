@@ -88,11 +88,11 @@ export function NanoBotModal({ open, onOpenChange }: NanoBotModalProps) {
           className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
           style={{ backdropFilter: "blur(8px)", background: "rgba(0,0,0,0.85)" }}>
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-lg max-h-[92dvh] flex flex-col rounded-2xl overflow-hidden"
-            style={{ background: "#080808", border: "1px solid rgba(0,229,204,0.25)", boxShadow: "0 0 50px rgba(0,229,204,0.1)" }}>
+            className="w-full max-h-[92dvh] flex flex-col rounded-[18px] overflow-hidden"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#080808", border: "1px solid rgba(0,229,204,0.25)", boxShadow: "0 0 50px rgba(0,229,204,0.1)" }}>
             <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "rgba(0,229,204,0.2)", background: "rgba(0,229,204,0.04)" }}>
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center border" style={{ background: "rgba(0,229,204,0.1)", borderColor: "rgba(0,229,204,0.4)" }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center border" style={{ background: "rgba(0,229,204,0.1)", borderColor: "rgba(0,229,204,0.4)" }}>
                   <Bot className="w-4 h-4" style={{ color: "#00e5cc" }} />
                 </div>
                 <div>
@@ -161,7 +161,7 @@ export function NanoBotModal({ open, onOpenChange }: NanoBotModalProps) {
                   className="flex-1 bg-transparent border rounded-xl px-3 py-2 text-[12px] outline-none"
                   style={{ borderColor: "rgba(0,229,204,0.2)", color: "#ccc" }} />
                 <button onClick={() => send()} disabled={streaming || !input.trim()}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center disabled:opacity-30"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center disabled:opacity-30"
                   style={{ background: "rgba(0,229,204,0.2)", border: "1px solid rgba(0,229,204,0.4)" }}>
                   <Send className="w-3.5 h-3.5" style={{ color: "#00e5cc" }} />
                 </button>

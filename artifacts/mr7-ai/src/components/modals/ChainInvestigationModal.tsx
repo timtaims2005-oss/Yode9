@@ -468,7 +468,7 @@ export function ChainInvestigationModal({ open, onOpenChange }: Props) {
       <div className="flex flex-col h-full w-full select-none">
 
         {/* ══ TOP BAR ══════════════════════════════════════ */}
-        <div className="flex items-center gap-3 px-5 py-3 border-b border-[#1f1f1f] bg-[#090909] shrink-0 z-10">
+        <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b border-[#1f1f1f] bg-[#090909] shrink-0 z-10">
           <motion.div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: "linear-gradient(135deg,#e21227,#ff4444)" }}
             animate={{ boxShadow: ["0 0 12px #e2122740","0 0 28px #e2122775","0 0 12px #e2122740"] }}
@@ -892,7 +892,7 @@ export function ChainInvestigationModal({ open, onOpenChange }: Props) {
                       {/* node header card */}
                       <div className="flex items-center gap-3 p-3 rounded-xl"
                         style={{ background: getNodeCfg(selected.type).color + "12", border: `1px solid ${getNodeCfg(selected.type).color}28` }}>
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                           style={{ background: getNodeCfg(selected.type).color + "22", color: getNodeCfg(selected.type).color }}>
                           {getNodeCfg(selected.type).icon}
                         </div>

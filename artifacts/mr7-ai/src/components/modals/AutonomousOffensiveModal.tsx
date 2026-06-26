@@ -553,13 +553,11 @@ export function AutonomousOffensiveModal({ open, onOpenChange }: Props) {
         onClick={e => { if (e.target === e.currentTarget) onOpenChange(false); }}
       >
         <motion.div
-          className="relative w-full flex flex-col rounded-2xl overflow-hidden"
-          initial={{ scale: 0.9, y: 40, rotateX: 5 }}
-          animate={{ scale: 1, y: 0, rotateX: 0 }}
-          exit={{ scale: 0.9, y: 40 }}
-          transition={{ type: "spring", damping: 22, stiffness: 280 }}
+          className="relative w-full flex flex-col rounded-[18px] overflow-hidden"
           style={{
-            maxWidth: "1200px",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
             maxHeight: "92vh",
             background: "linear-gradient(160deg,#040407 0%,#070709 60%,#0a0005 100%)",
             border: "1px solid rgba(226,18,39,0.25)",

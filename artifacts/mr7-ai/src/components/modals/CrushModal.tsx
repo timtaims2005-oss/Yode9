@@ -153,7 +153,7 @@ export function CrushModal({ open, onOpenChange }: CrushModalProps) {
         onClick={e => { if (e.target === e.currentTarget) onOpenChange(false); }}
       >
         <motion.div
-          className="relative w-full max-w-3xl rounded-xl border overflow-hidden flex flex-col"
+          className="relative w-full rounded-xl border overflow-hidden flex flex-col"
           style={{ background: "#0d0d0d", borderColor: "rgba(167,139,250,0.4)", maxHeight: "92vh" }}
           initial={{ scale: 0.92, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, y: 30 }}
         >

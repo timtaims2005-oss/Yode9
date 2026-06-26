@@ -364,9 +364,9 @@ export default function CollabModal({ open, onOpenChange }: Props) {
           transition={{ type: "spring", stiffness: 220, damping: 26 }}>
 
           {/* ── Header ─────────────────────────────────────────────────── */}
-          <div className="relative flex items-center justify-between px-6 py-4 border-b border-[#1a1a1a] flex-shrink-0">
+          <div className="relative flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#1a1a1a] flex-shrink-0">
             <div className="flex items-center gap-4">
-              <motion.div className="relative w-12 h-12 rounded-xl flex items-center justify-center"
+              <motion.div className="relative w-9 h-9 rounded-xl flex items-center justify-center"
                 style={{ background: "rgba(226,18,39,0.12)", border: "1px solid rgba(226,18,39,0.35)" }}
                 animate={{ boxShadow: ["0 0 10px rgba(226,18,39,0.2)","0 0 35px rgba(226,18,39,0.5)","0 0 10px rgba(226,18,39,0.2)"] }}
                 transition={{ duration: 2, repeat: Infinity }}>

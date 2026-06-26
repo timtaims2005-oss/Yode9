@@ -36,7 +36,7 @@ export function BookmarksModal({ open, onOpenChange }: { open: boolean; onOpenCh
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContentTop className="bg-card border-border w-[98vw] max-w-2xl max-h-[92dvh] overflow-hidden flex flex-col"
+      <DialogContentTop className="bg-card border-border w-[98vw] max-h-[92dvh] overflow-hidden flex flex-col"
         onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">

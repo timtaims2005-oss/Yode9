@@ -106,7 +106,7 @@ function CveFeedPanel() {
       {/* Header */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,45,85,0.12)", border: "1px solid rgba(255,45,85,0.3)" }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,45,85,0.12)", border: "1px solid rgba(255,45,85,0.3)" }}>
             <Radio className="w-4 h-4" style={{ color: "#ff2d55" }} />
           </div>
           <div>
@@ -229,7 +229,7 @@ function CveFeedPanel() {
                 onClick={() => setExpanded(isExp ? null : cve.id)}>
                 <div className="flex items-center gap-3 px-3 py-2.5">
                   {/* Score ring */}
-                  <div className="flex-shrink-0 w-10 h-10 rounded-xl flex flex-col items-center justify-center border"
+                  <div className="flex-shrink-0 w-9 h-9 rounded-xl flex flex-col items-center justify-center border"
                     style={{ background: `${cfg.color}12`, borderColor: `${cfg.color}30` }}>
                     <span className="text-[13px] font-black font-mono leading-none" style={{ color: cfg.color }}>
                       {cve.score.toFixed(1)}

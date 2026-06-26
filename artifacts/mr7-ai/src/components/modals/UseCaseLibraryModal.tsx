@@ -478,9 +478,11 @@ export function UseCaseLibraryModal({ open, onOpenChange, onInject }: Props) {
           animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20, rotateX: 3 }}
           transition={{ type: "spring", stiffness: 280, damping: 28 }}
-          className="relative w-full max-w-7xl m-4 rounded-2xl overflow-hidden flex flex-col"
+          className="relative w-full m-4 rounded-[18px] overflow-hidden flex flex-col"
           style={{
-            border: "1px solid rgba(226,18,39,0.3)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
             boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 0 120px rgba(226,18,39,0.18), 0 0 60px rgba(226,18,39,0.1), 0 40px 80px rgba(0,0,0,0.9)",
             background: "#060606",
             transformStyle: "preserve-3d",
@@ -494,7 +496,7 @@ export function UseCaseLibraryModal({ open, onOpenChange, onInject }: Props) {
           />
 
           {/* Header */}
-          <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5" style={{ background: "linear-gradient(180deg, rgba(226,18,39,0.08) 0%, transparent 100%)" }}>
+          <div className="relative z-10 flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-white/5" style={{ background: "linear-gradient(180deg, rgba(226,18,39,0.08) 0%, transparent 100%)" }}>
             <div className="flex items-center gap-4">
               {/* 3D rotating icon */}
               <div className="relative w-10 h-10 flex items-center justify-center">

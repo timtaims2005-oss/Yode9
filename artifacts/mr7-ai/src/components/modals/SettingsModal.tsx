@@ -77,7 +77,7 @@ export function SettingsModal({ open, onOpenChange }: { open: boolean; onOpenCha
   return (
     <FullPageOverlay open={open} onClose={() => onOpenChange(false)}>
       <div className="flex flex-col h-full w-full">
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-[#1f1f1f] bg-[#0d0d0d] shrink-0">
+        <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b border-[#1f1f1f] bg-[#0d0d0d] shrink-0">
           <SettingsIcon className="w-5 h-5 text-primary" />
           <div>
             <h2 className="text-sm font-bold text-white">{t("settings.title")}</h2>

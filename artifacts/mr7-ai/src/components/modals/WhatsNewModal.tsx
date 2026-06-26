@@ -169,9 +169,11 @@ export function WhatsNewModal({ open, onClose }: WhatsNewModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 16 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-2xl max-h-[92dvh] flex flex-col rounded-2xl overflow-hidden"
+            className="relative w-full max-h-[92dvh] flex flex-col rounded-[18px] overflow-hidden"
             style={{
-              background: "linear-gradient(160deg, #111111 0%, #0a0a0a 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
               border: "1px solid #1f1f1f",
               boxShadow: "0 32px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(226,18,39,0.1)",
             }}
@@ -185,7 +187,7 @@ export function WhatsNewModal({ open, onClose }: WhatsNewModalProps) {
             {/* Header */}
             <div className="flex items-center gap-4 px-6 pt-6 pb-4 flex-shrink-0">
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{
                   background: "radial-gradient(circle, rgba(226,18,39,0.2) 0%, rgba(226,18,39,0.05) 100%)",
                   border: "1px solid rgba(226,18,39,0.3)",
@@ -297,7 +299,7 @@ export function WhatsNewModal({ open, onClose }: WhatsNewModalProps) {
 
             {/* Footer */}
             <div
-              className="flex items-center justify-between px-6 py-4 flex-shrink-0"
+              className="flex items-center justify-between px-4 pt-3 pb-[10px] flex-shrink-0"
               style={{ borderTop: "1px solid #1f1f1f", background: "rgba(0,0,0,0.3)" }}
             >
               <span className="text-[11px] text-muted-foreground/40 font-mono">

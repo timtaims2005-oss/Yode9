@@ -133,11 +133,11 @@ export function GodMod3Modal({ open, onOpenChange }: { open: boolean; onOpenChan
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-3xl rounded-2xl overflow-hidden flex flex-col"
-        style={{ background: "#050505", border: `1px solid ${Gg(0.3)}`, maxHeight: "90vh", boxShadow: `0 0 40px ${Gg(0.08)}` }}
+        className="w-full rounded-[18px] overflow-hidden flex flex-col"
+        style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#050505", border: `1px solid ${Gg(0.3)}`, maxHeight: "90vh", boxShadow: `0 0 40px ${Gg(0.08)}` }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0" style={{ borderColor: Gg(0.12) }}>
+        <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b flex-shrink-0" style={{ borderColor: Gg(0.12) }}>
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: Gg(0.08), border: `1px solid ${Gg(0.3)}` }}>
               <Cpu className="w-5 h-5" style={{ color: G }} />

@@ -342,7 +342,7 @@ function ChatSection({ color, onNewConversation }: { color: string; onNewConvers
       {/* Input */}
       <div className="p-3 border-t" style={{ borderColor: "rgba(255,255,255,0.07)" }}>
         <div className="flex gap-2 items-end">
-          <div className="flex-1 rounded-xl border overflow-hidden" style={{ border: `1px solid ${color}33`, background: "rgba(0,0,0,0.3)" }}>
+          <div className="flex-1 rounded-xl border overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", border: `1px solid ${color}33`, background: "rgba(0,0,0,0.3)" }}>
             <textarea value={input} onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
               placeholder={agentMode ? "Give Odysseus an agent task…" : "Message Odysseus…"}
@@ -1518,7 +1518,7 @@ export function OdysseusWorkspaceModal({ open, onOpenChange }: Props) {
         <motion.div
           initial={{ scale: 0.96, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.96, opacity: 0, y: 20 }}
           transition={{ type: "spring", stiffness: 320, damping: 32 }}
-          className="relative w-full max-w-[1300px] h-[92vh] rounded-2xl overflow-hidden flex"
+          className="relative w-full h-[92vh] rounded-[18px] overflow-hidden flex"
           style={{ background: "#070710", border: `1px solid ${color}33`, boxShadow: `0 0 80px ${color}18, 0 0 160px ${color}08, inset 0 1px 0 rgba(255,255,255,0.04)` }}>
 
           <ParticleCanvas color={color} />

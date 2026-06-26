@@ -98,10 +98,10 @@ export function QRSyncModal({ open, onClose }: QRSyncModalProps) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 16 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-md mx-4 rounded-xl border border-[#1f1f1f] bg-[#0d0d0d] shadow-2xl overflow-hidden"
+          className="relative w-full mx-4 rounded-xl border border-[#1f1f1f] bg-[#0d0d0d] shadow-2xl overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#1f1f1f]">
+          <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#1f1f1f]">
             <div className="flex items-center gap-2">
               <QrCode className="w-4 h-4 text-[#e21227]" />
               <span className="text-sm font-semibold text-white tracking-wide">مزامنة عبر QR</span>

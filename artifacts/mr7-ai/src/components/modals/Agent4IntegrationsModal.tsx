@@ -275,9 +275,9 @@ export default function Agent4IntegrationsModal({ open, onOpenChange }: Props) {
           <PlasmaBG />
 
           {/* Header */}
-          <div className="relative flex items-center justify-between px-6 py-4 border-b border-[#1a1a1a] flex-shrink-0">
+          <div className="relative flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#1a1a1a] flex-shrink-0">
             <div className="flex items-center gap-4">
-              <motion.div className="w-12 h-12 rounded-xl flex items-center justify-center"
+              <motion.div className="w-9 h-9 rounded-xl flex items-center justify-center"
                 style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)" }}
                 animate={{ boxShadow: ["0 0 10px rgba(139,92,246,0.2)","0 0 30px rgba(139,92,246,0.4)","0 0 10px rgba(139,92,246,0.2)"] }}
                 transition={{ duration: 2, repeat: Infinity }}>
@@ -446,7 +446,7 @@ export default function Agent4IntegrationsModal({ open, onOpenChange }: Props) {
                     {INTEGRATIONS.map((intg, i) => (
                       <motion.button key={intg.id}
                         onClick={() => setSelected(intg.id)}
-                        className="p-4 rounded-2xl border border-[#1f1f1f] bg-[#0d0d0d] flex flex-col items-center gap-2 hover:border-purple-500/30 hover:bg-[#1a1a1a] transition-all"
+                        className="p-4 rounded-[18px] border border-[#1f1f1f] bg-[#0d0d0d] flex flex-col items-center gap-2 hover:border-purple-500/30 hover:bg-[#1a1a1a] transition-all"
                         initial={{ opacity: 0, y: 20, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         transition={{ delay: i * 0.06, type: "spring" }}

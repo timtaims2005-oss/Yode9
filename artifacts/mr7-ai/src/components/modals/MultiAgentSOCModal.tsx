@@ -616,9 +616,11 @@ export function MultiAgentSOCModal({ open, onOpenChange }: Props) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94, y: 16 }}
         transition={{ type: "spring", stiffness: 280, damping: 26 }}
-        className="relative flex flex-col w-full max-w-7xl rounded-2xl overflow-hidden border border-white/8"
+        className="relative flex flex-col w-full rounded-[18px] overflow-hidden border border-white/8"
         style={{
-          background: "linear-gradient(135deg, #06060c 0%, #080810 50%, #060608 100%)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
           boxShadow: "0 0 80px rgba(0,229,255,0.08), 0 0 40px rgba(226,18,39,0.06), 0 32px 80px rgba(0,0,0,0.9)",
           height: "min(90vh, 820px)",
         }}

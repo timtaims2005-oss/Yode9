@@ -189,8 +189,8 @@ export function AnalyticsDashboard({ open, onClose }: Props) {
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={onClose} />
           <motion.div
-            className="relative w-full max-w-3xl max-h-[90dvh] flex flex-col rounded-2xl border border-[#1f1f1f] overflow-hidden"
-            style={{ background: "#050510" }}
+            className="relative w-full max-h-[90dvh] flex flex-col rounded-[18px] border border-[#1f1f1f] overflow-hidden"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#050510" }}
             initial={{ scale: 0.92, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.92, opacity: 0 }}
@@ -200,7 +200,7 @@ export function AnalyticsDashboard({ open, onClose }: Props) {
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#3b82f6]/60 to-transparent" />
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1a1a2e] shrink-0">
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#1a1a2e] shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)" }}>
                   <BarChart2 className="w-4.5 h-4.5 text-[#3b82f6]" />
@@ -223,7 +223,7 @@ export function AnalyticsDashboard({ open, onClose }: Props) {
                 <button className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/5">
                   <Download className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={onClose} className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/5">
+                <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/5">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -381,7 +381,7 @@ export function AnalyticsDashboard({ open, onClose }: Props) {
                     <div className="grid grid-cols-2 gap-3">
                       {modelList.slice(0, 4).map(([model, count], i) => (
                         <div key={model} className="rounded-xl border border-[#1f1f1f] p-3 flex items-center gap-3" style={{ background: "rgba(0,0,0,0.3)" }}>
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-black shrink-0"
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-black shrink-0"
                             style={{ background: MODEL_COLORS[i % MODEL_COLORS.length] + "15", color: MODEL_COLORS[i % MODEL_COLORS.length] }}>
                             {i + 1}
                           </div>

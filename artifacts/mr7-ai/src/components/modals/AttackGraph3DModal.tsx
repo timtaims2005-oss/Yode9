@@ -475,13 +475,10 @@ export function AttackGraph3DModal({ open, onOpenChange }: Props) {
         onClick={e => { if (e.target === e.currentTarget) onOpenChange(false); }}
       >
         <motion.div
-          className="relative w-full flex flex-col rounded-2xl overflow-hidden"
-          initial={{ scale: 0.88, y: 50 }}
-          animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.88, y: 50 }}
-          transition={{ type: "spring", damping: 20, stiffness: 260 }}
+          className="relative w-full flex flex-col rounded-[18px] overflow-hidden"
           style={{
-            maxWidth: "1100px", maxHeight: "90vh",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
             background: "linear-gradient(145deg, #030306 0%, #060608 60%, #080305 100%)",
             border: "1px solid rgba(226,18,39,0.2)",
             boxShadow: "0 0 100px rgba(226,18,39,0.08), 0 0 200px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.04)",

@@ -200,7 +200,7 @@ export function CodeScannerModal({ open, onClose }: Props) {
         onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
         <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
 
-        <motion.div className="relative w-full max-w-5xl max-h-[92vh] overflow-hidden rounded-2xl border border-red-900/40 bg-[#080808] shadow-[0_0_80px_rgba(226,18,39,0.1)] flex flex-col"
+        <motion.div className="relative w-full max-h-[92vh] overflow-hidden rounded-[18px] border border-red-900/40 bg-[#080808] shadow-[0_0_80px_rgba(226,18,39,0.1)] flex flex-col"
           initial={{ scale: 0.94, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.94, opacity: 0 }}>
 
           <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />

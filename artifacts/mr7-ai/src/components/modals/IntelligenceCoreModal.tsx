@@ -698,7 +698,7 @@ export function IntelligenceCoreModal({ open, onOpenChange }: IntelligenceCoreMo
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.18 }}
-        className="rounded-2xl border border-[#2a2a2a] overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9),0_0_30px_rgba(226,18,39,0.1)]"
+        className="rounded-[18px] border border-[#2a2a2a] overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9),0_0_30px_rgba(226,18,39,0.1)]"
         style={{ background: "rgba(4,4,12,0.98)", backdropFilter: "blur(24px)", width: 800, maxHeight: "90vh", display:"flex", flexDirection:"column" }}
       >
         {/* Header */}

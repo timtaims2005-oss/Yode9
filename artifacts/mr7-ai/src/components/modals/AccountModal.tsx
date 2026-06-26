@@ -164,7 +164,7 @@ export function AccountModal({
   return (
     <FullPageOverlay open={open} onClose={() => onOpenChange(false)}>
       <div className="flex flex-col h-full w-full">
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-[#1f1f1f] bg-[#0d0d0d] shrink-0">
+        <div className="flex items-center gap-3 px-4 pt-3 pb-[10px] border-b border-[#1f1f1f] bg-[#0d0d0d] shrink-0">
           <User className="w-5 h-5 text-primary" />
           <h2 className="text-sm font-bold text-white">حسابي</h2>
           <button onClick={() => onOpenChange(false)} className="ml-auto w-8 h-8 rounded-lg flex items-center justify-center bg-[#161616] border border-[#1f1f1f] text-[#555] hover:text-white hover:border-[#e21227] transition-all">

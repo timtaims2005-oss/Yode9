@@ -328,7 +328,7 @@ export function MonacoEditorModal({ open, onClose, initialCode, initialLang = "p
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={!fullscreen ? onClose : undefined} />
           <motion.div
-            className={`relative flex overflow-hidden ${fullscreen ? "w-full h-full" : "w-full max-w-[1200px] max-h-[93vh] rounded-2xl"}`}
+            className={`relative flex overflow-hidden ${fullscreen ? "w-full h-full" : "w-full max-h-[93vh] rounded-[18px]"}`}
             style={{ background: tColors.bg, border: `1px solid ${tColors.border}` }}
             initial={{ scale: 0.93, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.93, opacity: 0 }}>
 

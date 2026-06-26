@@ -1831,7 +1831,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
             {/* ── Header ── */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1a1a1a] shrink-0">
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#1a1a1a] shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
                   <Settings2 className="w-4.5 h-4.5 text-primary" />
@@ -1848,7 +1848,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                   className="p-2 rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors" title="تحديث">
                   <RefreshCw className={`w-3.5 h-3.5 ${reloading ? "animate-spin" : ""}`} />
                 </button>
-                <button onClick={onClose} className="p-2 rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -2597,7 +2597,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                   <div className="rounded-xl border overflow-hidden"
                     style={{ borderColor: "rgba(167,139,250,0.35)", background: "linear-gradient(135deg,rgba(167,139,250,0.08),rgba(226,18,39,0.04))" }}>
                     <div className="p-3.5 flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                         style={{ background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.35)" }}>
                         <Infinity className="w-5 h-5" style={{ color: "#a78bfa" }} />
                       </div>

@@ -215,7 +215,7 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
           {/* Header */}
           <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(255,0,64,0.15)", background: "rgba(255,0,64,0.04)" }}>
             <div className="relative">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,0,64,0.15)", border: "1px solid rgba(255,0,64,0.4)", boxShadow: "0 0 20px rgba(255,0,64,0.3)" }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,0,64,0.15)", border: "1px solid rgba(255,0,64,0.4)", boxShadow: "0 0 20px rgba(255,0,64,0.3)" }}>
                 <Shield className="w-5 h-5" style={{ color: "#ff0040" }} />
               </div>
               <motion.div className="absolute inset-0 rounded-xl" style={{ border: "1px solid rgba(255,0,64,0.6)" }} animate={{ scale: [1, 1.6, 1], opacity: [0.6, 0, 0.6] }} transition={{ duration: 2, repeat: Infinity }} />
@@ -233,7 +233,7 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
                 <div className="text-[22px] font-black" style={{ color: "#ff0040", textShadow: "0 0 15px rgba(255,0,64,0.6)" }}>{threatCount}</div>
                 <div className="text-[8px] font-mono" style={{ color: "#ff004088" }}>ACTIVE THREATS</div>
               </div>
-              <button onClick={() => onOpenChange(false)} className="p-2 rounded-lg transition-colors hover:bg-white/5">
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors hover:bg-white/5">
                 <X className="w-4 h-4" style={{ color: "#444" }} />
               </button>
             </div>
@@ -283,7 +283,7 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
                     }}
                   >
                     <div className="relative w-10 h-10 shrink-0">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${threat.color}15`, border: `1px solid ${threat.color}35` }}>
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${threat.color}15`, border: `1px solid ${threat.color}35` }}>
                         <AlertTriangle className="w-5 h-5" style={{ color: threat.color }} />
                       </div>
                       {threat.status === "ACTIVE" && (
@@ -348,7 +348,7 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
             {tab === "heatmap" && (
               <div className="h-full flex flex-col">
                 <div className="text-[10px] font-mono font-bold mb-3" style={{ color: "#ff004088" }}>GLOBAL THREAT RADAR — 360° PERIMETER SCAN</div>
-                <div className="flex-1 relative rounded-xl overflow-hidden" style={{ border: "1px solid rgba(255,0,64,0.15)", background: "rgba(0,0,0,0.5)" }}>
+                <div className="flex-1 relative rounded-xl overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", border: "1px solid rgba(255,0,64,0.15)", background: "rgba(0,0,0,0.5)" }}>
                   <canvas ref={canvasRef} className="w-full h-full" />
                   <div className="absolute top-4 left-4 flex flex-col gap-1">
                     {THREATS.slice(0, 4).map((t, i) => (
@@ -479,7 +479,7 @@ export function ThreatDetectionModal({ open, onOpenChange }: Props) {
                         >
                           <div className="flex items-start gap-3">
                             {/* CVSS score */}
-                            <div className="shrink-0 w-12 h-12 rounded-xl flex flex-col items-center justify-center"
+                            <div className="shrink-0 w-9 h-9 rounded-xl flex flex-col items-center justify-center"
                               style={{ background: `${cve.color}12`, border: `1px solid ${cve.color}30` }}>
                               <span className="text-[13px] font-black leading-none" style={{ color: cve.color }}>{cve.cvss}</span>
                               <span className="text-[7px] font-mono" style={{ color: `${cve.color}88` }}>CVSS</span>

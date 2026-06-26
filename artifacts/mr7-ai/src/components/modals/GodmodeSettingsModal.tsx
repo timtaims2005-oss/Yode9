@@ -595,7 +595,7 @@ export function GodmodeSettingsModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94 }}
             transition={{ duration: 0.18 }}
-            className="w-full max-w-2xl bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+            className="w-full bg-card border border-border rounded-[18px] shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}
             style={{ boxShadow: `0 0 60px ${activeMode.glow}, 0 0 0 1px ${activeMode.glow}` }}
           >
@@ -603,7 +603,7 @@ export function GodmodeSettingsModal({
             <div className="flex items-center justify-between px-4 py-3 border-b border-border"
               style={{ background: `${activeMode.glow.replace("0.35", "0.06")}` }}>
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center"
                   style={{ background: `${activeMode.color}20`, border: `1px solid ${activeMode.color}40` }}>
                   <activeMode.icon className="w-4 h-4" style={{ color: activeMode.color }} />
                 </div>

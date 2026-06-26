@@ -59,14 +59,14 @@ export function CodexBarModal({ open, onOpenChange }: CodexBarModalProps) {
         >
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => onOpenChange(false)} />
           <motion.div
-            className="relative w-full max-w-2xl max-h-[92dvh] overflow-hidden rounded-2xl flex flex-col"
-            style={{ background: "#0d0d0d", border: "1px solid rgba(16,185,129,0.25)" }}
+            className="relative w-full max-h-[92dvh] overflow-hidden rounded-[18px] flex flex-col"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#0d0d0d", border: "1px solid rgba(16,185,129,0.25)" }}
             initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "rgba(16,185,129,0.15)" }}>
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(16,185,129,0.15)" }}>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)" }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)" }}>
                   <BarChart2 className="w-4 h-4" style={{ color: "#10b981" }} />
                 </div>
                 <div>

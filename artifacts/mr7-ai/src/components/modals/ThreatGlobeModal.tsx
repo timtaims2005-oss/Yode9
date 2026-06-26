@@ -592,9 +592,11 @@ export function ThreatGlobeModal({ open, onOpenChange }: ThreatGlobeModalProps) 
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.92, opacity: 0, y: 10 }}
             transition={{ type: "spring", stiffness: 280, damping: 28 }}
-            className="relative flex flex-col overflow-hidden rounded-2xl"
+            className="relative flex flex-col overflow-hidden rounded-[18px]"
             style={{
-              width: "min(1340px, 96vw)",
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
               height: "min(860px, 90vh)",
               background: "linear-gradient(145deg,#020810 0%,#050f1e 45%,#020810 100%)",
               border: "1px solid rgba(226,18,39,0.22)",
@@ -610,13 +612,13 @@ export function ThreatGlobeModal({ open, onOpenChange }: ThreatGlobeModalProps) 
             />
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 shrink-0"
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] shrink-0"
               style={{ background: "rgba(226,18,39,0.04)", borderBottom: "1px solid rgba(226,18,39,0.1)" }}>
               <div className="flex items-center gap-3">
                 <motion.div
                   animate={{ rotate: [0, 360] }}
                   transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center"
                   style={{ background: "rgba(226,18,39,0.15)", border: "1px solid rgba(226,18,39,0.4)" }}>
                   <Globe className="w-4 h-4" style={{ color: "#e21227" }} />
                 </motion.div>

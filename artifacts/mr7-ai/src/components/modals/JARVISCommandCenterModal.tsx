@@ -406,8 +406,8 @@ export function JARVISCommandCenterModal({ open, onOpenChange }: Props) {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.96, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative w-full max-w-[1500px] flex flex-col m-3 rounded-2xl overflow-hidden"
-          style={{ border: "1px solid rgba(0,212,255,0.2)", background: "rgba(4,6,14,0.98)" }}
+          className="relative w-full flex flex-col m-3 rounded-[18px] overflow-hidden"
+          style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", border: "1px solid rgba(0,212,255,0.2)", background: "rgba(4,6,14,0.98)" }}
         >
           {/* scanlines */}
           <div className="pointer-events-none absolute inset-0 z-0"
@@ -418,7 +418,7 @@ export function JARVISCommandCenterModal({ open, onOpenChange }: Props) {
           {/* ══ HEADER ════════════════════════════════════════════════════════ */}
           <div className="relative flex items-center gap-4 px-6 py-3 border-b border-white/5 shrink-0">
             <div className="flex items-center gap-3">
-              <div className="relative w-11 h-11 rounded-xl flex items-center justify-center"
+              <div className="relative w-9 h-9 rounded-xl flex items-center justify-center"
                 style={{ background: "linear-gradient(135deg,#00d4ff22,#8b5cf622)", border: "1px solid rgba(0,212,255,0.3)", boxShadow: "0 0 24px rgba(0,212,255,0.25)" }}>
                 <Bot size={21} style={{ color: "#00d4ff" }} />
                 {active && (

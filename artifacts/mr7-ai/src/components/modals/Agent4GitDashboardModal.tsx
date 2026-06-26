@@ -160,9 +160,9 @@ export default function Agent4GitDashboardModal({ open, onOpenChange }: Props) {
           <HoloGrid />
 
           {/* Header */}
-          <div className="relative flex items-center justify-between px-6 py-4 border-b border-[#1a1a1a] flex-shrink-0">
+          <div className="relative flex items-center justify-between px-4 pt-3 pb-[10px] border-b border-[#1a1a1a] flex-shrink-0">
             <div className="flex items-center gap-4">
-              <motion.div className="w-12 h-12 rounded-xl flex items-center justify-center relative"
+              <motion.div className="w-9 h-9 rounded-xl flex items-center justify-center relative"
                 style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)" }}>
                 <motion.div className="absolute inset-0 rounded-xl"
                   animate={{ boxShadow: ["0 0 10px rgba(16,185,129,0.2)","0 0 30px rgba(16,185,129,0.4)","0 0 10px rgba(16,185,129,0.2)"] }}

@@ -153,7 +153,7 @@ function FloatingPanel({
       transition={{ delay, type: "spring", stiffness: 200, damping: 22 }}
       style={{ rotateX: springX, rotateY: springY, transformStyle: "preserve-3d", perspective: 800 }}
       onMouseMove={handleMove} onMouseLeave={handleLeave}
-      className={`relative rounded-2xl overflow-hidden ${className}`}
+      className={`relative rounded-[18px] overflow-hidden ${className}`}
       whileHover={{ z: 20 }}>
       {/* Glass border glow */}
       <div className="absolute inset-0 rounded-2xl pointer-events-none"
@@ -517,7 +517,7 @@ export function JarvisHologramModal({ open, onOpenChange }: Props) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.93, opacity: 0 }}
           transition={{ type: "spring", stiffness: 260, damping: 28 }}
-          className="relative w-full max-w-[1400px] h-[93vh] rounded-2xl overflow-hidden"
+          className="relative w-full h-[93vh] rounded-[18px] overflow-hidden"
           style={{
             background: "linear-gradient(135deg, #020210 0%, #030318 50%, #020210 100%)",
             border: `1px solid ${JARVIS_BLUE}44`,

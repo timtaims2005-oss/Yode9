@@ -270,9 +270,11 @@ function ResponseCard3D({ slot, idx, isWinner }: { slot: SlotState; idx: number;
 
   return (
     <div
-      className="relative flex flex-col rounded-2xl overflow-hidden h-full"
+      className="relative flex flex-col rounded-[18px] overflow-hidden h-full"
       style={{
-        background: theme.bg,
+              width: "clamp(340px, 40vw, 560px)",
+              backdropFilter: "blur(40px)",
+              background: "rgba(8, 8, 8, 0.96)",
         border: `1px solid ${theme.border}${isWinner ? "cc" : "44"}`,
         boxShadow: isWinner
           ? `0 0 30px ${theme.glow}, 0 0 60px ${theme.glow.replace("33", "15")}, inset 0 1px 0 ${theme.border}22`
@@ -655,7 +657,7 @@ export function ModelCompareModal({ open, onClose }: ModelCompareModalProps) {
           </div>
 
           {/* Header */}
-          <div className="relative flex-shrink-0 flex items-center justify-between px-5 py-3 overflow-hidden" style={{ borderBottom: "1px solid rgba(0,229,255,0.12)", background: "rgba(8,8,8,0.9)" }}>
+          <div className="relative flex-shrink-0 flex items-center justify-between px-4 pt-3 pb-[10px] overflow-hidden" style={{ borderBottom: "1px solid rgba(0,229,255,0.12)", background: "rgba(8,8,8,0.9)" }}>
             <div className="absolute inset-0 pointer-events-none">
               <HoloHeader running={running} />
             </div>
@@ -783,7 +785,7 @@ export function ModelCompareModal({ open, onClose }: ModelCompareModalProps) {
 
           {/* Input bar */}
           <div className="relative flex-shrink-0 px-4 pb-4">
-            <div className="relative flex gap-2 rounded-2xl overflow-hidden"
+            <div className="relative flex gap-2 rounded-[18px] overflow-hidden"
               style={{
                 background: "rgba(8,8,8,0.95)",
                 border: running ? "1px solid rgba(0,229,255,0.3)" : "1px solid rgba(255,255,255,0.08)",

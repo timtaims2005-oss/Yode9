@@ -196,12 +196,12 @@ export function AIAtlasModal({ open, onOpenChange }: AIAtlasModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3" style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(20px)" }}>
       <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.25, type: "spring", stiffness: 220, damping: 28 }}
-        className="relative w-full max-w-7xl h-[92vh] rounded-3xl overflow-hidden flex flex-col"
+        className="relative w-full h-[92vh] rounded-3xl overflow-hidden flex flex-col"
         style={{ background: "linear-gradient(145deg, #050508 0%, #030306 60%, #060310 100%)", border: "1px solid rgba(100,200,255,0.12)", boxShadow: "0 0 80px rgba(100,200,255,0.08), 0 0 160px rgba(100,200,255,0.04), inset 0 1px 0 rgba(255,255,255,0.04)" }}>
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.6 }} />
 
         {/* Header */}
-        <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "rgba(100,200,255,0.08)", background: "rgba(0,0,0,0.4)" }}>
+        <div className="relative z-10 flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(100,200,255,0.08)", background: "rgba(0,0,0,0.4)" }}>
           <div className="flex items-center gap-4">
             <motion.div animate={{ rotateY: [0, 360] }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               className="w-10 h-10 rounded-2xl flex items-center justify-center"
@@ -279,7 +279,7 @@ export function AIAtlasModal({ open, onOpenChange }: AIAtlasModalProps) {
                       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ delay: i * 0.03 }}
                       whileHover={{ y: -3, scale: 1.02 }}
-                      className="group rounded-2xl p-4 relative overflow-hidden cursor-pointer"
+                      className="group rounded-[18px] p-4 relative overflow-hidden cursor-pointer"
                       style={{ background: `radial-gradient(circle at 20% 20%, ${tool.catColor}08 0%, rgba(5,5,8,0.95) 70%)`, border: `1px solid ${tool.catColor}18`, transition: "all 0.2s" }}>
                       <div className="absolute top-0 inset-x-0 h-px opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: `linear-gradient(90deg, transparent, ${tool.catColor}60, transparent)` }} />
                       <div className="flex items-start justify-between gap-2 mb-2">

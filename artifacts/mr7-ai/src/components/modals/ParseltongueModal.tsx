@@ -131,11 +131,11 @@ export function ParseltongueModal({ open, onOpenChange }: ParseltongueModalProps
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.18 }}
-            className="w-full max-w-2xl max-h-[92dvh] flex flex-col rounded-2xl overflow-hidden"
-            style={{ background: "#050c05", border: "1px solid rgba(0,255,65,0.25)", boxShadow: "0 0 60px rgba(0,255,65,0.1)" }}
+            className="w-full max-h-[92dvh] flex flex-col rounded-[18px] overflow-hidden"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#050c05", border: "1px solid rgba(0,255,65,0.25)", boxShadow: "0 0 60px rgba(0,255,65,0.1)" }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: "rgba(0,255,65,0.2)", background: "rgba(0,255,65,0.04)" }}>
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(0,255,65,0.2)", background: "rgba(0,255,65,0.04)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center border" style={{ background: "rgba(0,255,65,0.08)", borderColor: "rgba(0,255,65,0.3)" }}>
                   <Swords className="w-4.5 h-4.5" style={{ color: "#00ff41", width: 18, height: 18 }} />

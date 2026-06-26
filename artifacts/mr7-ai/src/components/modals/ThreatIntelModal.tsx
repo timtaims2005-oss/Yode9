@@ -647,13 +647,13 @@ export function ThreatIntelModal({ open, onOpenChange }: ThreatIntelModalProps) 
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 20 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className="relative w-full max-w-3xl h-[88vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl"
-        style={{ background: "#0d0d0d", border: "1px solid rgba(226,18,39,0.25)", boxShadow: "0 0 60px rgba(226,18,39,0.08), 0 25px 50px rgba(0,0,0,0.7)" }}
+        className="relative w-full h-[88vh] rounded-[18px] flex flex-col overflow-hidden shadow-2xl"
+        style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#0d0d0d", border: "1px solid rgba(226,18,39,0.25)", boxShadow: "0 0 60px rgba(226,18,39,0.08), 0 25px 50px rgba(0,0,0,0.7)" }}
       >
         {/* Header */}
-        <div className="flex-shrink-0 px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: "#1f1f1f", background: "rgba(226,18,39,0.04)" }}>
+        <div className="flex-shrink-0 px-4 pt-3 pb-[10px] border-b flex items-center justify-between" style={{ borderColor: "#1f1f1f", background: "rgba(226,18,39,0.04)" }}>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(226,18,39,0.15)", border: "1px solid rgba(226,18,39,0.3)" }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(226,18,39,0.15)", border: "1px solid rgba(226,18,39,0.3)" }}>
               <Shield className="w-4 h-4" style={{ color: "#e21227" }} />
             </div>
             <div>

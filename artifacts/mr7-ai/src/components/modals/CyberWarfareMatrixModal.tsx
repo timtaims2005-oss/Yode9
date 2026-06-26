@@ -949,7 +949,7 @@ export function CyberWarfareMatrixModal({ open, onOpenChange }: Props) {
           }}
         >
           {/* Scan line effect */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[18px]">
             <motion.div
               className="absolute left-0 right-0 h-px"
               style={{ background: "linear-gradient(90deg,transparent,rgba(226,18,39,0.4),transparent)" }}
@@ -991,7 +991,7 @@ export function CyberWarfareMatrixModal({ open, onOpenChange }: Props) {
           <AnimatePresence>
             {!booted && (
               <motion.div
-                className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-2xl"
+                className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-[18px]"
                 style={{ background: "#080808" }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.4 }}

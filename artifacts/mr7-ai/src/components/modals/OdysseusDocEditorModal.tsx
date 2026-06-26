@@ -76,7 +76,7 @@ export function OdysseusDocEditorModal({ open, onOpenChange }: OdysseusDocEditor
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3" style={{ background: "rgba(0,0,0,0.93)", backdropFilter: "blur(20px)" }}>
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
-        className="relative w-full max-w-6xl h-[90vh] rounded-3xl overflow-hidden flex flex-col"
+        className="relative w-full h-[90vh] rounded-3xl overflow-hidden flex flex-col"
         style={{ background: "linear-gradient(145deg, #040407 0%, #030305 60%, #050408 100%)", border: "1px solid rgba(99,102,241,0.15)", boxShadow: "0 0 80px rgba(99,102,241,0.06), inset 0 1px 0 rgba(99,102,241,0.04)" }}>
 
         {/* Header */}

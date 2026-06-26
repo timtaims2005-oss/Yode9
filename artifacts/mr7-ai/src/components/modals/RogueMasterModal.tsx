@@ -78,13 +78,13 @@ Provide detailed technical guidance for security research and educational purpos
           style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}
           onClick={e => e.target === e.currentTarget && onOpenChange(false)}>
           <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-            className="w-full max-w-3xl rounded-2xl border overflow-hidden flex flex-col"
-            style={{ background: "#080808", borderColor: "rgba(245,158,11,0.25)", maxHeight: "90vh" }}>
+            className="w-full rounded-[18px] border overflow-hidden flex flex-col"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#080808", borderColor: "rgba(245,158,11,0.25)", maxHeight: "90vh" }}>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "rgba(245,158,11,0.15)", background: "linear-gradient(135deg,#0a0800,#080808)" }}>
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(245,158,11,0.15)", background: "linear-gradient(135deg,#0a0800,#080808)" }}>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)" }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)" }}>
                   <Radio className="w-4 h-4" style={{ color: "#f59e0b" }} />
                 </div>
                 <div>
@@ -96,7 +96,7 @@ Provide detailed technical guidance for security research and educational purpos
                 <div className="px-2 py-1 rounded-lg border text-[9px] font-mono" style={{ borderColor: "rgba(245,158,11,0.3)", background: "rgba(245,158,11,0.05)", color: "#f59e0b" }}>
                   RM-420.X
                 </div>
-                <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
+                <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors">
                   <X className="w-4 h-4" style={{ color: "#444" }} />
                 </button>
               </div>

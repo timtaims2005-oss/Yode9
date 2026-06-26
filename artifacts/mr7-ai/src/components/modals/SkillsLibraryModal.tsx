@@ -109,11 +109,11 @@ export function SkillsLibraryModal({ open, onOpenChange, onInject }: SkillsLibra
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.18 }}
-            className="w-full max-w-3xl max-h-[88dvh] flex flex-col rounded-2xl overflow-hidden"
-            style={{ background: "#070f0a", border: "1px solid rgba(16,185,129,0.25)", boxShadow: "0 0 60px rgba(16,185,129,0.1)" }}
+            className="w-full max-h-[88dvh] flex flex-col rounded-[18px] overflow-hidden"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#070f0a", border: "1px solid rgba(16,185,129,0.25)", boxShadow: "0 0 60px rgba(16,185,129,0.1)" }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: "rgba(16,185,129,0.2)", background: "rgba(16,185,129,0.04)" }}>
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(16,185,129,0.2)", background: "rgba(16,185,129,0.04)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center border" style={{ background: "rgba(16,185,129,0.1)", borderColor: "rgba(16,185,129,0.35)" }}>
                   <BookOpen className="w-4.5 h-4.5" style={{ color: "#10b981", width: 18, height: 18 }} />

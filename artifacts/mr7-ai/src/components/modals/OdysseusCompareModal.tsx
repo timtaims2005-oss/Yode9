@@ -83,11 +83,11 @@ export function OdysseusCompareModal({ open, onOpenChange }: OdysseusCompareModa
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3" style={{ background: "rgba(0,0,0,0.93)", backdropFilter: "blur(20px)" }}>
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
-        className="relative w-full max-w-6xl h-[90vh] rounded-3xl overflow-hidden flex flex-col"
+        className="relative w-full h-[90vh] rounded-3xl overflow-hidden flex flex-col"
         style={{ background: "linear-gradient(145deg, #040308 0%, #030305 60%, #080408 100%)", border: "1px solid rgba(167,139,250,0.15)", boxShadow: "0 0 80px rgba(167,139,250,0.06), inset 0 1px 0 rgba(167,139,250,0.04)" }}>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "rgba(167,139,250,0.1)", background: "rgba(0,0,0,0.4)" }}>
+        <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(167,139,250,0.1)", background: "rgba(0,0,0,0.4)" }}>
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(167,139,250,0.12)", border: "1px solid rgba(167,139,250,0.3)", boxShadow: "0 0 16px rgba(167,139,250,0.2)" }}>
               <BarChart3 className="w-4 h-4" style={{ color: "#a78bfa" }} />

@@ -177,9 +177,9 @@ export function ClaudePromptsModal({ open, onOpenChange }: ClaudePromptsModalPro
           className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
           style={{ backdropFilter: "blur(10px)", background: "rgba(0,0,0,0.85)" }}>
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-2xl max-h-[92dvh] flex flex-col rounded-2xl overflow-hidden"
-            style={{ background: "#080808", border: "1px solid rgba(16,185,129,0.2)", boxShadow: "0 0 60px rgba(16,185,129,0.08)" }}>
-            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "rgba(16,185,129,0.2)", background: "rgba(16,185,129,0.03)" }}>
+            className="w-full max-h-[92dvh] flex flex-col rounded-[18px] overflow-hidden"
+            style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "#080808", border: "1px solid rgba(16,185,129,0.2)", boxShadow: "0 0 60px rgba(16,185,129,0.08)" }}>
+            <div className="flex items-center justify-between px-4 pt-3 pb-[10px] border-b" style={{ borderColor: "rgba(16,185,129,0.2)", background: "rgba(16,185,129,0.03)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center border" style={{ background: "rgba(16,185,129,0.1)", borderColor: "rgba(16,185,129,0.4)" }}>
                   <BookMarked className="w-4 h-4" style={{ color: "#10b981" }} />

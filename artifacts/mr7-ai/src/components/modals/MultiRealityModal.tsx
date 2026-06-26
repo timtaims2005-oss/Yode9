@@ -39,7 +39,7 @@ export function MultiRealityModal({ open, onOpenChange }: Props) {
           ))}
 
           <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(99,102,241,0.15)", background: "rgba(99,102,241,0.04)" }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.4)" }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.4)" }}>
               <Layers className="w-5 h-5" style={{ color: "#6366f1" }} />
             </div>
             <div>
@@ -51,7 +51,7 @@ export function MultiRealityModal({ open, onOpenChange }: Props) {
                 <div className="text-[20px] font-black" style={{ color: "#6366f1" }}>6</div>
                 <div className="text-[8px] font-mono" style={{ color: "#6366f155" }}>PARALLEL UNIVERSES</div>
               </div>
-              <button onClick={() => onOpenChange(false)} className="p-2 rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
             </div>
           </div>
 

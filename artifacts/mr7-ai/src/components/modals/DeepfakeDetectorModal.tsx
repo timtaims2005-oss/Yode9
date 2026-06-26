@@ -59,7 +59,7 @@ export function DeepfakeDetectorModal({ open, onOpenChange }: Props) {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.93)", backdropFilter: "blur(18px)" }}>
         <motion.div initial={{ scale: 0.92, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} transition={{ type: "spring", stiffness: 280, damping: 26 }} className="relative w-full h-full w-full h-full flex flex-col overflow-hidden" style={{ background: "linear-gradient(135deg, #020308 0%, #040212 50%, #020308 100%)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 16, boxShadow: "0 0 120px rgba(139,92,246,0.1), 0 0 400px rgba(99,102,241,0.06)" }}>
           {/* Scan overlay effect */}
-          <motion.div className="absolute inset-0 pointer-events-none z-0 rounded-2xl overflow-hidden">
+          <motion.div className="absolute inset-0 pointer-events-none z-0 rounded-[18px] overflow-hidden">
             {Array.from({ length: 8 }).map((_, i) => (
               <motion.div key={i} className="absolute inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.3), transparent)", top: `${i * 14}%` }} animate={{ opacity: [0, 0.8, 0] }} transition={{ duration: 2, delay: i * 0.3, repeat: Infinity }} />
             ))}
@@ -67,7 +67,7 @@ export function DeepfakeDetectorModal({ open, onOpenChange }: Props) {
 
           {/* Header */}
           <div className="relative z-10 flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "rgba(139,92,246,0.15)", background: "rgba(139,92,246,0.04)" }}>
-            <div className="relative w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.4)", boxShadow: "0 0 20px rgba(139,92,246,0.3)" }}>
+            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.4)", boxShadow: "0 0 20px rgba(139,92,246,0.3)" }}>
               <Eye className="w-5 h-5" style={{ color: "#a78bfa" }} />
             </div>
             <div>
@@ -79,7 +79,7 @@ export function DeepfakeDetectorModal({ open, onOpenChange }: Props) {
                 <div className="text-[20px] font-black" style={{ color: "#ff0040" }}>4</div>
                 <div className="text-[8px] font-mono" style={{ color: "#ff004066" }}>FAKES FOUND</div>
               </div>
-              <button onClick={() => onOpenChange(false)} className="p-2 rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
+              <button onClick={() => onOpenChange(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5"><X className="w-4 h-4" style={{ color: "#444" }} /></button>
             </div>
           </div>
 
@@ -157,7 +157,7 @@ export function DeepfakeDetectorModal({ open, onOpenChange }: Props) {
             {tab === "forensics" && (
               <div className="h-full flex flex-col gap-4">
                 <div className="text-[10px] font-mono font-bold" style={{ color: "#a78bfa66" }}>AUDIO WAVEFORM SPECTRAL ANALYSIS — LIVE</div>
-                <div className="flex-1 p-4 rounded-xl flex items-end gap-0.5 overflow-hidden" style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(139,92,246,0.15)" }}>
+                <div className="flex-1 p-4 rounded-xl flex items-end gap-0.5 overflow-hidden" style={{ width: "clamp(340px, 40vw, 560px)", backdropFilter: "blur(40px)", background: "rgba(0,0,0,0.5)", border: "1px solid rgba(139,92,246,0.15)" }}>
                   {waveData.map((v, i) => (
                     <motion.div key={i} className="flex-1 rounded-t-sm" style={{ height: `${v}%`, background: `linear-gradient(to top, #a78bfa, #6366f1)`, opacity: 0.7 + (i % 5) * 0.06 }} animate={{ height: `${v}%` }} transition={{ duration: 0.08 }} />
                   ))}
@@ -174,7 +174,7 @@ export function DeepfakeDetectorModal({ open, onOpenChange }: Props) {
             )}
             {tab === "live" && (
               <div className="h-full flex flex-col items-center justify-center gap-6">
-                <div className="relative w-80 h-60 rounded-2xl overflow-hidden" style={{ background: "rgba(0,0,0,0.6)", border: "2px solid rgba(139,92,246,0.3)", boxShadow: "0 0 40px rgba(139,92,246,0.15)" }}>
+                <div className="relative w-80 h-60 rounded-[18px] overflow-hidden" style={{ background: "rgba(0,0,0,0.6)", border: "2px solid rgba(139,92,246,0.3)", boxShadow: "0 0 40px rgba(139,92,246,0.15)" }}>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-24 h-24 rounded-full" style={{ background: "rgba(139,92,246,0.1)", border: "2px solid rgba(139,92,246,0.3)" }}>
                       <User className="w-full h-full p-6" style={{ color: "#a78bfa44" }} />
