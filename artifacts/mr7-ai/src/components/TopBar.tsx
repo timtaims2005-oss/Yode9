@@ -502,8 +502,8 @@ function DragHandle3D({
       onTouchStart={onTouchStart}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="relative flex items-center justify-between px-3 py-2 select-none overflow-hidden"
-      style={{ cursor: "grab", borderBottom: `1px solid ${color}22` }}
+      className="relative flex items-center justify-between px-4 select-none overflow-hidden"
+      style={{ cursor: "grab", borderBottom: `1px solid ${color}22`, paddingTop: "12px", paddingBottom: "10px" }}
     >
       {/* Gradient base */}
       <div className="absolute inset-0 pointer-events-none"
@@ -564,7 +564,7 @@ function DragHandle3D({
           onMouseDown={e => e.stopPropagation()}
           onTouchStart={e => e.stopPropagation()}
           onClick={onClose}
-          className="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black relative overflow-hidden"
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black relative overflow-hidden"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.4)" }}
           whileHover={{ background: "rgba(226,18,39,0.18)", borderColor: "rgba(226,18,39,0.5)", color: "#e21227", scale: 1.1 }}
           whileTap={{ scale: 0.88 }}
@@ -738,8 +738,11 @@ function LocalModelQuickToggle({ onOpenLocalModel }: { onOpenLocalModel: () => v
               ref={dragRef}
               className="fixed z-[1999] rounded-[18px] overflow-hidden flex flex-col"
               style={{
-                top: dragPos.y, left: dragPos.x, width: 380,
+                top: dragPos.y, left: dragPos.x,
+                width: "clamp(340px, 40vw, 560px)",
                 maxHeight: "min(88vh, 620px)",
+                backdropFilter: "blur(40px)",
+                WebkitBackdropFilter: "blur(40px)",
                 background: "linear-gradient(160deg, rgba(3,7,4,0.99) 0%, rgba(2,4,3,0.99) 100%)",
                 border: `1px solid ${hColor}40`,
                 boxShadow: `0 0 90px ${hColor}18, 0 0 40px ${hColor}0a, 0 30px 80px rgba(0,0,0,0.94), inset 0 1px 0 ${hColor}20`,
@@ -1272,7 +1275,9 @@ function OperationModeBtn3D() {
               className="fixed z-[999] rounded-[18px] overflow-hidden flex flex-col"
               style={{
                 top: dragPos.y, left: dragPos.x,
-                width: "min(420px, 96vw)",
+                width: "clamp(340px, 40vw, 560px)",
+                backdropFilter: "blur(40px)",
+                WebkitBackdropFilter: "blur(40px)",
                 background: "linear-gradient(160deg, rgba(5,3,14,0.99) 0%, rgba(3,2,10,0.99) 100%)",
                 border: `1px solid ${perf.color}35`,
                 boxShadow: `0 0 80px ${perf.color}25, 0 0 40px rgba(0,0,0,0.9), 0 20px 60px rgba(0,0,0,0.7), inset 0 1px 0 ${perf.color}22`,
@@ -1600,7 +1605,10 @@ function ModelSelector3D({
               className="fixed z-[1997] rounded-[18px] overflow-hidden"
               style={{
                 top: dragPos.y, left: dragPos.x,
+                width: "clamp(340px, 40vw, 560px)",
                 maxHeight: "min(76vh, 600px)",
+                backdropFilter: "blur(40px)",
+                WebkitBackdropFilter: "blur(40px)",
                 background: "linear-gradient(160deg, rgba(6,4,14,0.99) 0%, rgba(4,2,10,0.99) 100%)",
                 border: "1px solid rgba(226,18,39,0.28)",
                 boxShadow: "0 0 80px rgba(226,18,39,0.14), 0 24px 80px rgba(0,0,0,0.92), inset 0 1px 0 rgba(226,18,39,0.12)",
@@ -1874,14 +1882,16 @@ function PanelsHubButton() {
               className="fixed z-[9981] rounded-[18px] overflow-hidden"
               style={{
                 top: 62, left: "50%", transform: "translateX(-50%)",
+                width: "clamp(340px, 40vw, 560px)",
+                backdropFilter: "blur(40px)",
+                WebkitBackdropFilter: "blur(40px)",
                 background: "linear-gradient(160deg, rgba(6,4,14,0.99) 0%, rgba(4,2,10,0.99) 100%)",
                 border: "1px solid rgba(226,18,39,0.28)",
                 boxShadow: "0 0 60px rgba(226,18,39,0.10), 0 24px 80px rgba(0,0,0,0.92)",
-                WebkitBackdropFilter: "blur(36px)",
               }}
             >
               <div className="h-px w-full" style={{ background: "linear-gradient(90deg,transparent,#e21227,rgba(139,92,246,0.8),transparent)" }} />
-              <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+              <div className="flex items-center justify-between px-4 border-b" style={{ borderColor: "rgba(255,255,255,0.05)", paddingTop: "12px", paddingBottom: "10px" }}>
                 <div className="flex items-center gap-2">
                   <motion.div className="w-2 h-2 rounded-full"
                     animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
@@ -1902,7 +1912,7 @@ function PanelsHubButton() {
                     </button>
                   )}
                   <button onClick={() => setMenuOpen(false)}
-                    className="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black"
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black"
                     style={{ color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "#e21227"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.4)"; }}
@@ -1976,16 +1986,16 @@ function PanelsHubButton() {
               top: 112,
               left: "50%",
               transform: "translateX(-50%)",
-              width: Math.min(activeCfg?.w ?? 380, window.innerWidth - 32),
+              width: "clamp(340px, 40vw, 560px)",
               maxHeight: `calc(100vh - 132px)`,
               zIndex: 8500,
               background: "linear-gradient(160deg, rgba(4,8,20,0.98) 0%, rgba(3,6,15,0.99) 100%)",
               border: `1px solid ${activeDef.color}30`,
-              borderRadius: "14px",
+              borderRadius: "18px",
               overflow: "hidden",
               boxShadow: `0 8px 48px rgba(0,0,0,0.88), 0 0 24px ${activeDef.glow}50`,
-              backdropFilter: "blur(28px)",
-              WebkitBackdropFilter: "blur(28px)",
+              backdropFilter: "blur(40px)",
+              WebkitBackdropFilter: "blur(40px)",
             }}
           >
             {/* Top accent bar */}
@@ -1993,24 +2003,31 @@ function PanelsHubButton() {
 
             {/* Header */}
             <div style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "7px 10px",
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "12px 16px 10px 16px",
               borderBottom: `1px solid ${activeDef.color}12`,
               background: `linear-gradient(90deg, ${activeDef.color}10, transparent 70%)`,
             }}>
-              {React.createElement(activeDef.icon as React.FC<React.SVGProps<SVGSVGElement>>, { style: { width: 11, height: 11, color: activeDef.color, flexShrink: 0 } })}
-              <span className="font-mono font-black text-[8px] tracking-widest uppercase flex-1"
+              <div style={{
+                width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                background: `${activeDef.color}18`, border: `1px solid ${activeDef.color}30`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {React.createElement(activeDef.icon as React.FC<React.SVGProps<SVGSVGElement>>, { style: { width: 16, height: 16, color: activeDef.color } })}
+              </div>
+              <span className="font-mono font-black text-[10px] tracking-widest uppercase flex-1"
                 style={{ color: `${activeDef.color}cc` }}>{activeDef.label}</span>
               <button
                 onClick={() => setActivePanel(null)}
                 style={{
-                  width: 18, height: 18, borderRadius: 5, cursor: "pointer",
+                  width: 28, height: 28, borderRadius: 8, cursor: "pointer",
                   background: "rgba(226,18,39,0.07)", border: "1px solid rgba(226,18,39,0.22)",
                   color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", justifyContent: "center",
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(226,18,39,0.24)"; (e.currentTarget as HTMLButtonElement).style.color = "#e21227"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(226,18,39,0.07)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.4)"; }}
               >
-                <span style={{ fontSize: 10 }}>×</span>
+                <span style={{ fontSize: 12 }}>×</span>
               </button>
             </div>
 
@@ -2154,11 +2171,12 @@ function PinnedShortcutsBar({
                 transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
                 className="absolute bottom-8 left-0 z-[9989] rounded-[18px] overflow-hidden"
                 style={{
-                  width: 200,
+                  width: "clamp(200px, 28vw, 320px)",
                   background: "linear-gradient(160deg, rgba(8,4,14,0.99), rgba(5,2,10,0.99))",
                   border: "1px solid rgba(226,18,39,0.28)",
                   boxShadow: "0 0 40px rgba(226,18,39,0.10), 0 16px 50px rgba(0,0,0,0.90)",
-                  backdropFilter: "blur(32px)",
+                  backdropFilter: "blur(40px)",
+                  WebkitBackdropFilter: "blur(40px)",
                 }}
               >
                 <div className="h-px w-full" style={{ background: "linear-gradient(90deg,transparent,#e21227,transparent)" }} />

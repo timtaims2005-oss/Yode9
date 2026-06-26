@@ -306,8 +306,6 @@ function EnginePanel({ engine, status, onConnect }: {
       initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
       className="rounded-[18px] overflow-hidden"
       style={{
-              width: "clamp(340px, 40vw, 560px)",
-              backdropFilter: "blur(40px)",
         background: `linear-gradient(135deg, ${engine.color}0a 0%, rgba(0,0,0,0.6) 100%)`,
         border: `1px solid ${engine.color}${status.online ? "55" : "22"}`,
         boxShadow: status.online ? `0 0 30px ${engine.color}18` : "none",
@@ -511,8 +509,6 @@ function ModelCard({ model, ollamaOnline }: { model: OllamaModel; ollamaOnline: 
       whileHover={{ y: -2 }}
       className="relative overflow-hidden rounded-[18px] flex flex-col"
       style={{
-              width: "clamp(340px, 40vw, 560px)",
-              backdropFilter: "blur(40px)",
         background: `linear-gradient(135deg, ${model.color}0d 0%, rgba(4,6,12,0.9) 100%)`,
         border: `1px solid ${model.color}${hovered ? "55" : "20"}`,
         boxShadow: hovered ? `0 0 24px ${model.color}20, 0 4px 24px rgba(0,0,0,0.5)` : "0 2px 12px rgba(0,0,0,0.4)",
@@ -832,8 +828,6 @@ export function LocalAIModelNexus({ open, onClose }: LocalAIModelNexusProps) {
                   whileTap={{ scale: 0.95 }}
                   className="relative overflow-hidden flex items-center gap-2.5 px-6 py-3 rounded-[18px] font-bold text-sm tracking-wider"
                   style={{
-              width: "clamp(340px, 40vw, 560px)",
-              backdropFilter: "blur(40px)",
                     background: "linear-gradient(135deg, #00e5ff18 0%, #a78bfa18 100%)",
                     border: `1px solid ${scanning ? "#fbbf24aa" : onlineCount > 0 ? "#22c55eaa" : "#00e5ffaa"}`,
                     color: scanning ? "#fbbf24" : onlineCount > 0 ? "#22c55e" : "#00e5ff",
