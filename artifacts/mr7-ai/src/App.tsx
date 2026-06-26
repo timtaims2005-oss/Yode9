@@ -741,10 +741,7 @@ function AppContent() {
   return (
     <>
     {!bootDone && <BootScreen onDone={() => setBootDone(true)} />}
-    <OfflineQueueBanner />
     <PerformanceCommandCenter open={perfCCOpen} onClose={() => setPerfCCOpen(false)} />
-    <SystemHealthBar />
-    <PerformanceHUD />
     <PerformanceBooster />
     <div className="flex h-[100dvh] w-full overflow-hidden text-foreground selection:bg-primary/30 dark relative" style={{ zIndex: 1 }}>
       <Sidebar
@@ -1207,8 +1204,6 @@ function AppContent() {
       {/* CISA KEV Global Alert Toaster — always-on 3D popup notifications */}
       <CisaKevAlertToaster />
 
-      {/* ── 144fps Performance Monitor ── */}
-      <PerfMonitor />
 
       {/* CVE Timeline 3D */}
       <CveTimeline3DModal open={modals.cveTimeline} onOpenChange={(v) => mDispatch({type:'SET',id:'cveTimeline',value:v})} />
@@ -1261,20 +1256,6 @@ function AppContent() {
       {/* ── LOCAL AI MODEL NEXUS — Full-screen modal ── */}
       <LocalAIModelNexus open={modals.localAINexus} onClose={() => close('localAINexus')} />
 
-      {/* ── IntelligenceHUDOverlay — always-on cyber intel layer ── */}
-      <Suspense fallback={null}>
-        <IntelligenceHUDOverlay onOpenCommandCenter={() => open('cyberIntel')} />
-      </Suspense>
-
-      {/* ── SystemStatusWidget — always-on system health widget ── */}
-      <Suspense fallback={null}>
-        <SystemStatusWidget />
-      </Suspense>
-
-      {/* ── NotificationCenter — always-on notification hub ── */}
-      <Suspense fallback={null}>
-        <NotificationCenter />
-      </Suspense>
 
       {/* ── NEW MODALS FROM UPLOADED PROJECT ── */}
       <Suspense fallback={null}>
@@ -1523,8 +1504,6 @@ function AppContent() {
       {/* Global Window Tray — minimized windows only */}
       <WindowTray />
 
-      {/* Always-on bottom status bar — FPS, memory, net, uptime */}
-      <GlobalStatusBar />
 
     </div>
     </>
