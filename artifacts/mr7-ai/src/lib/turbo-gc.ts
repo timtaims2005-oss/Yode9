@@ -54,10 +54,12 @@ class TurboGC {
     this._scheduleIdleCleanup();
     this._measureGCImpact();
 
-    // تكامل مع memory-pressure
-    memoryPressure.onPressure(() => {
-      this._forceCleanup();
-    });
+    // تكامل مع memory-pressure (guard for API availability)
+    if (typeof memoryPressure?.onPressure === "function") {
+      memoryPressure.onPressure(() => {
+        this._forceCleanup();
+      });
+    }
 
     this.initialized = true;
 

@@ -31,6 +31,8 @@ import { ChatScrollArea } from "./chat/ChatScrollArea";
 import { ChatInput } from "./chat/ChatInput";
 import { QuickActionBar } from "./chat/QuickActionBar";
 import { SecurityMissionsBar } from "./SecurityMissionsBar";
+import { ChatPanelBar } from "./chat/ChatPanelBar";
+import { ChatFloatingPanelHub } from "./chat/ChatFloatingPanelHub";
 
 function escapeHtml(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -73,6 +75,19 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
   const [streamTps, setStreamTps] = useState<number | null>(null);
   const [liveTps, setLiveTps] = useState(0);
   const [liveTokens, setLiveTokens] = useState(0);
+  const [openPanels, setOpenPanels] = useState<Set<string>>(new Set());
+
+  function togglePanel(id: string) {
+    setOpenPanels(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function closePanel(id: string) {
+    setOpenPanels(prev => { const next = new Set(prev); next.delete(id); return next; });
+  }
 
   const abortRef = useRef<AbortController | null>(null);
   const liveAccRef = useRef("");
@@ -600,6 +615,8 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
         />
       )}
 
+      <ChatPanelBar openPanels={openPanels} onTogglePanel={togglePanel} />
+
       <SecurityMissionsBar
         onMissionSelect={(prompt) => { dispatch({ type: "SET_SETTINGS", patch: { customSystemPrompt: prompt } }); toast({ description: "تم تفعيل وضع المهمة الأمنية" }); }}
         onOpenDarkWeb={() => setDarkWebOpen(true)}
@@ -714,6 +731,8 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
           if (e.target) e.target.value = "";
         }}
       />
+
+      <ChatFloatingPanelHub openPanels={openPanels} onClose={closePanel} />
 
       {chat && <ShareModal open={shareOpen} onOpenChange={setShareOpen} chatId={chat.id} />}
       <VoiceChatModal open={voiceChatOpen} onOpenChange={setVoiceChatOpen} />

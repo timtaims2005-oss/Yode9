@@ -582,6 +582,100 @@ function IdleTrackerPanel({ onClose }: { onClose: () => void }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   CONTENT-ONLY ORBS — for use inside FloatingWindow hub
+══════════════════════════════════════════════════════════════════ */
+export function SysMonitorOrb() {
+  const metrics = useMetrics();
+  const cpuHot = metrics.cpu > 70;
+  return (
+    <div style={{ padding: "12px" }}>
+      <div style={{ display: "flex", justifyContent: "space-around", marginBottom: "10px" }}>
+        <ArcMini value={metrics.cpu} color={cpuHot ? "#e21227" : "#00e5ff"} label="CPU%" />
+        <ArcMini value={metrics.mem} color="#10b981" label="MEM%" />
+        <ArcMini value={metrics.net} color="#a855f7" label="NET%" />
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 4px", borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: "4px" }}>
+        {[
+          { label: "CPU", val: `${metrics.cpu}%`, color: cpuHot ? "#e21227" : "#00e5ff" },
+          { label: "MEM", val: `${metrics.mem}%`, color: "#10b981" },
+          { label: "NET", val: `${metrics.net}%`, color: "#a855f7" },
+        ].map(({ label, val, color }) => (
+          <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+            <span style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.3)", letterSpacing: "1px" }}>{label}</span>
+            <span style={{ fontSize: "13px", fontFamily: "monospace", fontWeight: 900, color, textShadow: `0 0 10px ${color}` }}>{val}</span>
+          </div>
+        ))}
+      </div>
+      {cpuHot && (
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "8px", padding: "5px 8px", borderRadius: "6px", background: "rgba(226,18,39,0.1)", border: "1px solid rgba(226,18,39,0.25)" }}>
+          <AlertTriangle style={{ width: "10px", height: "10px", color: "#e21227" }} />
+          <span style={{ fontSize: "8px", fontFamily: "monospace", color: "#e21227", fontWeight: 700, letterSpacing: "0.5px" }}>HIGH CPU LOAD</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function IdleTrackerOrb() {
+  const [elapsed, setElapsed] = useState(0);
+  const [isIdle, setIsIdle] = useState(false);
+  const [actData, setActData] = useState<number[]>(Array(32).fill(0));
+  const startRef = useRef(Date.now());
+  const lastActRef = useRef(Date.now());
+  const actCur = useRef(0);
+
+  useEffect(() => {
+    const mm = () => { actCur.current += 1; lastActRef.current = Date.now(); };
+    const kd = () => { actCur.current += 3; lastActRef.current = Date.now(); };
+    document.addEventListener("mousemove", mm);
+    document.addEventListener("keydown", kd);
+    return () => { document.removeEventListener("mousemove", mm); document.removeEventListener("keydown", kd); };
+  }, []);
+
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setElapsed(Date.now() - startRef.current);
+      setIsIdle(Date.now() - lastActRef.current > 5000);
+      const lvl = Math.min(100, actCur.current * 3);
+      actCur.current = 0;
+      setActData(prev => [...prev.slice(1), lvl]);
+    }, 500);
+    return () => clearInterval(iv);
+  }, []);
+
+  const pad = (n: number) => String(Math.floor(n)).padStart(2, "0");
+  const s = elapsed / 1000;
+  const timeStr = `${pad(s / 3600)}:${pad((s % 3600) / 60)}:${pad(s % 60)}`;
+  const activityNow = actData[actData.length - 1] ?? 0;
+
+  return (
+    <div style={{ padding: "12px" }}>
+      <div style={{ textAlign: "center", marginBottom: "10px" }}>
+        <div style={{ fontSize: "22px", fontFamily: "monospace", fontWeight: 900, color: "#f472b6", textShadow: "0 0 16px rgba(244,114,182,0.6)", letterSpacing: "2px" }}>{timeStr}</div>
+        <div style={{ fontSize: "8px", fontFamily: "monospace", color: isIdle ? "#f59e0b" : "#22c55e", letterSpacing: "2px", marginTop: "3px", fontWeight: 700 }}>{isIdle ? "IDLE" : "ACTIVE"}</div>
+      </div>
+      <div style={{ marginBottom: "8px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+          <span style={{ fontSize: "7px", fontFamily: "monospace", color: "rgba(255,255,255,0.3)", letterSpacing: "1px" }}>ACTIVITY</span>
+          <span style={{ fontSize: "9px", fontFamily: "monospace", color: "#f472b6", fontWeight: 700 }}>{Math.round(activityNow)}%</span>
+        </div>
+        <ActivitySparkline data={actData} color="#f472b6" />
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "6px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+        <div>
+          <div style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)" }}>AI CALLS</div>
+          <div style={{ fontSize: "11px", fontFamily: "monospace", fontWeight: 700, color: "#22c55e", textShadow: "0 0 8px #22c55e" }}>{trafficBus.history.length}</div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: "6px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)" }}>STATUS</div>
+          <div style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, color: isIdle ? "#f59e0b" : "#22c55e" }}>{isIdle ? "IDLE" : "ONLINE"}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
    PUBLIC EXPORT — renders both panels
 ══════════════════════════════════════════════════════════════════ */
 const PANELS_KEY = "fp-visible-v1";
