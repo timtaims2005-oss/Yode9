@@ -63,6 +63,7 @@ import { storageQuota } from "./lib/storage-quota";
 
 // ── LAZY-LOADED AMBIENT 3D LAYERS (improves initial bundle) ──────────────────
 const AmbientLayer = lazy(() => import("./components/layout/AmbientLayer").then(m => ({ default: m.AmbientLayer })));
+const UltraHUD     = lazy(() => import("./components/3d/UltraHUD").then(m => ({ default: m.UltraHUD })));
 const CyberHUDOverlay = lazy(() => import("./components/CyberWidgetsDock").then(m => ({ default: m.CyberHUDOverlay })));
 const IntelligenceHUDOverlay = lazy(() => import("./components/IntelligenceHUDOverlay").then(m => ({ default: m.IntelligenceHUDOverlay })));
 const CyberIntelCenter = lazy(() => import("./components/CyberIntelCenter").then(m => ({ default: m.CyberIntelCenter })));
@@ -1156,6 +1157,11 @@ function AppContent() {
       {/* Always-on ambient layers — lazy loaded via AmbientLayer component */}
       <Suspense fallback={null}>
         <AmbientLayer />
+      </Suspense>
+
+      {/* Ultra HUD overlay — performance stats + threat indicator + radar */}
+      <Suspense fallback={null}>
+        <UltraHUD />
       </Suspense>
 
       {/* CyberWidgetsDock — accessible via TopBar "HUD" button */}

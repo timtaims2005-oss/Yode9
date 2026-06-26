@@ -2,7 +2,7 @@
  * UltraScene — محرك الرسومات فائق الجودة
  * Ray Marching + PBR + Bloom + Rain + Smoke + VR Support
  */
-import { useRef, useMemo, useEffect, useState, Suspense } from "react";
+import { useRef, useMemo, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Stats, AdaptiveDpr, AdaptiveEvents } from "@react-three/drei";
 import * as THREE from "three";
@@ -21,6 +21,16 @@ import {
 import { getQualityLevel } from "../../lib/adaptive-quality";
 import { GlobalIlluminationLayer } from "./GlobalIllumination";
 import { PhotorealisticParticles } from "./PhotorealisticParticles";
+import { PhysicsLayer } from "./PhysicsSystem";
+import { WeatherLayer } from "./WeatherEffects";
+import { HolographicHUD } from "./HolographicHUD";
+import { CinematicLayer } from "./CinematicEffects";
+import { NeuralBrain } from "./NeuralBrainVisualization";
+import { TerrainLayer } from "./CyberTerrain";
+import { DigitalDNA, Radar3D, LiveGraph } from "./DataVisualization3D";
+import { SpaceEnvironmentLayer } from "./SpaceEnvironment";
+import { QuantumCoreLayer } from "./QuantumCore";
+import { CrystalArray } from "./CrystallineGeometry";
 
 const PRIMARY   = new THREE.Color("#e21227");
 const SECONDARY = new THREE.Color("#00e5ff");
@@ -481,6 +491,39 @@ export function UltraScene({ showStats = false }: { showStats?: boolean }) {
 
           {/* جسيمات فوتوريالية */}
           <PhotorealisticParticles />
+
+          {/* فيزياء واقعية: جاذبية + برق + موجات صدمة */}
+          <PhysicsLayer />
+
+          {/* مؤثرات طقس: مطر ثقيل + ضباب + رماد سيبراني */}
+          <WeatherLayer />
+
+          {/* واجهة هولوغرافية + بيانات ثلاثية الأبعاد */}
+          {isHigh && <HolographicHUD />}
+
+          {/* تأثيرات سينمائية: Lens Flare + Anamorphic Streaks */}
+          {isMed && <CinematicLayer />}
+
+          {/* مخ عصبي رقمي */}
+          {isHigh && <NeuralBrain layerSizes={[6, 12, 20, 12, 6]} />}
+
+          {/* أرضية سيبرانية + شبكة هولوغرافية */}
+          <TerrainLayer />
+
+          {/* تصور البيانات: DNA رقمي + رادار + رسوم حية */}
+          {isMed && <DigitalDNA strandLength={isHigh ? 80 : 40} />}
+          {isHigh && <Radar3D position={[-5, 0.5, -2]} />}
+          {isHigh && (
+            <LiveGraph
+              position={[5, 2, -3]}
+              color={new THREE.Color("#00e5ff")}
+              width={2.5}
+              height={1.2}
+            />
+          )}
+
+          {/* بيئة فضائية: سدم + مجرات + ثقب أسود */}
+          <SpaceEnvironmentLayer />
         </Suspense>
 
         <OrbitControls
