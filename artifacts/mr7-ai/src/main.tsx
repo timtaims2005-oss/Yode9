@@ -8,6 +8,12 @@ import { schedulerCoordinator } from './lib/scheduler-coordinator';
 import { paintSynchronizer } from './lib/paint-synchronizer';
 import { networkMultiplexer } from './lib/network-multiplexer';
 import { cognitiveCache } from './lib/cognitive-cache';
+import { zeroCopyBuffer } from './lib/zero-copy-buffer';
+import { circuitBreaker } from './lib/circuit-breaker';
+import { turboGC } from './lib/turbo-gc';
+import { quantumScheduler } from './lib/quantum-scheduler';
+import { speculativeExecution } from './lib/speculative-execution';
+import { neuralPrefetch } from './lib/neural-prefetch';
 import { Router, Switch, Route } from "wouter";
 import App from "./App";
 import LandingPage from "./pages/landing";
@@ -174,3 +180,11 @@ schedulerCoordinator.init();
 paintSynchronizer.init();
 networkMultiplexer.connect();
 cognitiveCache.init();
+
+// ── Advanced performance systems ──────────────────────────────────────────────
+zeroCopyBuffer.init();
+circuitBreaker.init();
+turboGC.init();
+quantumScheduler.init();
+speculativeExecution.init();
+neuralPrefetch.init();
