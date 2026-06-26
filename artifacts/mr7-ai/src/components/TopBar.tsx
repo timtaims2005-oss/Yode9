@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useContext, createContext, useCallback } from "react";
+import React, { useEffect, useRef, useState, useContext, createContext, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1946,7 +1946,7 @@ function PanelsHubButton() {
                                 animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
                                 style={{ background: panel.color }} />
                             )}
-                            <Icon style={{ width: 10, height: 10, color: isActive ? panel.color : "rgba(255,255,255,0.35)", flexShrink: 0 } as React.CSSProperties} />
+                            {React.createElement(Icon as React.FC<React.SVGProps<SVGSVGElement>>, { style: { width: 10, height: 10, color: isActive ? panel.color : "rgba(255,255,255,0.35)", flexShrink: 0 } })}
                             <span className="font-mono font-bold text-[8px] tracking-wide whitespace-nowrap"
                               style={{ color: isActive ? panel.color : "rgba(255,255,255,0.35)" }}>
                               {panel.shortLabel}
@@ -2000,7 +2000,7 @@ function PanelsHubButton() {
               borderBottom: `1px solid ${activeDef.color}12`,
               background: `linear-gradient(90deg, ${activeDef.color}10, transparent 70%)`,
             }}>
-              <activeDef.icon style={{ width: 11, height: 11, color: activeDef.color, flexShrink: 0 }} />
+              {React.createElement(activeDef.icon as React.FC<React.SVGProps<SVGSVGElement>>, { style: { width: 11, height: 11, color: activeDef.color, flexShrink: 0 } })}
               <span className="font-mono font-black text-[8px] tracking-widest uppercase flex-1"
                 style={{ color: `${activeDef.color}cc` }}>{activeDef.label}</span>
               <button

@@ -31,7 +31,8 @@ export function NeuralVoiceCommander() {
   const [inputCmd, setInputCmd] = useState("");
   const [audioLevel, setAudioLevel] = useState<number[]>(Array(BAR_COUNT).fill(0.1));
   const [wavePhase, setWavePhase] = useState(0);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
   const animRef = useRef<number>(0);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -90,12 +91,16 @@ export function NeuralVoiceCommander() {
       src.connect(analyserRef.current);
     } catch { /* mic denied — visual only */ }
 
-    const SR = (window.SpeechRecognition || (window as unknown as { webkitSpeechRecognition: typeof SpeechRecognition }).webkitSpeechRecognition);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
+    if (!SR) return;
     const rec = new SR();
     rec.continuous = false;
     rec.interimResults = false;
     rec.lang = "en-US";
-    rec.onresult = (e: SpeechRecognitionEvent) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => {
       const t = e.results[0][0].transcript;
       processCommand(t);
     };

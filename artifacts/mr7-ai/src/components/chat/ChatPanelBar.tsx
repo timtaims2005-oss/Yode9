@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Monitor, Clock, Network, Shield, AlertTriangle, BarChart3,
@@ -167,14 +167,12 @@ export function ChatPanelBar({ openPanels, onTogglePanel }: ChatPanelBarProps) {
                             style={{ background: panel.color, boxShadow: `0 0 4px ${panel.color}` }}
                           />
                         )}
-                        <Icon
-                          style={{
+                        {React.createElement(Icon as React.FC<React.SVGProps<SVGSVGElement>>, { style: {
                             width: "9px", height: "9px",
                             color: isOpen ? panel.color : "rgba(255,255,255,0.4)",
                             filter: isOpen ? `drop-shadow(0 0 4px ${panel.color})` : "none",
                             flexShrink: 0,
-                          }}
-                        />
+                          } })}
                         <span
                           className="font-mono font-bold text-[7.5px] tracking-wide whitespace-nowrap"
                           style={{ color: isOpen ? panel.color : "rgba(255,255,255,0.35)" }}

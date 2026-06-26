@@ -2,7 +2,7 @@
  * NotificationsPage — 3D Holographic Notification Center
  * Real-time alerts · priority queue · animated bell · filter system
  */
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, X, CheckCircle2, AlertTriangle, Info, Zap, Trash2, Check, RefreshCw, Filter, Shield, Brain, Activity } from "lucide-react";
 import { authFetch } from "@/lib/auth";
@@ -118,7 +118,7 @@ export function NotificationsPage({ onClose }: Props) {
                 onClick={() => markRead(n.id)}
                 className={`flex items-start gap-3 p-3.5 rounded-xl mb-2 border cursor-pointer transition-all hover:border-white/12 ${!n.read ? "border-white/8 bg-white/3" : "border-white/4 bg-transparent opacity-60"}`}>
                 <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}20` }}>
-                  <Icon {...{ className: "w-4 h-4", style: { color } } as Record<string,unknown>} />
+                  {React.createElement(Icon as React.FC<React.SVGProps<SVGSVGElement>>, { className: "w-4 h-4", style: { color } })}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">

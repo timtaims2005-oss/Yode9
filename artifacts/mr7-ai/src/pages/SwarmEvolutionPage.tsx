@@ -4,7 +4,7 @@
  * Full SSE streaming · Model switcher · ON/OFF · Evolution loop
  * Self-Improve · Task Queue · Continuous Mode · Evolution Insights
  */
-import { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain, Zap, Play, Square, RefreshCw, ChevronDown,
@@ -666,7 +666,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                   return (
                     <div key={agent.agentId} className="flex items-center gap-2">
                       <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ backgroundColor: meta.color + "20" }}>
-                        <Icon {...{ className: "w-3 h-3", style: { color: meta.color } } as Record<string,unknown>} />
+                        {React.createElement(Icon as React.FC<React.SVGProps<SVGSVGElement>>, { className: "w-3 h-3", style: { color: meta.color } })}
                       </div>
                       <span className="text-xs text-white/60 flex-1">{meta.label}</span>
                       {agent.status === "running" && <Loader2 className="w-3 h-3 animate-spin text-white/50" />}
@@ -831,7 +831,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
               />
               <div className="flex flex-col gap-2">
                 <button
-                  onClick={run?.status === "running" ? stopRun : startRun}
+                  onClick={run?.status === "running" ? stopRun : () => startRun()}
                   disabled={!goal.trim()}
                   className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
                     run?.status === "running"
@@ -869,7 +869,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                     return (
                       <div key={id} className="flex flex-col items-center gap-1.5">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: meta.color + "20", border: `1px solid ${meta.color}40` }}>
-                          <Icon {...{ className: "w-5 h-5", style: { color: meta.color } } as Record<string,unknown>} />
+                          {React.createElement(Icon as React.FC<React.SVGProps<SVGSVGElement>>, { className: "w-5 h-5", style: { color: meta.color } })}
                         </div>
                         <div className="text-[10px] text-white/40">{meta.label}</div>
                       </div>
@@ -925,7 +925,7 @@ export function SwarmEvolutionPage({ onClose }: Props) {
                         style={{ borderColor: meta.color + "30" }}
                       >
                         <div className="flex items-center gap-2 px-3 py-2" style={{ backgroundColor: meta.color + "15" }}>
-                          <Icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
+                          {React.createElement(Icon as React.FC<React.SVGProps<SVGSVGElement>>, { className: "w-3.5 h-3.5", style: { color: meta.color } })}
                           <span className="text-xs font-bold" style={{ color: meta.color }}>{meta.label}</span>
                           <div className="flex-1" />
                           {agent.status === "running" && <Loader2 className="w-3 h-3 animate-spin" style={{ color: meta.color }} />}

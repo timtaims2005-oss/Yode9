@@ -381,6 +381,7 @@ function TypewriterText({ className = "", style = {} }: { className?: string; st
       } else {
         setDeleting(false);
         setPhraseIdx(i => (i + 1) % TYPEWRITER_PHRASES.length);
+        return;
       }
     }
   }, [charIdx, deleting, phraseIdx]);

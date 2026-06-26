@@ -44,7 +44,7 @@ export function MultiAgentPage({ onClose }: Props) {
       try {
         let out = "";
         await streamChat(
-          { messages: [
+          { model: "gpt-4o-mini", persona: null, customInstructions: "", language: "ar", memory: [], messages: [
             { role: "system", content: `أنت وكيل ${tmpl.name} المتخصص في: ${tmpl.focus}. أجب باختصار ومباشرة في 2-3 نقاط.` },
             { role: "user", content: `المهمة: ${task}` },
           ]},
@@ -67,7 +67,7 @@ export function MultiAgentPage({ onClose }: Props) {
     try {
       let fusOut = "";
       await streamChat(
-        { messages: [
+        { model: "gpt-4o-mini", persona: null, customInstructions: "", language: "ar", memory: [], messages: [
           { role: "system", content: "أنت منسق FUSION. اجمع نتائج الوكلاء المتخصصين في تقرير موحد ومنظم." },
           { role: "user", content: `نتائج الوكلاء:\n\n${results.map((r, i) => `[${selected[i].name}]:\n${r}`).join("\n\n")}\n\nالمهمة الأصلية: ${task}` },
         ]},

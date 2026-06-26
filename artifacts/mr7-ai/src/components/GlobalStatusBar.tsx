@@ -13,7 +13,7 @@ export function GlobalStatusBar() {
   useEffect(() => {
     startPerfEngine();
     const unsub = subscribePerfState(setPerf);
-    return unsub;
+    return () => { unsub(); };
   }, []);
 
   // Uptime counter

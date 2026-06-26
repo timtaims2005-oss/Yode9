@@ -168,7 +168,7 @@ function MiniRadar() {
       ctx.beginPath(); ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
 
       // Sweep
-      const grad = ctx.createConicalGradient ? null : null;
+      // sweep gradient (linear approximation);
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(angle);

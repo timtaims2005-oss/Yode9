@@ -19,7 +19,7 @@ export function NetworkWatchdog() {
   const [status, setStatus] = useState<NetStatus>("good");
   const [info, setInfo] = useState({ rtt: 0, dl: 0, type: "" });
   const [visible, setVisible] = useState(false);
-  const hideTimer = useRef<ReturnType<typeof setTimeout>>();
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   function showBanner(s: NetStatus) {
     setStatus(s);

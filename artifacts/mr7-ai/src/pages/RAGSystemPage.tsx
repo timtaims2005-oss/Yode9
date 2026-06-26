@@ -2,7 +2,7 @@
  * RAGSystemPage — 3D Holographic RAG (Retrieval Augmented Generation)
  * Document upload · vector indexing · semantic retrieval · AI chat with docs
  */
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Database, X, Upload, MessageSquare, Search, Trash2, RefreshCw, File, FileText, Code2, Zap, ChevronRight, Brain, Plus, Check } from "lucide-react";
 import { streamChat } from "@/lib/chat-client";
@@ -54,7 +54,7 @@ export function RAGSystemPage({ onClose }: Props) {
     let out = "";
     try {
       await streamChat(
-        { messages: [
+        { model: "gpt-4o-mini", persona: null, customInstructions: "", language: "ar", memory: [], messages: [
           { role: "system", content: `أنت نظام RAG متخصص. لديك وصول للوثائق التالية: ${sources.join(", ")}. أجب على الأسئلة بناءً على محتواها.` },
           { role: "user", content: userMsg },
         ]},

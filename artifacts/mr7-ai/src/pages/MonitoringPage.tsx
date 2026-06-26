@@ -2,7 +2,7 @@
  * MonitoringPage — 3D Holographic System Monitoring
  * Live health · latency sparkline · service status · alerts · SLA tracking
  */
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Activity, X, RefreshCw, CheckCircle2, AlertTriangle, XCircle, Wifi, Clock, Cpu, Database, Server, Globe, Zap } from "lucide-react";
 import { authFetch } from "@/lib/auth";
@@ -121,7 +121,7 @@ export function MonitoringPage({onClose}:Props) {
             <motion.div key={svc.id} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} transition={{delay:i*0.04}}
               className="flex items-center gap-3 p-3.5 rounded-xl border" style={{background:`${svc.color}08`,borderColor:`${svc.color}15`}}>
               <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{backgroundColor:`${svc.color}20`}}>
-                <svc.icon {...{ className: "w-4 h-4", style: {color:svc.color} } as Record<string,unknown>}/>
+                {React.createElement(svc.icon as React.FC<React.SVGProps<SVGSVGElement>>, { className: "w-4 h-4", style: { color: svc.color } })}
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-white">{svc.name}</p>

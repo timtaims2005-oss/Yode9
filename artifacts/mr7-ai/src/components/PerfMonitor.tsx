@@ -63,7 +63,7 @@ export function PerfMonitor() {
   useEffect(() => {
     startPerfEngine();
     const unsub = subscribePerfState(setPerf);
-    return unsub;
+    return () => { unsub(); };
   }, []);
 
   if (!perf) return null;

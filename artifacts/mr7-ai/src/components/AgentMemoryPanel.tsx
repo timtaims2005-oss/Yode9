@@ -511,7 +511,7 @@ export function AgentMemoryPanel({ onClose, compact = false }: Props) {
               {/* Parsed project data */}
               {projectDone && projectData && typeof projectData === "object" && (
                 <div className="space-y-2">
-                  {projectData["title"] && (
+                  {Boolean(projectData["title"]) && (
                     <div className="rounded-lg px-3 py-2" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.20)" }}>
                       <div className="text-[9px] text-emerald-400/60 uppercase tracking-wider mb-0.5">عنوان المشروع</div>
                       <div className="text-sm font-bold text-emerald-300">{String(projectData["title"])}</div>
@@ -527,7 +527,7 @@ export function AgentMemoryPanel({ onClose, compact = false }: Props) {
                       </div>
                     </div>
                   )}
-                  {projectData["estimated_time"] && (
+                  {Boolean(projectData["estimated_time"]) && (
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.15)" }}>
                       <Clock className="w-3 h-3 text-purple-400" />
                       <span className="text-[10px] text-white/60">الوقت المتوقع: </span>
@@ -616,7 +616,7 @@ export function AgentMemoryPanel({ onClose, compact = false }: Props) {
                       </div>
                     )}
                   </div>
-                  {improveData.analysis && typeof improveData.analysis === "object" && (improveData.analysis as Record<string, unknown>)["strength_patterns"] && (
+                  {improveData.analysis && typeof improveData.analysis === "object" && Boolean((improveData.analysis as Record<string, unknown>)["strength_patterns"]) && (
                     <div className="rounded-xl p-3 space-y-2" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}>
                       <div className="text-[9px] font-bold uppercase tracking-wider text-white/35">نقاط القوة المكتشفة</div>
                       {((improveData.analysis as Record<string, unknown>)["strength_patterns"] as string[]).slice(0, 3).map((p: string, i: number) => (
@@ -627,7 +627,7 @@ export function AgentMemoryPanel({ onClose, compact = false }: Props) {
                       ))}
                     </div>
                   )}
-                  {improveData.analysis && typeof improveData.analysis === "object" && (improveData.analysis as Record<string, unknown>)["next_session_context"] && (
+                  {improveData.analysis && typeof improveData.analysis === "object" && Boolean((improveData.analysis as Record<string, unknown>)["next_session_context"]) && (
                     <div className="rounded-xl p-3" style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.15)" }}>
                       <div className="text-[9px] font-bold uppercase tracking-wider text-purple-400/60 mb-1">توصية للجلسة القادمة</div>
                       <p className="text-[10px] text-white/55 leading-relaxed">

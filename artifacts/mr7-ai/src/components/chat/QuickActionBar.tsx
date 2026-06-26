@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, Zap, Terminal, Globe, Eye,
@@ -223,7 +223,7 @@ export function QuickActionBar({ onInsert }: Props) {
               </span>
 
               {/* icon */}
-              <Icon {...{ className: "flex-shrink-0 z-20", style: { color: action.color, width: 13, height: 13 }, strokeWidth: 2.2 } as Record<string,unknown>} />
+              {React.createElement(Icon as React.FC<React.SVGProps<SVGSVGElement>>, { className: "flex-shrink-0 z-20", style: { color: action.color, width: 13, height: 13 }, strokeWidth: 2.2 })}
 
               {/* arabic label */}
               <span

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef, useState, useCallback, useEffect } from "react";
+import React, { lazy, Suspense, useRef, useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Minus, Maximize2, GripHorizontal } from "lucide-react";
@@ -266,7 +266,7 @@ function FloatingWindow({ panelId, def, zIndex, onClose, onFocus }: FloatingWind
             animate={{ filter: [`drop-shadow(0 0 2px ${def.color})`, `drop-shadow(0 0 8px ${def.color})`, `drop-shadow(0 0 2px ${def.color})`] }}
             transition={{ duration: 2.2, repeat: Infinity }}
           >
-            <Icon style={{ width: "11px", height: "11px", color: def.color, flexShrink: 0 }} />
+            {React.createElement(Icon as React.FC<React.SVGProps<SVGSVGElement>>, { style: { width: "11px", height: "11px", color: def.color, flexShrink: 0 } })}
           </motion.div>
 
           <div className="flex flex-col flex-1 min-w-0 leading-none">

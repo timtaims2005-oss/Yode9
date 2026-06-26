@@ -165,7 +165,7 @@ export function PerformanceCommandCenter({ open, onClose }: PerfCCProps) {
       push(latHistory, snap.latencyMs, setLatHist);
     });
     const u2 = adaptiveFPS.subscribe(s => setFpsState(s));
-    const u3 = memoryPressure.subscribe(({ level }) => setPressure(level));
+    const u3 = memoryPressure.onStats(stats => setPressure(stats.pressure));
     const u4 = networkResilience.subscribe(setRes);
     const u5 = frameScheduler.onMetrics((fps, dropped) => {
       setLiveFps(fps);

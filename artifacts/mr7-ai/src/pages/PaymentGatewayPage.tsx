@@ -2,7 +2,7 @@
  * PaymentGatewayPage — 3D Holographic Payment Portal
  * Subscription plans · payment history · billing · crypto/bank/PayPal
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CreditCard, X, Zap, Crown, Star, Shield, Check, ChevronRight, Clock, DollarSign, Bitcoin, Copy, CheckCircle2, ArrowRight } from "lucide-react";
 
@@ -73,7 +73,7 @@ export function PaymentGatewayPage({ onClose }: Props) {
                     {plan.id === "professional" && <div className="absolute -top-2 right-4 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-[10px] font-bold text-white">الأكثر شيوعاً</div>}
                     <div className="flex items-center gap-2.5 mb-4">
                       <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${plan.color}20` }}>
-                        <plan.icon {...{ className: "w-5 h-5", style: { color: plan.color } } as Record<string,unknown>} />
+                        {React.createElement(plan.icon as React.FC<React.SVGProps<SVGSVGElement>>, { className: "w-5 h-5", style: { color: plan.color } })}
                       </div>
                       <p className="text-base font-black text-white">{plan.name}</p>
                     </div>
@@ -103,7 +103,7 @@ export function PaymentGatewayPage({ onClose }: Props) {
           <div className="max-w-md mx-auto space-y-4">
             <div className="p-4 rounded-xl bg-gradient-to-r" style={{ backgroundImage: `linear-gradient(135deg, ${selPlan.color}15, rgba(0,0,0,0.3))`, border: `1px solid ${selPlan.color}25` }}>
               <div className="flex items-center gap-3">
-                <selPlan.icon {...{ className: "w-8 h-8", style: { color: selPlan.color } } as Record<string,unknown>} />
+                {React.createElement(selPlan.icon as React.FC<React.SVGProps<SVGSVGElement>>, { className: "w-8 h-8", style: { color: selPlan.color } })}
                 <div>
                   <p className="text-lg font-black text-white">{selPlan.name}</p>
                   <p className="text-sm text-zinc-400">${billing === "yearly" ? selPlan.yearlyPrice : selPlan.price}/شهر · {selPlan.tokens}</p>

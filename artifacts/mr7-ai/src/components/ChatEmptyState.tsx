@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, Shield, Cpu, Network, Terminal, Zap, Code2, Eye, Target, Server } from "lucide-react";
 import { useStore } from "@/lib/store";
