@@ -35,6 +35,48 @@ export interface AppEvents {
   // Security events
   "threat:detected":      { severity: string; description: string };
   "auth:session-expired": Record<string, never>;
+
+  // 3D / render events
+  "3d:pause":             { reason: string };
+  "3d:resume":            { reason: string };
+  "render:priority":      { mode: string };
+
+  // Streaming events
+  "stream:start":         { sessionId: string };
+  "stream:end":           { sessionId: string };
+  "stream:error":         { sessionId?: string; error?: string };
+  "stream:cancelled":     { sessionId: string };
+  "stream:cancel-all":    Record<string, never>;
+
+  // Input events
+  "input:predict-start":  { draft: string; wpm: number };
+  "input:predict-done":   { draft: string };
+  "input:submit":         { draft: string; wpm: number };
+  "input:typing-start":   Record<string, never>;
+  "input:typing-stop":    Record<string, never>;
+
+  // Jank / perf events
+  "jank:long-task":       { duration: number; attribution: string; worstOffender: string | null };
+  "jank:frame-drop":      { droppedFrames: number; intervalMs: number; worstOffender: string | null };
+
+  // Memory events
+  "memory:pressure-high": Record<string, never>;
+  "memory:pressure-normal": Record<string, never>;
+
+  // Network events
+  "network-mux:connected": Record<string, never>;
+  "network-mux:fallback":  Record<string, never>;
+  "connection:tier-change": { tier: string; bps: number; concurrency: number };
+
+  // Scheduler events
+  "scheduler:priority-elevated": { id: string; label: string; priority: number };
+  "scheduler:deadlock":           { label: string };
+
+  // Critical path events
+  "critical-path:change":  { mode: string; tasks: unknown[] };
+
+  // Cognitive cache events
+  "cognitive-cache:prefetch": { trigger: string; followup: string; confidence: number };
 }
 
 type EventName = keyof AppEvents;

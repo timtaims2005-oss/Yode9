@@ -1,4 +1,13 @@
 import { createRoot } from "react-dom/client";
+import { renderBudget } from './lib/render-budget';
+import { networkResilience } from './lib/network-resilience';
+import { smartCache } from './lib/smart-cache';
+import { jankDetector } from './lib/jank-detector';
+import { bootOrchestrator } from './lib/boot-orchestrator';
+import { schedulerCoordinator } from './lib/scheduler-coordinator';
+import { paintSynchronizer } from './lib/paint-synchronizer';
+import { networkMultiplexer } from './lib/network-multiplexer';
+import { cognitiveCache } from './lib/cognitive-cache';
 import { Router, Switch, Route } from "wouter";
 import App from "./App";
 import LandingPage from "./pages/landing";
@@ -153,3 +162,15 @@ createRoot(document.getElementById("root")!).render(
     </Switch>
   </Router>
 );
+
+// ── Performance & resilience systems ─────────────────────────────────────────
+// renderBudget is self-initialising (no init() — use renderBudget.track() per component)
+void renderBudget; // imported for side-effect bundling
+networkResilience.init();
+smartCache.init();
+jankDetector.init();
+bootOrchestrator.start();
+schedulerCoordinator.init();
+paintSynchronizer.init();
+networkMultiplexer.connect();
+cognitiveCache.init();
