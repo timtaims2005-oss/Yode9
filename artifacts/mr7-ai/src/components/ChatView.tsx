@@ -623,7 +623,25 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
         onOpenShellGen={() => setShellGenOpen(true)}
       />
 
-      <div className="flex-1 relative overflow-hidden flex flex-col">
+      {/* 5D depth content area */}
+      <div className="flex-1 relative overflow-hidden flex flex-col" style={{ isolation: "isolate" }}>
+        {/* Left depth rail */}
+        <div className="absolute left-0 top-0 bottom-0 w-px pointer-events-none" style={{ zIndex: 2, background: "linear-gradient(180deg, transparent 0%, rgba(226,18,39,0.08) 20%, rgba(139,92,246,0.06) 60%, transparent 100%)" }} />
+        {/* Right depth rail */}
+        <div className="absolute right-0 top-0 bottom-0 w-px pointer-events-none" style={{ zIndex: 2, background: "linear-gradient(180deg, transparent 0%, rgba(0,229,255,0.06) 40%, rgba(139,92,246,0.05) 70%, transparent 100%)" }} />
+        {/* Top depth accent */}
+        <div className="absolute top-0 inset-x-0 h-px pointer-events-none" style={{ zIndex: 2, background: "linear-gradient(90deg, transparent 0%, rgba(226,18,39,0.12) 30%, rgba(139,92,246,0.08) 70%, transparent 100%)" }} />
+        {/* Corner TL bracket */}
+        <div className="absolute top-0 left-0 w-4 h-4 pointer-events-none" style={{ zIndex: 3 }}>
+          <div className="absolute top-0 left-0 w-4 h-px" style={{ background: "rgba(226,18,39,0.3)" }} />
+          <div className="absolute top-0 left-0 w-px h-4" style={{ background: "rgba(226,18,39,0.3)" }} />
+        </div>
+        {/* Corner TR bracket */}
+        <div className="absolute top-0 right-0 w-4 h-4 pointer-events-none" style={{ zIndex: 3 }}>
+          <div className="absolute top-0 right-0 w-4 h-px" style={{ background: "rgba(0,229,255,0.2)" }} />
+          <div className="absolute top-0 right-0 w-px h-4" style={{ background: "rgba(0,229,255,0.2)" }} />
+        </div>
+
         <NeuralStreamHUD streaming={streaming} tps={liveTps} tokenCount={liveTokens} mode={mode} />
 
         <ChatScrollArea

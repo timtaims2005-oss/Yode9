@@ -2,9 +2,9 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Monitor, Clock, Network, Shield, AlertTriangle, BarChart3,
-  DollarSign, Brain, Search, Globe, Lock, Zap, Eye,
-  Activity, Cpu, Map, Radio, ChevronDown, ChevronUp,
-  Layers, Target, Wifi, Database, TrendingUp,
+  DollarSign, Brain, Globe, Lock, Zap, Eye,
+  Activity, Cpu, Radio, ChevronDown, ChevronUp,
+  Layers, Target, TrendingUp,
 } from "lucide-react";
 
 export interface PanelDef {

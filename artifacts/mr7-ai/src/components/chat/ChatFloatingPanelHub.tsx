@@ -18,7 +18,7 @@ const DedupVisualizer3D    = lazy(() => import("../DedupVisualizer3D").then(m =>
 const PrefetchIntelligence3D = lazy(() => import("../PrefetchIntelligence3D").then(m => ({ default: () => <m.PrefetchIntelligence3D onClose={() => {}} /> })));
 const LiveAttackGlobe3D    = lazy(() => import("../LiveAttackGlobe3D").then(m => ({ default: m.LiveAttackGlobe3D })));
 const LiveOpsDashboard3D   = lazy(() => import("../LiveOpsDashboard3D").then(m => ({ default: () => <m.LiveOpsDashboard3D onClose={() => {}} /> })));
-const SystemMasterHUD3D    = lazy(() => import("../SystemMasterHUD3D").then(m => ({ default: () => <m.SystemMasterHUD3D id="hub" title="SYSTEM HUD" icon="⚡" color="#facc15" /> })));
+const SystemMasterHUD3D    = lazy(() => import("../SystemMasterHUD3D").then(m => ({ default: () => <m.SystemMasterHUD3D /> })));
 const CisaLivePanel3D      = lazy(() => import("../CisaLivePanel3D").then(m => ({ default: () => <m.CisaLivePanel3D open={true} onClose={() => {}} /> })));
 
 // ── Simple built-in panels ────────────────────────────────────────────────────
