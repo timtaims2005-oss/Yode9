@@ -1,31 +1,59 @@
 import { lazy, Suspense } from "react";
+import { getQualityLevel } from "../../lib/adaptive-quality";
 
-// Lazy-load all ambient 3D layers to reduce initial bundle size
 const AmbientParticleField = lazy(() => import("../AmbientParticleField").then(m => ({ default: m.AmbientParticleField })));
-const HoloDataStream = lazy(() => import("../HoloDataStream").then(m => ({ default: m.HoloDataStream })));
-const CyberHeatmapHUD = lazy(() => import("../CyberHeatmapHUD").then(m => ({ default: m.CyberHeatmapHUD })));
+const HoloDataStream       = lazy(() => import("../HoloDataStream").then(m => ({ default: m.HoloDataStream })));
+const CyberHeatmapHUD      = lazy(() => import("../CyberHeatmapHUD").then(m => ({ default: m.CyberHeatmapHUD })));
+const UltraScene           = lazy(() => import("../3d/UltraScene").then(m => ({ default: m.UltraScene })));
+const CSSPostFX            = lazy(() => import("../3d/PostProcessing").then(m => ({ default: m.CSSPostFX })));
+const CanvasPostFX         = lazy(() => import("../3d/PostProcessing").then(m => ({ default: m.CanvasPostFX })));
 
 /**
- * AmbientLayer — always-on background visual effects, all lazy loaded
- * to prevent them from blocking the initial page load.
- * Paused when tab is hidden for performance.
+ * AmbientLayer — always-on background visual effects
+ * Ultra HD: Ray Marching + PBR + Bloom + Rain + Smoke + Post-FX
  */
 export function AmbientLayer() {
+  const quality = getQualityLevel();
+  const isLow   = quality === "low";
+
   return (
     <>
-      {/* Heatmap overlay — ambient cyber HUD */}
+      {/* ── Ultra 3D Scene (Ray Marching + PBR + Rain + Smoke) ── */}
+      <Suspense fallback={null}>
+        <UltraScene showStats={false} />
+      </Suspense>
+
+      {/* ── Post-Processing CSS Layer ── */}
+      <Suspense fallback={null}>
+        <CSSPostFX
+          enabled
+          bloom
+          scanlines={!isLow}
+          vignette
+          chromaticAberration={quality === "high"}
+          glitch={false}
+        />
+      </Suspense>
+
+      {/* ── Canvas Post-FX (corner brackets, scan beam, noise grain) ── */}
+      {!isLow && (
+        <Suspense fallback={null}>
+          <CanvasPostFX enabled />
+        </Suspense>
+      )}
+
+      {/* ── Heatmap overlay ── */}
       <Suspense fallback={null}>
         <CyberHeatmapHUD />
       </Suspense>
 
-      {/* Particle field — desktop only */}
+      {/* ── Particle field + Holo streams (desktop only) ── */}
       <div className="hidden md:block">
         <Suspense fallback={null}>
-          <AmbientParticleField density={0.12} />
+          <AmbientParticleField density={0.08} />
         </Suspense>
       </div>
 
-      {/* Holo data streams — desktop only */}
       <div className="hidden md:block">
         <Suspense fallback={null}>
           <HoloDataStream side="both" />
