@@ -48,6 +48,8 @@ import { WindowTray } from "./components/WindowTray";
 import { SystemHealthBar } from "./components/SystemHealthBar";
 import { PerformanceHUD } from "./components/PerformanceHUD";
 import { PerformanceBooster } from "./components/PerformanceBooster";
+import { OfflineQueueBanner } from "./components/OfflineQueueBanner";
+import { PerformanceCommandCenter } from "./components/PerformanceCommandCenter";
 import { frameScheduler } from "./lib/frame-scheduler";
 import { memoryPressure } from "./lib/memory-pressure";
 import { thermalGuard } from "./lib/thermal-guard";
@@ -454,6 +456,7 @@ function AppContent() {
   const [idePipelineCode, setIdePipelineCode] = useState<{text:string;key:number}|undefined>();
   const [pipelineKeyRef] = useState(() => ({ n: 0 }));
   const [hudsVisible, setHudsVisible] = useState(true);
+  const [perfCCOpen, setPerfCCOpen] = useState(false);
   const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
   void addCostEntry; void shellGeneratorInject;
 
@@ -662,6 +665,7 @@ function AppContent() {
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "d") { e.preventDefault(); toggle('debate'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "p") { e.preventDefault(); toggle('providerSettings'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "y") { e.preventDefault(); toggle('chainOfThought'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F2") { e.preventDefault(); setPerfCCOpen(v => !v); }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -737,6 +741,8 @@ function AppContent() {
   return (
     <>
     {!bootDone && <BootScreen onDone={() => setBootDone(true)} />}
+    <OfflineQueueBanner />
+    <PerformanceCommandCenter open={perfCCOpen} onClose={() => setPerfCCOpen(false)} />
     <SystemHealthBar />
     <PerformanceHUD />
     <PerformanceBooster />
@@ -852,6 +858,7 @@ function AppContent() {
           onOpenCollab={() => open('collab')}
           onOpenFinetune={() => open('finetune')}
           onOpenSwarmEvolution={() => open('swarmEvolution')}
+          onOpenPerfCC={() => setPerfCCOpen(v => !v)}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}

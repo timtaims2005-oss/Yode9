@@ -87,6 +87,7 @@ interface TopBarProps {
   hudsVisible?: boolean;
   sidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
+  onOpenPerfCC?: () => void;
 }
 
 // ── Ultra 3D HUD Canvas — optimised (adaptive FPS, visibility API, reduced O(n²)) ──
@@ -1980,6 +1981,7 @@ export function TopBar({
   hudsVisible,
   sidebarCollapsed,
   onToggleSidebar,
+  onOpenPerfCC,
 }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -2198,6 +2200,7 @@ export function TopBar({
         {onOpenNetworkTopo    && <HUDBtn icon={Network}      label="NET·HUD"      color="#3b82f6" onClick={onOpenNetworkTopo} active={hudsVisible} />}
         {onOpenPrefetch       && <HUDBtn icon={Gauge}        label="Prefetch"     color="#fbbf24" onClick={onOpenPrefetch} />}
         {onOpenMasterHud      && <HUDBtn icon={Globe}        label="HUD"          color="#22c55e" onClick={onOpenMasterHud} />}
+        {onOpenPerfCC         && <HUDBtn icon={Gauge}        label="Perf CC"      color="#e21227" onClick={onOpenPerfCC} badge="NEW" />}
         {onOpenCyberHub       && <HUDBtn icon={Zap}          label="Cyber Hub"    color="#e21227" onClick={onOpenCyberHub} badge="3D" />}
         {onOpenWidgetsDock    && <HUDBtn icon={Gauge}        label="Widgets HUD"  color="#06b6d4" onClick={onOpenWidgetsDock} badge="6P" />}
         {onOpenSwarmEvolution && <HUDBtn icon={BrainCircuit} label="Swarm AI"     color="#8b5cf6" onClick={onOpenSwarmEvolution} badge="NEW" />}
