@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, lazy, Suspense } from "react";
 const MainAgentControl = lazy(() => import("./MainAgentControl").then(m => ({ default: m.MainAgentControl })));
-import { Plus, Search, TerminalSquare, Code, Globe, KeyRound, Network, FileCode, Bug, Gift, Clock, Coins, Pin, Pencil, Trash2, MessageSquare, Filter, Check, LayoutGrid, Hash, Binary, QrCode, Calculator, Regex, FileJson, Fingerprint, Terminal, ShieldAlert, Sparkles, Cookie, Lock as LockIcon, ScanLine, Server, Link as LinkIcon, Wand2, Image as ImageIcon, FileText, Languages, ShieldAlert as PhishIcon, BookOpenCheck, Activity, UserCog, TrendingUp, Mail, Brain, Bookmark, ArrowLeftRight, AtSign, Wallet, Eye, Send, Database as DbIcon, Database, Container as ContainerIcon, FileSearch, Radar, Crosshair, ScrollText, FileCheck2, GitCommit, Music, Palette, ShieldCheck, FlaskConical, ChevronDown, Zap, Users, Layers, Bell, CreditCard, Shield, Rocket, Bot } from "lucide-react";
+import { Plus, Search, TerminalSquare, Code, Globe, KeyRound, Network, FileCode, Bug, Gift, Clock, Coins, Pin, Pencil, Trash2, MessageSquare, Filter, Check, LayoutGrid, Hash, Binary, QrCode, Calculator, Regex, FileJson, Fingerprint, Terminal, ShieldAlert, Sparkles, Cookie, Lock as LockIcon, ScanLine, Server, Link as LinkIcon, Wand2, Image as ImageIcon, FileText, Languages, ShieldAlert as PhishIcon, BookOpenCheck, Activity, UserCog, TrendingUp, Mail, Brain, Bookmark, ArrowLeftRight, AtSign, Wallet, Eye, Send, Database as DbIcon, Database, Container as ContainerIcon, FileSearch, Radar, Crosshair, ScrollText, FileCheck2, GitCommit, Music, Palette, ShieldCheck, FlaskConical, ChevronDown, Zap, Users, Layers, Bell, CreditCard, Shield, Rocket, Bot, Target } from "lucide-react";
 import { AI_MODELS } from "@/lib/ai-config";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -170,6 +170,7 @@ interface SidebarProps {
   onOpenKgAgentMemory?: () => void;
   onOpenKgAutonomousSwarm?: () => void;
   onOpenKgSocialArsenal?: () => void;
+  onOpenAptIntel?: () => void;
 }
 
 const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: string }[] = [
@@ -1211,6 +1212,13 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                   <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 border border-black animate-pulse" />
                   <Users className="w-3.5 h-3.5 text-purple-400/70 group-hover:text-purple-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Social</span>
+                </button>
+              )}
+              {onOpenAptIntel && (
+                <button onClick={onOpenAptIntel} title="مركز استخبارات APT النخبة" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-violet-900/20 hover:bg-violet-900/35 border border-violet-500/20 hover:border-violet-500/50 transition-all group relative">
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-violet-500 border border-black animate-pulse" />
+                  <Target className="w-3.5 h-3.5 text-violet-400/70 group-hover:text-violet-400" />
+                  <span className="text-[8px] text-gray-500 group-hover:text-gray-300">APT</span>
                 </button>
               )}
               {onOpenKgSecurity && (

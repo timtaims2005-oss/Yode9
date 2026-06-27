@@ -15,14 +15,18 @@ import {
 
 // ─── SECTION DEFINITIONS ─────────────────────────────────────────────────────
 const SECTIONS = [
-  { id: "overview",    label: "نظرة عامة",          icon: "◈", color: "#e21227" },
-  { id: "frameworks",  label: "أطر الهندسة",         icon: "⬡", color: "#a855f7" },
-  { id: "osint",       label: "OSINT & تعداد",       icon: "◉", color: "#00e5ff" },
-  { id: "attacks",     label: "آليات الهجوم",         icon: "◆", color: "#f59e0b" },
+  { id: "overview",    label: "نظرة عامة",           icon: "◈", color: "#e21227" },
+  { id: "frameworks",  label: "أطر الهندسة",          icon: "⬡", color: "#a855f7" },
+  { id: "osint",       label: "OSINT & تعداد",        icon: "◉", color: "#00e5ff" },
+  { id: "attacks",     label: "آليات الهجوم",          icon: "◆", color: "#f59e0b" },
   { id: "credential",  label: "حصاد بيانات الاعتماد", icon: "⊕", color: "#e21227" },
-  { id: "bypass",      label: "تقنيات الالتفاف",     icon: "⬢", color: "#10b981" },
-  { id: "tools",       label: "الأدوات الداعمة",      icon: "▣", color: "#6366f1" },
-  { id: "terminal",    label: "محطة الاختراق",        icon: "⊙", color: "#e21227" },
+  { id: "bypass",      label: "تقنيات الالتفاف",      icon: "⬢", color: "#10b981" },
+  { id: "tools",       label: "الأدوات الداعمة",       icon: "▣", color: "#6366f1" },
+  { id: "siem",        label: "SIEM / SOAR / EDR",   icon: "◈", color: "#f97316" },
+  { id: "deepfake",    label: "التزييف العميق",        icon: "⬟", color: "#ec4899" },
+  { id: "bots",        label: "البوتات والأتمتة",      icon: "⊙", color: "#22d3ee" },
+  { id: "defense",     label: "استراتيجيات الحماية",  icon: "◈", color: "#10b981" },
+  { id: "terminal",    label: "محطة الاختراق",         icon: "⊙", color: "#e21227" },
 ];
 
 const SEV_COLOR: Record<string, string> = {
@@ -1877,6 +1881,360 @@ export function SocialMediaArsenalPage({ onClose }: Props) {
           </div>
         </div>
       );
+      case "siem": return (
+        <div className="space-y-4">
+          <div className="text-[10px] font-mono text-gray-500 mb-1">
+            أنظمة التحليل والمراقبة الأمنية — SIEM / SOAR / EDR لاكتشاف التهديدات والاستجابة التلقائية
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              {
+                id: "siem_gen", name: "SIEM — Security Information & Event Management", color: "#f97316",
+                desc: "تجميع وتحليل سجلات الأحداث الأمنية من مصادر متعددة للكشف عن التهديدات في الوقت الفعلي",
+                platforms: ["Splunk Enterprise Security", "Elastic Security (ELK Stack)", "IBM QRadar", "Microsoft Sentinel", "ArcSight ESM", "LogRhythm SIEM"],
+                capabilities: [
+                  "Log Aggregation: تجميع سجلات من Firewalls, IDS, Servers, Apps في مكان واحد",
+                  "Correlation Rules: ربط أحداث متعددة لاكتشاف هجمات متقدمة لا تُرى منفردة",
+                  "Real-time Alerting: تنبيهات فورية عند اكتشاف نشاط مشبوه",
+                  "User Behavior Analytics (UEBA): كشف السلوك غير الطبيعي للمستخدمين",
+                  "Threat Intelligence Integration: ربط مع TI feeds لمقارنة IOCs",
+                  "Compliance Reporting: تقارير SOX, PCI-DSS, HIPAA, GDPR تلقائية",
+                ],
+              },
+              {
+                id: "soar", name: "SOAR — Security Orchestration, Automation & Response", color: "#a855f7",
+                desc: "أتمتة الاستجابة للحوادث الأمنية وتنسيق الأدوات المختلفة لتقليل وقت الاستجابة من ساعات لدقائق",
+                platforms: ["Splunk SOAR (Phantom)", "Palo Alto XSOAR", "IBM Resilient", "Swimlane", "Tines", "Microsoft Sentinel Playbooks"],
+                capabilities: [
+                  "Playbooks: سيناريوهات استجابة تلقائية للحوادث الشائعة (Phishing, Malware, Brute Force)",
+                  "Case Management: إدارة الحوادث والتحقيقات من بدايتها حتى الإغلاق",
+                  "Tool Integration: ربط SIEM + EDR + Firewall + Ticketing تلقائياً",
+                  "Threat Enrichment: إثراء IOCs تلقائياً من VirusTotal, Shodan, AbuseIPDB",
+                  "Automated Blocking: حجب IPs وحسابات تلقائياً عند تجاوز عتبات محددة",
+                  "Metrics & KPIs: MTTD (Mean Time to Detect) وMTTR (Mean Time to Respond)",
+                ],
+              },
+              {
+                id: "edr", name: "EDR — Endpoint Detection & Response", color: "#10b981",
+                desc: "حماية نقاط النهاية (أجهزة الموظفين) مع رصد مستمر وقدرة استجابة فورية",
+                platforms: ["CrowdStrike Falcon", "SentinelOne", "Microsoft Defender for Endpoint", "Carbon Black", "Cybereason", "Trend Micro XDR"],
+                capabilities: [
+                  "Behavioral Detection: كشف التهديدات من السلوك لا التوقيعات — يوقف Zero-Days",
+                  "Process Tree Analysis: شجرة كاملة لكل عملية وأطفالها وملفاتها",
+                  "Fileless Detection: كشف Fileless Malware التي لا تُخزّن على القرص",
+                  "Threat Hunting: أدوات بحث تفاعلية للمحققين على مستوى Enterprise",
+                  "Automated Response: عزل الجهاز المصاب فورياً دون تدخل بشري",
+                  "Threat Intelligence: ربط فوري بـ threat intel feeds لتصنيف التهديدات",
+                ],
+              },
+              {
+                id: "ndr", name: "NDR + XDR — Network & Extended Detection", color: "#00e5ff",
+                desc: "كشف التهديدات على مستوى حركة الشبكة وربطها مع EDR للحصول على صورة شاملة",
+                platforms: ["Darktrace (AI)", "ExtraHop", "Vectra AI", "Microsoft XDR", "Palo Alto Cortex XDR", "Cisco SecureX"],
+                capabilities: [
+                  "Network Traffic Analysis (NTA): تحليل كل حزمة شبكية بحثاً عن شذوذ",
+                  "East-West Traffic: رصد حركة الشبكة الداخلية لاكتشاف Lateral Movement",
+                  "Darktrace AI: ذكاء اصطناعي يتعلم 'الطبيعي' ويكتشف أي انحراف",
+                  "DNS Analytics: تحليل DNS tunneling ومحاولات C2 communication",
+                  "Encrypted Traffic Analysis (ETA): تحليل HTTPS دون فك التشفير",
+                  "XDR Correlation: ربط EDR + NDR + Cloud + Email في منصة واحدة",
+                ],
+              },
+            ].map((sys, i) => (
+              <motion.div key={sys.id} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.08 }}
+                className="rounded-2xl border p-4 space-y-3" style={{ borderColor: sys.color + "30", background: "rgba(0,0,0,0.8)" }}>
+                <div className="flex items-start gap-2">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: sys.color + "20", border: `1px solid ${sys.color}35` }}>
+                    <Monitor size={13} style={{ color: sys.color }} />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold font-mono text-white">{sys.name}</div>
+                  </div>
+                </div>
+                <p className="text-[9px] font-mono text-gray-400 leading-relaxed">{sys.desc}</p>
+                <div className="space-y-1">
+                  {sys.capabilities.map((c, ci) => (
+                    <div key={ci} className="flex items-start gap-1.5 text-[9px] font-mono">
+                      <span style={{ color: sys.color }} className="flex-shrink-0 mt-0.5">▸</span>
+                      <span className="text-gray-300">{c}</span>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <div className="text-[8px] font-mono text-gray-600 mb-1 tracking-widest">PLATFORMS</div>
+                  <div className="flex flex-wrap gap-1">
+                    {sys.platforms.map(p => (
+                      <span key={p} className="text-[8px] font-mono px-1.5 py-0.5 rounded"
+                        style={{ background: sys.color + "15", color: sys.color, border: `1px solid ${sys.color}25` }}>{p}</span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      );
+
+      case "deepfake": return (
+        <div className="space-y-4">
+          <div className="text-[10px] font-mono text-gray-500 mb-1">
+            تقنيات التزييف العميق — الصوت والوجه والصور الاصطناعية وتأثيرها على الأمن والمصداقية
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              {
+                id: "voice", name: "الصوت الاصطناعي (Voice Cloning)", color: "#ec4899",
+                desc: "محاكاة صوت أي شخص من 3 ثوانٍ من التسجيل — استخدام في الاحتيال والتصيد الصوتي",
+                tools: ["ElevenLabs", "Eleven.ai", "Resemble.ai", "Coqui TTS", "Real-Time-Voice-Cloning (OS)", "RVC (Retrieval Voice Conversion)"],
+                useCases: [
+                  "Vishing المتقدم: مكالمة 'مدير' الضحية يطلب تحويلاً مالياً عاجلاً",
+                  "25 مليون دولار سُرقت من موظف مالي في هونج كونج 2024 عبر مكالمة مزيفة",
+                  "انتحال شخصية أفراد العائلة لطلب مساعدة مالية طارئة",
+                  "تجاوز أنظمة التحقق الصوتي في البنوك والمؤسسات",
+                ],
+                defense: ["كلمة سر لحالات الطوارئ مع الأسرة", "اتصل على الرقم المعروف للتحقق", "أنظمة كشف صوت مزيف في call centers"],
+              },
+              {
+                id: "face", name: "تزييف الوجوه (Face Swap / Deepfake Video)", color: "#f97316",
+                desc: "دمج وجه أي شخص في مقاطع فيديو أخرى بواقعية شبه كاملة",
+                tools: ["DeepFaceLab", "Roop", "SimSwap", "FaceSwap (OS)", "HeyGen", "Synthesia", "D-ID"],
+                useCases: [
+                  "انتحال شخصية مسؤولين في مؤتمرات Zoom لتمرير قرارات احتيالية",
+                  "محتوى إباحي مزيف (NCII) للابتزاز وتشويه السمعة",
+                  "إنتاج أدلة مزيفة في نزاعات قانونية ومحاكم",
+                  "تزوير خطابات سياسية وتصريحات مسؤولين",
+                ],
+                defense: ["Deepfake detection tools: Deepware, Microsoft Video Authenticator", "تحقق من مصدر الفيديو الأصلي", "ابحث عن تلاشي حواف الوجه أو وميض العيون"],
+              },
+              {
+                id: "synthetic_images", name: "الصور الاصطناعية (Synthetic Faces)", color: "#8b5cf6",
+                desc: "إنشاء صور واقعية تماماً لأشخاص غير موجودين — لبناء هويات وهمية",
+                tools: ["ThisPersonDoesNotExist.com", "Stable Diffusion", "DALL-E 3", "Midjourney", "StyleGAN3", "InsightFace"],
+                useCases: [
+                  "إنشاء حسابات وهمية بصور واقعية للتجسس والـ Catfishing",
+                  "بناء شبكات من 'خبراء' وهميين للتأثير على الرأي العام",
+                  "تجاوز نظام KYC في منصات مالية بوثائق وهمية",
+                  "حملات تأثير مركبة بمئات الأشخاص الوهميين",
+                ],
+                defense: ["FotoForensics: كشف التلاعب بالصور", "تحقق من EXIF: صور AI لا تملك metadata", "Reverse image search: ابحث عن الصورة أولاً"],
+              },
+              {
+                id: "rt_deepfake", name: "Deepfake في الوقت الفعلي (Real-Time)", color: "#e21227",
+                desc: "تحويل وجه وصوت في الوقت الفعلي أثناء مكالمات الفيديو — الجيل القادم من الاحتيال",
+                tools: ["Avatarify", "Deep Live Cam", "FaceFusion (RT)", "Voice Changer RT", "Morphcast", "Wav2Lip (RT)"],
+                useCases: [
+                  "انتحال شخصية المدير التنفيذي في مكالمات Zoom مع موظفين",
+                  "تجاوز أنظمة liveness detection في بنوك والحكومات",
+                  "مقابلات عمل عن بُعد بوجه مستعار (تم توثيقه من FBI)",
+                  "Sextortion: تسجيل المكالمة ثم الابتزاز بمحتوى محرّف",
+                ],
+                defense: ["اطلب من الشخص تحريك أصبع أمام الوجه", "أنظمة liveness detection متعددة", "In-person verification للقرارات الحساسة"],
+              },
+            ].map((df, i) => (
+              <motion.div key={df.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                className="rounded-2xl border p-4 space-y-3" style={{ borderColor: df.color + "30", background: "rgba(0,0,0,0.8)" }}>
+                <div className="text-[10px] font-bold font-mono text-white">{df.name}</div>
+                <p className="text-[9px] font-mono text-gray-400 leading-relaxed">{df.desc}</p>
+                <div>
+                  <div className="text-[8px] font-mono text-gray-600 mb-1.5 tracking-widest">USE CASES</div>
+                  <div className="space-y-1">
+                    {df.useCases.map((u, ui) => (
+                      <div key={ui} className="flex items-start gap-1.5 text-[9px] font-mono">
+                        <span style={{ color: df.color }} className="flex-shrink-0 mt-0.5">▸</span>
+                        <span className="text-gray-300">{u}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[8px] font-mono text-gray-600 mb-1.5 tracking-widest">TOOLS</div>
+                  <div className="flex flex-wrap gap-1">
+                    {df.tools.map(t => (
+                      <span key={t} className="text-[8px] font-mono px-1.5 py-0.5 rounded"
+                        style={{ background: df.color + "18", color: df.color, border: `1px solid ${df.color}30` }}>{t}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-1 pt-1 border-t" style={{ borderColor: "#10b98120" }}>
+                  {df.defense.map((d, di) => (
+                    <div key={di} className="flex items-center gap-1.5 text-[9px] font-mono text-emerald-400">
+                      <Shield size={8} className="flex-shrink-0" />{d}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      );
+
+      case "bots": return (
+        <div className="space-y-4">
+          <div className="text-[10px] font-mono text-gray-500 mb-1">
+            البوتات والأتمتة — شبكات الحسابات الوهمية، التضخيم الاصطناعي، محاكاة السلوك البشري
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              {
+                id: "human_bots", name: "البوتات المتقدمة (Human-like Bots)", color: "#22d3ee",
+                desc: "بوتات تحاكي السلوك البشري بدقة لتجاوز أنظمة الكشف في منصات التواصل",
+                techniques: [
+                  "Random delays بين الإجراءات (1-5 ثوانٍ عشوائية)",
+                  "Mouse movement simulation: حركة فأرة طبيعية لا آلية",
+                  "Browser fingerprint randomization: بصمة متصفح جديدة لكل حساب",
+                  "Residential proxy rotation: IPs منازل حقيقية لا datacenter",
+                  "Activity patterns: نشاط خلال ساعات محددة + نوم + عطلات",
+                  "Content variation: تعديل المحتوى في كل تغريدة/منشور",
+                ],
+                tools: ["Selenium + undetected-chromedriver", "Playwright", "Puppeteer-stealth", "BotRight", "TweetAttacksPro"],
+              },
+              {
+                id: "fake_networks", name: "الشبكات الاجتماعية المزيفة (Sockpuppet Networks)", color: "#a855f7",
+                desc: "إنشاء وإدارة شبكات من آلاف الحسابات الوهمية للتأثير على الرأي العام",
+                techniques: [
+                  "Account aging: حسابات عمرها سنوات تبدو حقيقية وبها تاريخ",
+                  "Profile pictures: صور AI Synthetic من thisPersonDoesNotExist.com",
+                  "Cross-platform presence: نفس الشخص الوهمي على Twitter/Facebook/Reddit",
+                  "Social proof building: تفاعل الحسابات مع بعضها لبناء مصداقية",
+                  "Nesting: حسابات تتابع حسابات أخرى لتبدو نشطة في مجتمع",
+                  "Coordinated Inauthentic Behavior (CIB): تنسيق سري لنشر روايات",
+                ],
+                tools: ["Jarvee", "Follow Liker", "MassPlanner", "TweetAttacksPro", "SocialGhost"],
+              },
+              {
+                id: "amplification", name: "التضخيم الاصطناعي (Artificial Amplification)", color: "#f59e0b",
+                desc: "تضخيم محتوى معين ليتصدر Trending ويُكسب انتشاراً حقيقياً من خلال تفاعل اصطناعي",
+                techniques: [
+                  "Coordinated liking/retweeting: آلاف التفاعلات في دقائق",
+                  "Hashtag bombing: دفع هاشتاق لـ Trending بتكراره آلاف المرات",
+                  "Reply brigading: ملء التعليقات لإغراق الصوت المعارض",
+                  "Engagement pods: مجموعات سرية تتفاعل مع بعضها آلياً",
+                  "View farming: مشاهدات مزيفة لرفع الفيديو في الخوارزمية",
+                  "Cross-platform seeding: نشر على Reddit ثم Twitter ثم Facebook",
+                ],
+                tools: ["Botnets", "Click farms", "Social media automation APIs", "Custom Python bots"],
+              },
+              {
+                id: "metadata_exploit", name: "استغلال البيانات الوصفية (Metadata Exploitation)", color: "#10b981",
+                desc: "استخراج معلومات حساسة من البيانات الوصفية للصور والملفات المشاركة على الإنترنت",
+                techniques: [
+                  "EXIF GPS: إحداثيات دقيقة من صور iPhone/Android قبل تجريدها",
+                  "Timestamp Analysis: وقت الالتقاط الحقيقي لتحديد الروتين اليومي",
+                  "Device Fingerprinting: موديل الهاتف ورقم التسلسل من صور HEIC",
+                  "Document metadata: اسم المستخدم ووقت التحرير من ملفات Word/PDF",
+                  "Pattern recognition: ربط نمط النشر بالمنطقة الزمنية والموقع",
+                  "Cross-platform correlation: ربط حسابات متعددة عبر metadata مشتركة",
+                ],
+                tools: ["ExifTool", "Metagoofil", "FOCA", "Jeffrey's Exif Viewer", "MetaData2Go"],
+              },
+            ].map((b, i) => (
+              <motion.div key={b.id} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.08 }}
+                className="rounded-2xl border p-4 space-y-3" style={{ borderColor: b.color + "30", background: "rgba(0,0,0,0.8)" }}>
+                <div className="text-[10px] font-bold font-mono text-white">{b.name}</div>
+                <p className="text-[9px] font-mono text-gray-400 leading-relaxed">{b.desc}</p>
+                <div>
+                  <div className="text-[8px] font-mono text-gray-600 mb-1.5 tracking-widest">TECHNIQUES</div>
+                  <div className="space-y-1">
+                    {b.techniques.map((t, ti) => (
+                      <div key={ti} className="flex items-start gap-1.5 text-[9px] font-mono">
+                        <span style={{ color: b.color }} className="flex-shrink-0 mt-0.5">▸</span>
+                        <span className="text-gray-300">{t}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[8px] font-mono text-gray-600 mb-1 tracking-widest">TOOLS</div>
+                  <div className="flex flex-wrap gap-1">
+                    {b.tools.map(t => (
+                      <span key={t} className="text-[8px] font-mono px-1.5 py-0.5 rounded"
+                        style={{ background: b.color + "18", color: b.color, border: `1px solid ${b.color}30` }}>{t}</span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      );
+
+      case "defense": return (
+        <div className="space-y-4">
+          <div className="text-[10px] font-mono text-gray-500 mb-1">
+            استراتيجيات الحماية الشاملة — للأفراد والمؤسسات ضد جميع هجمات وسائل التواصل الاجتماعي
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              {
+                id: "individual", name: "الحماية الفردية — قائمة مرجعية", color: "#10b981",
+                items: [
+                  { label: "المصادقة الثنائية (2FA)", detail: "فعّل 2FA على جميع حساباتك — أفضل استخدام Authenticator App لا SMS" },
+                  { label: "مدير كلمات مرور", detail: "استخدم Bitwarden أو 1Password — كلمة مرور فريدة لكل موقع (+16 حرف)" },
+                  { label: "التحقق من الروابط", detail: "لا تنقر على أي رابط مشبوه — تحقق من URL قبل إدخال أي بيانات" },
+                  { label: "مراجعة الأذونات", detail: "راجع التطبيقات المرتبطة بحساباتك وأزل غير الضروري شهرياً" },
+                  { label: "Hardware Security Key", detail: "YubiKey/SoloKeys لـ 2FA لا يمكن phishing مفاتيحها" },
+                  { label: "حماية البيانات الوصفية", detail: "أزل EXIF من الصور قبل نشرها — تطبيق Scrambled Exif على Android" },
+                  { label: "خصوصية الملف الشخصي", detail: "اجعل حسابك خاصاً — لا تنشر معلومات يمكن استخدامها في OSINT" },
+                  { label: "Passkeys", detail: "فعّل Passkeys حيثما أمكن — أقوى من 2FA ضد جميع هجمات التصيد" },
+                ],
+              },
+              {
+                id: "enterprise", name: "الحماية المؤسسية — الطبقات الدفاعية", color: "#22d3ee",
+                items: [
+                  { label: "Zero Trust Architecture", detail: "لا ثقة ضمنية — تحقق من كل مستخدم وجهاز في كل طلب وصول" },
+                  { label: "Security Awareness Training", detail: "تدريب منتظم للموظفين + phishing simulations + KPIs قابلة للقياس" },
+                  { label: "Email Security", detail: "SPF + DKIM + DMARC صارم + anti-phishing filters + sandboxing" },
+                  { label: "SIEM + SOAR", detail: "مراقبة مستمرة + استجابة تلقائية — MTTD أقل من 30 دقيقة" },
+                  { label: "Endpoint Protection (EDR)", detail: "CrowdStrike/SentinelOne على كل جهاز + Threat Hunting استباقي" },
+                  { label: "Social Media Policy", detail: "سياسة واضحة لاستخدام وسائل التواصل + Brand monitoring مستمر" },
+                  { label: "Threat Intelligence", detail: "اشتراك في TI feeds + مراقبة Dark Web للبيانات المسربة" },
+                  { label: "Incident Response Plan", detail: "خطة استجابة موثقة + تدريبات Tabletop exercises ربع سنوية" },
+                ],
+              },
+              {
+                id: "osint_defense", name: "الحماية ضد OSINT — تقليص سطح الهجوم", color: "#a855f7",
+                items: [
+                  { label: "Google Yourself", detail: "ابحث عن اسمك + بريدك — ستعرف ما يعرفه المهاجم عنك" },
+                  { label: "تنظيف البيانات القديمة", detail: "احذف حسابات قديمة + طلب حذف من data brokers (Spokeo, Whitepages)" },
+                  { label: "Privacy Settings", detail: "راجع إعدادات الخصوصية في كل منصة — من يرى ماذا؟" },
+                  { label: "اسم مستخدم مختلف", detail: "استخدم أسماء مستخدمين مختلفة على منصات مختلفة — أصعب correlation" },
+                  { label: "VPN + Tor", detail: "استخدم VPN موثوقاً (Mullvad/ProtonVPN) + Tor للمهام الحساسة" },
+                  { label: "Compartmentalization", detail: "افصل هويتك المهنية عن الشخصية عبر الإنترنت" },
+                ],
+              },
+              {
+                id: "detection", name: "الكشف المبكر — علامات التحذير", color: "#f59e0b",
+                items: [
+                  { label: "تنبيهات Google Alerts", detail: "اشترك لتنبيهات باسمك + شركتك + نطاقك — اعرف متى يذكرك أحد" },
+                  { label: "HaveIBeenPwned", detail: "راقب haveibeenpwned.com لمعرفة تسريب بريدك/كلمات مرورك" },
+                  { label: "Login notifications", detail: "فعّل إشعارات تسجيل الدخول — اعرف من يصل لحسابك ومن أين" },
+                  { label: "مراجعة Authorized Apps", detail: "راجع شهرياً التطبيقات التي تصل لحساباتك — أزل المشبوهة فوراً" },
+                  { label: "Brand Monitoring", detail: "راقب ذكر علامتك التجارية + أي نطاق مشابه (Typosquatting)" },
+                  { label: "Dark Web Monitoring", detail: "خدمات مثل Flare.io أو SpyCloud تراقب Dark Web لبياناتك" },
+                ],
+              },
+            ].map((def, i) => (
+              <motion.div key={def.id} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.08 }}
+                className="rounded-2xl border p-4 space-y-3" style={{ borderColor: def.color + "30", background: "rgba(0,0,0,0.8)" }}>
+                <div className="text-[10px] font-bold font-mono text-white">{def.name}</div>
+                <div className="space-y-2">
+                  {def.items.map((item, ii) => (
+                    <div key={ii} className="p-2 rounded-lg space-y-0.5" style={{ background: def.color + "08" }}>
+                      <div className="flex items-center gap-1.5">
+                        <Shield size={8} style={{ color: def.color }} />
+                        <span className="text-[9px] font-bold font-mono text-white">{item.label}</span>
+                      </div>
+                      <div className="text-[8px] font-mono text-gray-400 pl-3.5">{item.detail}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      );
+
       case "terminal": return <HackTerminal />;
       default: return <OverviewSection />;
     }

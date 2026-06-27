@@ -276,6 +276,7 @@ const AdminDashboardPage    = lazy(() => import("./pages/AdminDashboard").then(m
 const OrganizationsPage     = lazy(() => import("./pages/OrganizationsPage").then(m=>({default:m.OrganizationsPage})));
 const PentestLabPage        = lazy(() => import("./pages/PentestLabPage").then(m=>({default:m.PentestLabPage})));
 const SocialMediaArsenalPage = lazy(() => import("./pages/SocialMediaArsenalPage").then(m=>({default:m.SocialMediaArsenalPage})));
+const APTIntelPage          = lazy(() => import("./pages/APTIntelPage").then(m=>({default:m.APTIntelPage})));
 const MarketplacePage       = lazy(() => import("./pages/MarketplacePage").then(m=>({default:m.MarketplacePage})));
 const PaymentGatewayPage    = lazy(() => import("./pages/PaymentGatewayPage").then(m=>({default:m.PaymentGatewayPage})));
 const FinetunePage          = lazy(() => import("./pages/FinetunePage").then(m=>({default:m.FinetunePage})));
@@ -365,6 +366,7 @@ const MODAL_IDS = [
   'systemsHub3D',
   'infraMap3D',
   'socialMediaArsenal',
+  'aptIntel',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -802,6 +804,7 @@ function AppContent() {
         onOpenMultiModelRace={() => open('multiModelRace')}
         onOpenLocalBenchmark={() => open('localBenchmark')}
         onOpenKgSocialArsenal={() => open('socialMediaArsenal')}
+        onOpenAptIntel={() => open('aptIntel')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
@@ -1524,6 +1527,13 @@ function AppContent() {
         {modals.infraMap3D && (
           <WindowChrome open={true} title="Infrastructure Map 3D" color="#a78bfa" onClose={() => close('infraMap3D')}>
             <InfrastructureMap3DPage />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.aptIntel && (
+          <WindowChrome open={true} title="◈ مركز استخبارات APT النخبة" color="#a855f7" onClose={() => close('aptIntel')}>
+            <APTIntelPage onClose={() => close('aptIntel')} />
           </WindowChrome>
         )}
       </Suspense>
