@@ -52,6 +52,7 @@ import { GlobalStatusBar } from "./components/GlobalStatusBar";
 import { PerformanceCommandCenter } from "./components/PerformanceCommandCenter";
 import { AIController } from "./lib/AIController";
 import { AIControllerHUD } from "./components/AIControllerHUD";
+import { NexusExecutorHUD, registerNexusDispatchers } from "./components/NexusExecutor";
 import { frameScheduler } from "./lib/frame-scheduler";
 import { memoryPressure } from "./lib/memory-pressure";
 import { thermalGuard } from "./lib/thermal-guard";
@@ -453,15 +454,17 @@ function AppContent() {
   // ── AI CONTROLLER REGISTRATION ────────────────────────────────────────────
   const [controllerEnabled, setControllerEnabled] = useState(true);
   useEffect(() => {
-    AIController.register({
-      openModal:  (id) => mDispatch({ type: 'OPEN',   id: id as ModalId }),
-      closeModal: (id) => mDispatch({ type: 'CLOSE',  id: id as ModalId }),
-      toggleModal:(id) => mDispatch({ type: 'TOGGLE', id: id as ModalId }),
-      dispatch:   (action) => dispatch(action as Parameters<typeof dispatch>[0]),
+    const dispatchers = {
+      openModal:  (id: string) => mDispatch({ type: 'OPEN',   id: id as ModalId }),
+      closeModal: (id: string) => mDispatch({ type: 'CLOSE',  id: id as ModalId }),
+      toggleModal:(id: string) => mDispatch({ type: 'TOGGLE', id: id as ModalId }),
+      dispatch:   (action: Parameters<typeof dispatch>[0]) => dispatch(action),
       getState:   () => state as unknown as Record<string, unknown>,
       getModals:  () => modals as unknown as Record<string, boolean>,
-      toast:      (msg) => toast({ description: msg }),
-    });
+      toast:      (msg: string) => toast({ description: msg }),
+    };
+    AIController.register(dispatchers);
+    registerNexusDispatchers(dispatchers);
   }, [dispatch, modals, state, toast]);
 
   // ── NON-BOOLEAN STATE ─────────────────────────────────────────────────────
@@ -763,9 +766,21 @@ function AppContent() {
     });
   }
 
+  // NEXUS dispatchers object for HUD (memo-stable reference passed as prop)
+  const nexusDispatchers = {
+    openModal:  (id: string) => mDispatch({ type: 'OPEN',   id: id as ModalId }),
+    closeModal: (id: string) => mDispatch({ type: 'CLOSE',  id: id as ModalId }),
+    toggleModal:(id: string) => mDispatch({ type: 'TOGGLE', id: id as ModalId }),
+    dispatch:   (action: Parameters<typeof dispatch>[0]) => dispatch(action),
+    getState:   () => state as unknown as Record<string, unknown>,
+    getModals:  () => modals as unknown as Record<string, boolean>,
+    toast:      (msg: string) => toast({ description: msg }),
+  };
+
   return (
     <>
     {!bootDone && <BootScreen onDone={() => setBootDone(true)} />}
+    <NexusExecutorHUD dispatchers={nexusDispatchers} />
     <PerformanceCommandCenter open={perfCCOpen} onClose={() => setPerfCCOpen(false)} />
     <PerformanceBooster />
     <div className="flex h-[100dvh] w-full overflow-hidden text-foreground selection:bg-primary/30 dark relative" style={{ zIndex: 1 }}>

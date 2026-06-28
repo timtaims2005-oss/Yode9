@@ -27,6 +27,8 @@ import { ChatScrollArea } from "./chat/ChatScrollArea";
 import { ChatInput } from "./chat/ChatInput";
 import { QuickActionBar } from "./chat/QuickActionBar";
 import { SecurityMissionsBar } from "./SecurityMissionsBar";
+import { buildNexusSystemPrompt } from "@/lib/NexusInterceptor";
+import { executeNexusResponse } from "./NexusExecutor";
 
 function escapeHtml(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -164,7 +166,23 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       high: "\n\n[DEEP REASONING MODE: MAXIMUM]\nBefore providing your response, exhaustively reason through the problem:\n<thinking>\n1. Decompose the problem into its fundamental components\n2. Analyze each component from first principles without assumptions\n3. Consider ALL possible approaches, interpretations, and edge cases\n4. Identify potential flaws or gaps in your reasoning\n5. Challenge your own conclusions — play devil's advocate\n6. Build up the answer systematically from the ground up\n7. Verify your conclusion with a sanity check\n8. Consider second-order effects and implications\n</thinking>\nNow provide your complete, deeply-considered response:",
     };
     const thinkingInject = thinkingPrefixes[state.settings.thinkingMode ?? "off"] ?? "";
-    const customSysPrompt = rawSysPrompt ? rawSysPrompt + comboDecoder + thinkingInject : ((comboDecoder + thinkingInject).trim() || undefined);
+    // ── NEXUS INTERCEPTOR: حقن سياق التحكم الكامل ─────────────────────────
+    const nexusCtx = {
+      activeProvider: state.activeProvider ?? undefined,
+      activeModel: state.activeModel ?? undefined,
+      themeAccent: (state as Record<string, unknown>).themeAccent as string | undefined,
+      activeGlobeTheme: (state as Record<string, unknown>).activeGlobeTheme as string | undefined,
+      activePersonaPreset: (state.settings as Record<string, unknown>).activePersonaPreset as string | undefined,
+      temperature: (state.settings as Record<string, unknown>).temperature as number | undefined,
+      maxTokens: (state.settings as Record<string, unknown>).maxTokens as number | undefined,
+      streaming: (state.settings as Record<string, unknown>).streaming as boolean | undefined,
+      openModals: [],
+      language: state.settings.language,
+    };
+    const nexusBlock = "\n\n" + buildNexusSystemPrompt(nexusCtx);
+    const customSysPrompt = rawSysPrompt
+      ? rawSysPrompt + comboDecoder + thinkingInject + nexusBlock
+      : ((comboDecoder + thinkingInject).trim() || "") + nexusBlock || nexusBlock;
     const useLocal = state.settings.useLocalModel;
     const localEndpoint = state.settings.localEndpoint || "http://localhost:11434/v1";
     const localModel = state.settings.localModel || "tinyllama";
@@ -280,6 +298,10 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
         if (elapsedSec > 0.5) setStreamTps(Math.round((acc.length / 4) / elapsedSec));
       }
       setStreaming(false);
+      // ── NEXUS EXECUTOR: تنفيذ الأوامر تلقائياً من رد الذكاء الاصطناعي ──────
+      if (acc) {
+        executeNexusResponse(acc).catch(() => {});
+      }
       if (mode === "orchestrator" && acc) {
         const cmds = parseOrchestratorCommands(acc);
         if (cmds.length > 0) {
