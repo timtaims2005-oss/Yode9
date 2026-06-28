@@ -220,45 +220,59 @@ export function NexusExecutorHUD({ dispatchers }: NexusExecutorProps) {
           )}
 
           {/* Main Badge */}
-          <button
-            onClick={() => NexusCore.toggleActivityLog()}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95"
-            style={{
-              background: executionState.running
-                ? "rgba(0,255,136,0.12)"
-                : "rgba(0,10,20,0.85)",
-              borderColor: executionState.running ? "#00ff88" : "#00ff8840",
-              boxShadow: executionState.running
-                ? "0 0 16px #00ff8840"
-                : "0 0 8px #00ff8815",
-              backdropFilter: "blur(12px)",
-            }}
-          >
-            <span
-              className={`text-xs font-bold tracking-widest ${
-                executionState.running
-                  ? "text-emerald-400 animate-pulse"
-                  : "text-emerald-400/60"
-              }`}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => NexusCore.toggleActivityLog()}
+              className="flex items-center gap-2 px-3 py-2 rounded-l-xl border-y border-l transition-all duration-200 hover:scale-105 active:scale-95"
+              style={{
+                background: executionState.running
+                  ? "rgba(0,255,136,0.12)"
+                  : "rgba(0,10,20,0.85)",
+                borderColor: executionState.running ? "#00ff88" : "#00ff8840",
+                boxShadow: executionState.running
+                  ? "0 0 16px #00ff8840"
+                  : "0 0 8px #00ff8815",
+                backdropFilter: "blur(12px)",
+              }}
             >
-              NEXUS
-            </span>
-            {activityLog.length > 0 && (
               <span
-                className="text-xs px-1.5 py-0.5 rounded-full font-bold"
-                style={{
-                  background: "#00ff8820",
-                  color: "#00ff88",
-                  fontSize: "10px",
-                }}
+                className={`text-xs font-bold tracking-widest ${
+                  executionState.running
+                    ? "text-emerald-400 animate-pulse"
+                    : "text-emerald-400/60"
+                }`}
               >
-                {activityLog.length}
+                NEXUS
               </span>
-            )}
-            {executionState.running && (
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-            )}
-          </button>
+              {activityLog.length > 0 && (
+                <span
+                  className="text-xs px-1.5 py-0.5 rounded-full font-bold"
+                  style={{
+                    background: "#00ff8820",
+                    color: "#00ff88",
+                    fontSize: "10px",
+                  }}
+                >
+                  {activityLog.length}
+                </span>
+              )}
+              {executionState.running && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              )}
+            </button>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("nexus:open-panel"))}
+              className="flex items-center justify-center w-8 h-[38px] rounded-r-xl border-y border-r transition-all duration-200 hover:bg-emerald-400/10 active:scale-95"
+              title="فتح لوحة NEXUS الكاملة (Ctrl+Shift+N)"
+              style={{
+                background: "rgba(0,10,20,0.85)",
+                borderColor: "#00ff8840",
+                backdropFilter: "blur(12px)",
+              }}
+            >
+              <span className="text-emerald-400/60 text-xs">⊞</span>
+            </button>
+          </div>
         </div>
       )}
     </>

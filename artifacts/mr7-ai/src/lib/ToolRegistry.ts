@@ -656,7 +656,7 @@ export const NEXUS_TOOL_REGISTRY: NexusTool[] = [
     },
     execute: (p, d) => {
       const text = String(p.instructions ?? "");
-      d.dispatch({ type: "SET_CUSTOM_INSTRUCTIONS", instructions: text });
+      d.dispatch({ type: "SET_CUSTOM_INSTRUCTIONS", text });
       return { actionId: "set_custom_instructions", success: true, message: "Custom instructions updated", messageAr: "تم تحديث التعليمات المخصصة" };
     },
   },

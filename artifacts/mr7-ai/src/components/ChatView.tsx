@@ -348,7 +348,10 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       );
     } catch (err) {
       if ((err as { name?: string })?.name !== "AbortError") { update({ ...payload, phase: "error", error: err instanceof Error ? err.message : "Godmode failed." }); toast({ description: err instanceof Error ? err.message : "Godmode failed." }); }
-    } finally { setStreaming(false); }
+    } finally {
+      setStreaming(false);
+      if (payload.winnerContent) executeNexusResponse(payload.winnerContent).catch(() => {});
+    }
   }
 
   function stopStreaming() { abortRef.current?.abort(); setStreaming(false); toast({ description: t("toast.stopped") }); }
@@ -394,7 +397,10 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       );
     } catch (err) {
       if ((err as { name?: string })?.name !== "AbortError") { update({ ...council, phase: "error", error: err instanceof Error ? err.message : "Council failed." }); toast({ description: err instanceof Error ? err.message : "Council failed." }); }
-    } finally { setStreaming(false); }
+    } finally {
+      setStreaming(false);
+      if (council.synthesis) executeNexusResponse(council.synthesis).catch(() => {});
+    }
   }
 
   async function send(text: string) {

@@ -53,6 +53,7 @@ import { PerformanceCommandCenter } from "./components/PerformanceCommandCenter"
 import { AIController } from "./lib/AIController";
 import { AIControllerHUD } from "./components/AIControllerHUD";
 import { NexusExecutorHUD, registerNexusDispatchers } from "./components/NexusExecutor";
+import { NexusPanel } from "./components/NexusPanel";
 import { frameScheduler } from "./lib/frame-scheduler";
 import { memoryPressure } from "./lib/memory-pressure";
 import { thermalGuard } from "./lib/thermal-guard";
@@ -370,6 +371,7 @@ const MODAL_IDS = [
   'infraMap3D',
   'socialMediaArsenal',
   'aptIntel',
+  'nexusPanel',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -689,6 +691,7 @@ function AppContent() {
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "i") { e.preventDefault(); toggle('intelligenceCore'); }
       if (!inField && (e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "h") { e.preventDefault(); toggle('widgetsDock'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "g") { e.preventDefault(); toggle('omegaAgent'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "n") { e.preventDefault(); toggle('nexusPanel'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "j") { e.preventDefault(); toggle('finetune'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "d") { e.preventDefault(); toggle('debate'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "p") { e.preventDefault(); toggle('providerSettings'); }
@@ -745,13 +748,16 @@ function AppContent() {
       dispatch({ type: "NEW_CHAT" });
       if (title) setTimeout(() => dispatch({ type: "RENAME_CHAT", id: "", title }), 50);
     }
+    function onNexusOpenPanel() { open('nexusPanel'); }
     window.addEventListener("kali:open-module", onOpenModule);
     window.addEventListener("kali:open-arsenal", onOpenArsenal);
     window.addEventListener("kali:new-chat", onNewChat);
+    window.addEventListener("nexus:open-panel", onNexusOpenPanel);
     return () => {
       window.removeEventListener("kali:open-module", onOpenModule);
       window.removeEventListener("kali:open-arsenal", onOpenArsenal);
       window.removeEventListener("kali:new-chat", onNewChat);
+      window.removeEventListener("nexus:open-panel", onNexusOpenPanel);
     };
   }, [open, dispatch]);
 
@@ -836,6 +842,7 @@ function AppContent() {
         onOpenLocalBenchmark={() => open('localBenchmark')}
         onOpenKgSocialArsenal={() => open('socialMediaArsenal')}
         onOpenAptIntel={() => open('aptIntel')}
+        onOpenNexusPanel={() => open('nexusPanel')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
@@ -997,6 +1004,11 @@ function AppContent() {
         <WindowChrome open={modals.nexus} color="#fbbf24" title="NEXUS AGENT" onClose={() => close('nexus')}>
           <NexusModal open={modals.nexus} onOpenChange={(v) => mDispatch({type:'SET',id:'nexus',value:v})} />
         </WindowChrome>
+        <NexusPanel
+          open={modals.nexusPanel}
+          onClose={() => close('nexusPanel')}
+          dispatchers={nexusDispatchers}
+        />
         <WindowChrome open={modals.arsenal} color="#00e5ff" title="ARSENAL HUB" onClose={() => close('arsenal')}>
           <ArsenalHubModal open={modals.arsenal} onOpenChange={(v) => mDispatch({type:'SET',id:'arsenal',value:v})} onLaunch={handleArsenalLaunch} />
         </WindowChrome>

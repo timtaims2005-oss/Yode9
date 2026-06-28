@@ -1,7 +1,7 @@
 /**
  * KaliGPT Service Worker — PWA offline support
  */
-const CACHE_NAME = "kaligpt-v3";
+const CACHE_NAME = "kaligpt-v4";
 const STATIC_ASSETS = [
   "/",
   "/manifest.json",
@@ -28,15 +28,16 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  if (url.pathname.startsWith("/api/")) {
-    event.respondWith(
-      fetch(request).catch(() =>
-        new Response(JSON.stringify({ error: "Offline — no connection" }), {
-          status: 503,
-          headers: { "Content-Type": "application/json" },
-        })
-      )
-    );
+  // Never cache API requests or Vite dev-server source files
+  if (
+    url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/src/") ||
+    url.pathname.startsWith("/node_modules/") ||
+    url.pathname.startsWith("/@") ||
+    url.search.includes("t=") ||
+    url.search.includes("v=")
+  ) {
+    event.respondWith(fetch(request));
     return;
   }
 
