@@ -54,6 +54,10 @@ import { AIController } from "./lib/AIController";
 import { AIControllerHUD } from "./components/AIControllerHUD";
 import { NexusExecutorHUD, registerNexusDispatchers } from "./components/NexusExecutor";
 import { NexusPanel } from "./components/NexusPanel";
+import { registerOmnixDispatchers } from "./lib/OmnixExecutor";
+import { OmnixHUDPanel, OmnixFloatingBadge } from "./components/OmnixHUD";
+import { OmnixVoice } from "./components/OmnixVoice";
+import { OmnixSelfEvolution } from "./components/OmnixSelfEvolution";
 import { frameScheduler } from "./lib/frame-scheduler";
 import { memoryPressure } from "./lib/memory-pressure";
 import { thermalGuard } from "./lib/thermal-guard";
@@ -783,10 +787,43 @@ function AppContent() {
     toast:      (msg: string) => toast({ description: msg }),
   };
 
+  // ── OMNIX panel state ──────────────────────────────────────────────────────
+  const [omnixPanelOpen, setOmnixPanelOpen] = useState(false);
+  const [omnixVoiceOpen, setOmnixVoiceOpen] = useState(false);
+  const [omnixEvoOpen, setOmnixEvoOpen] = useState(false);
+
+  // Register OMNIX dispatchers so executor can call them
+  useEffect(() => {
+    registerNexusDispatchers(nexusDispatchers);
+    registerOmnixDispatchers(nexusDispatchers);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <>
     {!bootDone && <BootScreen onDone={() => setBootDone(true)} />}
     <NexusExecutorHUD dispatchers={nexusDispatchers} />
+    {/* ── OMNIX ABSOLUTE SYSTEM ─────────────────────────────────────────── */}
+    <OmnixHUDPanel
+      dispatchers={nexusDispatchers}
+      open={omnixPanelOpen}
+      onClose={() => setOmnixPanelOpen(false)}
+    />
+    <OmnixVoice
+      dispatchers={nexusDispatchers}
+      open={omnixVoiceOpen}
+      onClose={() => setOmnixVoiceOpen(false)}
+    />
+    <OmnixSelfEvolution
+      dispatchers={nexusDispatchers}
+      open={omnixEvoOpen}
+      onClose={() => setOmnixEvoOpen(false)}
+    />
+    <OmnixFloatingBadge
+      onOpenPanel={() => setOmnixPanelOpen(true)}
+      onOpenVoice={() => setOmnixVoiceOpen(true)}
+      onOpenEvolution={() => setOmnixEvoOpen(true)}
+    />
     <PerformanceCommandCenter open={perfCCOpen} onClose={() => setPerfCCOpen(false)} />
     <PerformanceBooster />
     <div className="flex h-[100dvh] w-full overflow-hidden text-foreground selection:bg-primary/30 dark relative" style={{ zIndex: 1 }}>

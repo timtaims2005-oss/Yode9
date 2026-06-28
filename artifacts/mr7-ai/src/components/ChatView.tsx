@@ -29,6 +29,7 @@ import { QuickActionBar } from "./chat/QuickActionBar";
 import { SecurityMissionsBar } from "./SecurityMissionsBar";
 import { buildNexusSystemPrompt } from "@/lib/NexusInterceptor";
 import { executeNexusResponse } from "./NexusExecutor";
+import { executeOmnixResponse } from "@/lib/OmnixExecutor";
 
 function escapeHtml(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -298,9 +299,9 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
         if (elapsedSec > 0.5) setStreamTps(Math.round((acc.length / 4) / elapsedSec));
       }
       setStreaming(false);
-      // ── NEXUS EXECUTOR: تنفيذ الأوامر تلقائياً من رد الذكاء الاصطناعي ──────
+      // ── OMNIX EXECUTOR: تنفيذ الأوامر تلقائياً (OMNIX + NEXUS fallback) ──────
       if (acc) {
-        executeNexusResponse(acc).catch(() => {});
+        executeOmnixResponse(acc).catch(() => executeNexusResponse(acc).catch(() => {}));
       }
       if (mode === "orchestrator" && acc) {
         const cmds = parseOrchestratorCommands(acc);
@@ -350,7 +351,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       if ((err as { name?: string })?.name !== "AbortError") { update({ ...payload, phase: "error", error: err instanceof Error ? err.message : "Godmode failed." }); toast({ description: err instanceof Error ? err.message : "Godmode failed." }); }
     } finally {
       setStreaming(false);
-      if (payload.winnerContent) executeNexusResponse(payload.winnerContent).catch(() => {});
+      if (payload.winnerContent) executeOmnixResponse(payload.winnerContent).catch(() => executeNexusResponse(payload.winnerContent!).catch(() => {}));
     }
   }
 
@@ -399,7 +400,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       if ((err as { name?: string })?.name !== "AbortError") { update({ ...council, phase: "error", error: err instanceof Error ? err.message : "Council failed." }); toast({ description: err instanceof Error ? err.message : "Council failed." }); }
     } finally {
       setStreaming(false);
-      if (council.synthesis) executeNexusResponse(council.synthesis).catch(() => {});
+      if (council.synthesis) executeOmnixResponse(council.synthesis).catch(() => executeNexusResponse(council.synthesis!).catch(() => {}));
     }
   }
 

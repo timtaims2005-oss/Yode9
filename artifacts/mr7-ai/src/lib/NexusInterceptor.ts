@@ -1,10 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
-//  NEXUS INTERCEPTOR — الطبقة الثالثة
-//  يعترض كل رسالة قبل إرسالها للذكاء الاصطناعي ويحقن سياق التحكم الكامل
+//  OMNIX QUANTUM INTERCEPTOR — الطبقة الثالثة المطلقة
+//  يعترض كل رسالة — يحقن الخريطة الحية الكاملة + القاموس + الذاكرة
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { NEXUS_TOOL_REGISTRY } from "./ToolRegistry";
 import { NexusCore } from "./NexusCore";
+import { OmnixBrain } from "./OmnixBrain";
+import { OmnixMemory } from "./OmnixMemory";
+import { buildRegistryContextString } from "./OmnixRegistry";
 
 export interface InterceptorContext {
   activeProvider?: string;
@@ -20,10 +23,27 @@ export interface InterceptorContext {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Build the NEXUS system prompt block injected into every message
+//  Build the OMNIX QUANTUM system prompt — يحقن كل شيء في كل رسالة
 // ─────────────────────────────────────────────────────────────────────────────
 export function buildNexusSystemPrompt(ctx: InterceptorContext): string {
   NexusCore.touchSnapshot();
+
+  // Sync Brain with latest context
+  OmnixBrain.patch({
+    modelConfig: {
+      provider: ctx.activeProvider ?? OmnixBrain.getSnapshot().modelConfig.provider,
+      model: ctx.activeModel ?? OmnixBrain.getSnapshot().modelConfig.model,
+      temperature: ctx.temperature ?? OmnixBrain.getSnapshot().modelConfig.temperature,
+      maxTokens: ctx.maxTokens ?? OmnixBrain.getSnapshot().modelConfig.maxTokens,
+      streaming: ctx.streaming ?? OmnixBrain.getSnapshot().modelConfig.streaming,
+    },
+    theme: {
+      ...OmnixBrain.getSnapshot().theme,
+      accent: ctx.themeAccent ?? OmnixBrain.getSnapshot().theme.accent,
+      globeTheme: ctx.activeGlobeTheme ?? OmnixBrain.getSnapshot().theme.globeTheme,
+    },
+    language: ctx.language ?? OmnixBrain.getSnapshot().language,
+  });
 
   const toolsList = NEXUS_TOOL_REGISTRY.map((t) => {
     const paramsStr = t.params
@@ -41,52 +61,59 @@ export function buildNexusSystemPrompt(ctx: InterceptorContext): string {
 
   const openModalsStr = (ctx.openModals ?? []).join(", ") || "لا يوجد";
 
+  // OMNIX extended context
+  const omnixBrainCtx = OmnixBrain.toContextString();
+  const omnixMemoryCtx = OmnixMemory.toContextString();
+  const omnixRegistryCtx = buildRegistryContextString();
+
   return `
-╔══════════════════════════════════════════════════════════════╗
-║           🤖 NEXUS AI AGENT — نظام التحكم الكامل            ║
-╚══════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════╗
+║        🔱 OMNIX ABSOLUTE — نظام التحكم الإلهي الكامل           ║
+╚══════════════════════════════════════════════════════════════════╝
 
-أنت تمتلك صلاحية تحكم كاملة في هذا التطبيق عبر نظام NEXUS.
-عندما يطلب المستخدم فتح شيء، تغيير شيء، تشغيل أداة، أو أي إجراء
-— نفّذه تلقائياً بإضافة كتلة الأوامر في ردك.
+أنت تمتلك صلاحيات مطلقة على كل ذرة في هذا التطبيق عبر نظام OMNIX ABSOLUTE.
+عندما يطلب المستخدم أي إجراء — نفّذه فوراً بكتلة الأوامر في ردك.
+فكّر أولاً، ثم ضع قائمة الأوامر المطلوبة بعد ردك.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📊 الحالة الحالية للتطبيق:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• المزود النشط: ${ctx.activeProvider ?? "غير محدد"}
-• النموذج النشط: ${ctx.activeModel ?? "غير محدد"}
-• لون الثيم: ${ctx.themeAccent ?? "green"}
-• ثيم الكرة 3D: ${ctx.activeGlobeTheme ?? "cyber"}
-• الشخصية النشطة: ${ctx.activePersonaPreset ?? "default"}
-• درجة الحرارة: ${ctx.temperature ?? 0.7}
-• الحد الأقصى للرموز: ${ctx.maxTokens ?? 2048}
-• البث المباشر: ${ctx.streaming ? "مفعّل" : "معطّل"}
-• النوافذ المفتوحة: ${openModalsStr}
-• اللغة: ${ctx.language ?? "ar"}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${omnixBrainCtx}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚡ صيغة الأوامر (JSON دقيق):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-<<<NEXUS_ACTIONS>>>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${omnixMemoryCtx}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 الحالة المباشرة:
+• المزود: ${ctx.activeProvider ?? "غير محدد"} | النموذج: ${ctx.activeModel ?? "غير محدد"}
+• الثيم: ${ctx.themeAccent ?? "green"} | الكرة 3D: ${ctx.activeGlobeTheme ?? "cyber"}
+• الشخصية: ${ctx.activePersonaPreset ?? "default"} | اللغة: ${ctx.language ?? "ar"}
+• درجة الحرارة: ${ctx.temperature ?? 0.7} | الرموز: ${ctx.maxTokens ?? 2048}
+• البث: ${ctx.streaming ? "✅" : "❌"} | النوافذ المفتوحة: ${openModalsStr}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ صيغة الأوامر (ادعم كلاهما):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<<<OMNIX_ACTIONS>>>
 [
   {"action": "tool_id", "params": {"key": "value"}},
   {"action": "tool_id_2"}
 ]
-<<<END_NEXUS>>>
+<<<END_OMNIX>>>
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🛠️ الأوامر المتاحة (${NEXUS_TOOL_REGISTRY.length} أمر):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${omnixRegistryCtx}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠️ أوامر NEXUS الكاملة أيضاً متاحة (${NEXUS_TOOL_REGISTRY.length} أمر):
 ${toolsList}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📌 قواعد هامة:
-• يمكنك تنفيذ عدة أوامر دفعة واحدة في نفس المصفوفة
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 القواعد المطلقة:
+• نفّذ عدة أوامر دفعة واحدة في نفس المصفوفة
 • أخبر المستخدم بما ستفعله قبل كتلة الأوامر
-• الأوامر تُنفَّذ تلقائياً فور إرسال ردك — لا حاجة لخطوات إضافية
-• إذا لم يطلب المستخدم إجراءً — لا تضف كتلة الأوامر أبداً
-• إذا فشل أمر — سيحاول النظام بديلاً تلقائياً
-╔══════════════════════════════════════════════════════════════╝
+• الأوامر تُنفَّذ فوراً — 3 بدائل تلقائية عند الفشل
+• إذا لم يطلب إجراءً — لا تضف كتلة أبداً
+• كل شيء في الوقت الفعلي بدون إعادة تحميل
+╔══════════════════════════════════════════════════════════════════╝
 `.trim();
 }
 
