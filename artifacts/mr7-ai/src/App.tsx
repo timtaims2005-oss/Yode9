@@ -50,6 +50,8 @@ import { OfflineQueueBanner } from "./components/OfflineQueueBanner";
 import { PerfMonitor } from "./components/PerfMonitor";
 import { GlobalStatusBar } from "./components/GlobalStatusBar";
 import { PerformanceCommandCenter } from "./components/PerformanceCommandCenter";
+import { AIController } from "./lib/AIController";
+import { AIControllerHUD } from "./components/AIControllerHUD";
 import { frameScheduler } from "./lib/frame-scheduler";
 import { memoryPressure } from "./lib/memory-pressure";
 import { thermalGuard } from "./lib/thermal-guard";
@@ -447,6 +449,20 @@ function AppContent() {
   const open   = useCallback((id: ModalId) => mDispatch({ type: 'OPEN',   id }), []);
   const close  = useCallback((id: ModalId) => mDispatch({ type: 'CLOSE',  id }), []);
   const toggle = useCallback((id: ModalId) => mDispatch({ type: 'TOGGLE', id }), []);
+
+  // ── AI CONTROLLER REGISTRATION ────────────────────────────────────────────
+  const [controllerEnabled, setControllerEnabled] = useState(true);
+  useEffect(() => {
+    AIController.register({
+      openModal:  (id) => mDispatch({ type: 'OPEN',   id: id as ModalId }),
+      closeModal: (id) => mDispatch({ type: 'CLOSE',  id: id as ModalId }),
+      toggleModal:(id) => mDispatch({ type: 'TOGGLE', id: id as ModalId }),
+      dispatch:   (action) => dispatch(action as Parameters<typeof dispatch>[0]),
+      getState:   () => state as unknown as Record<string, unknown>,
+      getModals:  () => modals as unknown as Record<string, boolean>,
+      toast:      (msg) => toast({ description: msg }),
+    });
+  }, [dispatch, modals, state, toast]);
 
   // ── NON-BOOLEAN STATE ─────────────────────────────────────────────────────
   const [arsenalPage, setArsenalPage] = useState<ArsenalModuleId | "ai-terminal" | null>(null);
@@ -874,7 +890,7 @@ function AppContent() {
           onToggleGlobalStatus={() => setShowGlobalStatus(v => !v)}
           onToggleOfflineQueue={() => setShowOfflineQueue(v => !v)}
         />
-        <ChatView onOpenOsintDash={() => open('osintDash')} />
+        <ChatView onOpenOsintDash={() => open('osintDash')} controllerEnabled={controllerEnabled} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
       </main>
 
