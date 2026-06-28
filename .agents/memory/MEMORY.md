@@ -31,3 +31,4 @@
 - [mr7-ai mux-ws](mr7-ai-mux-ws.md) — /api/mux WS endpoint in api-server proxies HTTP via 127.0.0.1; client scheduleReconnect() must limit to RECONNECT_DELAY_MS.length attempts then useFallback(); else infinite loop
 - [mr7-ai sw-cache](mr7-ai-sw-cache.md) — SW `kaligpt-v3` cached ALL GET responses (incl. compiled JS). HMR edits never reached browser. Fix: bump CACHE_NAME, exclude /src/ /node_modules/ /@ and URL params ?t= ?v= from cache.
 - [mr7-ai sidebar-props](mr7-ai-sidebar-props.md) — Sidebar props must be in BOTH interface AND destructuring; missing from destructuring → ReferenceError at runtime (not undefined, actual ReferenceError). New props: onOpenAptIntel, onOpenNexusPanel.
+- [OMNIX ABSOLUTE system](omnix-system.md) — 7-subsystem AI control layer built on top of Nexus. Ctrl+Shift+Z=panel, Ctrl+Shift+V=voice, Ctrl+Shift+Z from badge=palette. pnpm must stay at v9.15.4 (Node.js v20 incompatible with pnpm v10+).

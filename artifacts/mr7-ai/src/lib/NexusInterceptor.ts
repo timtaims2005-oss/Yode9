@@ -145,6 +145,7 @@ export function parseNexusActions(responseText: string): ParsedNexusAction[] {
 // ─────────────────────────────────────────────────────────────────────────────
 export function stripNexusBlocks(text: string): string {
   return text
+    .replace(/<<<OMNIX_ACTIONS>>>[\s\S]*?<<<END_OMNIX>>>/g, "")
     .replace(/<<<NEXUS_ACTIONS>>>[\s\S]*?<<<END_NEXUS>>>/g, "")
     .replace(/<<<ACTIONS>>>[\s\S]*?<<<END_ACTIONS>>>/g, "")
     .trim();

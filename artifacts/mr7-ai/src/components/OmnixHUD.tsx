@@ -363,10 +363,12 @@ export function OmnixFloatingBadge({
   onOpenPanel,
   onOpenVoice,
   onOpenEvolution,
+  onOpenPalette,
 }: {
   onOpenPanel: () => void;
   onOpenVoice: () => void;
   onOpenEvolution: () => void;
+  onOpenPalette?: () => void;
 }) {
   const [running, setRunning] = useState(false);
   const [logCount, setLogCount] = useState(0);
@@ -402,6 +404,7 @@ export function OmnixFloatingBadge({
             className="flex flex-col gap-1.5"
           >
             {[
+              { label: "⚡ الأوامر", onClick: onOpenPalette ?? onOpenPanel },
               { label: "🎙️ صوت", onClick: onOpenVoice },
               { label: "🧬 تطور", onClick: onOpenEvolution },
               { label: "📋 السجل", onClick: onOpenPanel },
@@ -465,10 +468,10 @@ export function OmnixFloatingBadge({
 export function OmnixHUD({ dispatchers }: OmnixHUDProps) {
   const [panelOpen, setPanelOpen] = useState(false);
 
-  // Keyboard shortcut Ctrl+Shift+O
+  // Keyboard shortcut Ctrl+Shift+Z (to avoid conflict with Ctrl+Shift+O = OSINT)
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "O") {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "Z") {
         e.preventDefault();
         setPanelOpen((v) => !v);
       }

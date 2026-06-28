@@ -4,6 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Smile } from "lucide-react";
 import { renderMessageContent, CodeBlock, RichTextBlock } from "@/components/CodeBlock";
+import { stripOmnixBlocks } from "@/lib/OmnixExecutor";
 import { CouncilCard } from "@/components/CouncilCard";
 import { GodmodeCard } from "@/components/GodmodeCard";
 import { ThinkingIndicator } from "@/components/ThinkingIndicator";
@@ -45,7 +46,9 @@ export function ChatMessage({
   const isLast = msg.id === chat.messages[chat.messages.length - 1]?.id;
 
   const getDisplayContent = () => {
-    const raw = msg.content;
+    let raw = msg.content;
+    // Strip OMNIX/NEXUS action blocks before display
+    raw = stripOmnixBlocks(raw);
     const hasThinking = raw.includes("<thinking>");
     return hasThinking
       ? raw.replace(/<thinking>[\s\S]*?(<\/thinking>|$)/, "").trim()

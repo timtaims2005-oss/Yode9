@@ -58,6 +58,7 @@ import { registerOmnixDispatchers } from "./lib/OmnixExecutor";
 import { OmnixHUDPanel, OmnixFloatingBadge } from "./components/OmnixHUD";
 import { OmnixVoice } from "./components/OmnixVoice";
 import { OmnixSelfEvolution } from "./components/OmnixSelfEvolution";
+import { OmnixCommandPalette } from "./components/OmnixCommandPalette";
 import { frameScheduler } from "./lib/frame-scheduler";
 import { memoryPressure } from "./lib/memory-pressure";
 import { thermalGuard } from "./lib/thermal-guard";
@@ -696,6 +697,8 @@ function AppContent() {
       if (!inField && (e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "h") { e.preventDefault(); toggle('widgetsDock'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "g") { e.preventDefault(); toggle('omegaAgent'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "n") { e.preventDefault(); toggle('nexusPanel'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "Z") { e.preventDefault(); setOmnixPaletteOpen((v) => !v); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "V") { e.preventDefault(); setOmnixVoiceOpen((v) => !v); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "j") { e.preventDefault(); toggle('finetune'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "d") { e.preventDefault(); toggle('debate'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "p") { e.preventDefault(); toggle('providerSettings'); }
@@ -791,6 +794,7 @@ function AppContent() {
   const [omnixPanelOpen, setOmnixPanelOpen] = useState(false);
   const [omnixVoiceOpen, setOmnixVoiceOpen] = useState(false);
   const [omnixEvoOpen, setOmnixEvoOpen] = useState(false);
+  const [omnixPaletteOpen, setOmnixPaletteOpen] = useState(false);
 
   // Register OMNIX dispatchers so executor can call them
   useEffect(() => {
@@ -819,10 +823,16 @@ function AppContent() {
       open={omnixEvoOpen}
       onClose={() => setOmnixEvoOpen(false)}
     />
+    <OmnixCommandPalette
+      dispatchers={nexusDispatchers}
+      open={omnixPaletteOpen}
+      onClose={() => setOmnixPaletteOpen(false)}
+    />
     <OmnixFloatingBadge
       onOpenPanel={() => setOmnixPanelOpen(true)}
       onOpenVoice={() => setOmnixVoiceOpen(true)}
       onOpenEvolution={() => setOmnixEvoOpen(true)}
+      onOpenPalette={() => setOmnixPaletteOpen(true)}
     />
     <PerformanceCommandCenter open={perfCCOpen} onClose={() => setPerfCCOpen(false)} />
     <PerformanceBooster />
