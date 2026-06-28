@@ -59,6 +59,7 @@ import { OmnixHUDPanel, OmnixFloatingBadge } from "./components/OmnixHUD";
 import { OmnixVoice } from "./components/OmnixVoice";
 import { OmnixSelfEvolution } from "./components/OmnixSelfEvolution";
 import { OmnixCommandPalette } from "./components/OmnixCommandPalette";
+import { OmnixSovereign } from "./lib/OmnixSovereign";
 import { frameScheduler } from "./lib/frame-scheduler";
 import { memoryPressure } from "./lib/memory-pressure";
 import { thermalGuard } from "./lib/thermal-guard";
@@ -802,6 +803,36 @@ function AppContent() {
     registerOmnixDispatchers(nexusDispatchers);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── OMNIX Sovereign event listeners — omnix:toggle-* from OmnixAbsoluteRegistry ──
+  useEffect(() => {
+    const onToggleHUD   = () => setOmnixPanelOpen((v) => !v);
+    const onToggleVoice = () => setOmnixVoiceOpen((v) => !v);
+    const onToggleEvo   = () => setOmnixEvoOpen((v) => !v);
+    const onTogglePal   = () => setOmnixPaletteOpen((v) => !v);
+    window.addEventListener("omnix:toggle-hud",       onToggleHUD);
+    window.addEventListener("omnix:toggle-voice",     onToggleVoice);
+    window.addEventListener("omnix:toggle-evolution", onToggleEvo);
+    window.addEventListener("omnix:toggle-palette",   onTogglePal);
+    // Keep Sovereign UI open-panels in sync
+    const onSovereignSync = () => {
+      const openPanels: string[] = [];
+      if (omnixPanelOpen)   openPanels.push("omnix-hud");
+      if (omnixVoiceOpen)   openPanels.push("omnix-voice");
+      if (omnixEvoOpen)     openPanels.push("omnix-evolution");
+      if (omnixPaletteOpen) openPanels.push("omnix-palette");
+      OmnixSovereign.setOpenPanels(openPanels);
+    };
+    window.addEventListener("omnix:sovereign-change", onSovereignSync);
+    return () => {
+      window.removeEventListener("omnix:toggle-hud",       onToggleHUD);
+      window.removeEventListener("omnix:toggle-voice",     onToggleVoice);
+      window.removeEventListener("omnix:toggle-evolution", onToggleEvo);
+      window.removeEventListener("omnix:toggle-palette",   onTogglePal);
+      window.removeEventListener("omnix:sovereign-change", onSovereignSync);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [omnixPanelOpen, omnixVoiceOpen, omnixEvoOpen, omnixPaletteOpen]);
 
   return (
     <>

@@ -4,6 +4,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { OMNIX_REGISTRY_MAP, type OmnixCommandResult } from "./OmnixRegistry";
+import { findAbsoluteCommand } from "./OmnixAbsoluteRegistry";
+import { OmnixSovereign } from "./OmnixSovereign";
 import { OmnixMemory } from "./OmnixMemory";
 import { OmnixBrain } from "./OmnixBrain";
 import type { NexusDispatchers } from "./ToolRegistry";
@@ -67,7 +69,30 @@ async function tryExecuteWithFallbacks(
 ): Promise<OmnixCommandResult> {
   const cmd = OMNIX_REGISTRY_MAP.get(actionId);
 
+  // Fallback: search OMNIX_ABSOLUTE_REGISTRY if not found in main registry
   if (!cmd) {
+    const absoluteCmd = findAbsoluteCommand(actionId);
+    if (absoluteCmd) {
+      try {
+        const result = absoluteCmd.execute(params, dispatchers);
+        OmnixSovereign.recordCommandSuccess(actionId);
+        OmnixMemory.recordAction({ actionId, actionLabel: absoluteCmd.nameAr, params, success: result.success });
+        return {
+          actionId,
+          success: result.success,
+          message: result.message,
+          messageAr: result.message,
+        };
+      } catch {
+        OmnixSovereign.recordCommandError(actionId);
+        return {
+          actionId,
+          success: false,
+          message: `Absolute command failed: ${actionId}`,
+          messageAr: `فشل تنفيذ الأمر المطلق: ${actionId}`,
+        };
+      }
+    }
     return {
       actionId,
       success: false,
@@ -87,6 +112,7 @@ async function tryExecuteWithFallbacks(
         success: true,
       });
       OmnixBrain.setCustom(`lastSuccess_${actionId}`, Date.now());
+      OmnixSovereign.recordCommandSuccess(actionId);
       return result;
     }
     throw new Error(result.messageAr);

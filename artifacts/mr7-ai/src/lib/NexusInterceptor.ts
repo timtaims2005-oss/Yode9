@@ -8,6 +8,8 @@ import { NexusCore } from "./NexusCore";
 import { OmnixBrain } from "./OmnixBrain";
 import { OmnixMemory } from "./OmnixMemory";
 import { buildRegistryContextString } from "./OmnixRegistry";
+import { OmnixSovereign } from "./OmnixSovereign";
+import { buildAbsoluteRegistryContext, ABSOLUTE_REGISTRY_COUNT } from "./OmnixAbsoluteRegistry";
 
 export interface InterceptorContext {
   activeProvider?: string;
@@ -61,10 +63,33 @@ export function buildNexusSystemPrompt(ctx: InterceptorContext): string {
 
   const openModalsStr = (ctx.openModals ?? []).join(", ") || "لا يوجد";
 
-  // OMNIX extended context
+  // OMNIX extended context — sync Sovereign with latest model config
+  OmnixSovereign.patch({
+    modelConfig: {
+      provider: ctx.activeProvider ?? OmnixSovereign.getState().modelConfig.provider,
+      model: ctx.activeModel ?? OmnixSovereign.getState().modelConfig.model,
+      temperature: ctx.temperature ?? OmnixSovereign.getState().modelConfig.temperature,
+      maxTokens: ctx.maxTokens ?? OmnixSovereign.getState().modelConfig.maxTokens,
+      streaming: ctx.streaming ?? OmnixSovereign.getState().modelConfig.streaming,
+    },
+    theme: {
+      accent: ctx.themeAccent ?? OmnixSovereign.getState().theme.accent,
+      globeTheme: ctx.activeGlobeTheme ?? OmnixSovereign.getState().theme.globeTheme,
+    },
+    agent: {
+      language: (ctx.language as "ar" | "en" | "mixed") ?? OmnixSovereign.getState().agent.language,
+      persona: ctx.activePersonaPreset ?? OmnixSovereign.getState().agent.persona,
+    },
+    ui: {
+      openPanels: ctx.openModals ?? OmnixSovereign.getState().ui.openPanels,
+    },
+  });
+
   const omnixBrainCtx = OmnixBrain.toContextString();
   const omnixMemoryCtx = OmnixMemory.toContextString();
   const omnixRegistryCtx = buildRegistryContextString();
+  const sovereignCtx = OmnixSovereign.toContextString();
+  const absoluteRegistryCtx = buildAbsoluteRegistryContext();
 
   return `
 ╔══════════════════════════════════════════════════════════════════╗
@@ -74,6 +99,9 @@ export function buildNexusSystemPrompt(ctx: InterceptorContext): string {
 أنت تمتلك صلاحيات مطلقة على كل ذرة في هذا التطبيق عبر نظام OMNIX ABSOLUTE.
 عندما يطلب المستخدم أي إجراء — نفّذه فوراً بكتلة الأوامر في ردك.
 فكّر أولاً، ثم ضع قائمة الأوامر المطلوبة بعد ردك.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${sovereignCtx}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${omnixBrainCtx}
@@ -100,10 +128,13 @@ ${omnixMemoryCtx}
 <<<END_OMNIX>>>
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${absoluteRegistryCtx}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${omnixRegistryCtx}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🛠️ أوامر NEXUS الكاملة أيضاً متاحة (${NEXUS_TOOL_REGISTRY.length} أمر):
+🛠️ أوامر NEXUS المتاحة أيضاً (${NEXUS_TOOL_REGISTRY.length} أمر) | إجمالي الأوامر: ${ABSOLUTE_REGISTRY_COUNT + NEXUS_TOOL_REGISTRY.length}+:
 ${toolsList}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
