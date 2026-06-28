@@ -821,6 +821,7 @@ function AppContent() {
           onOpenAgent={() => open('agent')}
           onOpenNexus={() => open('nexus')}
           onOpenArsenal={() => open('arsenal')}
+          onOpenPentestLab={() => open('pentestLabPro')}
           onOpenProviderSettings={() => open('providerSettings')}
           onOpenModelCompare={() => open('modelCompare')}
           onOpenNeuralMatrix={() => open('neuralMatrix')}

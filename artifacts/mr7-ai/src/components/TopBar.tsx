@@ -44,6 +44,7 @@ interface TopBarProps {
   onOpenAgent: () => void;
   onOpenNexus: () => void;
   onOpenArsenal: () => void;
+  onOpenPentestLab?: () => void;
   onOpenProviderSettings?: () => void;
   onOpenModelCompare?: () => void;
   onOpenNeuralMatrix?: () => void;
@@ -2230,7 +2231,7 @@ function PinnedShortcutsBar({
 // ── Main TopBar ───────────────────────────────────────────────────────────────
 export function TopBar({
   onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenPersonaManager,
-  onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenProviderSettings,
+  onOpenLocalModel, onOpenAgent, onOpenNexus, onOpenArsenal, onOpenPentestLab, onOpenProviderSettings,
   onOpenModelCompare, onOpenNeuralMatrix, onOpenAnalytics, onOpenWarRoom,
   onOpenDeepSearch, onOpenChainInvestigation, onOpenRedTeam, onOpenPerfDash,
   onOpenCostDash, onOpenDedupViz, onOpenThreatFeed, onOpenSecurityDash,
@@ -2434,6 +2435,7 @@ export function TopBar({
         <HUDBtn icon={Bot} label="KaliAgent" color="#ff4d4d" onClick={onOpenAgent} iconOnly />
         <HUDBtn icon={Hexagon}   label="NEXUS"      color="#fbbf24" onClick={onOpenNexus}   badge="5X" />
         <HUDBtn icon={Shield}    label="Arsenal"    color="#e21227" onClick={onOpenArsenal} />
+        {onOpenPentestLab && <HUDBtn icon={Crosshair} label="Pentest" color="#a855f7" onClick={onOpenPentestLab} badge="▶" />}
         <PanelsHubButton />
         {onOpenDebate        && <HUDBtn icon={Swords}       label="Debate"       color="#ef4444" onClick={onOpenDebate}        shortLabel="Debate" />}
         {onOpenChainOfThought && <HUDBtn icon={BrainCircuit} label="Chain·Thought" color="#3b82f6" onClick={onOpenChainOfThought} shortLabel="CoT" />}
