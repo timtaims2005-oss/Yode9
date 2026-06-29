@@ -922,6 +922,7 @@ function AppContent() {
         onOpenKgSocialArsenal={() => open('socialMediaArsenal')}
         onOpenAptIntel={() => open('aptIntel')}
         onOpenNexusPanel={() => open('nexusPanel')}
+        onOpenAccountHackeTools={() => open('accountHackeTools')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">

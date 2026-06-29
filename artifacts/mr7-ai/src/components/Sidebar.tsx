@@ -172,6 +172,7 @@ interface SidebarProps {
   onOpenKgSocialArsenal?: () => void;
   onOpenAptIntel?: () => void;
   onOpenNexusPanel?: () => void;
+  onOpenAccountHackeTools?: () => void;
 }
 
 const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: string }[] = [
@@ -279,6 +280,15 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: ShieldCheck, label: "AI Insurance Optimizer", color: "text-fuchsia-400" },
   { icon: Globe, label: "AI Travel Visa Help", color: "text-fuchsia-400" },
   { icon: Brain, label: "AI Chess Coach", color: "text-fuchsia-400" },
+  // ── Account Hacke Tools (Yode9) ──
+  { icon: ShieldAlert, label: "Account Hacke Security", color: "text-emerald-400" },
+  { icon: ShieldAlert, label: "Social Engineering Lab", color: "text-red-400" },
+  { icon: ShieldAlert, label: "XSS Payload Builder", color: "text-amber-400" },
+  { icon: KeyRound, label: "Password Strength Lab", color: "text-purple-400" },
+  { icon: Target, label: "APT Kill Chain Sim", color: "text-pink-400" },
+  { icon: FileSearch, label: "JWT Token Decoder", color: "text-cyan-400" },
+  { icon: ShieldCheck, label: "Security Headers Check", color: "text-emerald-400" },
+  { icon: Brain, label: "Legal Pentest Checklist", color: "text-indigo-400" },
   // ── Cybersecurity Educational Tools ──
   { icon: ShieldAlert, label: "Zero-Day Exploits", color: "text-red-400" },
   { icon: Brain, label: "RaaS Architecture", color: "text-red-400" },
@@ -294,7 +304,7 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: DbIcon, label: "Kali SQLi Guide", color: "text-blue-400" },
 ];
 
-export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution, onOpenKgProjectGenerator, onOpenKgAgentMemory, onOpenKgAutonomousSwarm, onOpenKgSocialArsenal, onOpenAptIntel, onOpenNexusPanel }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution, onOpenKgProjectGenerator, onOpenKgAgentMemory, onOpenKgAutonomousSwarm, onOpenKgSocialArsenal, onOpenAptIntel, onOpenNexusPanel, onOpenAccountHackeTools }: SidebarProps) {
   const { toast } = useToast();
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -1220,6 +1230,13 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                   <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-violet-500 border border-black animate-pulse" />
                   <Target className="w-3.5 h-3.5 text-violet-400/70 group-hover:text-violet-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">APT</span>
+                </button>
+              )}
+              {onOpenAccountHackeTools && (
+                <button onClick={onOpenAccountHackeTools} title="دليل الوعي الأمني — 7 أنظمة تعليمية" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-900/20 hover:bg-emerald-900/35 border border-emerald-500/20 hover:border-emerald-500/50 transition-all group relative">
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-black animate-pulse" />
+                  <ShieldAlert className="w-3.5 h-3.5 text-emerald-400/70 group-hover:text-emerald-400" />
+                  <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Yode9</span>
                 </button>
               )}
               {onOpenNexusPanel && (
