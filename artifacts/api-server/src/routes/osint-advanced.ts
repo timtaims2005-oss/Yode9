@@ -516,6 +516,236 @@ async function socialPresenceCheck(username: string): Promise<unknown> {
   };
 }
 
+// ── URLScan.io ────────────────────────────────────────────────────
+async function urlScanLookup(target: string): Promise<unknown> {
+  try {
+    const searchUrl = `https://urlscan.io/api/v1/search/?q=domain%3A${encodeURIComponent(target)}&size=10`;
+    const r = await fetch(searchUrl, {
+      headers: { "User-Agent": "KaliGPT-OSINT/2.0", "Accept": "application/json" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) return { error: `URLScan HTTP ${r.status}` };
+    const data = await r.json() as { results?: unknown[]; total?: number };
+    return {
+      target,
+      total: data.total ?? 0,
+      results: (data.results ?? []).slice(0, 10).map((r: unknown) => {
+        const res = r as Record<string, unknown>;
+        const page = res.page as Record<string, unknown> ?? {};
+        const task = res.task as Record<string, unknown> ?? {};
+        return {
+          url: page.url,
+          ip: page.ip,
+          country: page.country,
+          server: page.server,
+          title: page.title,
+          screenshot: res.screenshot,
+          scanTime: task.time,
+        };
+      }),
+      source: "urlscan.io",
+    };
+  } catch (e) { return { error: String(e) }; }
+}
+
+// ── LeakIX ────────────────────────────────────────────────────────
+async function leakixLookup(target: string): Promise<unknown> {
+  try {
+    const isIp = /^\d+\.\d+\.\d+\.\d+$/.test(target);
+    const url = isIp
+      ? `https://leakix.net/api/host/${encodeURIComponent(target)}`
+      : `https://leakix.net/api/domain/${encodeURIComponent(target)}`;
+    const r = await fetch(url, {
+      headers: { "User-Agent": "KaliGPT-OSINT/2.0", "Accept": "application/json", "api-key": process.env["LEAKIX_API_KEY"] ?? "" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (r.status === 401) return { simulated: true, target, message: "LeakIX API key required (free tier available)", services: 0 };
+    if (!r.ok) return { error: `LeakIX HTTP ${r.status}` };
+    return await r.json();
+  } catch (e) { return { error: String(e) }; }
+}
+
+// ── Security Headers ──────────────────────────────────────────────
+async function securityHeadersCheck(target: string): Promise<unknown> {
+  const domain = target.replace(/^https?:\/\//, "").split("/")[0];
+  const importantHeaders = [
+    "strict-transport-security", "content-security-policy", "x-frame-options",
+    "x-content-type-options", "referrer-policy", "permissions-policy",
+    "x-xss-protection", "expect-ct",
+  ];
+  try {
+    const r = await fetch(`https://${domain}`, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(8000),
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; KaliGPT-OSINT/2.0)" },
+    });
+    const headers: Record<string, string | null> = {};
+    for (const h of importantHeaders) headers[h] = r.headers.get(h);
+    const present = importantHeaders.filter(h => headers[h] !== null);
+    const missing = importantHeaders.filter(h => headers[h] === null);
+    const score = Math.round((present.length / importantHeaders.length) * 100);
+    return {
+      target: domain,
+      statusCode: r.status,
+      headers,
+      present,
+      missing,
+      score: `${score}%`,
+      grade: score >= 90 ? "A+" : score >= 75 ? "A" : score >= 60 ? "B" : score >= 45 ? "C" : score >= 30 ? "D" : "F",
+    };
+  } catch (e) {
+    // Try HTTP fallback
+    try {
+      const r = await fetch(`http://${domain}`, { method: "HEAD", signal: AbortSignal.timeout(5000), headers: { "User-Agent": "Mozilla/5.0 (compatible; KaliGPT-OSINT/2.0)" } });
+      const headers: Record<string, string | null> = {};
+      for (const h of importantHeaders) headers[h] = r.headers.get(h);
+      const missing = importantHeaders.filter(h => headers[h] === null);
+      return { target: domain, statusCode: r.status, headers, missing, note: "HTTP only (no HTTPS)", error: String(e) };
+    } catch (e2) { return { error: String(e2) }; }
+  }
+}
+
+// ── DNSSEC Validation ─────────────────────────────────────────────
+async function dnssecCheck(domain: string): Promise<unknown> {
+  try {
+    const [dsRes, dnskeyRes, rrsigRes] = await Promise.allSettled([
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=DS`, { signal: AbortSignal.timeout(5000) }),
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=DNSKEY`, { signal: AbortSignal.timeout(5000) }),
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=RRSIG`, { signal: AbortSignal.timeout(5000) }),
+    ]);
+    const ds = dsRes.status === "fulfilled" && dsRes.value.ok ? await dsRes.value.json() as { Answer?: unknown[] } : { Answer: [] };
+    const dnskey = dnskeyRes.status === "fulfilled" && dnskeyRes.value.ok ? await dnskeyRes.value.json() as { Answer?: unknown[] } : { Answer: [] };
+    const rrsig = rrsigRes.status === "fulfilled" && rrsigRes.value.ok ? await rrsigRes.value.json() as { Answer?: unknown[] } : { Answer: [] };
+    const enabled = ((ds.Answer?.length ?? 0) > 0) || ((dnskey.Answer?.length ?? 0) > 0);
+    return {
+      domain,
+      dnssecEnabled: enabled,
+      hasDS: (ds.Answer?.length ?? 0) > 0,
+      hasDNSKEY: (dnskey.Answer?.length ?? 0) > 0,
+      hasRRSIG: (rrsig.Answer?.length ?? 0) > 0,
+      ds: ds.Answer ?? [],
+      dnskey: dnskey.Answer ?? [],
+      rrsig: rrsig.Answer ?? [],
+      status: enabled ? "✅ DNSSEC مُفعَّل" : "⚠️ DNSSEC غير مُفعَّل",
+    };
+  } catch (e) { return { error: String(e) }; }
+}
+
+// ── Port Scan via HackerTarget ────────────────────────────────────
+async function portScanLookup(target: string): Promise<unknown> {
+  try {
+    const r = await fetch(`https://api.hackertarget.com/nmap/?q=${encodeURIComponent(target)}`, {
+      signal: AbortSignal.timeout(30000),
+      headers: { "User-Agent": "KaliGPT-OSINT/2.0" },
+    });
+    if (!r.ok) return { error: `PortScan HTTP ${r.status}` };
+    const text = await r.text();
+    if (text.includes("error") || text.includes("API count")) return { error: text.trim(), target };
+    const lines = text.trim().split("\n");
+    const openPorts = lines
+      .filter(l => l.includes("/tcp") && l.includes("open"))
+      .map(l => {
+        const parts = l.trim().split(/\s+/);
+        return { port: parts[0], state: parts[1], service: parts[2] ?? "", version: parts.slice(3).join(" ") };
+      });
+    return { target, openPorts, total: openPorts.length, raw: text.slice(0, 2000), source: "HackerTarget/Nmap" };
+  } catch (e) { return { error: String(e) }; }
+}
+
+// ── Reverse DNS (PTR) ─────────────────────────────────────────────
+async function reverseDnsLookup(ip: string): Promise<unknown> {
+  try {
+    const reversed = ip.split(".").reverse().join(".") + ".in-addr.arpa";
+    const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(reversed)}&type=PTR`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!r.ok) return { error: `ReverseDNS HTTP ${r.status}` };
+    const d = await r.json() as { Answer?: Array<{ data: string }> };
+    return {
+      ip,
+      ptrs: (d.Answer ?? []).map(a => a.data),
+      count: (d.Answer ?? []).length,
+    };
+  } catch (e) { return { error: String(e) }; }
+}
+
+// ── BGP View ─────────────────────────────────────────────────────
+async function bgpviewLookup(target: string): Promise<unknown> {
+  return asnLookup(target);
+}
+
+// ── Technology Detection (Wappalyzer-like via API) ────────────────
+async function techDetect(domain: string): Promise<unknown> {
+  try {
+    // Use builtwith API (free tier)
+    const url = `https://api.builtwith.com/free1/api.json?KEY=free&LOOKUP=${encodeURIComponent(domain)}`;
+    const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (r.ok) {
+      const data = await r.json() as { Results?: unknown[] };
+      if (data.Results) return { domain, source: "BuiltWith", data };
+    }
+  } catch { /* ignore */ }
+  // Fallback: detect from HTTP headers
+  try {
+    const r = await fetch(`https://${domain}`, {
+      signal: AbortSignal.timeout(6000),
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; KaliGPT-OSINT/2.0)" },
+    });
+    const tech: string[] = [];
+    const server = r.headers.get("server") ?? "";
+    const powered = r.headers.get("x-powered-by") ?? "";
+    const via = r.headers.get("via") ?? "";
+    if (server) tech.push(`Server: ${server}`);
+    if (powered) tech.push(`X-Powered-By: ${powered}`);
+    if (via) tech.push(`Via: ${via}`);
+    const body = await r.text();
+    if (body.includes("wp-content")) tech.push("WordPress");
+    if (body.includes("Shopify")) tech.push("Shopify");
+    if (body.includes("drupal")) tech.push("Drupal");
+    if (body.includes("joomla")) tech.push("Joomla");
+    if (body.includes("react")) tech.push("React");
+    if (body.includes("angular")) tech.push("Angular");
+    if (body.includes("vue")) tech.push("Vue.js");
+    if (body.includes("jquery")) tech.push("jQuery");
+    return { domain, technologies: tech, source: "HTTP Header Analysis" };
+  } catch (e) { return { error: String(e) }; }
+}
+
+// ── IP Quality Score ──────────────────────────────────────────────
+async function ipQualityScore(ip: string): Promise<unknown> {
+  const apiKey = process.env["IPQS_API_KEY"];
+  if (!apiKey) {
+    return {
+      simulated: true, ip,
+      fraud_score: Math.floor(Math.random() * 100),
+      vpn: Math.random() > 0.7,
+      tor: Math.random() > 0.9,
+      proxy: Math.random() > 0.6,
+      message: "Provide IPQS_API_KEY for real data",
+    };
+  }
+  try {
+    const r = await fetch(`https://www.ipqualityscore.com/api/json/ip/${apiKey}/${encodeURIComponent(ip)}?strictness=0`, {
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!r.ok) return { error: `IPQS HTTP ${r.status}` };
+    return await r.json();
+  } catch (e) { return { error: String(e) }; }
+}
+
+// ── Shodan InternetDB (free, no key) ─────────────────────────────
+async function shodanInternetDB(ip: string): Promise<unknown> {
+  try {
+    const r = await fetch(`https://internetdb.shodan.io/${encodeURIComponent(ip)}`, {
+      signal: AbortSignal.timeout(6000),
+      headers: { "User-Agent": "KaliGPT-OSINT/2.0" },
+    });
+    if (r.status === 404) return { ip, message: "No data found", ports: [], vulns: [] };
+    if (!r.ok) return { error: `Shodan InternetDB HTTP ${r.status}` };
+    return await r.json();
+  } catch (e) { return { error: String(e) }; }
+}
+
 // ── AI Analysis ───────────────────────────────────────────────────
 async function aiAnalyze(target: string, allData: Record<string, unknown>): Promise<string> {
   const summary = JSON.stringify(allData, null, 2).slice(0, 5000);
@@ -637,6 +867,36 @@ router.post("/scan/stream", async (req: Request, res: Response): Promise<void> =
   }
   if (modules.includes("social") && !isIp && !isEmail) {
     tasks.push({ id: "social", fn: () => socialPresenceCheck(target) });
+  }
+  if (modules.includes("urlscan") && (domain || isIp)) {
+    tasks.push({ id: "urlscan", fn: () => urlScanLookup(isIp ? target : domain) });
+  }
+  if (modules.includes("leakix") && (domain || isIp)) {
+    tasks.push({ id: "leakix", fn: () => leakixLookup(isIp ? target : domain) });
+  }
+  if (modules.includes("securityheaders") && domain) {
+    tasks.push({ id: "securityheaders", fn: () => securityHeadersCheck(domain) });
+  }
+  if (modules.includes("dnssec") && domain) {
+    tasks.push({ id: "dnssec", fn: () => dnssecCheck(domain) });
+  }
+  if (modules.includes("portscan") && (isIp || domain)) {
+    tasks.push({ id: "portscan", fn: () => portScanLookup(isIp ? target : domain) });
+  }
+  if (modules.includes("reversedns") && isIp) {
+    tasks.push({ id: "reversedns", fn: () => reverseDnsLookup(target) });
+  }
+  if (modules.includes("bgpview") && (isIp || domain)) {
+    tasks.push({ id: "bgpview", fn: () => bgpviewLookup(isIp ? target : domain) });
+  }
+  if (modules.includes("techdetect") && domain) {
+    tasks.push({ id: "techdetect", fn: () => techDetect(domain) });
+  }
+  if (modules.includes("internetdb") && isIp) {
+    tasks.push({ id: "internetdb", fn: () => shodanInternetDB(target) });
+  }
+  if (modules.includes("ipqs") && isIp) {
+    tasks.push({ id: "ipqs", fn: () => ipQualityScore(target) });
   }
 
   // Run all tasks in parallel, stream each result as it arrives

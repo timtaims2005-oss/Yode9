@@ -19,7 +19,8 @@ type TabId =
   | "frameworks" | "recon" | "legal"
   | "darkweb" | "social" | "threatintel" | "geo"
   | "malware" | "network" | "crypto" | "imageosint"
-  | "vuln" | "password" | "dns" | "api" | "iot" | "forensics";
+  | "vuln" | "password" | "dns" | "api" | "iot" | "forensics"
+  | "opsec" | "redteam" | "cloud" | "webapp" | "mobile";
 
 interface OsintTool {
   name: string;
@@ -329,6 +330,101 @@ const FORENSICS_TOOLS: OsintTool[] = [
   { name: "Magnet AXIOM", description: "منصة تحقيق جنائي متكاملة للأجهزة المحمولة والكمبيوتر", tags: ["أجهزة محمولة", "كمبيوتر", "متكاملة"], link: "https://www.magnetforensics.com/products/magnet-axiom", badge: "paid", category: "جنائيات رقمية", status: "online", details: "Magnet AXIOM الحل الاحترافي للتحقيق في الأدلة الرقمية من جميع المصادر.", tab: "forensics" },
 ];
 
+// ─── OPSEC & ANONYMITY ────────────────────────────────────
+const OPSEC_TOOLS: OsintTool[] = [
+  { name: "Tor Browser", description: "تصفح الإنترنت بشكل مجهول عبر شبكة Tor المشفرة", tags: ["مجهولية", "Tor", "تشفير"], link: "https://www.torproject.org", badge: "free", category: "OPSEC", status: "online", details: "Tor Browser يُشغّل حركة المرور عبر 3 طبقات تشفير ونودات متعددة لإخفاء هويتك.", tab: "opsec" },
+  { name: "Tails OS", description: "نظام تشغيل مباشر لا يترك أثراً — كل شيء في الذاكرة", tags: ["نظام تشغيل", "مجهولية", "لا أثر"], link: "https://tails.boum.org", badge: "free", category: "OPSEC", status: "online", details: "Tails يُشغَّل من USB ويوجّه كل حركة المرور عبر Tor ولا يترك أي أثر على الجهاز.", tab: "opsec" },
+  { name: "ProxyChains", description: "تحويل اتصالات البرامج عبر سلسلة من البروكسيات", tags: ["بروكسي", "سلسلة", "مجهولية"], link: "https://github.com/haad/proxychains", badge: "free", category: "OPSEC", status: "online", details: "ProxyChains يُمرّر اتصالات أي برنامج عبر بروكسيات متعددة تُعقّد التتبع.", tab: "opsec" },
+  { name: "Whonix", description: "نظام تشغيل مجهولية يُشغَّل كـ VM مع Tor مدمج", tags: ["VM", "Tor", "مجهولية"], link: "https://www.whonix.org", badge: "free", category: "OPSEC", status: "online", details: "Whonix يفصل تطبيقاتك عن الشبكة الحقيقية بـ Gateway VM يُوجَّه فقط عبر Tor.", tab: "opsec" },
+  { name: "Qubes OS", description: "نظام تشغيل يعزل التطبيقات في VMs منفصلة للأمان", tags: ["عزل", "VM", "أمان"], link: "https://www.qubes-os.org", badge: "free", category: "OPSEC", status: "online", details: "Qubes OS يشغّل كل تطبيق في VM منعزل لمنع الاختراق من الانتشار.", tab: "opsec" },
+  { name: "VPN Gate", description: "شبكة VPN أكاديمية مجانية مع آلاف الخوادم", tags: ["VPN", "مجاني", "أكاديمي"], link: "https://www.vpngate.net", badge: "free", category: "OPSEC", status: "online", details: "VPN Gate مشروع أكاديمي يوفر آلاف خوادم VPN مجانية مشغَّلة من متطوعين.", tab: "opsec" },
+  { name: "Signal", description: "تطبيق مراسلة مشفر من طرف لطرف E2E بمعايير عسكرية", tags: ["رسائل", "تشفير", "E2E"], link: "https://signal.org", badge: "free", category: "OPSEC", status: "online", details: "Signal يستخدم بروتوكول Signal المعيار الذهبي للتشفير E2E.", tab: "opsec" },
+  { name: "Veracrypt", description: "تشفير الأقراص الصلبة والملفات بخوارزميات عسكرية", tags: ["تشفير قرص", "ملفات", "AES"], link: "https://www.veracrypt.fr", badge: "free", category: "OPSEC", status: "online", details: "VeraCrypt يُشفّر الأقراص وإنشاء حجرات مخفية داخل القسم.", tab: "opsec" },
+  { name: "MAT2", description: "إزالة البيانات الوصفية من الملفات والصور", tags: ["بيانات وصفية", "إزالة", "EXIF"], link: "https://0xacab.org/jvoisin/mat2", badge: "free", category: "OPSEC", status: "online", details: "MAT2 يُنظّف بيانات EXIF والـ metadata من الصور والوثائق.", tab: "opsec" },
+  { name: "Keybase", description: "تشفير وتوقيع الرسائل والملفات عبر مفاتيح عامة/خاصة", tags: ["تشفير", "مفاتيح عامة", "هوية"], link: "https://keybase.io", badge: "free", category: "OPSEC", status: "online", details: "Keybase يربط هويتك الرقمية بمفاتيح تشفير عامة لضمان المصداقية.", tab: "opsec" },
+  { name: "I2P", description: "شبكة مجهولية بديلة لـ Tor مع بروتوكول Garlic Routing", tags: ["مجهولية", "Garlic", "شبكة"], link: "https://geti2p.net", badge: "free", category: "OPSEC", status: "online", details: "I2P شبكة مجهولية لامركزية مختلفة عن Tor مع Garlic Routing المتعدد الطبقات.", tab: "opsec" },
+  { name: "BleachBit", description: "حذف الملفات المؤقتة والأدلة بشكل آمن وكامل", tags: ["حذف آمن", "أدلة", "خصوصية"], link: "https://www.bleachbit.org", badge: "free", category: "OPSEC", status: "online", details: "BleachBit يمسح ملفات الكاش والسجلات وبيانات التصفح بشكل آمن.", tab: "opsec" },
+  { name: "OnionShare", description: "مشاركة الملفات بشكل مجهول عبر Tor Network", tags: ["مشاركة ملفات", "Tor", "مجهولية"], link: "https://onionshare.org", badge: "free", category: "OPSEC", status: "online", details: "OnionShare يُنشئ عنوان .onion مؤقت لمشاركة الملفات بأمان تام.", tab: "opsec" },
+  { name: "Proxifier", description: "تحويل أي برنامج للعمل عبر البروكسيات والـ SOCKS", tags: ["بروكسي", "SOCKS", "شبكة"], link: "https://www.proxifier.com", badge: "paid", category: "OPSEC", status: "online", details: "Proxifier يُجبر أي تطبيق على استخدام البروكسي بغض النظر عن دعمه الأصلي.", tab: "opsec" },
+  { name: "Cryptomator", description: "تشفير الملفات في السحابة (Dropbox, Google Drive) محلياً", tags: ["سحابة", "تشفير", "Dropbox"], link: "https://cryptomator.org", badge: "free", category: "OPSEC", status: "online", details: "Cryptomator يُشفّر ملفاتك قبل رفعها للسحابة — لا يرى المزود شيئاً.", tab: "opsec" },
+];
+
+// ─── RED TEAM / OFFENSIVE ─────────────────────────────────
+const REDTEAM_TOOLS: OsintTool[] = [
+  { name: "Metasploit Framework", description: "إطار الاختراق الأشهر عالمياً — 2000+ وحدة هجوم", tags: ["اختراق", "وحدات", "هجوم"], link: "https://www.metasploit.com", badge: "free", category: "Red Team", status: "online", details: "Metasploit المعيار الذهبي لاختبار الاختراق مع آلاف الاستغلالات والـ payloads.", tab: "redteam" },
+  { name: "Cobalt Strike", description: "منصة محاكاة الهجمات المتقدمة لفرق Red Team", tags: ["Red Team", "APT", "محاكاة"], link: "https://www.cobaltstrike.com", badge: "paid", category: "Red Team", status: "online", details: "Cobalt Strike يُحاكي هجمات APT مع Beacon C2 وتقنيات التهرب المتقدمة.", tab: "redteam" },
+  { name: "Empire Framework", description: "إطار عمل C2 بـ PowerShell وPython للعمليات الهجومية", tags: ["C2", "PowerShell", "Post-Exploitation"], link: "https://github.com/BC-SECURITY/Empire", badge: "free", category: "Red Team", status: "online", details: "Empire يوفر قدرات post-exploitation قوية عبر وحدات PowerShell وPython.", tab: "redteam" },
+  { name: "Sliver C2", description: "إطار عمل C2 مفتوح المصدر حديث — بديل مجاني لـ Cobalt Strike", tags: ["C2", "مجاني", "Golang"], link: "https://github.com/BishopFox/sliver", badge: "free", category: "Red Team", status: "online", details: "Sliver من BishopFox مكتوب بـ Go مع دعم TLS وHTTP وDNS beaconing.", tab: "redteam" },
+  { name: "BloodHound", description: "رسم خريطة Active Directory وإيجاد مسارات التصعيد", tags: ["Active Directory", "تصعيد صلاحيات", "خريطة"], link: "https://github.com/BloodHoundAD/BloodHound", badge: "free", category: "Red Team", status: "online", details: "BloodHound يرسم علاقات AD كاملة ويكشف أقصر مسار للوصول إلى Domain Admin.", tab: "redteam" },
+  { name: "Mimikatz", description: "استخراج بيانات الاعتماد وكلمات المرور من ذاكرة Windows", tags: ["كلمات مرور", "Windows", "LSASS"], link: "https://github.com/gentilkiwi/mimikatz", badge: "free", category: "Red Team", status: "online", details: "Mimikatz يستخرج كلمات المرور والتذاكر Kerberos وhashes من LSASS.", tab: "redteam" },
+  { name: "CrackMapExec", description: "أتمتة هجمات شبكات Windows وActive Directory", tags: ["SMB", "Windows", "أتمتة"], link: "https://github.com/Porchetta-Industries/CrackMapExec", badge: "free", category: "Red Team", status: "online", details: "CrackMapExec يُؤتمت عمليات التحقق من بيانات الاعتماد والحركة الجانبية.", tab: "redteam" },
+  { name: "Responder", description: "اعتراض بيانات الاعتماد عبر LLMNR وNBT-NS Poisoning", tags: ["LLMNR", "اعتراض", "Hash"], link: "https://github.com/lgandx/Responder", badge: "free", category: "Red Team", status: "online", details: "Responder يعترض بيانات الاعتماد NTLMv2 عبر تسميم البروتوكولات المحلية.", tab: "redteam" },
+  { name: "Impacket", description: "مجموعة بروتوكولات Python لعمليات Windows الشبكية", tags: ["Python", "SMB", "Kerberos"], link: "https://github.com/SecureAuthCorp/impacket", badge: "free", category: "Red Team", status: "online", details: "Impacket يوفر تطبيقات Python لبروتوكولات SMB وKerberos وDCE/RPC.", tab: "redteam" },
+  { name: "PowerSploit", description: "مجموعة وحدات PowerShell للاختراق وما بعد الاستغلال", tags: ["PowerShell", "Post-Exploitation", "Windows"], link: "https://github.com/PowerShellMafia/PowerSploit", badge: "free", category: "Red Team", status: "online", details: "PowerSploit يوفر وحدات Invoke-Mimikatz وGet-GPPPassword والمزيد.", tab: "redteam" },
+  { name: "Havoc C2", description: "إطار C2 متقدم مفتوح المصدر بواجهة مرئية", tags: ["C2", "مفتوح", "واجهة مرئية"], link: "https://github.com/HavocFramework/Havoc", badge: "free", category: "Red Team", status: "online", details: "Havoc يوفر واجهة مرئية احترافية مع تقنيات تهرب متقدمة.", tab: "redteam" },
+  { name: "Nishang", description: "إطار عمل PowerShell لاختبار الاختراق والفرق الحمراء", tags: ["PowerShell", "Red Team", "هجومي"], link: "https://github.com/samratashok/nishang", badge: "free", category: "Red Team", status: "online", details: "Nishang مجموعة Scripts PowerShell للـ Reverse Shell والـ Persistence.", tab: "redteam" },
+  { name: "PsExec", description: "تنفيذ الأوامر عن بُعد على أجهزة Windows", tags: ["Windows", "تنفيذ بعيد", "SMB"], link: "https://docs.microsoft.com/en-us/sysinternals/downloads/psexec", badge: "free", category: "Red Team", status: "online", details: "PsExec من Sysinternals يُنفّذ الأوامر على أجهزة Windows عن بُعد.", tab: "redteam" },
+  { name: "Evil-WinRM", description: "اتصال WinRM هجومي بميزات post-exploitation مدمجة", tags: ["WinRM", "Post-Exploitation", "Windows"], link: "https://github.com/Hackplayers/evil-winrm", badge: "free", category: "Red Team", status: "online", details: "Evil-WinRM يوفر shell متقدم عبر WinRM مع تحميل ملفات ومجمّع .NET.", tab: "redteam" },
+  { name: "Kerbrute", description: "معلومات حسابات AD والتخمين السريع لـ Kerberos", tags: ["Kerberos", "Active Directory", "تخمين"], link: "https://github.com/ropnop/kerbrute", badge: "free", category: "Red Team", status: "online", details: "Kerbrute يستخدم Kerberos لاستعلام حسابات AD ومهاجمة كلمات المرور.", tab: "redteam" },
+];
+
+// ─── CLOUD SECURITY ────────────────────────────────────────
+const CLOUD_TOOLS: OsintTool[] = [
+  { name: "Prowler", description: "أداة مسح أمني شامل لـ AWS مع 300+ فحص", tags: ["AWS", "مسح أمني", "CIS"], link: "https://github.com/prowler-cloud/prowler", badge: "free", category: "أمن السحابة", status: "online", details: "Prowler يفحص AWS مقابل معايير CIS وPCI DSS وSOC2 وNIST.", tab: "cloud" },
+  { name: "ScoutSuite", description: "مسح أمني متعدد السحابة — AWS وAzure وGCP", tags: ["AWS", "Azure", "GCP", "متعدد"], link: "https://github.com/nccgroup/ScoutSuite", badge: "free", category: "أمن السحابة", status: "online", details: "ScoutSuite يدعم AWS وAzure وGCP وAliCloud ويُنتج تقارير مرئية.", tab: "cloud" },
+  { name: "CloudMapper", description: "رسم خريطة البنية التحتية AWS بشكل مرئي", tags: ["AWS", "خريطة", "بنية تحتية"], link: "https://github.com/duo-labs/cloudmapper", badge: "free", category: "أمن السحابة", status: "online", details: "CloudMapper يرسم VPCs والـ EC2 والـ Security Groups في رسم تفاعلي.", tab: "cloud" },
+  { name: "Pacu", description: "إطار عمل اختراق AWS — بديل Metasploit للسحابة", tags: ["AWS", "اختراق", "هجومي"], link: "https://github.com/RhinoSecurityLabs/pacu", badge: "free", category: "أمن السحابة", status: "online", details: "Pacu يوفر وحدات هجومية لاستغلال إعدادات AWS الضعيفة.", tab: "cloud" },
+  { name: "CloudFox", description: "اكتشاف نقاط الهجوم في بيئات السحابة", tags: ["AWS", "Azure", "اكتشاف"], link: "https://github.com/BishopFox/cloudfox", badge: "free", category: "أمن السحابة", status: "online", details: "CloudFox يُسرّع اكتشاف الثغرات الشائعة في إعدادات السحابة.", tab: "cloud" },
+  { name: "S3Scanner", description: "اكتشاف حاويات S3 المكشوفة والمُعرَّضة للخطر", tags: ["S3", "AWS", "مكشوف"], link: "https://github.com/sa7mon/S3Scanner", badge: "free", category: "أمن السحابة", status: "online", details: "S3Scanner يكتشف حاويات S3 العامة وغير المحمية.", tab: "cloud" },
+  { name: "GrayhatWarfare", description: "بحث في حاويات S3 وBlob Storage المكشوفة", tags: ["S3", "Blob", "بحث"], link: "https://grayhatwarfare.com", badge: "free", category: "أمن السحابة", status: "online", details: "GrayhatWarfare قاعدة بيانات لحاويات التخزين السحابي المكشوفة.", tab: "cloud" },
+  { name: "Trivy", description: "فحص الثغرات في صور Docker وملفات Infrastructure", tags: ["Docker", "Kubernetes", "ثغرات"], link: "https://github.com/aquasecurity/trivy", badge: "free", category: "أمن السحابة", status: "online", details: "Trivy يفحص صور Docker وملفات Terraform وHelm عن الثغرات.", tab: "cloud" },
+  { name: "Checkov", description: "تحليل ثابت لملفات Terraform وCloudFormation", tags: ["Terraform", "IaC", "ثابت"], link: "https://github.com/bridgecrewio/checkov", badge: "free", category: "أمن السحابة", status: "online", details: "Checkov يفحص ملفات Infrastructure as Code عن الثغرات قبل النشر.", tab: "cloud" },
+  { name: "KICS", description: "فحص أمني لملفات IaC — 2400+ فحص", tags: ["IaC", "Kubernetes", "أمني"], link: "https://github.com/Checkmarx/kics", badge: "free", category: "أمن السحابة", status: "online", details: "KICS يدعم Terraform وAnsible وKubernetes وDockerfile والمزيد.", tab: "cloud" },
+  { name: "Cartography", description: "رسم خريطة أصول السحابة وعلاقاتها في Neo4j", tags: ["Neo4j", "AWS", "أصول"], link: "https://github.com/lyft/cartography", badge: "free", category: "أمن السحابة", status: "online", details: "Cartography يُنشئ رسم بياني لأصول AWS وGSuite في قاعدة Neo4j.", tab: "cloud" },
+  { name: "Enumerate-IAM", description: "استعلام صلاحيات IAM في AWS بشكل آمن وشامل", tags: ["IAM", "AWS", "صلاحيات"], link: "https://github.com/andresriancho/enumerate-iam", badge: "free", category: "أمن السحابة", status: "online", details: "يُعدَّد جميع صلاحيات مفتاح AWS IAM بدون إنشاء أي موارد.", tab: "cloud" },
+  { name: "Kubernetes Goat", description: "بيئة Kubernetes ضعيفة مقصودة للتدريب", tags: ["Kubernetes", "تدريب", "هجومي"], link: "https://github.com/madhuakula/kubernetes-goat", badge: "free", category: "أمن السحابة", status: "online", details: "Kubernetes Goat بيئة تدريب عملي لاختبار أمان Kubernetes.", tab: "cloud" },
+  { name: "ROADtools", description: "استعلام Azure Active Directory وتحليل المستأجرين", tags: ["Azure", "AD", "استعلام"], link: "https://github.com/dirkjanm/ROADtools", badge: "free", category: "أمن السحابة", status: "online", details: "ROADtools يستعلم Azure AD ويُحلّل صلاحيات المستأجرين.", tab: "cloud" },
+  { name: "Steampipe", description: "استعلام SQL في بنية السحابة متعددة المزودين", tags: ["SQL", "AWS", "Azure", "GCP"], link: "https://steampipe.io", badge: "free", category: "أمن السحابة", status: "online", details: "Steampipe يُتيح كتابة SQL لاستعلام موارد AWS وAzure وGCP في وقت واحد.", tab: "cloud" },
+];
+
+// ─── WEB APPLICATION SECURITY ─────────────────────────────
+const WEBAPP_TOOLS: OsintTool[] = [
+  { name: "Burp Suite Pro", description: "أقوى أداة لاختبار اختراق تطبيقات الويب — المعيار الاحترافي", tags: ["ويب", "اختراق", "احترافي"], link: "https://portswigger.net/burp/pro", badge: "paid", category: "أمن تطبيقات الويب", status: "online", details: "Burp Suite Pro المرجع الأول لاختبار تطبيقات الويب مع Scanner متقدم.", tab: "webapp" },
+  { name: "OWASP ZAP", description: "بديل مجاني وقوي لـ Burp Suite لاختبار الويب", tags: ["مجاني", "OWASP", "ويب"], link: "https://www.zaproxy.org", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "ZAP من OWASP يوفر مسح تلقائي وواجهة proxy تفاعلية مجانية.", tab: "webapp" },
+  { name: "SQLMap", description: "أتمتة اكتشاف واستغلال ثغرات SQL Injection", tags: ["SQL Injection", "أتمتة", "قواعد بيانات"], link: "https://sqlmap.org", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "SQLMap يكتشف ويستغل تلقائياً ثغرات SQL Injection في قواعد البيانات.", tab: "webapp" },
+  { name: "Nikto", description: "ماسح خوادم الويب للثغرات والإعدادات الضعيفة", tags: ["خوادم ويب", "ثغرات", "مسح"], link: "https://cirt.net/Nikto2", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "Nikto يفحص الخوادم عن 6700+ ثغرة وإعداد خاطئ معروف.", tab: "webapp" },
+  { name: "Wfuzz", description: "أداة فازينج لتطبيقات الويب والـ API", tags: ["Fuzzing", "ويب", "API"], link: "https://github.com/xmendez/wfuzz", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "Wfuzz يُؤتمت الفازينج لاكتشاف الموارد المخفية والثغرات.", tab: "webapp" },
+  { name: "XSStrike", description: "أداة متخصصة لاكتشاف واستغلال ثغرات XSS", tags: ["XSS", "Cross-Site Scripting", "متخصص"], link: "https://github.com/s0md3v/XSStrike", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "XSStrike يُحلّل استجابات الويب ويُولّد payloads XSS مخصصة.", tab: "webapp" },
+  { name: "Dalfox", description: "ماسح XSS سريع مع دعم DOM وBlind XSS", tags: ["XSS", "Blind XSS", "DOM"], link: "https://github.com/hahwul/dalfox", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "Dalfox مكتوب بـ Go يدعم الفحص السريع لـ XSS مع الـ DOM.", tab: "webapp" },
+  { name: "Arjun", description: "اكتشاف المعاملات المخفية في HTTP وAPIs", tags: ["HTTP", "API", "Parameters"], link: "https://github.com/s0md3v/Arjun", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "Arjun يكتشف المعاملات المخفية في نماذج HTTP وAPI الـ endpoints.", tab: "webapp" },
+  { name: "ffuf", description: "فازينج سريع جداً للويب والـ API", tags: ["Fuzzing", "سريع", "Go"], link: "https://github.com/ffuf/ffuf", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "ffuf مكتوب بـ Go يُعدّ من أسرع أدوات الفازينج للويب.", tab: "webapp" },
+  { name: "JWT Tool", description: "تحليل وهجوم رموز JSON Web Tokens", tags: ["JWT", "Token", "تحليل"], link: "https://github.com/ticarpi/jwt_tool", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "JWT Tool يُحلّل ويُهاجم JWT مع دعم RS/HS256 وalg:none.", tab: "webapp" },
+  { name: "Caido", description: "بديل حديث لـ Burp Suite بواجهة مرئية جميلة", tags: ["ويب", "Proxy", "حديث"], link: "https://caido.io", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "Caido أداة اختبار اختراق ويب حديثة مع واجهة مرئية نظيفة.", tab: "webapp" },
+  { name: "Nuclei Templates", description: "قاعدة بيانات قوالب Nuclei المجتمعية — 7000+", tags: ["Nuclei", "قوالب", "مجتمع"], link: "https://github.com/projectdiscovery/nuclei-templates", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "أكثر من 7000 قالب YAML لاكتشاف الثغرات المعروفة.", tab: "webapp" },
+  { name: "SSRF Sheriff", description: "خادم اكتشاف ثغرات SSRF مع callbacks", tags: ["SSRF", "Callback", "كشف"], link: "https://github.com/teknogeek/ssrf-sheriff", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "يُساعد على اكتشاف ثغرات SSRF عبر callbacks HTTP.", tab: "webapp" },
+  { name: "Smuggler", description: "اكتشاف ثغرات HTTP Request Smuggling", tags: ["HTTP Smuggling", "ثغرات", "متقدم"], link: "https://github.com/defparam/smuggler", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "Smuggler يكتشف ثغرات HTTP Request Smuggling في الخوادم.", tab: "webapp" },
+  { name: "GraphQL Voyager", description: "استكشاف وتحليل GraphQL APIs بشكل مرئي", tags: ["GraphQL", "API", "تحليل"], link: "https://github.com/IvanGoncharov/graphql-voyager", badge: "free", category: "أمن تطبيقات الويب", status: "online", details: "GraphQL Voyager يرسم schema الـ API بشكل مرئي تفاعلي.", tab: "webapp" },
+];
+
+// ─── MOBILE OSINT ─────────────────────────────────────────
+const MOBILE_TOOLS: OsintTool[] = [
+  { name: "MobSF", description: "إطار تحليل أمان تطبيقات الجوال — Android وiOS", tags: ["Android", "iOS", "تحليل"], link: "https://github.com/MobSF/Mobile-Security-Framework-MobSF", badge: "free", category: "أمن الجوال", status: "online", details: "MobSF يُحلّل APK وIPA ستاتيكياً وديناميكياً ويُنتج تقارير تفصيلية.", tab: "mobile" },
+  { name: "Objection", description: "اختبار أمان تطبيقات الجوال في وقت التشغيل بـ Frida", tags: ["Frida", "Runtime", "Android", "iOS"], link: "https://github.com/sensepost/objection", badge: "free", category: "أمن الجوال", status: "online", details: "Objection يعتمد على Frida لتحليل التطبيقات حياً وتجاوز الحماية.", tab: "mobile" },
+  { name: "Frida", description: "إطار عمل Dynamic Instrumentation للتطبيقات", tags: ["Dynamic", "Instrumentation", "Hook"], link: "https://frida.re", badge: "free", category: "أمن الجوال", status: "online", details: "Frida يُتيح حقن JavaScript في العمليات الحية لمراقبتها وتعديلها.", tab: "mobile" },
+  { name: "Jadx", description: "معكوس هندسي لملفات APK إلى كود Java مقروء", tags: ["APK", "Decompile", "Java"], link: "https://github.com/skylot/jadx", badge: "free", category: "أمن الجوال", status: "online", details: "Jadx يُحوّل DEX إلى Java بجودة عالية مع واجهة مرئية سهلة.", tab: "mobile" },
+  { name: "APKTool", description: "فك وإعادة بناء تطبيقات Android APK", tags: ["APK", "Smali", "فك"], link: "https://apktool.org", badge: "free", category: "أمن الجوال", status: "online", details: "APKTool يفك ويُعيد بناء APK مع Smali code ويُسهّل التحليل.", tab: "mobile" },
+  { name: "Drozer", description: "إطار اختبار أمان Android من الداخل", tags: ["Android", "اختبار داخلي", "Components"], link: "https://github.com/WithSecureLabs/drozer", badge: "free", category: "أمن الجوال", status: "online", details: "Drozer يتفاعل مع Android Components من داخل الجهاز مباشرة.", tab: "mobile" },
+  { name: "iMazing", description: "استخراج بيانات وتحليل النسخ الاحتياطية لـ iOS", tags: ["iOS", "نسخ احتياطية", "استخراج"], link: "https://imazing.com", badge: "paid", category: "أمن الجوال", status: "online", details: "iMazing يستخرج بيانات مفصلة من أجهزة iOS والنسخ الاحتياطية.", tab: "mobile" },
+  { name: "iFunBox", description: "استكشاف نظام ملفات iOS والتطبيقات", tags: ["iOS", "نظام ملفات", "استكشاف"], link: "https://www.i-funbox.com", badge: "free", category: "أمن الجوال", status: "online", details: "iFunBox يُتيح الوصول لنظام ملفات iOS بدون jailbreak في بعض الحالات.", tab: "mobile" },
+  { name: "Android Debug Bridge", description: "التحكم في أجهزة Android عبر ADB", tags: ["ADB", "Android", "تحكم"], link: "https://developer.android.com/studio/command-line/adb", badge: "free", category: "أمن الجوال", status: "online", details: "ADB يُتيح نقل الملفات والوصول للـ shell وتثبيت التطبيقات.", tab: "mobile" },
+  { name: "Genymotion", description: "محاكي Android سريع للاختبار والتحليل", tags: ["محاكي", "Android", "اختبار"], link: "https://www.genymotion.com", badge: "free", category: "أمن الجوال", status: "online", details: "Genymotion محاكي Android احترافي مع snapshots وتحكم كامل.", tab: "mobile" },
+  { name: "Needle", description: "إطار اختبار أمان iOS من سطر الأوامر", tags: ["iOS", "اختبار", "CLI"], link: "https://github.com/WithSecureLabs/needle", badge: "free", category: "أمن الجوال", status: "online", details: "Needle يُتيح اختبار iOS بمودولات لتحليل الذاكرة والملفات والشبكة.", tab: "mobile" },
+  { name: "Ghidra Mobile", description: "تحليل ثنائيات الجوال بـ Ghidra من NSA", tags: ["تحليل ثنائي", "NSA", "Ghidra"], link: "https://github.com/NationalSecurityAgency/ghidra", badge: "free", category: "أمن الجوال", status: "online", details: "Ghidra من NSA مجاني ومفتوح لتحليل الثنائيات بما فيها مكتبات ARM.", tab: "mobile" },
+  { name: "QARK", description: "مسح ثابت لتطبيقات Android وكشف الثغرات", tags: ["Android", "ثابت", "ثغرات"], link: "https://github.com/linkedin/qark", badge: "free", category: "أمن الجوال", status: "online", details: "QARK من LinkedIn يُحلّل APK ويكتشف ثغرات أمنية شائعة.", tab: "mobile" },
+  { name: "RMS Runtime Mobile Security", description: "تحليل ديناميكي لتطبيقات iOS وAndroid في وقت التشغيل", tags: ["Runtime", "Android", "iOS"], link: "https://github.com/m0bilesecurity/RMS-Runtime-Mobile-Security", badge: "free", category: "أمن الجوال", status: "online", details: "RMS يُسهّل استخدام Frida مع واجهة ويب لتحليل التطبيقات.", tab: "mobile" },
+  { name: "Santoku", description: "توزيعة Linux متخصصة لأمن وجنائيات الجوال", tags: ["Linux", "جنائيات", "جوال"], link: "https://santoku-linux.com", badge: "free", category: "أمن الجوال", status: "online", details: "Santoku بيئة متكاملة لأمن وتحليل جنائيات تطبيقات الجوال.", tab: "mobile" },
+];
+
 // ─── LEGAL TOOLS ──────────────────────────────────────────
 const LEGAL_TOOLS: OsintTool[] = [
   { name: "الوصول غير المصرح به", description: "الوصول إلى بيانات شخصية أو أنظمة خاصة بدون إذن هو جريمة إلكترونية", tags: ["تحذير", "جريمة", "غير قانوني"], link: "#", badge: "legal", category: "تحذير قانوني", status: "offline", details: "هذا النشاط غير قانوني ويحمل عقوبات سجنية وغرامات مالية في معظم الدول.", tab: "legal" },
@@ -373,6 +469,27 @@ const FRAMEWORKS: Framework[] = [
   { name: "Amass",             usage: "جمع معلومات النطاقات الفرعية",                      type: "OSINT / Recon",      link: "https://github.com/owasp-amass/amass" },
   { name: "Subfinder",         usage: "اكتشاف النطاقات الفرعية بمصادر سلبية",             type: "Recon",              link: "https://github.com/projectdiscovery/subfinder" },
   { name: "Burp Suite Pro",    usage: "اختبار اختراق ويب احترافي متقدم",                   type: "Web Pentesting",     link: "https://portswigger.net/burp/pro" },
+  { name: "Frida",             usage: "Dynamic Instrumentation وتحليل التطبيقات الحية",    type: "Mobile / Runtime",   link: "https://frida.re" },
+  { name: "MobSF",             usage: "تحليل أمان تطبيقات Android وiOS",                  type: "Mobile Security",    link: "https://github.com/MobSF/Mobile-Security-Framework-MobSF" },
+  { name: "Ghidra",            usage: "تحليل ثنائيات وهندسة عكسية",                        type: "Reverse Engineering", link: "https://ghidra-sre.org" },
+  { name: "IDA Pro",           usage: "تحليل ثنائيات احترافي ومتقدم",                      type: "Reverse Engineering", link: "https://hex-rays.com/ida-pro" },
+  { name: "Radare2",           usage: "تحليل ثنائيات مفتوح المصدر",                        type: "Reverse Engineering", link: "https://www.radare.org" },
+  { name: "YARA",              usage: "تصنيف البرمجيات الضارة بقواعد مخصصة",              type: "Malware Analysis",   link: "https://virustotal.github.io/yara" },
+  { name: "Tails OS",          usage: "نظام تشغيل مجهولية لا يترك أثراً",                 type: "OPSEC / Privacy",    link: "https://tails.boum.org" },
+  { name: "VeraCrypt",         usage: "تشفير الأقراص والملفات بمعايير عسكرية",             type: "Encryption",         link: "https://www.veracrypt.fr" },
+  { name: "Pacu",              usage: "اختبار اختراق AWS وبيئات السحابة",                  type: "Cloud Pentesting",   link: "https://github.com/RhinoSecurityLabs/pacu" },
+  { name: "Prowler",           usage: "مسح أمني شامل لـ AWS مع 300+ فحص",                 type: "Cloud Security",     link: "https://github.com/prowler-cloud/prowler" },
+  { name: "Trivy",             usage: "فحص الثغرات في Docker وKubernetes",                 type: "Container Security", link: "https://github.com/aquasecurity/trivy" },
+  { name: "Drozer",            usage: "اختبار أمان تطبيقات Android",                       type: "Mobile Pentesting",  link: "https://github.com/WithSecureLabs/drozer" },
+  { name: "Responder",         usage: "اعتراض بيانات الاعتماد عبر LLMNR Poisoning",       type: "Network Attack",     link: "https://github.com/lgandx/Responder" },
+  { name: "CrackMapExec",      usage: "أتمتة هجمات Active Directory وSMB",                  type: "Post-Exploitation",  link: "https://github.com/Porchetta-Industries/CrackMapExec" },
+  { name: "Mimikatz",          usage: "استخراج بيانات الاعتماد من ذاكرة Windows",          type: "Credential Access",  link: "https://github.com/gentilkiwi/mimikatz" },
+  { name: "Havoc C2",          usage: "إطار C2 متقدم مفتوح المصدر",                        type: "Red Team C2",        link: "https://github.com/HavocFramework/Havoc" },
+  { name: "Kerbrute",          usage: "هجمات Kerberos واستعلام حسابات AD",                 type: "Active Directory",   link: "https://github.com/ropnop/kerbrute" },
+  { name: "Caido",             usage: "أداة اختبار اختراق ويب حديثة",                      type: "Web Pentesting",     link: "https://caido.io" },
+  { name: "ffuf",              usage: "فازينج سريع للويب والـ API",                         type: "Web Fuzzing",        link: "https://github.com/ffuf/ffuf" },
+  { name: "SQLMap",            usage: "اكتشاف واستغلال SQL Injection آلياً",                type: "SQLi Scanner",       link: "https://sqlmap.org" },
+  { name: "Censys",            usage: "فحص البنية التحتية للإنترنت والشهادات",              type: "OSINT / Recon",      link: "https://censys.io" },
 ];
 
 const ALL_TOOLS: OsintTool[] = [
@@ -383,6 +500,8 @@ const ALL_TOOLS: OsintTool[] = [
   ...CRYPTO_TOOLS, ...IMAGEOSINT_TOOLS,
   ...VULN_TOOLS, ...PASSWORD_TOOLS, ...DNS_TOOLS,
   ...API_TOOLS, ...IOT_TOOLS, ...FORENSICS_TOOLS,
+  ...OPSEC_TOOLS, ...REDTEAM_TOOLS, ...CLOUD_TOOLS,
+  ...WEBAPP_TOOLS, ...MOBILE_TOOLS,
 ];
 
 // ─── Tab Config ──────────────────────────────────────────
@@ -409,6 +528,11 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode; color?: string }[
   { id: "api",         label: "أمن API",            icon: <Code size={13} /> },
   { id: "iot",         label: "OSINT الأجهزة",      icon: <Cpu size={13} /> },
   { id: "forensics",   label: "جنائيات رقمية",      icon: <Fingerprint size={13} /> },
+  { id: "opsec",       label: "OPSEC & مجهولية",    icon: <Lock size={13} />, color: "from-teal-700 to-cyan-700" },
+  { id: "redteam",     label: "Red Team",            icon: <Siren size={13} />, color: "from-red-800 to-rose-700" },
+  { id: "cloud",       label: "أمن السحابة",         icon: <Monitor size={13} />, color: "from-sky-700 to-blue-700" },
+  { id: "webapp",      label: "أمن الويب",           icon: <Globe size={13} /> },
+  { id: "mobile",      label: "أمن الجوال",          icon: <Phone size={13} /> },
   { id: "frameworks",  label: "أطر العمل",          icon: <Layers size={13} /> },
   { id: "legal",       label: "التحذيرات",          icon: <Scale size={13} /> },
 ];
@@ -551,8 +675,8 @@ function FrameworksTable({ frameworks }: { frameworks: Framework[] }) {
 function StatsBar() {
   const stats = [
     { icon: <Search size={16} />, value: `${ALL_TOOLS.length}+`, label: "أداة ونظام",      color: "text-sky-400" },
-    { icon: <Filter size={16} />, value: "22",                    label: "فئة متخصصة",      color: "text-violet-400" },
-    { icon: <Globe size={16} />,  value: "3000+",                  label: "منصة مدعومة",     color: "text-emerald-400" },
+    { icon: <Filter size={16} />, value: "27",                    label: "فئة متخصصة",      color: "text-violet-400" },
+    { icon: <Globe size={16} />,  value: `${FRAMEWORKS.length}`,  label: "إطار عمل",        color: "text-emerald-400" },
     { icon: <Shield size={16} />, value: "100%",                   label: "أخلاقي وقانوني",  color: "text-amber-400" },
   ];
   return (
@@ -576,7 +700,8 @@ type ScanModule =
   | "emailrep" | "threatfeed" | "greynoise" | "pastebin"
   | "social" | "github" | "certTransparency" | "passiveDns"
   | "urlscan" | "leakix" | "abuseipdb" | "securityheaders"
-  | "dnssec" | "portscan" | "reversedns" | "bgpview";
+  | "dnssec" | "portscan" | "reversedns" | "bgpview"
+  | "techdetect" | "internetdb" | "ipqs" | "censys";
 
 interface ScanResult {
   id: ScanModule;
@@ -611,12 +736,15 @@ const MODULE_GROUPS: ModuleGroup[] = [
     modules: [
       { id: "geo",              label: "IP Geolocation",      icon: <MapPin size={11} />,      forTypes: ["ip", "any"] },
       { id: "shodan",           label: "Shodan",              icon: <Wifi size={11} />,        forTypes: ["ip", "domain", "any"] },
+      { id: "censys",           label: "Censys",              icon: <Database size={11} />,    forTypes: ["ip", "domain", "any"] },
       { id: "asn",              label: "ASN / BGP",           icon: <TrendingUp size={11} />,  forTypes: ["ip", "domain", "any"] },
       { id: "reverseip",        label: "Reverse IP",          icon: <Cpu size={11} />,         forTypes: ["ip"] },
       { id: "greynoise",        label: "GreyNoise",           icon: <Activity size={11} />,    forTypes: ["ip"] },
       { id: "portscan",         label: "Port Scan",           icon: <Scan size={11} />,        forTypes: ["ip", "domain"] },
       { id: "bgpview",          label: "BGP View",            icon: <GitBranch size={11} />,   forTypes: ["ip", "any"] },
       { id: "reversedns",       label: "Reverse DNS",         icon: <Hash size={11} />,        forTypes: ["ip"] },
+      { id: "internetdb",       label: "Shodan InternetDB",   icon: <Server size={11} />,      forTypes: ["ip"] },
+      { id: "ipqs",             label: "IP Quality Score",    icon: <Radar size={11} />,       forTypes: ["ip"] },
     ],
   },
   {
@@ -642,6 +770,7 @@ const MODULE_GROUPS: ModuleGroup[] = [
       { id: "social",           label: "Social Presence",     icon: <Radio size={11} />,       forTypes: ["username", "any"] },
       { id: "github",           label: "GitHub Recon",        icon: <Github size={11} />,      forTypes: ["any"] },
       { id: "securityheaders",  label: "Security Headers",    icon: <Radar size={11} />,       forTypes: ["domain", "any"] },
+      { id: "techdetect",       label: "Tech Detection",      icon: <Code size={11} />,        forTypes: ["domain", "any"] },
     ],
   },
 ];
@@ -758,6 +887,28 @@ function LiveScanner() {
     ).join("\n\n") + (aiReport ? `\n\n=== AI Analysis ===\n${aiReport}` : "");
     navigator.clipboard.writeText(text);
   };
+
+  const [generatingReport, setGeneratingReport] = useState(false);
+  const [fullReport, setFullReport] = useState("");
+
+  const generateFullReport = useCallback(async () => {
+    if (!target || results.length === 0) return;
+    setGeneratingReport(true);
+    try {
+      const allData = Object.fromEntries(results.filter(r => r.status === "done").map(r => [r.id, r.data]));
+      const res = await fetch(`${apiBase}/api/osint-advanced/report/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target, results: allData, analysis: aiReport }),
+      });
+      if (res.ok) {
+        const data = await res.json() as { report?: string };
+        if (data.report) setFullReport(data.report);
+      }
+    } catch { /* ignore */ } finally {
+      setGeneratingReport(false);
+    }
+  }, [target, results, aiReport, apiBase]);
 
   const done   = results.filter(r => r.status === "done").length;
   const errors = results.filter(r => r.status === "error").length;
@@ -914,11 +1065,37 @@ function LiveScanner() {
           {/* AI Report */}
           {aiReport && (
             <div className="bg-violet-900/10 border border-violet-500/30 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Zap size={13} className="text-violet-400" />
-                <span className="text-violet-400 font-semibold text-sm">تحليل الذكاء الاصطناعي</span>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Zap size={13} className="text-violet-400" />
+                  <span className="text-violet-400 font-semibold text-sm">تحليل الذكاء الاصطناعي</span>
+                </div>
+                {!running && (
+                  <button onClick={generateFullReport} disabled={generatingReport}
+                    className="flex items-center gap-1.5 text-[10px] px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white font-semibold transition-all disabled:opacity-50">
+                    {generatingReport ? <RefreshCw size={10} className="animate-spin" /> : <FileText size={10} />}
+                    {generatingReport ? "جارٍ التوليد..." : "توليد تقرير PDF"}
+                  </button>
+                )}
               </div>
               <p className="text-[#94a3b8] text-xs leading-relaxed whitespace-pre-wrap">{aiReport}</p>
+            </div>
+          )}
+
+          {/* Full Report */}
+          {fullReport && (
+            <div className="bg-emerald-900/10 border border-emerald-500/30 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <FileText size={13} className="text-emerald-400" />
+                  <span className="text-emerald-400 font-semibold text-sm">التقرير الشامل</span>
+                </div>
+                <button onClick={() => navigator.clipboard.writeText(fullReport)}
+                  className="flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-lg bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30 transition-all">
+                  <Copy size={10} /> نسخ التقرير
+                </button>
+              </div>
+              <pre className="text-xs text-[#94a3b8] font-mono overflow-x-auto whitespace-pre-wrap max-h-80 scrollbar-thin">{fullReport}</pre>
             </div>
           )}
         </div>
@@ -1005,6 +1182,11 @@ export function OsintHubModal({ onClose }: { onClose: () => void }) {
     api:        API_TOOLS,
     iot:        IOT_TOOLS,
     forensics:  FORENSICS_TOOLS,
+    opsec:      OPSEC_TOOLS,
+    redteam:    REDTEAM_TOOLS,
+    cloud:      CLOUD_TOOLS,
+    webapp:     WEBAPP_TOOLS,
+    mobile:     MOBILE_TOOLS,
   }), []);
 
   const displayTools = useMemo(() => {
@@ -1069,7 +1251,7 @@ export function OsintHubModal({ onClose }: { onClose: () => void }) {
             مركز أدوات OSINT والأمن السيبراني
           </h1>
           <p className="text-[#94a3b8] text-sm">
-            دليل شامل بأقوى الأدوات في مجال الاستخبارات المفتوحة المصادر والأمن السيبراني — {ALL_TOOLS.length}+ أداة في {TABS.length - 2} فئة
+            دليل شامل بأقوى الأدوات في مجال الاستخبارات المفتوحة المصادر والأمن السيبراني — {ALL_TOOLS.length}+ أداة في {TABS.length - 3} فئة · {FRAMEWORKS.length} إطار عمل
           </p>
         </motion.div>
 
