@@ -60,6 +60,8 @@ import { OmnixVoice } from "./components/OmnixVoice";
 import { OmnixSelfEvolution } from "./components/OmnixSelfEvolution";
 import { OmnixCommandPalette } from "./components/OmnixCommandPalette";
 import { OmnixSovereign } from "./lib/OmnixSovereign";
+import { OmnixAbsoluteDashboard } from "./components/OmnixAbsoluteDashboard";
+import { OmnixAbsoluteCore, registerBuiltinCommands } from "./lib/OmnixAbsolute";
 import { frameScheduler } from "./lib/frame-scheduler";
 import { memoryPressure } from "./lib/memory-pressure";
 import { thermalGuard } from "./lib/thermal-guard";
@@ -379,6 +381,7 @@ const MODAL_IDS = [
   'socialMediaArsenal',
   'aptIntel',
   'nexusPanel',
+  'omnixAbsolute',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -706,6 +709,7 @@ function AppContent() {
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "p") { e.preventDefault(); toggle('providerSettings'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "y") { e.preventDefault(); toggle('chainOfThought'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F2") { e.preventDefault(); setPerfCCOpen(v => !v); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F1") { e.preventDefault(); toggle('omnixAbsolute'); }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -802,6 +806,9 @@ function AppContent() {
   useEffect(() => {
     registerNexusDispatchers(nexusDispatchers);
     registerOmnixDispatchers(nexusDispatchers);
+    // ── Initialize OMNIX ABSOLUTE core with all built-in commands ──────────
+    registerBuiltinCommands();
+    OmnixAbsoluteCore.getInstance().initialize();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -811,6 +818,15 @@ function AppContent() {
     const onToggleVoice = () => setOmnixVoiceOpen((v) => !v);
     const onToggleEvo   = () => setOmnixEvoOpen((v) => !v);
     const onTogglePal   = () => setOmnixPaletteOpen((v) => !v);
+    // ── OMNIX ABSOLUTE event routing ─────────────────────────────────────
+    const onOmnixOpenModal  = (e: Event) => { const id = (e as CustomEvent).detail?.id; if (id && MODAL_IDS.includes(id as ModalId)) open(id as ModalId); };
+    const onOmnixCloseModal = (e: Event) => { const id = (e as CustomEvent).detail?.id; if (id && MODAL_IDS.includes(id as ModalId)) close(id as ModalId); };
+    const onOmnixSetTheme   = (e: Event) => { const accent = (e as CustomEvent).detail?.accent; if (accent) dispatch({ type: "SET_ACCENT", payload: accent }); };
+    const onOmnixOpenDash   = () => open('omnixAbsolute');
+    window.addEventListener("omnix:open-modal",    onOmnixOpenModal);
+    window.addEventListener("omnix:close-modal",   onOmnixCloseModal);
+    window.addEventListener("omnix:set-theme",     onOmnixSetTheme);
+    window.addEventListener("omnix:open-absolute", onOmnixOpenDash);
     window.addEventListener("omnix:toggle-hud",       onToggleHUD);
     window.addEventListener("omnix:toggle-voice",     onToggleVoice);
     window.addEventListener("omnix:toggle-evolution", onToggleEvo);
@@ -831,6 +847,10 @@ function AppContent() {
       window.removeEventListener("omnix:toggle-evolution", onToggleEvo);
       window.removeEventListener("omnix:toggle-palette",   onTogglePal);
       window.removeEventListener("omnix:sovereign-change", onSovereignSync);
+      window.removeEventListener("omnix:open-modal",    onOmnixOpenModal);
+      window.removeEventListener("omnix:close-modal",   onOmnixCloseModal);
+      window.removeEventListener("omnix:set-theme",     onOmnixSetTheme);
+      window.removeEventListener("omnix:open-absolute", onOmnixOpenDash);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [omnixPanelOpen, omnixVoiceOpen, omnixEvoOpen, omnixPaletteOpen]);
@@ -840,6 +860,11 @@ function AppContent() {
     {!bootDone && <BootScreen onDone={() => setBootDone(true)} />}
     <NexusExecutorHUD dispatchers={nexusDispatchers} />
     {/* ── OMNIX ABSOLUTE SYSTEM ─────────────────────────────────────────── */}
+    {/* ── OMNIX ABSOLUTE DASHBOARD — لوحة التحكم الإلهية الكاملة ──── */}
+    <OmnixAbsoluteDashboard
+      open={modals.omnixAbsolute}
+      onClose={() => close('omnixAbsolute')}
+    />
     <OmnixHUDPanel
       dispatchers={nexusDispatchers}
       open={omnixPanelOpen}
