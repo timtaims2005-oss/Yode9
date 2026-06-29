@@ -61,7 +61,7 @@ import { OmnixSelfEvolution } from "./components/OmnixSelfEvolution";
 import { OmnixCommandPalette } from "./components/OmnixCommandPalette";
 import { OmnixSovereign } from "./lib/OmnixSovereign";
 import { OmnixAbsoluteDashboard } from "./components/OmnixAbsoluteDashboard";
-import { OmnixAbsoluteCore, registerBuiltinCommands } from "./lib/OmnixAbsolute";
+import { OmnixAbsoluteCore, OmnixSovereign as OmnixAbsoluteSovereign, registerBuiltinCommands } from "./lib/OmnixAbsolute";
 import { frameScheduler } from "./lib/frame-scheduler";
 import { memoryPressure } from "./lib/memory-pressure";
 import { thermalGuard } from "./lib/thermal-guard";
@@ -809,6 +809,24 @@ function AppContent() {
     // ── Initialize OMNIX ABSOLUTE core with all built-in commands ──────────
     registerBuiltinCommands();
     OmnixAbsoluteCore.getInstance().initialize();
+    // ── تسجيل المكونات الرئيسية في الخريطة الحية OMNIX ABSOLUTE ─────────────
+    const _sv = OmnixAbsoluteSovereign.getInstance();
+    _sv.registerComponent("app",         "ui",      null, { name: "App",             nameAr: "التطبيق الرئيسي",         description: "Main app shell, router, modal manager" });
+    _sv.registerComponent("sidebar",     "ui",      null, { name: "Sidebar",          nameAr: "الشريط الجانبي",         description: "Navigation sidebar with all tools" });
+    _sv.registerComponent("topbar",      "ui",      null, { name: "TopBar",           nameAr: "شريط التنقل العلوي",     description: "Model selector, mode switcher, provider" });
+    _sv.registerComponent("arsenal-hub", "tool",    null, { name: "Arsenal Hub",      nameAr: "مركز الترسانة",          description: "18-module launcher with chain builder" });
+    _sv.registerComponent("council",     "feature", null, { name: "Council / Fusion", nameAr: "المجلس والدمج",          description: "105-brain council + fusion synthesis" });
+    _sv.registerComponent("godmode",     "feature", null, { name: "Godmode",          nameAr: "وضع الإله",              description: "14-mode godmode tournament" });
+    _sv.registerComponent("voice-chat",  "feature", null, { name: "Voice Chat",       nameAr: "المحادثة الصوتية",       description: "Full-duplex Web Speech API voice chat" });
+    _sv.registerComponent("vision",      "feature", null, { name: "Vision Capture",   nameAr: "التقاط الرؤية",          description: "Screen share or webcam + OCR + AI" });
+    _sv.registerComponent("dark-web",    "security",null, { name: "Dark Web Search",  nameAr: "البحث في الويب المظلم",  description: "Dark web OSINT and threat intel" });
+    _sv.registerComponent("shell-gen",   "security",null, { name: "Shell Generator",  nameAr: "مولّد الشيل",            description: "Reverse/bind shell payload generator" });
+    _sv.registerComponent("rag",         "tool",    null, { name: "RAGFlow",          nameAr: "RAGFlow — الذاكرة الوثائقية", description: "Upload docs, chat with documents" });
+    _sv.registerComponent("agent-ide",   "tool",    null, { name: "Agent IDE",        nameAr: "بيئة التطوير الوكيلة",  description: "OpenGravity agentic code editor" });
+    _sv.registerComponent("omnix-hud",   "ui",      null, { name: "OMNIX HUD",        nameAr: "واجهة HUD الإلهية",     description: "OMNIX sovereign HUD panel" });
+    _sv.registerComponent("omnix-voice", "feature", null, { name: "OMNIX Voice",      nameAr: "الأوامر الصوتية",       description: "Natural language voice command system" });
+    _sv.registerComponent("omnix-evo",   "feature", null, { name: "OMNIX Evolution",  nameAr: "التطور الذاتي",         description: "Self-evolving AI pattern analysis" });
+    _sv.registerComponent("omnix-palette","feature",null, { name: "OMNIX Palette",    nameAr: "لوحة الأوامر",          description: "Command palette for all OMNIX actions" });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -948,6 +966,7 @@ function AppContent() {
         onOpenAptIntel={() => open('aptIntel')}
         onOpenNexusPanel={() => open('nexusPanel')}
         onOpenAccountHackeTools={() => open('accountHackeTools')}
+        onOpenOmnixAbsolute={() => open('omnixAbsolute')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">

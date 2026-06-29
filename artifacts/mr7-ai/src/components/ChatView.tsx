@@ -30,6 +30,7 @@ import { SecurityMissionsBar } from "./SecurityMissionsBar";
 import { buildNexusSystemPrompt } from "@/lib/NexusInterceptor";
 import { executeNexusResponse } from "./NexusExecutor";
 import { executeOmnixResponse } from "@/lib/OmnixExecutor";
+import { OmnixAbsoluteCore, OmnixSovereign as OmnixAbsoluteSovereign } from "@/lib/OmnixAbsolute";
 
 function escapeHtml(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -118,6 +119,19 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
     }
     window.addEventListener("kali:set-mode", onSetMode);
     return () => window.removeEventListener("kali:set-mode", onSetMode);
+  }, []);
+
+  // ── OMNIX ABSOLUTE: تسجيل مكون ChatView في الخريطة الحية ─────────────────
+  useEffect(() => {
+    const sovereign = OmnixAbsoluteSovereign.getInstance();
+    sovereign.registerComponent("chat-view", "ui", null, {
+      name: "ChatView",
+      nameAr: "واجهة المحادثة",
+      description: "Main chat interface — streaming, multimodal, council, godmode, agent",
+    });
+    OmnixAbsoluteCore.getInstance().initialize();
+    return () => sovereign.unregisterComponent("chat-view");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function scrollToBottom() {
@@ -302,6 +316,8 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       // ── OMNIX EXECUTOR: تنفيذ الأوامر تلقائياً (OMNIX + NEXUS fallback) ──────
       if (acc) {
         executeOmnixResponse(acc).catch(() => executeNexusResponse(acc).catch(() => {}));
+        // ── OMNIX ABSOLUTE: معالجة صيغة <omnix-commands> من Worm_tools.md ────
+        OmnixAbsoluteCore.getInstance().processResponse(acc, lastUser).catch(() => {});
       }
       if (mode === "orchestrator" && acc) {
         const cmds = parseOrchestratorCommands(acc);
@@ -351,7 +367,10 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       if ((err as { name?: string })?.name !== "AbortError") { update({ ...payload, phase: "error", error: err instanceof Error ? err.message : "Godmode failed." }); toast({ description: err instanceof Error ? err.message : "Godmode failed." }); }
     } finally {
       setStreaming(false);
-      if (payload.winnerContent) executeOmnixResponse(payload.winnerContent).catch(() => executeNexusResponse(payload.winnerContent!).catch(() => {}));
+      if (payload.winnerContent) {
+        executeOmnixResponse(payload.winnerContent).catch(() => executeNexusResponse(payload.winnerContent!).catch(() => {}));
+        OmnixAbsoluteCore.getInstance().processResponse(payload.winnerContent, "").catch(() => {});
+      }
     }
   }
 
@@ -400,7 +419,10 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       if ((err as { name?: string })?.name !== "AbortError") { update({ ...council, phase: "error", error: err instanceof Error ? err.message : "Council failed." }); toast({ description: err instanceof Error ? err.message : "Council failed." }); }
     } finally {
       setStreaming(false);
-      if (council.synthesis) executeOmnixResponse(council.synthesis).catch(() => executeNexusResponse(council.synthesis!).catch(() => {}));
+      if (council.synthesis) {
+        executeOmnixResponse(council.synthesis).catch(() => executeNexusResponse(council.synthesis!).catch(() => {}));
+        OmnixAbsoluteCore.getInstance().processResponse(council.synthesis, "").catch(() => {});
+      }
     }
   }
 

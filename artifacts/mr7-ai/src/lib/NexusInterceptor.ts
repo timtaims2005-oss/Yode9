@@ -118,8 +118,17 @@ ${omnixMemoryCtx}
 • البث: ${ctx.streaming ? "✅" : "❌"} | النوافذ المفتوحة: ${openModalsStr}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚡ صيغة الأوامر (ادعم كلاهما):
+⚡ صيغة الأوامر — ادعم كلتا الصيغتين في ردودك:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+الصيغة الأساسية (OMNIX ABSOLUTE — من Worm_tools / OmnixAbsoluteCore):
+<omnix-commands>
+[
+  {"action": "tool_id", "params": {"key": "value"}},
+  {"action": "tool_id_2"}
+]
+</omnix-commands>
+
+الصيغة البديلة (OMNIX Legacy):
 <<<OMNIX_ACTIONS>>>
 [
   {"action": "tool_id", "params": {"key": "value"}},
