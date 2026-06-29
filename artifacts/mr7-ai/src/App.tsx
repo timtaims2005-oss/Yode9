@@ -190,6 +190,7 @@ const GemmaLibModal         = lazy(() => import("./components/modals/GemmaLibMod
 const RogueMasterModal      = lazy(() => import("./components/modals/RogueMasterModal").then(m=>({default:m.RogueMasterModal})));
 const PasswordAttackModal   = lazy(() => import("./components/modals/PasswordAttackModal").then(m=>({default:m.PasswordAttackModal})));
 const AIHackingSkillsModal  = lazy(() => import("./components/modals/AIHackingSkillsModal").then(m=>({default:m.AIHackingSkillsModal})));
+const AccountHackeToolsModal = lazy(() => import("./components/modals/AccountHackeToolsModal").then(m=>({default:m.AccountHackeToolsModal})));
 const AITerminalModal       = lazy(() => import("./components/modals/AITerminalModal").then(m=>({default:m.AITerminalModal})));
 const MarkXXXIXModal        = lazy(() => import("./components/modals/MarkXXXIXModal").then(m=>({default:m.MarkXXXIXModal})));
 const MarkXXXIXORModal      = lazy(() => import("./components/modals/MarkXXXIXORModal").then(m=>({default:m.MarkXXXIXORModal})));
@@ -310,7 +311,7 @@ const MODAL_IDS = [
   'aiFactory','gemmaChat','codeGraph','ohMyPi','awesomeOpenCode','openRepLove','dyad',
   'ghostwriter','agentScope','insForge','malwareArsenal','threatIntel','wormGPT',
   'antigravityMgr','axonHub','bigAGI','hackingTool','godMod3','geminiResearch',
-  'openAntigravity','paseo','gemmaLib','rogueMaster','passwordAttack','aiHackingSkills',
+  'openAntigravity','paseo','gemmaLib','rogueMaster','passwordAttack','aiHackingSkills','accountHackeTools',
   'aiTerminal','markXXXIX','markXXXIXOR','freeLLMAPI','nineRouter','feynman','governor',
   'headroom','tokenOptimizer','claudeMemory','qrSync','modelCompare','securityKanban',
   'networkMonitor','defensiveAI','openSkynet','neuralMatrix','shellGenerator','analytics',
@@ -1187,6 +1188,7 @@ function AppContent() {
         <RogueMasterModal open={modals.rogueMaster} onOpenChange={(v) => mDispatch({type:'SET',id:'rogueMaster',value:v})} />
         <PasswordAttackModal open={modals.passwordAttack} onOpenChange={(v) => mDispatch({type:'SET',id:'passwordAttack',value:v})} />
         <AIHackingSkillsModal open={modals.aiHackingSkills} onOpenChange={(v) => mDispatch({type:'SET',id:'aiHackingSkills',value:v})} />
+        <AccountHackeToolsModal open={modals.accountHackeTools} onOpenChange={(v) => mDispatch({type:'SET',id:'accountHackeTools',value:v})} />
         <AITerminalModal open={modals.aiTerminal} onOpenChange={(v) => mDispatch({type:'SET',id:'aiTerminal',value:v})} />
         <MarkXXXIXModal open={modals.markXXXIX} onOpenChange={(v) => mDispatch({type:'SET',id:'markXXXIX',value:v})} />
         <MarkXXXIXORModal open={modals.markXXXIXOR} onOpenChange={(v) => mDispatch({type:'SET',id:'markXXXIXOR',value:v})} />

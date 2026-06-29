@@ -861,6 +861,22 @@ export const OMNIX_ABSOLUTE_REGISTRY: AbsoluteCommand[] = [
     ...modal("packetAnalyzer", "Packet Analyzer", "محلل الحزم"),
   },
 
+  {
+    id: "open_accounthacke_tools",
+    name: "Open Account Hacke Tools",
+    nameAr: "فتح أدوات الوعي الأمني",
+    description: "Open the full 4D cybersecurity awareness toolkit — 7 live educational systems",
+    descriptionAr: "فتح دليل الوعي الأمني: هندسة اجتماعية، ثغرات، كلمات مرور، APT، هندسة عكسية، دفاع، قانون",
+    category: "security",
+    aliases: [
+      "accounthacke", "أدوات الأمن", "security toolkit", "حماية حسابات",
+      "phishing scanner", "xss lab", "password lab", "apt intel", "reverse engineering",
+      "هندسة اجتماعية", "ثغرات", "كلمات مرور", "هجمات apt", "هندسة عكسية", "آليات دفاع", "إطار قانوني",
+      "yode9", "account hacke", "cybersecurity tools", "أدوات سيبرانية",
+    ],
+    ...modal("accountHackeTools", "Account Hacke Tools", "أدوات الوعي الأمني"),
+  },
+
   // ════════════════════════════════════════════════════════════
   // UI — عناصر الواجهة
   // ════════════════════════════════════════════════════════════
