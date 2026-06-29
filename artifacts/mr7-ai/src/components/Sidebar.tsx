@@ -138,6 +138,7 @@ interface SidebarProps {
   onOpenQRSync?: () => void;
   onOpenChangelog?: () => void;
   onOpenOsint?: () => void;
+  onOpenOsintHub?: () => void;
   onOpenUseCaseLib?: () => void;
   onOpenOmegaAgent?: () => void;
   onOpenLocalEngineHub?: () => void;

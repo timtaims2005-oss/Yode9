@@ -118,6 +118,7 @@ const LocalModelModal       = lazy(() => import("./components/modals/LocalModelM
 const LocalEngineHubModal   = lazy(() => import("./components/modals/LocalEngineHubModal").then(m=>({default:m.LocalEngineHubModal})));
 const ProviderSettingsModal = lazy(() => import("./components/modals/ProviderSettingsModal").then(m=>({default:m.ProviderSettingsModal})));
 const OsintDashboard        = lazy(() => import("./components/modals/OsintDashboard").then(m=>({default:m.OsintDashboard})));
+const OsintHubModal         = lazy(() => import("./components/modals/OsintHubModal").then(m=>({default:m.OsintHubModal})));
 const AdminPanel            = lazy(() => import("./components/modals/AdminPanel").then(m=>({default:m.AdminPanel})));
 const ActivateModal         = lazy(() => import("./components/modals/ActivateModal").then(m=>({default:m.ActivateModal})));
 const AgentModal            = lazy(() => import("./components/modals/AgentModal").then(m=>({default:m.AgentModal})));
@@ -382,6 +383,7 @@ const MODAL_IDS = [
   'aptIntel',
   'nexusPanel',
   'omnixAbsolute',
+  'osintHub',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -696,6 +698,7 @@ function AppContent() {
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "x") { e.preventDefault(); toggle('exploitChain'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "a" && !e.altKey) { e.preventDefault(); window.dispatchEvent(new CustomEvent("kali:trigger-auto-setup")); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "o") { e.preventDefault(); toggle('osintDash'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "h") { e.preventDefault(); toggle('osintHub'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "l") { e.preventDefault(); toggle('changelog'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "u") { e.preventDefault(); toggle('collab'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "i") { e.preventDefault(); toggle('intelligenceCore'); }
@@ -931,6 +934,7 @@ function AppContent() {
         onOpenQRSync={() => open('qrSync')}
         onOpenChangelog={() => open('changelog')}
         onOpenOsint={() => open('osintDash')}
+        onOpenOsintHub={() => open('osintHub')}
         onOpenUseCaseLib={() => open('useCaseLib')}
         onOpenOmegaAgent={() => open('omegaAgent')}
         onOpenLocalEngineHub={() => open('localEngineHub')}
@@ -1108,6 +1112,11 @@ function AppContent() {
         </WindowChrome>
         <WindowChrome open={modals.osintDash} color="#22c55e" title="OSINT DASHBOARD" onClose={() => close('osintDash')}>
           <OsintDashboard open={modals.osintDash} onOpenChange={(v) => mDispatch({type:'SET',id:'osintDash',value:v})} />
+        </WindowChrome>
+        <WindowChrome open={modals.osintHub} color="#0ea5e9" title="OSINT HUB — مركز الاستخبارات المفتوحة" onClose={() => close('osintHub')}>
+          <Suspense fallback={<div className="flex items-center justify-center h-full text-sky-400 text-sm">تحميل OSINT Hub...</div>}>
+            <OsintHubModal onClose={() => close('osintHub')} />
+          </Suspense>
         </WindowChrome>
         <WindowChrome open={modals.changelog} color="#e21227" title="CHANGELOG" onClose={() => close('changelog')}>
           <ChangelogModal open={modals.changelog} onOpenChange={(v) => mDispatch({type:'SET',id:'changelog',value:v})} />

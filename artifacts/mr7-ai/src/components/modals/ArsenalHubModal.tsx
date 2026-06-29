@@ -85,7 +85,9 @@ export type ArsenalModuleId =
   // Batch 16 — Autonomous Decision Engine
   | "autonomousdecisionengine"
   // AutoGPT Swarm + Evolution
-  | "swarmEvolution" | "agentProjectGenerator" | "agentEvolutionDashboard";
+  | "swarmEvolution" | "agentProjectGenerator" | "agentEvolutionDashboard"
+  // OSINT Hub — مركز الاستخبارات المفتوحة
+  | "osinthub";
 
 export type ArsenalModule = {
   id: ArsenalModuleId;
