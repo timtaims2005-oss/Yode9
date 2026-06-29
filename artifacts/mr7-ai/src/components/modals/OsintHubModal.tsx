@@ -2,11 +2,12 @@ import React, { useState, useMemo, useCallback, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, X, ExternalLink, Copy, CheckCheck, Shield, AlertTriangle, Globe,
-  Phone, Mail, User, Database, Layers, Crosshair, Scale, Filter, Star,
+  Phone, Mail, User, Database, Layers, Crosshair, Scale, Filter,
   ChevronDown, ChevronUp, Zap, Eye, Activity, Wifi, Terminal, RefreshCw,
   CheckCircle, XCircle, Clock, Server, Lock, FileText, Download,
-  Radio, Hash, Cpu, Network, MapPin, Camera, Atom, Bitcoin,
-  Github, Code, Bug, TrendingUp, Bookmark, FlaskConical
+  Radio, Hash, Cpu, Network, MapPin, Camera, Bitcoin,
+  Github, Code, Bug, TrendingUp, Bookmark, Key, Fingerprint,
+  Scan, Monitor, Radar, Siren, GitBranch,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────
@@ -17,7 +18,8 @@ type TabId =
   | "search" | "databases" | "phone" | "email" | "username"
   | "frameworks" | "recon" | "legal"
   | "darkweb" | "social" | "threatintel" | "geo"
-  | "malware" | "network" | "crypto" | "imageosint";
+  | "malware" | "network" | "crypto" | "imageosint"
+  | "vuln" | "password" | "dns" | "api" | "iot" | "forensics";
 
 interface OsintTool {
   name: string;
@@ -52,6 +54,9 @@ const SEARCH_TOOLS: OsintTool[] = [
   { name: "Creepy", description: "تتبع الموقع الجغرافي من بيانات التواصل الاجتماعي", tags: ["موقع جغرافي", "تواصل اجتماعي", "تتبع"], link: "https://github.com/ilektrojohn/creepy", badge: "free", category: "نظام بحث متقدم", status: "online", details: "Creepy يجمع معلومات الموقع الجغرافي من منصات التواصل كTwitter وInstagram.", tab: "search" },
   { name: "Datasploit", description: "أداة OSINT شاملة تجمع معلومات من مصادر متعددة آلياً", tags: ["شامل", "أتمتة", "OSINT"], link: "https://github.com/DataSploit/datasploit", badge: "free", category: "نظام بحث متقدم", status: "online", details: "Datasploit تجمع معلومات النطاقات والبريد والأشخاص آلياً من مصادر مفتوحة متعددة.", tab: "search" },
   { name: "Buscador", description: "نظام تشغيل مخصص لعمليات OSINT مع أدوات مثبتة مسبقاً", tags: ["نظام تشغيل", "OSINT", "متخصص"], link: "https://inteltechniques.com/buscador", badge: "free", category: "نظام بحث متقدم", status: "online", details: "Buscador VM مخصص لباحثي OSINT مع مئات الأدوات المثبتة والمُهيأة مسبقاً.", tab: "search" },
+  { name: "Osmedeus", description: "إطار عمل OSINT هجومي آلي مع تقارير مدمجة", tags: ["هجومي", "آلي", "تقارير"], link: "https://github.com/j3ssie/osmedeus", badge: "free", category: "نظام بحث متقدم", status: "online", details: "Osmedeus يدير دورة الاستطلاع الكاملة بشكل آلي من الاكتشاف حتى التقرير.", tab: "search" },
+  { name: "Photon", description: "زاحف ويب سريع لجمع الروابط والأسرار والمعلومات", tags: ["زاحف", "روابط", "أسرار"], link: "https://github.com/s0md3v/Photon", badge: "free", category: "نظام بحث متقدم", status: "online", details: "Photon يزحف على المواقع بسرعة عالية ويستخرج الروابط وعناوين البريد والمعلومات المخفية.", tab: "search" },
+  { name: "OSINT Industries", description: "منصة OSINT متكاملة للبحث في شبكات الاجتماعي والأشخاص", tags: ["منصة", "شاملة", "أشخاص"], link: "https://osint.industries", badge: "paid", category: "نظام بحث متقدم", status: "online", details: "OSINT Industries تجمع البيانات من عشرات المصادر في واجهة موحدة.", tab: "search" },
 ];
 
 // ─── DATABASE TOOLS ────────────────────────────────────────
@@ -69,6 +74,9 @@ const DATABASE_TOOLS: OsintTool[] = [
   { name: "CIRCL.LU MISP", description: "منصة مشاركة مؤشرات التهديد والاستخبارات المفتوحة", tags: ["تهديدات", "استخبارات", "مشاركة"], link: "https://www.misp-project.org", badge: "free", category: "قاعدة بيانات", status: "online", details: "MISP منصة مفتوحة لمشاركة ومزامنة مؤشرات التهديد السيبراني.", tab: "databases" },
   { name: "OpenCTI", description: "منصة استخبارات تهديد مفتوحة المصدر مع تصور متقدم", tags: ["استخبارات تهديد", "مفتوح المصدر", "تصور"], link: "https://www.opencti.io", badge: "free", category: "قاعدة بيانات", status: "online", details: "OpenCTI منصة شاملة لإدارة وتصور بيانات استخبارات التهديدات.", tab: "databases" },
   { name: "AbuseIPDB", description: "قاعدة بيانات لعناوين IP المسيئة والمبلّغ عنها من المجتمع", tags: ["IP سيئة", "إبلاغ", "مجتمع"], link: "https://www.abuseipdb.com", badge: "free", category: "قاعدة بيانات", status: "online", details: "AbuseIPDB قاعدة بيانات مجتمعية لتتبع عناوين IP المستخدمة في الهجمات.", tab: "databases" },
+  { name: "LeakIX", description: "محرك بحث للخدمات والبيانات المكشوفة على الإنترنت", tags: ["بيانات مكشوفة", "خدمات", "ثغرات"], link: "https://leakix.net", badge: "free", category: "قاعدة بيانات", status: "online", details: "LeakIX يكتشف الأجهزة والخدمات المكشوفة مع تفاصيل الثغرات.", tab: "databases" },
+  { name: "Onyphe", description: "محرك بحث أمني للبيانات السيبرانية والتهديدات المتقدمة", tags: ["سيبراني", "تهديدات", "بيانات"], link: "https://www.onyphe.io", badge: "free", category: "قاعدة بيانات", status: "online", details: "Onyphe يجمع بيانات أمنية من مصادر متعددة لتحليل التهديدات.", tab: "databases" },
+  { name: "Vulners", description: "قاعدة بيانات الثغرات الأمنية مع محرك بحث متقدم", tags: ["ثغرات", "CVE", "بحث"], link: "https://vulners.com", badge: "free", category: "قاعدة بيانات", status: "online", details: "Vulners قاعدة بيانات شاملة للثغرات الأمنية مع API مجاني.", tab: "databases" },
 ];
 
 // ─── PHONE TOOLS ──────────────────────────────────────────
@@ -82,6 +90,8 @@ const PHONE_TOOLS: OsintTool[] = [
   { name: "Whitepages", description: "دليل هاتفي شامل للبحث عن الأشخاص بالاسم أو الرقم أو العنوان", tags: ["دليل هاتفي", "أشخاص", "عناوين"], link: "https://www.whitepages.com", badge: "free", category: "أدوات الهاتف", status: "online", details: "Whitepages من أكبر قواعد بيانات الأشخاص وأرقام الهواتف في الولايات المتحدة.", tab: "phone" },
   { name: "Sync.ME", description: "تحديد هوية المتصل مع دعم أرقام دولية وتكامل شبكات اجتماعية", tags: ["هوية المتصل", "دولي", "شبكات اجتماعية"], link: "https://sync.me", badge: "free", category: "أدوات الهاتف", status: "online", details: "Sync.ME يربط أرقام الهاتف بحسابات التواصل الاجتماعي.", tab: "phone" },
   { name: "CallerID Test", description: "اختبار معلومات Caller ID لأي رقم هاتف", tags: ["Caller ID", "اختبار", "معلومات"], link: "https://www.calleridtest.com", badge: "free", category: "أدوات الهاتف", status: "online", details: "أداة لاختبار معلومات Caller ID ومعرفة ما يُعرض للمستقبل.", tab: "phone" },
+  { name: "Twilio Lookup", description: "API احترافي للتحقق من أرقام الهاتف وتحديد نوعها", tags: ["API", "تحقق", "Twilio"], link: "https://www.twilio.com/lookup", badge: "paid", category: "أدوات الهاتف", status: "online", details: "Twilio Lookup يوفر معلومات الناقل ونوع الخط وحالة النشاط عبر API.", tab: "phone" },
+  { name: "Carrier Lookup", description: "تحديد شركة الاتصالات المحمولة لأي رقم هاتف عالمياً", tags: ["شركة اتصالات", "عالمي", "كشف"], link: "https://www.carrierlookup.com", badge: "free", category: "أدوات الهاتف", status: "online", details: "Carrier Lookup يحدد شركة الاتصالات والنوع (موبايل/ثابت) لأي رقم.", tab: "phone" },
 ];
 
 // ─── EMAIL TOOLS ──────────────────────────────────────────
@@ -96,6 +106,8 @@ const EMAIL_TOOLS: OsintTool[] = [
   { name: "Phonebook.cz", description: "البحث المتقدم في تسريبات البيانات وعناوين البريد", tags: ["تسريبات", "بحث متقدم", "بيانات مسربة"], link: "https://phonebook.cz", badge: "free", category: "أدوات البريد", status: "online", details: "Phonebook.cz يتيح البحث في تسريبات بيانات ضخمة بما في ذلك البريد الإلكتروني.", tab: "email" },
   { name: "GHunt", description: "تحليل حسابات Google والحصول على معلومات مفصلة منها", tags: ["Google", "تحليل", "بريد Google"], link: "https://github.com/mxrch/GHunt", badge: "free", category: "أدوات البريد", status: "online", details: "GHunt يستخرج معلومات مفصلة من حسابات Google مثل الاسم والصورة.", tab: "email" },
   { name: "Mail-tester", description: "اختبار قابلية تسليم البريد الإلكتروني وجودة إعداداته", tags: ["تسليم", "SPF", "DKIM", "DMARC"], link: "https://www.mail-tester.com", badge: "free", category: "أدوات البريد", status: "online", details: "Mail-tester يختبر إعدادات البريد ويتحقق من SPF وDKIM وDMARC.", tab: "email" },
+  { name: "Epieos", description: "البحث عن معلومات الأشخاص عبر البريد الإلكتروني وGoogle", tags: ["Google", "أشخاص", "بحث"], link: "https://epieos.com", badge: "free", category: "أدوات البريد", status: "online", details: "Epieos يستخرج معلومات الحساب من البريد الإلكتروني عبر Google وخدمات أخرى.", tab: "email" },
+  { name: "VerifyEmailAddress", description: "التحقق الفوري من صحة أي عنوان بريد إلكتروني", tags: ["تحقق فوري", "صحة", "بريد"], link: "https://verifyemailaddress.org", badge: "free", category: "أدوات البريد", status: "online", details: "أداة مجانية للتحقق من صحة عناوين البريد الإلكتروني في الوقت الفعلي.", tab: "email" },
 ];
 
 // ─── USERNAME TOOLS ───────────────────────────────────────
@@ -108,6 +120,8 @@ const USERNAME_TOOLS: OsintTool[] = [
   { name: "Pipl", description: "محرك بحث مدفوع للأشخاص مع معلومات مفصلة", tags: ["مدفوع", "أشخاص", "معلومات مفصلة"], link: "https://pipl.com", badge: "paid", category: "البحث بالاسم", status: "online", details: "Pipl محرك بحث متخصص للعثور على الأشخاص ومعلوماتهم.", tab: "username" },
   { name: "LinkedIn OSINT", description: "جمع معلومات المهنيين وموظفي الشركات من LinkedIn", tags: ["LinkedIn", "مهنيون", "شركات"], link: "https://github.com/shield-ai/linkedin2username", badge: "free", category: "البحث بالاسم", status: "online", details: "أدوات OSINT لاستخراج معلومات الموظفين من LinkedIn.", tab: "username" },
   { name: "UserSearch.org", description: "بحث متقدم عن المستخدمين عبر منصات التواصل الاجتماعي", tags: ["بحث", "تواصل اجتماعي", "متقدم"], link: "https://usersearch.org", badge: "free", category: "البحث بالاسم", status: "online", details: "UserSearch.org يبحث في عشرات المنصات لإيجاد حسابات المستخدمين.", tab: "username" },
+  { name: "CheckUsernames", description: "التحقق السريع من اسم المستخدم عبر 160+ شبكة اجتماعية", tags: ["160+ شبكة", "سريع", "تحقق"], link: "https://checkusernames.com", badge: "free", category: "البحث بالاسم", status: "online", details: "CheckUsernames يتحقق من توافر اسم المستخدم على أكثر من 160 شبكة.", tab: "username" },
+  { name: "NameCheckr", description: "أداة شاملة للتحقق من اسم المستخدم والنطاق والعلامة التجارية", tags: ["علامة تجارية", "نطاق", "شامل"], link: "https://www.namecheckr.com", badge: "free", category: "البحث بالاسم", status: "online", details: "NameCheckr يبحث في المنصات والنطاقات ومسجلي العلامات التجارية.", tab: "username" },
 ];
 
 // ─── RECON TOOLS ──────────────────────────────────────────
@@ -122,31 +136,39 @@ const RECON_TOOLS: OsintTool[] = [
   { name: "httpx", description: "فحص سريع لعناوين الويب واكتشاف الخدمات الحية", tags: ["HTTP", "سريع", "اكتشاف"], link: "https://github.com/projectdiscovery/httpx", badge: "free", category: "جمع المعلومات", status: "online", details: "httpx يتحقق من استجابة عناوين HTTP بسرعة عالية.", tab: "recon" },
   { name: "Katana", description: "أداة زحف وكشف للمسارات والمحتوى في تطبيقات الويب", tags: ["زحف", "مسارات", "ويب"], link: "https://github.com/projectdiscovery/katana", badge: "free", category: "جمع المعلومات", status: "online", details: "Katana من ProjectDiscovery لزحف وكشف محتوى تطبيقات الويب.", tab: "recon" },
   { name: "OSINT Framework", description: "دليل منظم لمصادر المعلومات المفتوحة مع تصنيفات شاملة", tags: ["دليل", "تصنيفات", "مصادر"], link: "https://osintframework.com", badge: "free", category: "جمع المعلومات", status: "online", details: "OSINT Framework دليل منظم شامل لمصادر المعلومات المفتوحة.", tab: "recon" },
+  { name: "NMAP", description: "أقوى أداة لمسح الشبكات وكشف المنافذ والخدمات", tags: ["مسح", "منافذ", "خدمات"], link: "https://nmap.org", badge: "free", category: "جمع المعلومات", status: "online", details: "Nmap أداة الاستطلاع الأساسية لأي عملية أمنية - تكتشف المنافذ والخدمات.", tab: "recon" },
+  { name: "Gobuster", description: "اكتشاف المسارات والنطاقات الفرعية بالقوة الغاشمة", tags: ["قوة غاشمة", "مسارات", "نطاقات فرعية"], link: "https://github.com/OJ/gobuster", badge: "free", category: "جمع المعلومات", status: "online", details: "Gobuster يستخدم قوائم كلمات لاكتشاف المسارات المخفية والنطاقات الفرعية.", tab: "recon" },
+  { name: "Feroxbuster", description: "ماسح محتوى ويب سريع وأكثر قدرة من dirb", tags: ["محتوى ويب", "سريع", "Rust"], link: "https://github.com/epi052/feroxbuster", badge: "free", category: "جمع المعلومات", status: "online", details: "Feroxbuster مكتوب بـ Rust يمسح محتوى الويب بسرعة فائقة وكفاءة.", tab: "recon" },
+  { name: "Gau", description: "جمع URLs تاريخية من مصادر متعددة للهدف المحدد", tags: ["URLs", "تاريخي", "مصادر متعددة"], link: "https://github.com/lc/gau", badge: "free", category: "جمع المعلومات", status: "online", details: "Gau يجمع URLs من Wayback Machine وCommon Crawl وOTX وURLScan.", tab: "recon" },
 ];
 
 // ─── DARK WEB TOOLS ───────────────────────────────────────
 const DARKWEB_TOOLS: OsintTool[] = [
   { name: "Ahmia", description: "محرك بحث في شبكة Tor للعثور على الخدمات المخفية", tags: ["Tor", "بحث", "مخفي"], link: "https://ahmia.fi", badge: "free", category: "الويب المظلم", status: "online", details: "Ahmia محرك بحث مجاني للبحث في خدمات .onion على شبكة Tor.", tab: "darkweb" },
-  { name: "Torch", description: "أحد أقدم محركات البحث في الويب المظلم بقاعدة ضخمة", tags: ["Tor", "بحث قديم", "شامل"], link: "http://xmh57jrknzkhv6y3ls3ubitzfqnkrwxhopf5aygthi7d6rplyvk3noyd.onion", badge: "free", category: "الويب المظلم", status: "online", details: "Torch من أقدم محركات البحث على Tor مع مليارات الصفحات المفهرسة.", tab: "darkweb" },
   { name: "DarkSearch.io", description: "API للبحث في الويب المظلم بدون Tor مباشرة", tags: ["API", "بدون Tor", "بحث"], link: "https://darksearch.io", badge: "free", category: "الويب المظلم", status: "online", details: "DarkSearch.io يتيح البحث في .onion بدون الحاجة لتثبيت Tor.", tab: "darkweb" },
   { name: "OnionSearch", description: "أداة سطر أوامر للبحث في محركات الويب المظلم", tags: ["سطر أوامر", "بحث", "onion"], link: "https://github.com/megadose/OnionSearch", badge: "free", category: "الويب المظلم", status: "online", details: "OnionSearch أداة Python للبحث في عدة محركات Tor دفعة واحدة.", tab: "darkweb" },
   { name: "Haystak", description: "محرك بحث Tor مع أكثر من مليار صفحة مفهرسة", tags: ["Tor", "فهرس ضخم", "بحث"], link: "http://haystak5njsmn2hqkewecpaxetahtwhsbsa64jom2k22z5afxhnpxfid.onion", badge: "free", category: "الويب المظلم", status: "online", details: "Haystak محرك بحث Tor مع قاعدة بيانات ضخمة لصفحات .onion.", tab: "darkweb" },
   { name: "IntelX Dark Web", description: "البحث في قواعد بيانات الويب المظلم عبر Intelligence X", tags: ["استخبارات", "ويب مظلم", "قاعدة بيانات"], link: "https://intelx.io", badge: "paid", category: "الويب المظلم", status: "online", details: "IntelX يوفر وصولاً لبيانات الويب المظلم والتسريبات عبر API.", tab: "darkweb" },
   { name: "Dark Tracer", description: "مراقبة تسريبات الشركات على الويب المظلم وأسواق الإجرام", tags: ["مراقبة", "تسريبات", "شركات"], link: "https://darktracer.com", badge: "paid", category: "الويب المظلم", status: "online", details: "Dark Tracer يراقب ظهور بيانات شركتك على مواقع الابتزاز والأسواق المظلمة.", tab: "darkweb" },
-  { name: "Onion.live", description: "دليل مباشر لأبرز المواقع على شبكة Tor", tags: ["دليل", "Tor", "مواقع onion"], link: "https://onion.live", badge: "free", category: "الويب المظلم", status: "online", details: "Onion.live يوفر دليلاً محدثاً لمواقع .onion المتاحة على Tor.", tab: "darkweb" },
   { name: "Ransomwatch", description: "مراقبة وتتبع مجموعات برامج الفدية على الويب المظلم", tags: ["فدية", "مراقبة", "مجموعات هجوم"], link: "https://ransomwatch.telemetry.ltd", badge: "free", category: "الويب المظلم", status: "online", details: "Ransomwatch يتتبع مواقع مجموعات الفدية ويعرض ضحاياهم المعلنين.", tab: "darkweb" },
+  { name: "Onion.live", description: "دليل مباشر لأبرز المواقع على شبكة Tor", tags: ["دليل", "Tor", "مواقع onion"], link: "https://onion.live", badge: "free", category: "الويب المظلم", status: "online", details: "Onion.live يوفر دليلاً محدثاً لمواقع .onion المتاحة على Tor.", tab: "darkweb" },
+  { name: "Torch Search", description: "أحد أقدم محركات البحث على Tor بقاعدة فهرسة ضخمة", tags: ["قديم", "Tor", "فهرسة"], link: "https://torch.onion.ly", badge: "free", category: "الويب المظلم", status: "online", details: "Torch يعمل منذ عقود وفهرس مليارات الصفحات على شبكة Tor.", tab: "darkweb" },
+  { name: "DarkOwl Vision", description: "منصة استخبارات الويب المظلم للشركات والمؤسسات", tags: ["مؤسسات", "استخبارات", "مراقبة"], link: "https://www.darkowl.com", badge: "paid", category: "الويب المظلم", status: "online", details: "DarkOwl Vision يراقب الويب المظلم ويوفر تقارير استخباراتية للمؤسسات.", tab: "darkweb" },
+  { name: "Flare", description: "مراقبة التهديدات في الويب المظلم وقنوات تيليغرام", tags: ["Telegram", "تهديدات", "مراقبة"], link: "https://flare.io", badge: "paid", category: "الويب المظلم", status: "online", details: "Flare يراقب المنتديات المظلمة وقنوات Telegram لتهديدات محددة.", tab: "darkweb" },
 ];
 
 // ─── SOCIAL MEDIA OSINT ───────────────────────────────────
 const SOCIAL_TOOLS: OsintTool[] = [
   { name: "Twint", description: "جمع تغريدات Twitter/X بدون API وبدون حد تاريخي", tags: ["Twitter", "تغريدات", "بدون API"], link: "https://github.com/twintproject/twint", badge: "free", category: "التواصل الاجتماعي", status: "online", details: "Twint يسمح بجمع التغريدات والمتابعين وبيانات الحسابات بدون API.", tab: "social" },
-  { name: "Osmedeus", description: "إطار عمل OSINT آلي يشمل وسائل التواصل الاجتماعي", tags: ["آلي", "إطار عمل", "شامل"], link: "https://github.com/j3ssie/osmedeus", badge: "free", category: "التواصل الاجتماعي", status: "online", details: "Osmedeus يجمع معلومات من وسائل التواصل وعشرات المصادر الأخرى آلياً.", tab: "social" },
   { name: "Instaloader", description: "تحميل صور وبيانات ومتابعي حسابات Instagram", tags: ["Instagram", "صور", "متابعون"], link: "https://github.com/instaloader/instaloader", badge: "free", category: "التواصل الاجتماعي", status: "online", details: "Instaloader يحمل الصور والفيديوهات وبيانات المتابعين من Instagram.", tab: "social" },
   { name: "Snscrape", description: "جمع بيانات من Twitter وFacebook وTelegram وInstagram", tags: ["متعدد المنصات", "جمع بيانات", "Python"], link: "https://github.com/JustAnotherArchivist/snscrape", badge: "free", category: "التواصل الاجتماعي", status: "online", details: "Snscrape يدعم منصات متعددة ويجمع البيانات بكميات كبيرة.", tab: "social" },
   { name: "Social-Analyzer", description: "تحليل ملفات التواصل الاجتماعي وكشف الروابط بينها", tags: ["تحليل", "ملفات شخصية", "روابط"], link: "https://github.com/qeeqbox/social-analyzer", badge: "free", category: "التواصل الاجتماعي", status: "online", details: "Social-Analyzer يكتشف ملفات المستخدمين ويحلل روابطهم عبر المنصات.", tab: "social" },
   { name: "TikTok OSINT", description: "أدوات متخصصة لجمع معلومات TikTok والمستخدمين", tags: ["TikTok", "جمع بيانات", "متخصص"], link: "https://github.com/drawrowfly/tiktok-scraper", badge: "free", category: "التواصل الاجتماعي", status: "online", details: "tiktok-scraper يجمع بيانات الفيديوهات والملفات الشخصية من TikTok.", tab: "social" },
   { name: "Telegram OSINT", description: "جمع معلومات من قنوات ومجموعات Telegram", tags: ["Telegram", "قنوات", "مجموعات"], link: "https://github.com/bellingcat/telegram-phone-number-checker", badge: "free", category: "التواصل الاجتماعي", status: "online", details: "أدوات Bellingcat لفحص أرقام الهاتف وجمع المعلومات من Telegram.", tab: "social" },
-  { name: "Facebook OSINT", description: "تقنيات وأدوات OSINT متخصصة في Facebook", tags: ["Facebook", "حسابات", "OSINT"], link: "https://github.com/sowdust/tafferugli", badge: "free", category: "التواصل الاجتماعي", status: "online", details: "Tafferugli أداة لتحليل شبكات Twitter والمجتمعات المرتبطة.", tab: "social" },
+  { name: "Osintgram", description: "تحليل ملفات Instagram وجمع المعلومات التفصيلية", tags: ["Instagram", "تحليل", "متعمق"], link: "https://github.com/Datalux/Osintgram", badge: "free", category: "التواصل الاجتماعي", status: "online", details: "Osintgram يجمع معلومات متعمقة من حسابات Instagram العامة.", tab: "social" },
+  { name: "RedditSearch.io", description: "البحث المتقدم في منشورات Reddit وتاريخ المستخدمين", tags: ["Reddit", "بحث متقدم", "تاريخ"], link: "https://redditsearch.io", badge: "free", category: "التواصل الاجتماعي", status: "online", details: "RedditSearch يتيح البحث في تاريخ Reddit بعمق أكبر من البحث الرسمي.", tab: "social" },
+  { name: "Mentionmapp", description: "تحليل شبكة العلاقات والمحادثات على Twitter", tags: ["Twitter", "شبكة علاقات", "تحليل"], link: "https://mentionmapp.com", badge: "free", category: "التواصل الاجتماعي", status: "online", details: "Mentionmapp يرسم خريطة للعلاقات والمحادثات بين حسابات Twitter.", tab: "social" },
+  { name: "LinkedIn2Username", description: "استخراج أسماء موظفي الشركات من LinkedIn", tags: ["LinkedIn", "موظفون", "استخراج"], link: "https://github.com/initstring/linkedin2username", badge: "free", category: "التواصل الاجتماعي", status: "online", details: "LinkedIn2Username يولد قوائم بأسماء المستخدمين المحتملة لموظفي الشركات.", tab: "social" },
 ];
 
 // ─── THREAT INTELLIGENCE ──────────────────────────────────
@@ -160,6 +182,9 @@ const THREATINTEL_TOOLS: OsintTool[] = [
   { name: "Cybersixgill", description: "استخبارات من الويب المظلم والمنتديات السرية", tags: ["ويب مظلم", "منتديات", "استخبارات"], link: "https://cybersixgill.com", badge: "paid", category: "استخبارات التهديد", status: "online", details: "Cybersixgill يجمع استخبارات من أعمق طبقات الويب المظلم.", tab: "threatintel" },
   { name: "Pulsedive", description: "منصة مجانية لتحليل IOCs وتصنيف التهديدات", tags: ["IOC", "تحليل", "مجاني"], link: "https://pulsedive.com", badge: "free", category: "استخبارات التهديد", status: "online", details: "Pulsedive تجمع IOCs من مصادر متعددة وتصنفها حسب الخطورة.", tab: "threatintel" },
   { name: "Shodan Monitor", description: "مراقبة أصولك على Shodan والتنبيه عند تغييرها", tags: ["Shodan", "مراقبة", "أصول"], link: "https://monitor.shodan.io", badge: "paid", category: "استخبارات التهديد", status: "online", details: "Shodan Monitor يتتبع تغييرات في أصولك الرقمية المكشوفة على الإنترنت.", tab: "threatintel" },
+  { name: "CISA KEV", description: "قائمة الثغرات المستغلة بشكل فعلي من وكالة CISA الأمريكية", tags: ["CISA", "ثغرات فعلية", "KEV"], link: "https://www.cisa.gov/known-exploited-vulnerabilities-catalog", badge: "free", category: "استخبارات التهديد", status: "online", details: "CISA KEV القائمة الرسمية للثغرات التي يتم استغلالها فعلياً في الهجمات.", tab: "threatintel" },
+  { name: "Feodo Tracker", description: "تتبع خوادم C2 لبرامج Botnet المعروفة", tags: ["C2", "Botnet", "تتبع"], link: "https://feodotracker.abuse.ch", badge: "free", category: "استخبارات التهديد", status: "online", details: "Feodo Tracker يتتبع خوادم C&C لعائلات البرمجيات الضارة الشهيرة.", tab: "threatintel" },
+  { name: "MITRE ATT&CK", description: "إطار معرفة شامل عن تقنيات وتكتيكات المهاجمين", tags: ["تقنيات هجوم", "تكتيكات", "إطار"], link: "https://attack.mitre.org", badge: "free", category: "استخبارات التهديد", status: "online", details: "MITRE ATT&CK المرجع العالمي لتصنيف تقنيات الهجوم والدفاع السيبراني.", tab: "threatintel" },
 ];
 
 // ─── GEO & PHYSICAL OSINT ────────────────────────────────
@@ -172,6 +197,8 @@ const GEO_TOOLS: OsintTool[] = [
   { name: "What3Words", description: "نظام عناوين عالمي يقسم الأرض لمربعات 3×3 متر", tags: ["عناوين", "دقيق", "عالمي"], link: "https://what3words.com", badge: "free", category: "OSINT الجغرافي", status: "online", details: "What3Words يحدد أي موقع بثلاث كلمات فريدة بدقة 3 أمتار.", tab: "geo" },
   { name: "Bellingcat GeoLocator", description: "أدوات Bellingcat لتحديد مواقع الصور والفيديوهات", tags: ["Bellingcat", "تحقق", "صور"], link: "https://www.bellingcat.com/resources/how-tos", badge: "free", category: "OSINT الجغرافي", status: "online", details: "Bellingcat قيادي في OSINT الجغرافي وله منهجيات موثقة لتحديد المواقع.", tab: "geo" },
   { name: "ACLED", description: "بيانات النزاعات المسلحة والأحداث الأمنية حول العالم", tags: ["نزاعات", "أمن", "بيانات"], link: "https://acleddata.com", badge: "free", category: "OSINT الجغرافي", status: "online", details: "ACLED يتتبع النزاعات المسلحة والأحداث الأمنية وينشرها مجاناً.", tab: "geo" },
+  { name: "Sentinel Hub", description: "صور أقمار صناعية مجانية عالية الدقة من ESA", tags: ["أقمار صناعية", "ESA", "تحليل"], link: "https://www.sentinel-hub.com", badge: "free", category: "OSINT الجغرافي", status: "online", details: "Sentinel Hub يوفر وصولاً لصور Sentinel من وكالة الفضاء الأوروبية.", tab: "geo" },
+  { name: "Overpass Turbo", description: "استعلام في بيانات OpenStreetMap بشكل متقدم", tags: ["OpenStreetMap", "استعلام", "خرائط"], link: "https://overpass-turbo.eu", badge: "free", category: "OSINT الجغرافي", status: "online", details: "Overpass Turbo يتيح استعلامات متقدمة في قاعدة بيانات OpenStreetMap.", tab: "geo" },
 ];
 
 // ─── MALWARE ANALYSIS ────────────────────────────────────
@@ -185,6 +212,8 @@ const MALWARE_TOOLS: OsintTool[] = [
   { name: "VirusTotal", description: "فحص الملفات والروابط مقابل 70+ محرك مضادات فيروسات", tags: ["70+ محرك", "فحص فوري", "API"], link: "https://www.virustotal.com", badge: "free", category: "تحليل البرمجيات الضارة", status: "online", details: "VirusTotal المنصة الأكثر شيوعاً لفحص الملفات والروابط والهاشات.", tab: "malware" },
   { name: "Intezer Analyze", description: "تحليل جيني للبرمجيات الضارة وربطها بمجموعات هجوم", tags: ["جيني", "نسب", "مجموعات هجوم"], link: "https://analyze.intezer.com", badge: "free", category: "تحليل البرمجيات الضارة", status: "online", details: "Intezer ينسب البرمجيات الضارة لمجموعات وعائلات محددة.", tab: "malware" },
   { name: "Triage", description: "منصة تحليل برمجيات ضارة سريعة مع واجهة تفاعلية", tags: ["سريع", "تفاعلي", "sandbox"], link: "https://tria.ge", badge: "free", category: "تحليل البرمجيات الضارة", status: "online", details: "Triage يوفر تحليلاً سريعاً مع واجهة تفاعلية لمراقبة السلوك.", tab: "malware" },
+  { name: "Unpacme", description: "فك تشفير وضغط البرمجيات الضارة تلقائياً", tags: ["فك تشفير", "unpacking", "أتمتة"], link: "https://www.unpac.me", badge: "free", category: "تحليل البرمجيات الضارة", status: "online", details: "Unpacme يفك تشفير وضغط الملفات التنفيذية الخبيثة تلقائياً.", tab: "malware" },
+  { name: "Yara", description: "أداة تحديد البرمجيات الضارة بالقواعد الشرطية", tags: ["قواعد", "كشف", "تحليل"], link: "https://virustotal.github.io/yara", badge: "free", category: "تحليل البرمجيات الضارة", status: "online", details: "YARA أداة تساعد الباحثين في كشف البرمجيات الضارة وتصنيفها.", tab: "malware" },
 ];
 
 // ─── NETWORK & INFRASTRUCTURE ────────────────────────────
@@ -198,6 +227,8 @@ const NETWORK_TOOLS: OsintTool[] = [
   { name: "Netcraft", description: "معلومات عن الاستضافة وتاريخ المواقع وتقنياتها", tags: ["استضافة", "تاريخ موقع", "تقنيات"], link: "https://sitereport.netcraft.com", badge: "free", category: "الشبكات والبنية التحتية", status: "online", details: "Netcraft يوفر معلومات عن استضافة الموقع وتاريخه وتقنياته.", tab: "network" },
   { name: "Wappalyzer", description: "كشف تقنيات بناء المواقع وإطارات العمل والمكتبات", tags: ["تقنيات ويب", "فريموورك", "كشف"], link: "https://www.wappalyzer.com", badge: "free", category: "الشبكات والبنية التحتية", status: "online", details: "Wappalyzer يكشف عن CMS والأطر والمكتبات المستخدمة في أي موقع.", tab: "network" },
   { name: "WhatWeb", description: "بصمة المواقع واكتشاف التقنيات والإصدارات", tags: ["بصمة", "تقنيات", "إصدارات"], link: "https://morningstarsecurity.com/research/whatweb", badge: "free", category: "الشبكات والبنية التحتية", status: "online", details: "WhatWeb يكتشف تقنيات المواقع وإصداراتها لتحليل الثغرات المحتملة.", tab: "network" },
+  { name: "IPinfo", description: "معلومات شاملة عن عناوين IP مع API مجاني", tags: ["IP", "معلومات", "API"], link: "https://ipinfo.io", badge: "free", category: "الشبكات والبنية التحتية", status: "online", details: "IPinfo يوفر موقع IP والشركة والISP وغيرها عبر API.", tab: "network" },
+  { name: "Robtex", description: "تحليل DNS والشبكات وعناوين IP بشكل شامل", tags: ["DNS", "شبكات", "تحليل شامل"], link: "https://www.robtex.com", badge: "free", category: "الشبكات والبنية التحتية", status: "online", details: "Robtex يوفر معلومات DNS وASN وBGP لأي نطاق أو IP.", tab: "network" },
 ];
 
 // ─── BLOCKCHAIN & CRYPTO OSINT ───────────────────────────
@@ -209,6 +240,8 @@ const CRYPTO_TOOLS: OsintTool[] = [
   { name: "Crystal Blockchain", description: "تحليل مخاطر العملات المشفرة وتتبع مصادرها", tags: ["مخاطر", "تتبع", "مصادر"], link: "https://crystalblockchain.com", badge: "paid", category: "OSINT البلوكتشين", status: "online", details: "Crystal يحلل مخاطر المعاملات ويتتبع مصادر الأموال المشبوهة.", tab: "crypto" },
   { name: "TRM Labs", description: "استخبارات Blockchain لمكافحة الاحتيال وغسيل الأموال", tags: ["AML", "احتيال", "امتثال"], link: "https://www.trmlabs.com", badge: "paid", category: "OSINT البلوكتشين", status: "online", details: "TRM Labs يساعد المؤسسات المالية في مكافحة غسيل الأموال المشفرة.", tab: "crypto" },
   { name: "OXT.me", description: "تحليل متقدم لمعاملات Bitcoin وتحديد الكيانات", tags: ["Bitcoin", "تحليل متقدم", "كيانات"], link: "https://oxt.me", badge: "free", category: "OSINT البلوكتشين", status: "online", details: "OXT.me أداة مجانية لتحليل Bitcoin blockchain وتحديد المجموعات.", tab: "crypto" },
+  { name: "Solscan", description: "مستكشف Solana blockchain للمعاملات والـ NFTs", tags: ["Solana", "SOL", "NFT"], link: "https://solscan.io", badge: "free", category: "OSINT البلوكتشين", status: "online", details: "Solscan أكثر مستكشفات Solana تفصيلاً وسهولة في الاستخدام.", tab: "crypto" },
+  { name: "Nansen", description: "تحليل حركة المال الذكي على Ethereum وL2 chains", tags: ["Smart Money", "DeFi", "تحليل"], link: "https://www.nansen.ai", badge: "paid", category: "OSINT البلوكتشين", status: "online", details: "Nansen يتتبع محافظ المستثمرين الكبار ويحلل سلوك المال الذكي.", tab: "crypto" },
 ];
 
 // ─── IMAGE & FACE OSINT ───────────────────────────────────
@@ -221,6 +254,79 @@ const IMAGEOSINT_TOOLS: OsintTool[] = [
   { name: "InVID/WeVerify", description: "التحقق من صحة الصور والفيديوهات وكشف التلاعب", tags: ["تحقق", "تلاعب", "أخبار مزيفة"], link: "https://www.invid-project.eu", badge: "free", category: "OSINT الصور والوجوه", status: "online", details: "InVID يتحقق من أصالة الصور والفيديوهات ويكشف التلاعب.", tab: "imageosint" },
   { name: "Forensically", description: "أدوات تحليل جنائي رقمي للصور وكشف التلاعب", tags: ["جنائي رقمي", "تلاعب", "تحليل"], link: "https://29a.ch/photo-forensics", badge: "free", category: "OSINT الصور والوجوه", status: "online", details: "Forensically يكتشف التلاعب بالصور باستخدام Error Level Analysis.", tab: "imageosint" },
   { name: "Ghiro", description: "منصة تحليل جنائي رقمي للصور مفتوحة المصدر", tags: ["جنائي", "مفتوح المصدر", "تحليل صور"], link: "https://www.getghiro.org", badge: "free", category: "OSINT الصور والوجوه", status: "online", details: "Ghiro منصة شاملة لتحليل الصور جنائياً واستخراج بياناتها الوصفية.", tab: "imageosint" },
+  { name: "Bing Visual Search", description: "بحث عكسي بالصور من Microsoft مع نتائج متميزة", tags: ["Bing", "Microsoft", "بحث عكسي"], link: "https://www.bing.com/visualsearch", badge: "free", category: "OSINT الصور والوجوه", status: "online", details: "Bing Visual Search يوفر نتائج مختلفة عن Google مما يوسع نطاق البحث.", tab: "imageosint" },
+];
+
+// ─── VULNERABILITY & CVE ─────────────────────────────────
+const VULN_TOOLS: OsintTool[] = [
+  { name: "NVD (NIST)", description: "قاعدة بيانات CVE الرسمية الأمريكية مع معلومات CVSS", tags: ["CVE", "CVSS", "NIST"], link: "https://nvd.nist.gov", badge: "free", category: "ثغرات أمنية", status: "online", details: "NVD قاعدة البيانات الوطنية للثغرات من NIST مع تقييمات CVSS.", tab: "vuln" },
+  { name: "Exploit-DB", description: "قاعدة بيانات للثغرات وأكواد الاستغلال من Offensive Security", tags: ["استغلال", "ثغرات", "POC"], link: "https://www.exploit-db.com", badge: "free", category: "ثغرات أمنية", status: "online", details: "Exploit-DB تحتوي على آلاف الثغرات وأكواد الاستغلال الجاهزة.", tab: "vuln" },
+  { name: "CVE Details", description: "واجهة بحث محسّنة لقاعدة بيانات CVE مع إحصائيات", tags: ["CVE", "بحث", "إحصائيات"], link: "https://www.cvedetails.com", badge: "free", category: "ثغرات أمنية", status: "online", details: "CVE Details يوفر واجهة بحث أفضل مع رسوم بيانية وإحصائيات مفصلة.", tab: "vuln" },
+  { name: "MITRE CVE", description: "قاعدة بيانات CVE الأصلية من MITRE Corporation", tags: ["CVE", "MITRE", "رسمي"], link: "https://cve.mitre.org", badge: "free", category: "ثغرات أمنية", status: "online", details: "MITRE CVE المصدر الأصلي لقائمة الثغرات الأمنية العامة.", tab: "vuln" },
+  { name: "Vulhub", description: "بيئات Docker جاهزة لاختبار ثغرات حقيقية", tags: ["Docker", "اختبار", "بيئة"], link: "https://vulhub.org", badge: "free", category: "ثغرات أمنية", status: "online", details: "Vulhub يوفر بيئات Docker جاهزة لاختبار آلاف الثغرات الحقيقية.", tab: "vuln" },
+  { name: "OSV.dev", description: "قاعدة بيانات مفتوحة للثغرات في الحزم المفتوحة المصدر", tags: ["مفتوح المصدر", "حزم", "ثغرات"], link: "https://osv.dev", badge: "free", category: "ثغرات أمنية", status: "online", details: "OSV قاعدة بيانات Google للثغرات في مكتبات ولغات البرمجة.", tab: "vuln" },
+  { name: "Snyk", description: "فحص ثغرات تبعيات الكود والحزم مفتوحة المصدر", tags: ["تبعيات", "كود", "فحص"], link: "https://snyk.io", badge: "free", category: "ثغرات أمنية", status: "online", details: "Snyk يكتشف ثغرات في مكتبات npm وPyPI وMaven وغيرها.", tab: "vuln" },
+  { name: "VulnHub", description: "أجهزة افتراضية ضعيفة للتدريب على اختبار الاختراق", tags: ["تدريب", "اختبار اختراق", "VM"], link: "https://www.vulnhub.com", badge: "free", category: "ثغرات أمنية", status: "online", details: "VulnHub يوفر أجهزة VM ضعيفة عمداً للتدريب الأمني القانوني.", tab: "vuln" },
+  { name: "HackerOne Hacktivity", description: "تقارير الثغرات العامة المكشوفة من برامج Bug Bounty", tags: ["Bug Bounty", "تقارير", "عامة"], link: "https://hackerone.com/hacktivity", badge: "free", category: "ثغرات أمنية", status: "online", details: "Hacktivity يعرض تقارير الثغرات التي تم الكشف عنها من برامج Bug Bounty.", tab: "vuln" },
+  { name: "CVSS Calculator", description: "حاسبة CVSS لتقييم درجة خطورة الثغرات الأمنية", tags: ["CVSS", "تقييم", "درجة خطورة"], link: "https://www.first.org/cvss/calculator/3.1", badge: "free", category: "ثغرات أمنية", status: "online", details: "CVSS Calculator يحسب درجة خطورة الثغرات وفق معيار CVSS 3.1.", tab: "vuln" },
+];
+
+// ─── PASSWORD & CREDENTIAL OSINT ─────────────────────────
+const PASSWORD_TOOLS: OsintTool[] = [
+  { name: "Have I Been Pwned (Passwords)", description: "التحقق من تسريب كلمة مرور في قواعد البيانات المسربة", tags: ["كلمات مرور", "تسريبات", "هاش"], link: "https://haveibeenpwned.com/Passwords", badge: "free", category: "بيانات اعتماد مسربة", status: "online", details: "HIBP Passwords يتحقق من كلمة المرور بطريقة آمنة عبر k-anonymity.", tab: "password" },
+  { name: "Dehashed", description: "محرك بحث في التسريبات والبيانات المسروقة", tags: ["تسريبات", "بيانات مسروقة", "بحث"], link: "https://dehashed.com", badge: "paid", category: "بيانات اعتماد مسربة", status: "online", details: "Dehashed يبحث في مليارات السجلات المسربة بما فيها أسماء المستخدمين وكلمات المرور.", tab: "password" },
+  { name: "LeakCheck", description: "التحقق من تسريب بيانات الاعتماد في قواعد بيانات ضخمة", tags: ["تحقق", "بيانات اعتماد", "تسريبات"], link: "https://leakcheck.io", badge: "free", category: "بيانات اعتماد مسربة", status: "online", details: "LeakCheck يتحقق من ظهور بريدك أو اسم المستخدم في بيانات مسربة.", tab: "password" },
+  { name: "BreachDirectory", description: "دليل التسريبات للتحقق السريع من البيانات المخترقة", tags: ["تسريبات", "سريع", "تحقق"], link: "https://breachdirectory.org", badge: "free", category: "بيانات اعتماد مسربة", status: "online", details: "BreachDirectory يوفر بحثاً سريعاً في قواعد بيانات التسريبات.", tab: "password" },
+  { name: "Snusbase", description: "محرك بحث متخصص في قواعد بيانات مسربة ضخمة", tags: ["قواعد بيانات مسربة", "بحث", "شامل"], link: "https://snusbase.com", badge: "paid", category: "بيانات اعتماد مسربة", status: "online", details: "Snusbase يحتوي على مليارات السجلات من مئات التسريبات.", tab: "password" },
+  { name: "Hashcat", description: "أقوى أداة لاستعادة كلمات المرور من الهاشات", tags: ["استعادة", "هاش", "GPU"], link: "https://hashcat.net", badge: "free", category: "بيانات اعتماد مسربة", status: "online", details: "Hashcat يستخدم GPU للبحث في مليارات الاحتمالات لاستعادة كلمات المرور.", tab: "password" },
+  { name: "John the Ripper", description: "اختبار قوة كلمات المرور وكسر التشفير الضعيف", tags: ["كسر تشفير", "قوة مرور", "اختبار"], link: "https://www.openwall.com/john", badge: "free", category: "بيانات اعتماد مسربة", status: "online", details: "John the Ripper أداة كلاسيكية لاختبار قوة كلمات المرور.", tab: "password" },
+  { name: "CrackStation", description: "كشف كلمات المرور من الهاشات عبر قاعدة بيانات ضخمة", tags: ["هاش", "كشف", "قاعدة بيانات"], link: "https://crackstation.net", badge: "free", category: "بيانات اعتماد مسربة", status: "online", details: "CrackStation يقارن الهاشات مع قاعدة بيانات تضم مليارات كلمة مرور.", tab: "password" },
+];
+
+// ─── DNS TOOLS ────────────────────────────────────────────
+const DNS_TOOLS: OsintTool[] = [
+  { name: "DNSdumpster", description: "استطلاع DNS شامل مع خريطة بصرية للبنية التحتية", tags: ["DNS", "استطلاع", "خريطة"], link: "https://dnsdumpster.com", badge: "free", category: "أدوات DNS", status: "online", details: "DNSdumpster يقدم خريطة بصرية لسجلات DNS وبنية النطاق.", tab: "dns" },
+  { name: "ViewDNS", description: "مجموعة أدوات DNS وWhois وIP lookup متكاملة", tags: ["DNS", "WHOIS", "IP lookup"], link: "https://viewdns.info", badge: "free", category: "أدوات DNS", status: "online", details: "ViewDNS يوفر عشرات الأدوات لتحليل DNS والشبكات والنطاقات.", tab: "dns" },
+  { name: "SecurityTrails", description: "سجلات DNS التاريخية وبيانات الاستطلاع الشاملة", tags: ["DNS تاريخي", "بيانات", "سجلات"], link: "https://securitytrails.com", badge: "free", category: "أدوات DNS", status: "online", details: "SecurityTrails يتتبع سجلات DNS التاريخية وتغييرات النطاقات.", tab: "dns" },
+  { name: "Passive DNS (DNSDB)", description: "قاعدة بيانات DNS السلبية لتتبع حل النطاقات تاريخياً", tags: ["DNS سلبي", "تاريخي", "نطاقات"], link: "https://www.farsightsecurity.com/solutions/dnsdb", badge: "paid", category: "أدوات DNS", status: "online", details: "DNSDB قاعدة البيانات الرائدة في السجلات التاريخية لـ DNS.", tab: "dns" },
+  { name: "DNSViz", description: "تصور شجرة DNS والتحقق من DNSSEC بشكل بصري", tags: ["DNSSEC", "تصور", "تحقق"], link: "https://dnsviz.net", badge: "free", category: "أدوات DNS", status: "online", details: "DNSViz يرسم شجرة DNS بصرياً ويتحقق من صحة DNSSEC.", tab: "dns" },
+  { name: "WhoisXMLAPI", description: "بيانات WHOIS وDNS والاستضافة عبر API موحد", tags: ["WHOIS", "API", "بيانات شاملة"], link: "https://whoisxmlapi.com", badge: "free", category: "أدوات DNS", status: "online", details: "WhoisXMLAPI يوفر بيانات WHOIS والشهادات والنطاقات الفرعية عبر API.", tab: "dns" },
+  { name: "MassDNS", description: "حل DNS بالقوة الغاشمة بسرعة فائقة", tags: ["DNS", "سريع", "قوة غاشمة"], link: "https://github.com/blechschmidt/massdns", badge: "free", category: "أدوات DNS", status: "online", details: "MassDNS يحل ملايين أسماء النطاقات في دقائق باستخدام resolvers متعددة.", tab: "dns" },
+  { name: "PureDNS", description: "أداة ضبط نطاق نقي مع التحقق من النتائج الحية", tags: ["نطاقات فرعية", "تحقق", "سريع"], link: "https://github.com/d3mondev/puredns", badge: "free", category: "أدوات DNS", status: "online", details: "PureDNS يجمع بين MassDNS وقوائم الكلمات لاكتشاف نطاقات فرعية حية.", tab: "dns" },
+];
+
+// ─── API SECURITY TOOLS ───────────────────────────────────
+const API_TOOLS: OsintTool[] = [
+  { name: "Postman", description: "منصة اختبار API الأكثر شيوعاً في العالم", tags: ["API", "اختبار", "REST"], link: "https://www.postman.com", badge: "free", category: "أمن API", status: "online", details: "Postman أداة شاملة لتطوير واختبار وتوثيق APIs.", tab: "api" },
+  { name: "Swagger Inspector", description: "اختبار وتحليل APIs مع تصدير OpenAPI تلقائي", tags: ["Swagger", "OpenAPI", "تحليل"], link: "https://inspector.swagger.io", badge: "free", category: "أمن API", status: "online", details: "Swagger Inspector يختبر APIs ويولد توثيقاً OpenAPI تلقائياً.", tab: "api" },
+  { name: "Kiterunner", description: "استكشاف مسارات API بقوائم كلمات متخصصة وسريع", tags: ["API مسارات", "قوائم", "سريع"], link: "https://github.com/assetnote/kiterunner", badge: "free", category: "أمن API", status: "online", details: "Kiterunner من Assetnote مخصص لاكتشاف نقاط نهاية API المخفية.", tab: "api" },
+  { name: "Arjun", description: "اكتشاف معاملات HTTP المخفية في تطبيقات الويب", tags: ["HTTP", "معاملات مخفية", "اكتشاف"], link: "https://github.com/s0md3v/Arjun", badge: "free", category: "أمن API", status: "online", details: "Arjun يكتشف المعاملات المخفية في طلبات HTTP بكفاءة عالية.", tab: "api" },
+  { name: "APIFuzzer", description: "اختبار مكثف لـ APIs بتوليد بيانات عشوائية", tags: ["Fuzzing", "API", "اختبار مكثف"], link: "https://github.com/KissPeter/APIFuzzer", badge: "free", category: "أمن API", status: "online", details: "APIFuzzer يختبر APIs باستخدام بيانات عشوائية للكشف عن الثغرات.", tab: "api" },
+  { name: "OWASP API Security", description: "دليل أفضل ممارسات أمن API من OWASP", tags: ["OWASP", "أمان", "أفضل ممارسات"], link: "https://owasp.org/www-project-api-security", badge: "free", category: "أمن API", status: "online", details: "OWASP API Security Top 10 الدليل المرجعي لأخطر ثغرات APIs.", tab: "api" },
+  { name: "GraphQL Voyager", description: "استكشاف وتصور مخطط GraphQL API", tags: ["GraphQL", "تصور", "استكشاف"], link: "https://graphql-voyager.deploystack.io", badge: "free", category: "أمن API", status: "online", details: "GraphQL Voyager يرسم مخطط GraphQL بصرياً لفهم العلاقات.", tab: "api" },
+];
+
+// ─── IoT & HARDWARE OSINT ─────────────────────────────────
+const IOT_TOOLS: OsintTool[] = [
+  { name: "Shodan (IoT)", description: "البحث المتخصص في أجهزة إنترنت الأشياء المكشوفة", tags: ["IoT", "أجهزة", "مكشوف"], link: "https://www.shodan.io", badge: "free", category: "OSINT الأجهزة", status: "online", details: "Shodan يفهرس ملايين أجهزة IoT المتصلة بما فيها الكاميرات وأجهزة التوجيه.", tab: "iot" },
+  { name: "Censys (Devices)", description: "فحص وتحليل أجهزة IoT والبنية التحتية", tags: ["IoT", "بنية تحتية", "فحص"], link: "https://censys.io", badge: "free", category: "OSINT الأجهزة", status: "online", details: "Censys يركز على تحليل الأجهزة والشهادات وبنية الإنترنت.", tab: "iot" },
+  { name: "ZoomEye (IoT)", description: "محرك بحث صيني مخصص للأجهزة الذكية والـ IoT", tags: ["IoT", "صيني", "أجهزة ذكية"], link: "https://www.zoomeye.org", badge: "free", category: "OSINT الأجهزة", status: "online", details: "ZoomEye يحتوي على مئات الملايين من سجلات أجهزة IoT.", tab: "iot" },
+  { name: "FOFA (Hardware)", description: "اكتشاف الأجهزة والـ firmware المكشوفة على الإنترنت", tags: ["firmware", "أجهزة", "اكتشاف"], link: "https://fofa.info", badge: "free", category: "OSINT الأجهزة", status: "online", details: "FOFA يكتشف أجهزة بـ firmware محدد أو إعدادات معينة.", tab: "iot" },
+  { name: "Firmware.re", description: "تحليل firmware أجهزة IoT لاكتشاف الثغرات", tags: ["firmware", "تحليل", "ثغرات"], link: "https://firmware.re", badge: "free", category: "OSINT الأجهزة", status: "online", details: "Firmware.re يحلل ملفات firmware الموجودة لاكتشاف مشاكل الأمان.", tab: "iot" },
+  { name: "RouterSploit", description: "إطار عمل لاستغلال ثغرات أجهزة التوجيه المنزلية", tags: ["توجيه", "ثغرات", "إطار عمل"], link: "https://github.com/threat9/routersploit", badge: "free", category: "OSINT الأجهزة", status: "online", details: "RouterSploit مخصص لاختبار أمان أجهزة التوجيه والأجهزة المدمجة.", tab: "iot" },
+  { name: "Mirai Scanner", description: "اكتشاف الأجهزة المعرضة لهجمات Mirai botnet", tags: ["Mirai", "botnet", "اكتشاف"], link: "https://github.com/Gu1mix/mirai-scanner", badge: "free", category: "OSINT الأجهزة", status: "online", details: "يكتشف الأجهزة التي قد تكون عرضة لهجمات Mirai الشهيرة.", tab: "iot" },
+];
+
+// ─── DIGITAL FORENSICS ────────────────────────────────────
+const FORENSICS_TOOLS: OsintTool[] = [
+  { name: "Autopsy", description: "منصة تحقيق جنائي رقمي مفتوحة المصدر", tags: ["جنائي رقمي", "تحقيق", "مفتوح"], link: "https://www.autopsy.com", badge: "free", category: "جنائيات رقمية", status: "online", details: "Autopsy من أقوى أدوات التحقيق الجنائي الرقمي مفتوح المصدر.", tab: "forensics" },
+  { name: "Volatility", description: "تحليل صور الذاكرة واستخراج الأدلة الجنائية", tags: ["ذاكرة", "تحليل", "أدلة"], link: "https://www.volatilityfoundation.org", badge: "free", category: "جنائيات رقمية", status: "online", details: "Volatility المعيار الذهبي لتحليل صور الذاكرة في التحقيقات الجنائية.", tab: "forensics" },
+  { name: "FTK Imager", description: "إنشاء صور جنائية للأقراص الصلبة والأدلة الرقمية", tags: ["صور قرص", "أدلة", "جنائي"], link: "https://www.exterro.com/ftk-imager", badge: "free", category: "جنائيات رقمية", status: "online", details: "FTK Imager يُنشئ صوراً جنائية دقيقة مع التحقق من السلامة.", tab: "forensics" },
+  { name: "Wireshark", description: "تحليل حركة المرور الشبكية واستخراج البيانات", tags: ["شبكة", "تحليل", "بروتوكولات"], link: "https://www.wireshark.org", badge: "free", category: "جنائيات رقمية", status: "online", details: "Wireshark أداة تحليل حركة مرور الشبكات الأكثر شيوعاً في العالم.", tab: "forensics" },
+  { name: "Bulk Extractor", description: "استخراج بيانات من صور القرص بسرعة عالية", tags: ["استخراج", "بيانات", "قرص"], link: "https://github.com/simsong/bulk_extractor", badge: "free", category: "جنائيات رقمية", status: "online", details: "Bulk Extractor يستخرج البريد وعناوين URL والتشفير من صور الأقراص.", tab: "forensics" },
+  { name: "Sleuth Kit", description: "مجموعة أدوات تحليل أنظمة الملفات الجنائية", tags: ["نظام ملفات", "تحليل", "أدوات"], link: "https://www.sleuthkit.org", badge: "free", category: "جنائيات رقمية", status: "online", details: "Sleuth Kit يتيح تحليل أنظمة ملفات NTFS وFAT وEXT وHFS.", tab: "forensics" },
+  { name: "CAINE", description: "توزيعة Linux متخصصة للتحقيق الجنائي الرقمي", tags: ["Linux", "جنائي", "توزيعة"], link: "https://www.caine-live.net", badge: "free", category: "جنائيات رقمية", status: "online", details: "CAINE Linux بيئة متكاملة مخصصة لعمليات التحقيق الجنائي الرقمي.", tab: "forensics" },
+  { name: "Magnet AXIOM", description: "منصة تحقيق جنائي متكاملة للأجهزة المحمولة والكمبيوتر", tags: ["أجهزة محمولة", "كمبيوتر", "متكاملة"], link: "https://www.magnetforensics.com/products/magnet-axiom", badge: "paid", category: "جنائيات رقمية", status: "online", details: "Magnet AXIOM الحل الاحترافي للتحقيق في الأدلة الرقمية من جميع المصادر.", tab: "forensics" },
 ];
 
 // ─── LEGAL TOOLS ──────────────────────────────────────────
@@ -232,32 +338,41 @@ const LEGAL_TOOLS: OsintTool[] = [
   { name: "HackerOne", description: "منصة Bug Bounty الأولى عالمياً للإبلاغ عن الثغرات", tags: ["Bug Bounty", "قانوني", "ثغرات"], link: "https://www.hackerone.com", badge: "legal", category: "استخدام قانوني", status: "online", details: "HackerOne تتيح للباحثين الأمنيين الإبلاغ عن الثغرات ومكافأتهم.", tab: "legal" },
   { name: "Bugcrowd", description: "منصة bug bounty شاملة لبرامج الكشف عن الثغرات المصرح بها", tags: ["Bug Bounty", "ثغرات", "مصرح"], link: "https://www.bugcrowd.com", badge: "legal", category: "استخدام قانوني", status: "online", details: "Bugcrowd تربط الشركات بباحثي الأمن لاكتشاف الثغرات بطريقة قانونية.", tab: "legal" },
   { name: "GDPR & Privacy Laws", description: "فهم قوانين الخصوصية وحماية البيانات عند استخدام OSINT", tags: ["GDPR", "خصوصية", "قوانين"], link: "https://gdpr.eu", badge: "legal", category: "تحذير قانوني", status: "online", details: "GDPR يحظر جمع واستخدام البيانات الشخصية بدون موافقة في أوروبا.", tab: "legal" },
+  { name: "Intigriti", description: "منصة Bug Bounty أوروبية للإبلاغ المسؤول عن الثغرات", tags: ["Bug Bounty", "أوروبا", "مسؤول"], link: "https://www.intigriti.com", badge: "legal", category: "استخدام قانوني", status: "online", details: "Intigriti منصة Bug Bounty رائدة في أوروبا مع برامج لمئات الشركات.", tab: "legal" },
 ];
 
 // ─── FRAMEWORKS ───────────────────────────────────────────
 const FRAMEWORKS: Framework[] = [
-  { name: "Metasploit",      usage: "اختبار الاختراق والتطوير",                          type: "إطار عمل",           link: "https://www.metasploit.com" },
-  { name: "Burp Suite",      usage: "اختبار أمان تطبيقات الويب",                         type: "أداة ويب",           link: "https://portswigger.net/burp" },
-  { name: "Nmap",            usage: "فحص الشبكات والمنافذ والخدمات",                     type: "فحص شبكات",          link: "https://nmap.org" },
-  { name: "Wireshark",       usage: "تحليل حركة المرور والبروتوكولات",                    type: "تحليل شبكات",        link: "https://www.wireshark.org" },
-  { name: "OWASP ZAP",       usage: "اختبار اختراق الويب",                                type: "أمان ويب",           link: "https://www.zaproxy.org" },
-  { name: "Kali Linux",      usage: "توزيعة متكاملة للاختبار الأخلاقي",                  type: "نظام تشغيل",         link: "https://www.kali.org" },
-  { name: "Nikto",           usage: "فحص ثغرات خوادم الويب",                              type: "فحص ويب",            link: "https://cirt.net/Nikto2" },
-  { name: "SQLMap",          usage: "اكتشاف واستغلال ثغرات SQL Injection",               type: "قواعد البيانات",      link: "https://sqlmap.org" },
-  { name: "Aircrack-ng",     usage: "اختبار أمان شبكات Wi-Fi",                           type: "أمان لاسلكي",        link: "https://www.aircrack-ng.org" },
-  { name: "Hashcat",         usage: "كسر كلمات المرور المشفرة",                          type: "كلمات مرور",         link: "https://hashcat.net" },
-  { name: "John the Ripper", usage: "اختبار قوة كلمات المرور",                           type: "كلمات مرور",         link: "https://www.openwall.com/john" },
-  { name: "Volatility",      usage: "تحليل صور الذاكرة الجنائية الرقمية",                type: "جنائيات رقمية",      link: "https://www.volatilityfoundation.org" },
-  { name: "Autopsy",         usage: "منصة تحقيق جنائي رقمي مفتوح المصدر",               type: "جنائيات رقمية",      link: "https://www.autopsy.com" },
-  { name: "Maltego",         usage: "تحليل العلاقات بين البيانات بشكل مرئي",             type: "تحليل OSINT",        link: "https://www.maltego.com" },
-  { name: "SpiderFoot",      usage: "أتمتة جمع معلومات OSINT من 100+ مصدر",             type: "OSINT تلقائي",       link: "https://www.spiderfoot.net" },
-  { name: "Shodan",          usage: "البحث في الأجهزة المتصلة بالإنترنت",               type: "استطلاع شبكات",      link: "https://www.shodan.io" },
-  { name: "MISP",            usage: "مشاركة مؤشرات التهديد بين المنظمات",               type: "استخبارات تهديد",    link: "https://www.misp-project.org" },
-  { name: "OpenCTI",         usage: "إدارة وتصور بيانات استخبارات التهديد",              type: "CTI Platform",       link: "https://www.opencti.io" },
-  { name: "TheHive",         usage: "منصة استجابة للحوادث الأمنية",                      type: "SOAR / IR",          link: "https://thehive-project.org" },
-  { name: "Cortex",          usage: "تحليل الملاحظات وإثرائها آلياً",                   type: "تحليل أمني",         link: "https://github.com/TheHive-Project/Cortex" },
-  { name: "Cobalt Strike",   usage: "محاكاة الهجمات وفرق Red Team",                      type: "Red Team",           link: "https://www.cobaltstrike.com" },
-  { name: "Impacket",        usage: "معالجة بروتوكولات Windows الشبكية",                 type: "أدوات شبكة",         link: "https://github.com/SecureAuthCorp/impacket" },
+  { name: "Metasploit",        usage: "اختبار الاختراق والتطوير",                          type: "إطار عمل",           link: "https://www.metasploit.com" },
+  { name: "Burp Suite",        usage: "اختبار أمان تطبيقات الويب",                         type: "أداة ويب",           link: "https://portswigger.net/burp" },
+  { name: "Nmap",              usage: "فحص الشبكات والمنافذ والخدمات",                     type: "فحص شبكات",          link: "https://nmap.org" },
+  { name: "Wireshark",         usage: "تحليل حركة المرور والبروتوكولات",                    type: "تحليل شبكات",        link: "https://www.wireshark.org" },
+  { name: "OWASP ZAP",         usage: "اختبار اختراق الويب",                                type: "أمان ويب",           link: "https://www.zaproxy.org" },
+  { name: "Kali Linux",        usage: "توزيعة متكاملة للاختبار الأخلاقي",                  type: "نظام تشغيل",         link: "https://www.kali.org" },
+  { name: "Nikto",             usage: "فحص ثغرات خوادم الويب",                              type: "فحص ويب",            link: "https://cirt.net/Nikto2" },
+  { name: "SQLMap",            usage: "اكتشاف واستغلال ثغرات SQL Injection",               type: "قواعد البيانات",      link: "https://sqlmap.org" },
+  { name: "Aircrack-ng",       usage: "اختبار أمان شبكات Wi-Fi",                           type: "أمان لاسلكي",        link: "https://www.aircrack-ng.org" },
+  { name: "Hashcat",           usage: "كسر كلمات المرور المشفرة",                          type: "كلمات مرور",         link: "https://hashcat.net" },
+  { name: "John the Ripper",   usage: "اختبار قوة كلمات المرور",                           type: "كلمات مرور",         link: "https://www.openwall.com/john" },
+  { name: "Volatility",        usage: "تحليل صور الذاكرة الجنائية الرقمية",                type: "جنائيات رقمية",      link: "https://www.volatilityfoundation.org" },
+  { name: "Autopsy",           usage: "منصة تحقيق جنائي رقمي مفتوح المصدر",               type: "جنائيات رقمية",      link: "https://www.autopsy.com" },
+  { name: "Maltego",           usage: "تحليل العلاقات بين البيانات بشكل مرئي",             type: "تحليل OSINT",        link: "https://www.maltego.com" },
+  { name: "SpiderFoot",        usage: "أتمتة جمع معلومات OSINT من 100+ مصدر",             type: "OSINT تلقائي",       link: "https://www.spiderfoot.net" },
+  { name: "Shodan",            usage: "البحث في الأجهزة المتصلة بالإنترنت",               type: "استطلاع شبكات",      link: "https://www.shodan.io" },
+  { name: "MISP",              usage: "مشاركة مؤشرات التهديد بين المنظمات",               type: "استخبارات تهديد",    link: "https://www.misp-project.org" },
+  { name: "OpenCTI",           usage: "إدارة وتصور بيانات استخبارات التهديد",              type: "CTI Platform",       link: "https://www.opencti.io" },
+  { name: "TheHive",           usage: "منصة استجابة للحوادث الأمنية",                      type: "SOAR / IR",          link: "https://thehive-project.org" },
+  { name: "Cortex",            usage: "تحليل الملاحظات وإثرائها آلياً",                   type: "تحليل أمني",         link: "https://github.com/TheHive-Project/Cortex" },
+  { name: "Cobalt Strike",     usage: "محاكاة الهجمات وفرق Red Team",                      type: "Red Team",           link: "https://www.cobaltstrike.com" },
+  { name: "Impacket",          usage: "معالجة بروتوكولات Windows الشبكية",                 type: "أدوات شبكة",         link: "https://github.com/SecureAuthCorp/impacket" },
+  { name: "BloodHound",        usage: "رسم خريطة AD وتحديد مسارات التصعيد",               type: "Active Directory",   link: "https://github.com/BloodHoundAD/BloodHound" },
+  { name: "PowerSploit",       usage: "أدوات PowerShell للاختراق في Windows",              type: "Post-Exploitation",  link: "https://github.com/PowerShellMafia/PowerSploit" },
+  { name: "Empire",            usage: "إطار عمل C2 بـ PowerShell وPython",                 type: "Red Team C2",        link: "https://github.com/BC-SECURITY/Empire" },
+  { name: "Sliver",            usage: "إطار عمل C2 مفتوح المصدر حديث",                    type: "Red Team C2",        link: "https://github.com/BishopFox/sliver" },
+  { name: "Nuclei",            usage: "مسح الثغرات بقوالب YAML سريعة",                    type: "مسح ثغرات",          link: "https://github.com/projectdiscovery/nuclei" },
+  { name: "Amass",             usage: "جمع معلومات النطاقات الفرعية",                      type: "OSINT / Recon",      link: "https://github.com/owasp-amass/amass" },
+  { name: "Subfinder",         usage: "اكتشاف النطاقات الفرعية بمصادر سلبية",             type: "Recon",              link: "https://github.com/projectdiscovery/subfinder" },
+  { name: "Burp Suite Pro",    usage: "اختبار اختراق ويب احترافي متقدم",                   type: "Web Pentesting",     link: "https://portswigger.net/burp/pro" },
 ];
 
 const ALL_TOOLS: OsintTool[] = [
@@ -266,6 +381,8 @@ const ALL_TOOLS: OsintTool[] = [
   ...DARKWEB_TOOLS, ...SOCIAL_TOOLS, ...THREATINTEL_TOOLS,
   ...GEO_TOOLS, ...MALWARE_TOOLS, ...NETWORK_TOOLS,
   ...CRYPTO_TOOLS, ...IMAGEOSINT_TOOLS,
+  ...VULN_TOOLS, ...PASSWORD_TOOLS, ...DNS_TOOLS,
+  ...API_TOOLS, ...IOT_TOOLS, ...FORENSICS_TOOLS,
 ];
 
 // ─── Tab Config ──────────────────────────────────────────
@@ -278,6 +395,7 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode; color?: string }[
   { id: "network",     label: "الشبكات",            icon: <Network size={13} /> },
   { id: "threatintel", label: "استخبارات التهديد",  icon: <Shield size={13} />, color: "from-red-600 to-orange-600" },
   { id: "malware",     label: "تحليل برمجيات ضارة", icon: <Bug size={13} /> },
+  { id: "vuln",        label: "الثغرات الأمنية",    icon: <Scan size={13} />, color: "from-orange-600 to-red-700" },
   { id: "darkweb",     label: "الويب المظلم",       icon: <Eye size={13} />, color: "from-slate-700 to-slate-900" },
   { id: "social",      label: "التواصل الاجتماعي",  icon: <Radio size={13} /> },
   { id: "geo",         label: "OSINT جغرافي",       icon: <MapPin size={13} /> },
@@ -286,6 +404,11 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode; color?: string }[
   { id: "phone",       label: "أدوات الهاتف",       icon: <Phone size={13} /> },
   { id: "email",       label: "أدوات البريد",       icon: <Mail size={13} /> },
   { id: "username",    label: "البحث بالاسم",       icon: <User size={13} /> },
+  { id: "password",    label: "بيانات الاعتماد",    icon: <Key size={13} /> },
+  { id: "dns",         label: "أدوات DNS",          icon: <Server size={13} /> },
+  { id: "api",         label: "أمن API",            icon: <Code size={13} /> },
+  { id: "iot",         label: "OSINT الأجهزة",      icon: <Cpu size={13} /> },
+  { id: "forensics",   label: "جنائيات رقمية",      icon: <Fingerprint size={13} /> },
   { id: "frameworks",  label: "أطر العمل",          icon: <Layers size={13} /> },
   { id: "legal",       label: "التحذيرات",          icon: <Scale size={13} /> },
 ];
@@ -427,8 +550,8 @@ function FrameworksTable({ frameworks }: { frameworks: Framework[] }) {
 // ─── Stats Bar ────────────────────────────────────────────
 function StatsBar() {
   const stats = [
-    { icon: <Search size={16} />, value: ALL_TOOLS.length + "+", label: "أداة ونظام",      color: "text-sky-400" },
-    { icon: <Filter size={16} />, value: "16",                    label: "فئة متخصصة",      color: "text-violet-400" },
+    { icon: <Search size={16} />, value: `${ALL_TOOLS.length}+`, label: "أداة ونظام",      color: "text-sky-400" },
+    { icon: <Filter size={16} />, value: "22",                    label: "فئة متخصصة",      color: "text-violet-400" },
     { icon: <Globe size={16} />,  value: "3000+",                  label: "منصة مدعومة",     color: "text-emerald-400" },
     { icon: <Shield size={16} />, value: "100%",                   label: "أخلاقي وقانوني",  color: "text-amber-400" },
   ];
@@ -451,7 +574,9 @@ type ScanModule =
   | "dns" | "crt" | "whois" | "wayback" | "vt" | "shodan"
   | "geo" | "hibp" | "subdomains" | "asn" | "reverseip"
   | "emailrep" | "threatfeed" | "greynoise" | "pastebin"
-  | "social" | "github" | "certTransparency" | "passiveDns";
+  | "social" | "github" | "certTransparency" | "passiveDns"
+  | "urlscan" | "leakix" | "abuseipdb" | "securityheaders"
+  | "dnssec" | "portscan" | "reversedns" | "bgpview";
 
 interface ScanResult {
   id: ScanModule;
@@ -472,43 +597,51 @@ const MODULE_GROUPS: ModuleGroup[] = [
     label: "الأساسيات",
     color: "#3b82f6",
     modules: [
-      { id: "dns",             label: "DNS Lookup",         icon: <Server size={11} />,      forTypes: ["domain", "any"] },
-      { id: "whois",           label: "WHOIS / RDAP",        icon: <FileText size={11} />,    forTypes: ["domain", "any"] },
-      { id: "crt",             label: "SSL Certs",           icon: <Lock size={11} />,        forTypes: ["domain", "any"] },
-      { id: "certTransparency",label: "Cert Transparency",   icon: <Hash size={11} />,        forTypes: ["domain", "any"] },
-      { id: "subdomains",      label: "Subdomains",          icon: <Network size={11} />,     forTypes: ["domain", "any"] },
+      { id: "dns",              label: "DNS Lookup",         icon: <Server size={11} />,      forTypes: ["domain", "any"] },
+      { id: "whois",            label: "WHOIS / RDAP",        icon: <FileText size={11} />,    forTypes: ["domain", "any"] },
+      { id: "crt",              label: "SSL Certs",           icon: <Lock size={11} />,        forTypes: ["domain", "any"] },
+      { id: "certTransparency", label: "Cert Transparency",   icon: <Hash size={11} />,        forTypes: ["domain", "any"] },
+      { id: "subdomains",       label: "Subdomains",          icon: <Network size={11} />,     forTypes: ["domain", "any"] },
+      { id: "dnssec",           label: "DNSSEC Check",        icon: <Lock size={11} />,        forTypes: ["domain", "any"] },
     ],
   },
   {
     label: "IP وشبكات",
     color: "#a78bfa",
     modules: [
-      { id: "geo",             label: "IP Geolocation",      icon: <MapPin size={11} />,      forTypes: ["ip", "any"] },
-      { id: "shodan",          label: "Shodan",              icon: <Wifi size={11} />,        forTypes: ["ip", "domain", "any"] },
-      { id: "asn",             label: "ASN / BGP",           icon: <TrendingUp size={11} />,  forTypes: ["ip", "domain", "any"] },
-      { id: "reverseip",       label: "Reverse IP",          icon: <Cpu size={11} />,         forTypes: ["ip"] },
-      { id: "greynoise",       label: "GreyNoise",           icon: <Activity size={11} />,    forTypes: ["ip"] },
+      { id: "geo",              label: "IP Geolocation",      icon: <MapPin size={11} />,      forTypes: ["ip", "any"] },
+      { id: "shodan",           label: "Shodan",              icon: <Wifi size={11} />,        forTypes: ["ip", "domain", "any"] },
+      { id: "asn",              label: "ASN / BGP",           icon: <TrendingUp size={11} />,  forTypes: ["ip", "domain", "any"] },
+      { id: "reverseip",        label: "Reverse IP",          icon: <Cpu size={11} />,         forTypes: ["ip"] },
+      { id: "greynoise",        label: "GreyNoise",           icon: <Activity size={11} />,    forTypes: ["ip"] },
+      { id: "portscan",         label: "Port Scan",           icon: <Scan size={11} />,        forTypes: ["ip", "domain"] },
+      { id: "bgpview",          label: "BGP View",            icon: <GitBranch size={11} />,   forTypes: ["ip", "any"] },
+      { id: "reversedns",       label: "Reverse DNS",         icon: <Hash size={11} />,        forTypes: ["ip"] },
     ],
   },
   {
     label: "تهديدات ومعلومات",
     color: "#ef4444",
     modules: [
-      { id: "vt",              label: "VirusTotal",          icon: <Shield size={11} />,      forTypes: ["domain", "ip", "any"] },
-      { id: "threatfeed",      label: "Threat Feeds",        icon: <AlertTriangle size={11} />, forTypes: ["domain", "ip", "email", "any"] },
-      { id: "pastebin",        label: "Paste Search",        icon: <Bookmark size={11} />,    forTypes: ["any"] },
-      { id: "wayback",         label: "Wayback Machine",     icon: <Clock size={11} />,       forTypes: ["domain", "any"] },
-      { id: "passiveDns",      label: "Passive DNS",         icon: <Globe size={11} />,       forTypes: ["domain", "any"] },
+      { id: "vt",               label: "VirusTotal",          icon: <Shield size={11} />,      forTypes: ["domain", "ip", "any"] },
+      { id: "threatfeed",       label: "Threat Feeds",        icon: <AlertTriangle size={11} />, forTypes: ["domain", "ip", "email", "any"] },
+      { id: "abuseipdb",        label: "AbuseIPDB",           icon: <Siren size={11} />,       forTypes: ["ip"] },
+      { id: "leakix",           label: "LeakIX",              icon: <Database size={11} />,    forTypes: ["domain", "ip", "any"] },
+      { id: "urlscan",          label: "URLScan.io",          icon: <Monitor size={11} />,     forTypes: ["domain", "any"] },
+      { id: "pastebin",         label: "Paste Search",        icon: <Bookmark size={11} />,    forTypes: ["any"] },
+      { id: "wayback",          label: "Wayback Machine",     icon: <Clock size={11} />,       forTypes: ["domain", "any"] },
+      { id: "passiveDns",       label: "Passive DNS",         icon: <Globe size={11} />,       forTypes: ["domain", "any"] },
     ],
   },
   {
     label: "بريد ومستخدمون",
     color: "#10b981",
     modules: [
-      { id: "hibp",            label: "HIBP Breach Check",   icon: <AlertTriangle size={11} />, forTypes: ["email"] },
-      { id: "emailrep",        label: "Email Reputation",    icon: <Mail size={11} />,        forTypes: ["email"] },
-      { id: "social",          label: "Social Presence",     icon: <Radio size={11} />,       forTypes: ["username", "any"] },
-      { id: "github",          label: "GitHub Recon",        icon: <Github size={11} />,      forTypes: ["any"] },
+      { id: "hibp",             label: "HIBP Breach Check",   icon: <AlertTriangle size={11} />, forTypes: ["email"] },
+      { id: "emailrep",         label: "Email Reputation",    icon: <Mail size={11} />,        forTypes: ["email"] },
+      { id: "social",           label: "Social Presence",     icon: <Radio size={11} />,       forTypes: ["username", "any"] },
+      { id: "github",           label: "GitHub Recon",        icon: <Github size={11} />,      forTypes: ["any"] },
+      { id: "securityheaders",  label: "Security Headers",    icon: <Radar size={11} />,       forTypes: ["domain", "any"] },
     ],
   },
 ];
@@ -522,10 +655,11 @@ function LiveScanner() {
   const [results, setResults] = useState<ScanResult[]>([]);
   const [aiReport, setAiReport] = useState("");
   const [selectedModules, setSelectedModules] = useState<Set<ScanModule>>(
-    new Set(["dns", "crt", "whois", "wayback", "vt", "geo", "subdomains", "asn"])
+    new Set(["dns", "crt", "whois", "wayback", "vt", "geo", "subdomains", "asn", "abuseipdb", "urlscan"])
   );
   const [expandedId, setExpandedId] = useState<ScanModule | null>(null);
   const [showModules, setShowModules] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
 
   const apiBase = (typeof window !== "undefined" && (window as Window & { __API_BASE__?: string }).__API_BASE__)
     || (import.meta as unknown as { env: { VITE_API_URL?: string } }).env?.VITE_API_URL
@@ -560,6 +694,8 @@ function LiveScanner() {
     if (!target.trim() || running) return;
     setRunning(true);
     setAiReport("");
+    setExpandedId(null);
+    setHistory(prev => [target.trim(), ...prev.filter(h => h !== target.trim())].slice(0, 10));
     const mods = [...selectedModules];
     setResults(mods.map(id => ({
       id,
@@ -571,7 +707,7 @@ function LiveScanner() {
       const res = await fetch(`${apiBase}/api/osint-advanced/scan/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target: target.trim(), modules: mods }),
+        body: JSON.stringify({ target: target.trim(), modules: mods, scanType }),
       });
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
@@ -607,7 +743,7 @@ function LiveScanner() {
     } finally {
       setRunning(false);
     }
-  }, [target, running, selectedModules, apiBase]);
+  }, [target, running, selectedModules, apiBase, scanType]);
 
   const statusIcon = (s: ScanResult["status"]) => {
     if (s === "loading") return <RefreshCw size={12} className="animate-spin text-sky-400" />;
@@ -623,12 +759,14 @@ function LiveScanner() {
     navigator.clipboard.writeText(text);
   };
 
-  const done = results.filter(r => r.status === "done").length;
+  const done   = results.filter(r => r.status === "done").length;
   const errors = results.filter(r => r.status === "error").length;
-  const total = results.length;
+  const total  = results.length;
+  const pct    = total > 0 ? Math.round((done / total) * 100) : 0;
 
   return (
     <div className="space-y-4">
+      {/* Warning */}
       <div className="flex gap-2 items-start bg-amber-900/10 border border-amber-500/30 rounded-xl p-3 text-xs text-amber-300">
         <AlertTriangle size={13} className="shrink-0 mt-0.5" />
         <span>يُرجى استخدام هذا الماسح فقط على النطاقات/عناوين IP التي تملكها أو لديك إذن صريح لفحصها.</span>
@@ -636,26 +774,38 @@ function LiveScanner() {
 
       {/* Scan type badges */}
       <div className="flex gap-2 flex-wrap">
+        <span className="text-[10px] text-[#555] self-center">نوع الهدف:</span>
         {(["any","domain","ip","email","username"] as const).map(t => (
           <button key={t} onClick={() => setScanType(t)}
             className={`text-[10px] px-2.5 py-1 rounded-lg border font-bold transition-all ${scanType === t ? "bg-sky-600/20 border-sky-500/50 text-sky-300" : "bg-transparent border-[#1f1f1f] text-[#555] hover:text-[#94a3b8]"}`}>
-            {t === "any" ? "عام" : t === "domain" ? "نطاق" : t === "ip" ? "IP" : t === "email" ? "بريد" : "مستخدم"}
+            {t === "any" ? "عام" : t === "domain" ? "نطاق" : t === "ip" ? "عنوان IP" : t === "email" ? "بريد إلكتروني" : "اسم مستخدم"}
           </button>
         ))}
       </div>
 
-      {/* Input */}
+      {/* Input + Scan button */}
       <div className="flex gap-2">
-        <input type="text" value={target}
-          onChange={e => { setTarget(e.target.value); autoDetectType(e.target.value); }}
-          onKeyDown={e => e.key === "Enter" && startScan()}
-          placeholder="نطاق، عنوان IP، بريد، مستخدم... (مثال: example.com)"
-          className="flex-1 bg-[#0d0d0d] border border-[#1f1f1f] rounded-xl px-4 py-2.5 text-sm text-white placeholder-[#555] focus:outline-none focus:border-sky-500/60 transition-colors"
-          dir="ltr" />
+        <div className="relative flex-1">
+          <input type="text" value={target}
+            onChange={e => { setTarget(e.target.value); autoDetectType(e.target.value); }}
+            onKeyDown={e => e.key === "Enter" && startScan()}
+            placeholder="نطاق، عنوان IP، بريد، مستخدم... (مثال: example.com)"
+            className="w-full bg-[#0d0d0d] border border-[#1f1f1f] rounded-xl px-4 py-2.5 text-sm text-white placeholder-[#555] focus:outline-none focus:border-sky-500/60 transition-colors"
+            dir="ltr" />
+          {history.length > 0 && (
+            <div className="absolute top-full mt-1 left-0 right-0 bg-[#161616] border border-[#1f1f1f] rounded-xl overflow-hidden z-10 hidden group-focus-within:block">
+              {history.map(h => (
+                <button key={h} className="w-full text-left px-4 py-1.5 text-xs text-[#94a3b8] hover:bg-white/5" onClick={() => { setTarget(h); autoDetectType(h); }}>
+                  {h}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button onClick={startScan} disabled={running || !target.trim()}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-violet-600 hover:from-sky-500 hover:to-violet-500 text-white font-semibold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap">
           {running ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />}
-          {running ? "جارٍ الفحص..." : "ابدأ الفحص"}
+          {running ? `جارٍ الفحص... ${pct}%` : "ابدأ الفحص"}
         </button>
       </div>
 
@@ -664,13 +814,19 @@ function LiveScanner() {
         <button onClick={() => setShowModules(!showModules)}
           className="flex items-center gap-2 text-xs text-[#94a3b8] hover:text-white transition-colors mb-2">
           {showModules ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-          تخصيص الوحدات ({selectedModules.size} محددة)
+          تخصيص الوحدات ({selectedModules.size} من {ALL_MODULES.length} محددة)
         </button>
         <AnimatePresence>
           {showModules && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden">
-              <div className="space-y-3 pb-2">
+              <div className="space-y-3 pb-2 border border-[#1f1f1f] rounded-xl p-3 bg-[#0d0d0d]">
+                <div className="flex gap-2 mb-2">
+                  <button onClick={() => setSelectedModules(new Set(ALL_MODULES.map(m => m.id)))}
+                    className="text-[10px] px-2 py-0.5 rounded bg-sky-600/20 text-sky-400 border border-sky-500/30">تحديد الكل</button>
+                  <button onClick={() => setSelectedModules(new Set())}
+                    className="text-[10px] px-2 py-0.5 rounded bg-red-600/20 text-red-400 border border-red-500/30">إلغاء الكل</button>
+                </div>
                 {MODULE_GROUPS.map(group => (
                   <div key={group.label}>
                     <button onClick={() => selectGroup(group)}
@@ -700,16 +856,17 @@ function LiveScanner() {
         </AnimatePresence>
       </div>
 
-      {/* Progress */}
-      {running && total > 0 && (
+      {/* Progress Bar */}
+      {total > 0 && (
         <div className="space-y-1">
-          <div className="flex justify-between text-[10px] text-[#555]">
-            <span>{done}/{total} اكتملت</span>
+          <div className="flex justify-between text-[10px]">
+            <span className="text-[#94a3b8]">{done}/{total} اكتملت {running && <span className="text-sky-400">({pct}%)</span>}</span>
             {errors > 0 && <span className="text-red-400">{errors} أخطاء</span>}
+            {!running && done > 0 && <span className="text-emerald-400">✓ اكتمل الفحص</span>}
           </div>
-          <div className="w-full h-1 bg-[#1f1f1f] rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-[#1f1f1f] rounded-full overflow-hidden">
             <motion.div className="h-full bg-gradient-to-r from-sky-500 to-violet-500 rounded-full"
-              animate={{ width: `${total > 0 ? (done / total) * 100 : 0}%` }} transition={{ duration: 0.3 }} />
+              animate={{ width: `${pct}%` }} transition={{ duration: 0.3 }} />
           </div>
         </div>
       )}
@@ -721,7 +878,7 @@ function LiveScanner() {
             <span className="text-xs text-[#94a3b8]">نتائج: <span className="text-sky-400 font-mono">{target}</span></span>
             {!running && (
               <button onClick={copyReport} className="flex items-center gap-1.5 text-xs text-[#555] hover:text-white transition-colors">
-                <Download size={11} /> تصدير
+                <Download size={11} /> تصدير التقرير
               </button>
             )}
           </div>
@@ -734,8 +891,9 @@ function LiveScanner() {
                   <span className={`font-semibold flex-1 text-left text-xs ${r.status === "done" ? "text-white" : r.status === "error" ? "text-red-400" : "text-[#94a3b8]"}`}>
                     {r.label}
                   </span>
-                  {r.status === "done" && <span className="text-[10px] text-emerald-400">مكتمل</span>}
-                  {r.status === "error" && <span className="text-[10px] text-red-400">خطأ</span>}
+                  {r.status === "done" && <span className="text-[10px] text-emerald-400">✓ مكتمل</span>}
+                  {r.status === "error" && <span className="text-[10px] text-red-400">✗ خطأ</span>}
+                  {r.status === "loading" && <RefreshCw size={10} className="text-sky-400 animate-spin" />}
                   {(r.status === "done" || r.status === "error") && (expandedId === r.id ? <ChevronUp size={12} className="text-[#555]" /> : <ChevronDown size={12} className="text-[#555]" />)}
                 </button>
                 <AnimatePresence>
@@ -744,7 +902,7 @@ function LiveScanner() {
                       <div className="border-t border-[#1f1f1f] p-4">
                         {r.status === "error"
                           ? <p className="text-red-400 text-xs font-mono">{r.error}</p>
-                          : <pre className="text-xs text-[#94a3b8] font-mono overflow-x-auto whitespace-pre-wrap max-h-60">{JSON.stringify(r.data, null, 2)}</pre>}
+                          : <pre className="text-xs text-[#94a3b8] font-mono overflow-x-auto whitespace-pre-wrap max-h-60 scrollbar-thin">{JSON.stringify(r.data, null, 2)}</pre>}
                       </div>
                     </motion.div>
                   )}
@@ -767,10 +925,34 @@ function LiveScanner() {
       )}
 
       {results.length === 0 && (
-        <div className="text-center py-12 text-[#555]">
-          <Terminal size={32} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">أدخل هدفاً وابدأ الفحص</p>
-          <p className="text-xs mt-1 opacity-60">النطاقات · عناوين IP · البريد الإلكتروني · أسماء المستخدمين</p>
+        <div className="text-center py-16 text-[#555]">
+          <Terminal size={40} className="mx-auto mb-4 opacity-20" />
+          <p className="text-sm font-semibold mb-1">الماسح الحي جاهز</p>
+          <p className="text-xs opacity-60 mb-4">أدخل هدفاً وابدأ الفحص الشامل</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {["example.com", "8.8.8.8", "user@email.com", "username123"].map(ex => (
+              <button key={ex} onClick={() => { setTarget(ex); autoDetectType(ex); }}
+                className="text-[10px] px-2.5 py-1 rounded-lg bg-[#161616] border border-[#1f1f1f] text-[#555] hover:text-sky-400 hover:border-sky-500/30 transition-all font-mono">
+                {ex}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] mt-3 opacity-40">النطاقات · عناوين IP · البريد الإلكتروني · أسماء المستخدمين</p>
+        </div>
+      )}
+
+      {/* Scan History */}
+      {history.length > 0 && results.length === 0 && (
+        <div>
+          <p className="text-[10px] text-[#555] mb-2">السجل الأخير:</p>
+          <div className="flex flex-wrap gap-1.5">
+            {history.map(h => (
+              <button key={h} onClick={() => { setTarget(h); autoDetectType(h); }}
+                className="text-[10px] px-2 py-0.5 rounded bg-[#161616] border border-[#1f1f1f] text-[#555] hover:text-white font-mono transition-all">
+                {h}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -790,24 +972,39 @@ export function OsintHubModal({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose, selected]);
 
+  // Focus search on Ctrl+F
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
   const toolsByTab = useMemo<Record<Exclude<TabId, "scanner">, OsintTool[]>>(() => ({
-    all:         ALL_TOOLS,
-    search:      SEARCH_TOOLS,
-    databases:   DATABASE_TOOLS,
-    phone:       PHONE_TOOLS,
-    email:       EMAIL_TOOLS,
-    username:    USERNAME_TOOLS,
-    frameworks:  [],
-    recon:       RECON_TOOLS,
-    legal:       LEGAL_TOOLS,
-    darkweb:     DARKWEB_TOOLS,
-    social:      SOCIAL_TOOLS,
-    threatintel: THREATINTEL_TOOLS,
-    geo:         GEO_TOOLS,
-    malware:     MALWARE_TOOLS,
-    network:     NETWORK_TOOLS,
-    crypto:      CRYPTO_TOOLS,
-    imageosint:  IMAGEOSINT_TOOLS,
+    all:        ALL_TOOLS,
+    search:     SEARCH_TOOLS,
+    databases:  DATABASE_TOOLS,
+    phone:      PHONE_TOOLS,
+    email:      EMAIL_TOOLS,
+    username:   USERNAME_TOOLS,
+    frameworks: [],
+    recon:      RECON_TOOLS,
+    legal:      LEGAL_TOOLS,
+    darkweb:    DARKWEB_TOOLS,
+    social:     SOCIAL_TOOLS,
+    threatintel:THREATINTEL_TOOLS,
+    geo:        GEO_TOOLS,
+    malware:    MALWARE_TOOLS,
+    network:    NETWORK_TOOLS,
+    crypto:     CRYPTO_TOOLS,
+    imageosint: IMAGEOSINT_TOOLS,
+    vuln:       VULN_TOOLS,
+    password:   PASSWORD_TOOLS,
+    dns:        DNS_TOOLS,
+    api:        API_TOOLS,
+    iot:        IOT_TOOLS,
+    forensics:  FORENSICS_TOOLS,
   }), []);
 
   const displayTools = useMemo(() => {
@@ -837,6 +1034,24 @@ export function OsintHubModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {/* Search */}
+          <div className="relative">
+            <Search size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#555]" />
+            <input
+              ref={searchRef}
+              type="text"
+              value={search}
+              onChange={e => { setSearch(e.target.value); if (e.target.value && activeTab !== "all") setActiveTab("all"); }}
+              placeholder="بحث... (Ctrl+F)"
+              className="bg-[#161616] border border-[#1f1f1f] rounded-lg pr-8 pl-3 py-1.5 text-xs text-white placeholder-[#555] focus:outline-none focus:border-sky-500/60 w-44"
+              dir="rtl"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute left-2 top-1/2 -translate-y-1/2 text-[#555] hover:text-white">
+                <X size={10} />
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-1.5 text-xs text-emerald-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             {ALL_TOOLS.length}+ أداة
@@ -854,89 +1069,91 @@ export function OsintHubModal({ onClose }: { onClose: () => void }) {
             مركز أدوات OSINT والأمن السيبراني
           </h1>
           <p className="text-[#94a3b8] text-sm">
-            دليل شامل بأقوى الأدوات في مجال الاستخبارات المفتوحة المصادر والأمن السيبراني
+            دليل شامل بأقوى الأدوات في مجال الاستخبارات المفتوحة المصادر والأمن السيبراني — {ALL_TOOLS.length}+ أداة في {TABS.length - 2} فئة
           </p>
         </motion.div>
 
         {/* Legal Warning */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}
-          className="flex gap-3 bg-red-900/10 border border-red-500/30 rounded-xl p-4 mb-5">
-          <AlertTriangle size={20} className="text-red-400 shrink-0 mt-0.5" />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
+          className="flex items-start gap-3 bg-red-900/10 border border-red-500/20 rounded-xl p-4 mb-5 text-sm">
+          <AlertTriangle size={18} className="text-red-400 shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-red-400 font-bold text-sm mb-1">تحذيرات قانونية وأخلاقية مهمة</h3>
-            <ul className="space-y-1 text-[#94a3b8] text-xs">
-              <li>• الوصول غير المصرح به إلى أنظمة خاصة <strong className="text-red-300">جريمة إلكترونية</strong> في معظم الدول</li>
-              <li>• استخدام الأدوات مقبول فقط في Bug Bounty أو البحث عن معلوماتك الشخصية أو الأنظمة المصرح لك باختبارها</li>
-              <li>• يجب استخدام هذه الأدوات فقط للأغراض الأخلاقية والقانونية</li>
+            <p className="font-semibold text-red-400 mb-1">⚖️ تحذيرات قانونية وأخلاقية مهمة</p>
+            <ul className="text-[#94a3b8] text-xs space-y-1">
+              <li>• الوصول غير المصرح به إلى بيانات شخصية أو أنظمة خاصة <strong className="text-red-400">جريمة إلكترونية</strong> في معظم الدول</li>
+              <li>• استخدم هذه الأدوات فقط في اختبار الاختراق المصرح به (Bug Bounty) أو البحث عن معلوماتك الشخصية</li>
+              <li>• يجب استخدام هذه الأدوات فقط للأغراض الأخلاقية والقانونية المشروعة</li>
             </ul>
           </div>
         </motion.div>
 
         <StatsBar />
 
-        {/* Search */}
-        {activeTab !== "scanner" && activeTab !== "frameworks" && (
-          <div className="relative mb-4">
-            <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
-            <input ref={searchRef} type="text" value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="ابحث عن أداة، نظام، أو ميزة..."
-              className="w-full bg-[#161616] border border-[#1f1f1f] rounded-xl pr-9 pl-4 py-2.5 text-sm text-white placeholder-[#555] focus:outline-none focus:border-sky-500/50 transition-colors" />
-            {search && <button onClick={() => setSearch("")} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-white"><X size={13} /></button>}
-          </div>
-        )}
-
-        {/* Tabs — horizontal scroll */}
-        <div className="flex gap-1.5 mb-5 overflow-x-auto pb-1 scrollbar-hide">
+        {/* Tabs */}
+        <div className="flex gap-1.5 mb-5 flex-wrap">
           {TABS.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg font-semibold transition-all whitespace-nowrap shrink-0 ${
+            <button key={tab.id}
+              onClick={() => { setActiveTab(tab.id); setSearch(""); }}
+              className={`flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-lg border font-semibold transition-all ${
                 activeTab === tab.id
-                  ? `bg-gradient-to-r ${tab.color ?? "from-sky-600 to-violet-600"} text-white border-transparent`
-                  : "bg-[#161616] border border-[#1f1f1f] text-[#94a3b8] hover:text-white hover:bg-[#262626]"
+                  ? tab.color
+                    ? `bg-gradient-to-r ${tab.color} text-white border-transparent`
+                    : "bg-gradient-to-r from-sky-600 to-violet-600 text-white border-transparent"
+                  : "bg-[#161616] border-[#1f1f1f] text-[#94a3b8] hover:text-white hover:border-[#333]"
               }`}>
-              {tab.icon}
-              {tab.label}
-              {tab.id === "scanner" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+              {tab.icon} {tab.label}
+              {tab.id !== "all" && tab.id !== "scanner" && tab.id !== "frameworks" && toolsByTab[tab.id]?.length > 0 && (
+                <span className={`text-[9px] rounded-full px-1 ${activeTab === tab.id ? "bg-white/20" : "bg-[#333] text-[#555]"}`}>
+                  {toolsByTab[tab.id].length}
+                </span>
+              )}
             </button>
           ))}
         </div>
 
+        {/* Search results indicator */}
+        {search && (
+          <div className="mb-4 flex items-center gap-2 text-xs text-[#94a3b8]">
+            <Search size={12} />
+            <span>نتائج البحث عن "<span className="text-sky-400">{search}</span>": {displayTools.length} نتيجة</span>
+            <button onClick={() => setSearch("")} className="text-[#555] hover:text-red-400 transition-colors">✕ مسح</button>
+          </div>
+        )}
+
         {/* Content */}
         <AnimatePresence mode="wait">
           {activeTab === "scanner" ? (
-            <motion.div key="scanner" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <div className="flex items-center gap-2 mb-4 pb-2 border-b border-[#1f1f1f]">
-                <Terminal size={16} className="text-violet-400" />
-                <h2 className="text-base font-bold text-white">الماسح الحي — Live OSINT Scanner</h2>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">مباشر</span>
-              </div>
+            <motion.div key="scanner" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <LiveScanner />
             </motion.div>
           ) : activeTab === "frameworks" ? (
-            <motion.div key="fw" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <h2 className="flex items-center gap-2 text-base font-bold mb-4 pb-2 border-b border-[#1f1f1f]">
-                <Layers size={16} className="text-sky-400" /> أطر العمل الكاملة
-              </h2>
+            <motion.div key="frameworks" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <div className="mb-3 flex items-center gap-2">
+                <Layers size={16} className="text-sky-400" />
+                <span className="text-sm font-semibold text-white">أطر العمل والأدوات الأمنية المتكاملة</span>
+                <span className="text-[10px] text-[#555]">({FRAMEWORKS.length} إطار)</span>
+              </div>
               <FrameworksTable frameworks={FRAMEWORKS} />
             </motion.div>
           ) : (
-            <motion.div key={activeTab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               {displayTools.length === 0 ? (
-                <div className="text-center py-12 text-[#94a3b8]">
-                  <Search size={32} className="mx-auto mb-3 opacity-30" />
-                  <p>لا توجد نتائج للبحث</p>
+                <div className="text-center py-16 text-[#555]">
+                  <Search size={32} className="mx-auto mb-3 opacity-20" />
+                  <p className="text-sm">لا توجد نتائج للبحث</p>
+                  <button onClick={() => setSearch("")} className="text-xs mt-2 text-sky-400 hover:text-sky-300">مسح البحث</button>
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-[#555]">{displayTools.length} أداة</span>
-                    {search && <span className="text-xs text-sky-400">نتائج البحث عن "{search}"</span>}
-                  </div>
+                  {activeTab === "all" && !search && (
+                    <div className="mb-3 flex items-center gap-2">
+                      <Globe size={14} className="text-sky-400" />
+                      <span className="text-xs text-[#94a3b8]">جميع الأدوات ({ALL_TOOLS.length} أداة)</span>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                     {displayTools.map((tool, i) => (
-                      <motion.div key={`${tool.name}-${i}`} transition={{ delay: Math.min(i * 0.02, 0.3) }}>
-                        <ToolCard tool={tool} onSelect={setSelected} />
-                      </motion.div>
+                      <ToolCard key={`${tool.name}-${tool.tab}-${i}`} tool={tool} onSelect={setSelected} />
                     ))}
                   </div>
                 </>
@@ -946,6 +1163,7 @@ export function OsintHubModal({ onClose }: { onClose: () => void }) {
         </AnimatePresence>
       </div>
 
+      {/* Tool Detail Modal */}
       {selected && <ToolDetailModal tool={selected} onClose={() => setSelected(null)} />}
     </div>
   );
