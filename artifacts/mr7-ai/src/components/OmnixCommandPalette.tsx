@@ -1,19 +1,43 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-//  OMNIX COMMAND PALETTE — لوحة الأوامر العالمية
-//  Ctrl+Shift+Z — بحث فوري في كل الأوامر وتنفيذها بضغطة Enter
+//  OMNIX COMMAND PALETTE — لوحة الأوامر العالمية الشاملة
+//  Ctrl+Shift+Z — يبحث في كلا السجلين: OmnixRegistry + OmnixAbsoluteRegistry
+//  بحث فوري في كل الأوامر وتنفيذها بضغطة Enter
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { OMNIX_COMMAND_REGISTRY, OMNIX_REGISTRY_MAP, type OmnixCommand } from "@/lib/OmnixRegistry";
+import { OMNIX_COMMAND_REGISTRY, OMNIX_REGISTRY_MAP } from "@/lib/OmnixRegistry";
+import { OMNIX_ABSOLUTE_REGISTRY, searchAbsoluteRegistry, type AbsoluteCommand } from "@/lib/OmnixAbsoluteRegistry";
 import { OmnixMemory } from "@/lib/OmnixMemory";
+import { OmnixSovereign } from "@/lib/OmnixSovereign";
+import type { OmnixCommand } from "@/lib/OmnixRegistry";
 import type { NexusDispatchers } from "@/lib/ToolRegistry";
+
+// ── Unified display item (merges both registries) ─────────────────────────────
+
+interface PaletteItem {
+  id: string;
+  nameAr: string;
+  name: string;
+  descriptionAr: string;
+  category: string;
+  source: "omnix" | "absolute" | "learned";
+  learned?: boolean;
+  cmd: OmnixCommand | AbsoluteCommand;
+}
 
 const CATEGORY_ICONS: Record<string, string> = {
   modal: "🪟", persona: "🎭", theme: "🎨", model: "🤖", security: "🔒",
-  osint: "🔍", ui: "🖥️", system: "⚙️", chat: "💬", arsenal: "⚔️",
+  osint: "🕵️", ui: "🖥️", system: "⚙️", chat: "💬", arsenal: "⚔️",
   window: "🪟", voice: "🎙️", memory: "🧠", evolution: "🧬",
   layout: "📐", font: "🔤", color: "🎨", combo: "⚡",
+  sovereign: "🔱", omnix: "⚡",
+};
+
+const SOURCE_COLORS: Record<PaletteItem["source"], string> = {
+  omnix: "#00ff88",
+  absolute: "#00e5ff",
+  learned: "#aa44ff",
 };
 
 interface OmnixCommandPaletteProps {
@@ -22,6 +46,75 @@ interface OmnixCommandPaletteProps {
   onClose: () => void;
 }
 
+// ── Build unified palette items ───────────────────────────────────────────────
+
+function buildAllItems(): PaletteItem[] {
+  const items: PaletteItem[] = [];
+  const seen = new Set<string>();
+
+  // Primary registry
+  for (const cmd of OMNIX_COMMAND_REGISTRY) {
+    if (!seen.has(cmd.id)) {
+      seen.add(cmd.id);
+      items.push({
+        id: cmd.id,
+        nameAr: cmd.nameAr,
+        name: cmd.name,
+        descriptionAr: cmd.descriptionAr,
+        category: cmd.category,
+        source: cmd.learned ? "learned" : "omnix",
+        learned: cmd.learned,
+        cmd,
+      });
+    }
+  }
+
+  // Absolute registry (deduplicate by id)
+  for (const cmd of OMNIX_ABSOLUTE_REGISTRY) {
+    if (!seen.has(cmd.id)) {
+      seen.add(cmd.id);
+      items.push({
+        id: cmd.id,
+        nameAr: cmd.nameAr,
+        name: cmd.name,
+        descriptionAr: cmd.descriptionAr,
+        category: cmd.category,
+        source: "absolute",
+        cmd,
+      });
+    }
+  }
+
+  return items;
+}
+
+const ALL_ITEMS = buildAllItems();
+const TOTAL_COUNT = ALL_ITEMS.length;
+
+// ── Search ────────────────────────────────────────────────────────────────────
+
+function searchItems(query: string): PaletteItem[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return ALL_ITEMS.slice(0, 14);
+
+  return ALL_ITEMS.filter((item) => {
+    const aliasMatch =
+      "aliases" in item.cmd
+        ? item.cmd.aliases.some((a: string) => a.toLowerCase().includes(q))
+        : false;
+    return (
+      item.id.includes(q) ||
+      item.nameAr.includes(q) ||
+      item.name.toLowerCase().includes(q) ||
+      item.category.includes(q) ||
+      item.descriptionAr.includes(q) ||
+      aliasMatch
+    );
+  }).slice(0, 18);
+}
+
+// ── Highlight match ───────────────────────────────────────────────────────────
+
 function highlight(text: string, query: string): React.ReactNode {
   if (!query.trim()) return text;
   const idx = text.toLowerCase().indexOf(query.toLowerCase());
@@ -29,11 +122,38 @@ function highlight(text: string, query: string): React.ReactNode {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="bg-emerald-400/30 text-emerald-300 rounded-sm">{text.slice(idx, idx + query.length)}</mark>
+      <mark className="bg-emerald-400/30 text-emerald-300 rounded-sm px-px">
+        {text.slice(idx, idx + query.length)}
+      </mark>
       {text.slice(idx + query.length)}
     </>
   );
 }
+
+// ── Execute any item ──────────────────────────────────────────────────────────
+
+function executeItem(item: PaletteItem, dispatchers: NexusDispatchers): { success: boolean; message: string } {
+  if (item.source === "omnix" || item.source === "learned") {
+    const cmd = OMNIX_REGISTRY_MAP.get(item.id);
+    if (cmd) {
+      const r = cmd.execute({}, dispatchers);
+      OmnixMemory.recordAction({ actionId: item.id, actionLabel: item.nameAr, params: {}, success: r.success });
+      OmnixSovereign.recordCommandSuccess(item.id);
+      return { success: r.success, message: r.messageAr };
+    }
+  }
+  // absolute registry
+  const absCmd = searchAbsoluteRegistry(item.id).find((c) => c.id === item.id);
+  if (absCmd) {
+    const r = absCmd.execute({}, dispatchers);
+    OmnixMemory.recordAction({ actionId: item.id, actionLabel: item.nameAr, params: {}, success: r.success });
+    OmnixSovereign.recordCommandSuccess(item.id);
+    return r;
+  }
+  return { success: false, message: "أمر غير موجود" };
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
 
 export function OmnixCommandPalette({ dispatchers, open, onClose }: OmnixCommandPaletteProps) {
   const [query, setQuery] = useState("");
@@ -42,7 +162,6 @@ export function OmnixCommandPalette({ dispatchers, open, onClose }: OmnixCommand
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Load recent commands
   useEffect(() => {
     if (open) {
       const recent = OmnixMemory.getRecentActions(8).map((e) => e.actionId);
@@ -53,50 +172,37 @@ export function OmnixCommandPalette({ dispatchers, open, onClose }: OmnixCommand
     }
   }, [open]);
 
-  const filtered: OmnixCommand[] = (() => {
+  const filtered: PaletteItem[] = (() => {
     const q = query.trim().toLowerCase();
     if (!q) {
       // Show recent + top commands when no query
-      const recent = recentIds
-        .map((id) => OMNIX_REGISTRY_MAP.get(id))
-        .filter(Boolean) as OmnixCommand[];
-      const top = OmnixMemory.getTopCommands(12)
-        .map((s) => OMNIX_REGISTRY_MAP.get(s.actionId))
-        .filter(Boolean)
-        .filter((c) => !recent.find((r) => r!.id === c!.id)) as OmnixCommand[];
-      const combined = [...recent, ...top].slice(0, 12);
-      return combined.length > 0 ? combined : OMNIX_COMMAND_REGISTRY.slice(0, 12);
+      const recentItems = recentIds
+        .map((id) => ALL_ITEMS.find((item) => item.id === id))
+        .filter(Boolean) as PaletteItem[];
+      const topIds = OmnixMemory.getTopCommands(14)
+        .map((s) => s.actionId)
+        .filter((id) => !recentIds.includes(id));
+      const topItems = topIds
+        .map((id) => ALL_ITEMS.find((item) => item.id === id))
+        .filter(Boolean) as PaletteItem[];
+      const combined = [...recentItems, ...topItems].slice(0, 14);
+      return combined.length > 0 ? combined : ALL_ITEMS.slice(0, 14);
     }
-    return OMNIX_COMMAND_REGISTRY.filter((c) =>
-      c.id.includes(q) ||
-      c.nameAr.includes(q) ||
-      c.name.toLowerCase().includes(q) ||
-      c.category.includes(q) ||
-      c.descriptionAr.includes(q) ||
-      (c.aliases ?? []).some((a) => a.toLowerCase().includes(q))
-    ).slice(0, 15);
+    return searchItems(q);
   })();
 
-  // Reset selection when results change
   useEffect(() => { setSelected(0); }, [query]);
 
-  // Scroll selected item into view
   useEffect(() => {
     const el = listRef.current?.querySelector(`[data-idx="${selected}"]`);
     el?.scrollIntoView({ block: "nearest" });
   }, [selected]);
 
-  const runCommand = useCallback((cmd: OmnixCommand) => {
+  const runItem = useCallback((item: PaletteItem) => {
     if (!dispatchers) return;
     try {
-      const result = cmd.execute({}, dispatchers);
-      dispatchers.toast(result.success ? `✅ ${result.messageAr}` : `❌ ${result.messageAr}`);
-      OmnixMemory.recordAction({
-        actionId: cmd.id,
-        actionLabel: cmd.nameAr,
-        params: {},
-        success: result.success,
-      });
+      const result = executeItem(item, dispatchers);
+      dispatchers.toast(result.success ? `✅ ${result.message}` : `❌ ${result.message}`);
     } catch (e) {
       dispatchers.toast(`❌ ${e instanceof Error ? e.message : "فشل التنفيذ"}`);
     }
@@ -105,10 +211,10 @@ export function OmnixCommandPalette({ dispatchers, open, onClose }: OmnixCommand
 
   function onKey(e: React.KeyboardEvent) {
     if (e.key === "ArrowDown") { e.preventDefault(); setSelected((v) => Math.min(v + 1, filtered.length - 1)); }
-    if (e.key === "ArrowUp") { e.preventDefault(); setSelected((v) => Math.max(v - 1, 0)); }
-    if (e.key === "Enter") { e.preventDefault(); if (filtered[selected]) runCommand(filtered[selected]); }
-    if (e.key === "Escape") { e.preventDefault(); onClose(); }
-    if (e.key === "Tab") { e.preventDefault(); setSelected((v) => (v + 1) % filtered.length); }
+    if (e.key === "ArrowUp")   { e.preventDefault(); setSelected((v) => Math.max(v - 1, 0)); }
+    if (e.key === "Enter")     { e.preventDefault(); if (filtered[selected]) runItem(filtered[selected]); }
+    if (e.key === "Escape")    { e.preventDefault(); onClose(); }
+    if (e.key === "Tab")       { e.preventDefault(); setSelected((v) => (v + 1) % filtered.length); }
   }
 
   if (!open) return null;
@@ -120,86 +226,103 @@ export function OmnixCommandPalette({ dispatchers, open, onClose }: OmnixCommand
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.15 }}
-        className="fixed inset-0 z-[10010] flex items-start justify-center pt-[15vh]"
-        style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}
+        className="fixed inset-0 z-[10010] flex items-start justify-center pt-[13vh]"
+        style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <motion.div
-          initial={{ opacity: 0, y: -20, scale: 0.97 }}
+          initial={{ opacity: 0, y: -24, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -20, scale: 0.97 }}
+          exit={{ opacity: 0, y: -24, scale: 0.96 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
-          className="w-full max-w-xl mx-4 rounded-2xl border overflow-hidden flex flex-col"
+          className="w-full max-w-2xl mx-4 rounded-2xl border overflow-hidden flex flex-col"
           style={{
-            background: "rgba(0,6,14,0.97)",
+            background: "rgba(0,4,12,0.98)",
             borderColor: "#00ff8840",
-            boxShadow: "0 0 80px #00ff8820, 0 25px 80px #00000090",
-            maxHeight: "60vh",
+            boxShadow: "0 0 100px #00ff8818, 0 30px 80px #00000095",
+            maxHeight: "66vh",
           }}
         >
-          {/* Search Input */}
+          {/* Header + Search */}
           <div className="flex items-center gap-3 px-4 py-3.5 border-b" style={{ borderColor: "#00ff8820" }}>
-            <span className="text-emerald-400 text-lg flex-shrink-0">⚡</span>
+            <span className="text-emerald-400 text-xl flex-shrink-0">🔱</span>
             <input
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onKey}
-              placeholder="ابحث في أوامر OMNIX... (↑↓ للتنقل، Enter للتنفيذ)"
+              placeholder={`ابحث في ${TOTAL_COUNT} أمر OMNIX... (↑↓ للتنقل، Enter للتنفيذ)`}
               className="flex-1 bg-transparent text-white text-sm outline-none placeholder:text-white/30"
               dir="auto"
               spellCheck={false}
+              autoComplete="off"
             />
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <kbd className="text-xs px-1.5 py-0.5 rounded border text-white/30" style={{ borderColor: "#ffffff15", background: "#ffffff08" }}>Esc</kbd>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <span className="text-xs text-white/20">{TOTAL_COUNT} أمر</span>
+              <kbd className="text-xs px-1.5 py-0.5 rounded border text-white/30 ml-1"
+                style={{ borderColor: "#ffffff15", background: "#ffffff08" }}>Esc</kbd>
             </div>
           </div>
 
           {/* Results */}
           <div ref={listRef} className="flex-1 overflow-y-auto py-1">
             {filtered.length === 0 ? (
-              <div className="py-8 text-center text-white/30 text-sm">
-                لا توجد أوامر مطابقة — جرّب كلمة أخرى
+              <div className="py-10 text-center">
+                <p className="text-white/30 text-sm">لا توجد أوامر مطابقة</p>
+                <p className="text-white/15 text-xs mt-1">جرّب كلمة مختلفة بالعربية أو الإنجليزية</p>
               </div>
             ) : (
               <>
                 {!query.trim() && (
-                  <p className="px-4 py-2 text-xs text-white/25 tracking-wider">
-                    {recentIds.length > 0 ? "الأوامر الأخيرة والأكثر استخداماً" : "جميع الأوامر"}
+                  <p className="px-4 pt-2 pb-1 text-xs text-white/20 tracking-wider">
+                    {recentIds.length > 0 ? "⏱ الأخيرة والأكثر استخداماً" : "⚡ جميع الأوامر"}
                   </p>
                 )}
-                {filtered.map((cmd, idx) => (
+                {filtered.map((item, idx) => (
                   <button
-                    key={cmd.id}
+                    key={item.id}
                     data-idx={idx}
-                    onClick={() => runCommand(cmd)}
+                    onClick={() => runItem(item)}
                     onMouseEnter={() => setSelected(idx)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-100"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-75"
                     style={{
-                      background: selected === idx ? "rgba(0,255,136,0.08)" : "transparent",
-                      borderLeft: selected === idx ? "2px solid #00ff88" : "2px solid transparent",
+                      background: selected === idx ? `${SOURCE_COLORS[item.source]}0a` : "transparent",
+                      borderLeft: selected === idx ? `2px solid ${SOURCE_COLORS[item.source]}` : "2px solid transparent",
                     }}
                   >
-                    <span className="text-lg flex-shrink-0 w-7 text-center">
-                      {CATEGORY_ICONS[cmd.category] ?? "⚡"}
+                    {/* Icon */}
+                    <span className="text-base flex-shrink-0 w-7 text-center leading-none">
+                      {CATEGORY_ICONS[item.category] ?? "⚡"}
                     </span>
+
+                    {/* Labels */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white/90 truncate" dir="auto">
-                        {highlight(cmd.nameAr, query)}
+                      <p className="text-sm text-white/90 truncate leading-tight" dir="auto">
+                        {highlight(item.nameAr, query)}
                       </p>
-                      <p className="text-xs text-white/40 truncate" dir="auto">
-                        {highlight(cmd.descriptionAr, query)}
+                      <p className="text-xs text-white/35 truncate leading-tight mt-0.5" dir="auto">
+                        {highlight(item.descriptionAr, query)}
                       </p>
                     </div>
+
+                    {/* Badges */}
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <span
                         className="text-xs px-1.5 py-0.5 rounded"
-                        style={{ background: "#00ff8810", color: "#00ff8870", fontSize: "9px" }}
+                        style={{
+                          background: `${SOURCE_COLORS[item.source]}12`,
+                          color: `${SOURCE_COLORS[item.source]}90`,
+                          fontSize: "9px",
+                          letterSpacing: "0.05em",
+                        }}
                       >
-                        {cmd.category}
+                        {item.category}
                       </span>
-                      {cmd.learned && (
-                        <span className="text-xs text-purple-400/70">🧬</span>
+                      {item.source === "absolute" && (
+                        <span style={{ fontSize: "9px", color: "#00e5ff50" }}>ABS</span>
+                      )}
+                      {item.learned && (
+                        <span className="text-purple-400/70" style={{ fontSize: "11px" }}>🧬</span>
                       )}
                     </div>
                   </button>
@@ -213,14 +336,18 @@ export function OmnixCommandPalette({ dispatchers, open, onClose }: OmnixCommand
             className="flex items-center justify-between px-4 py-2 border-t"
             style={{ borderColor: "#00ff8810" }}
           >
-            <div className="flex items-center gap-3 text-xs text-white/25">
+            <div className="flex items-center gap-4 text-xs text-white/20">
               <span>↑↓ تنقل</span>
               <span>Enter تنفيذ</span>
               <span>Tab التالي</span>
+              <span>Esc إغلاق</span>
             </div>
-            <span className="text-xs text-white/20">
-              {filtered.length} من {OMNIX_COMMAND_REGISTRY.length} أمر
-            </span>
+            <div className="flex items-center gap-2 text-xs">
+              <span style={{ color: "#00ff8840" }}>{OMNIX_COMMAND_REGISTRY.length} OMNIX</span>
+              <span className="text-white/15">+</span>
+              <span style={{ color: "#00e5ff40" }}>{OMNIX_ABSOLUTE_REGISTRY.length} ABS</span>
+              <span className="text-white/20">= {TOTAL_COUNT} أمر</span>
+            </div>
           </div>
         </motion.div>
       </motion.div>
