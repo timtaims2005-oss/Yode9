@@ -3,6 +3,9 @@ import { streamCompletion, callOnce, type ProviderName, invalidateProviderCache 
 void invalidateProviderCache;
 import { CYBERWARFARE_KB } from "../lib/cyberwarfare-kb";
 import { DEFENSE_TOOLS_KB } from "../lib/defense-tools-kb";
+import { AISecurityGuard } from "../lib/ai-security-guard";
+
+const securityGuard = new AISecurityGuard();
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
@@ -271,6 +274,23 @@ router.post("/chat", async (req, res) => {
     const providerModel = typeof body.providerModel === "string" && body.providerModel.trim() ? body.providerModel.trim() : "gpt-3.5-turbo";
     const reqApiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
     const reqApiBaseURL = typeof body.apiBaseURL === "string" ? body.apiBaseURL.trim() : "";
+
+    // ── Security scan on the last user message ────────────────────────────────
+    const lastUserMsg = [...messages].reverse().find(m => m.role === "user");
+    if (lastUserMsg && typeof lastUserMsg.content === "string") {
+      const scanResult = securityGuard.scanInput(lastUserMsg.content);
+      if (scanResult.riskScore >= 90 && scanResult.threats.length > 0) {
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache, no-transform");
+        res.setHeader("Connection", "keep-alive");
+        res.flushHeaders?.();
+        res.write(`data: ${JSON.stringify({ content: `[SECURITY GUARD] تحذير: تم رصد نمط مشبوه برتبة ${scanResult.riskScore}/100. الطلب محظور.\n\nالتهديدات المرصودة: ${scanResult.threats.join(", ")}` })}\n\n`);
+        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+        res.end();
+        return;
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     const baseSystem = customSystemPrompt ?? buildSystemPrompt(model, persona, customInstructions, language, memory);
 

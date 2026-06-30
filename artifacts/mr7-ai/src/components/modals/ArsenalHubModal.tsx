@@ -12,7 +12,7 @@ import {
   Settings, Eye, AlertTriangle, Microscope, Globe, TrendingUp, Crown, Map, Orbit,
   Radio, Lock as LockIcon,
   Target, EyeOff, Crosshair, Binary, Workflow,
-  MousePointer2, GitBranch, Presentation,
+  MousePointer2, GitBranch, Presentation, Smartphone,
 } from "lucide-react";
 import { pipeline, type PipelineHistoryEntry, type ChainRule } from "@/lib/pipeline";
 
@@ -87,7 +87,9 @@ export type ArsenalModuleId =
   // AutoGPT Swarm + Evolution
   | "swarmEvolution" | "agentProjectGenerator" | "agentEvolutionDashboard"
   // OSINT Hub — مركز الاستخبارات المفتوحة
-  | "osinthub";
+  | "osinthub"
+  // Mobile Security Arsenal — PENTEST_TOOLS.md
+  | "mobilesecurity";
 
 export type ArsenalModule = {
   id: ArsenalModuleId;
@@ -1067,6 +1069,12 @@ export const ARSENAL_MODULES: ArsenalModule[] = [
     desc: "نظام تعاون حقيقي فوري بين المستخدمين عبر WebSocket. خريطة هولوغرافية ثلاثية الأبعاد تُظهر المستخدمين المتصلين، مؤشرات الكتابة الفورية، مزامنة الرسائل، مشاركة معرّف الغرفة، وإحصاءات الزمن الفعلي بالمللي ثانية.",
     icon: Users, color: "#e21227", border: "rgba(226,18,39,0.4)", bg: "rgba(226,18,39,0.07)", glow: "rgba(226,18,39,0.35)",
     source: "KaliGPT · WebSocket Collab", tag: "REAL-TIME",
+  },
+  {
+    id: "mobilesecurity", name: "Mobile Security Arsenal", subtitle: "RAT · Spyware · C2 · MITM · Frida · Pegasus",
+    desc: "دليل شامل لأدوات اختبار اختراق الأجهزة المحمولة. 18 أداة موثقة: Kali NetHunter، Metasploit Mobile، AndroRAT، Pegasus، BetterCAP، Cobalt Strike، Frida، Objection، MobSF. تقنيات RAT وC2 وMITM مع آليات الدفاع لكل أداة.",
+    icon: Smartphone, color: "#e21227", border: "rgba(226,18,39,0.4)", bg: "rgba(226,18,39,0.07)", glow: "rgba(226,18,39,0.35)",
+    source: "PENTEST_TOOLS.md · KaliGPT", tag: "MOBILE PENTEST",
   },
 ];
 

@@ -268,6 +268,7 @@ const FinetuneModal         = lazy(() => import("./components/modals/FinetuneMod
 const OsintPlatformModal    = lazy(() => import("./components/modals/OsintPlatformModal").then(m=>({default:m.OsintPlatformModal})));
 const PluginMarketplaceModal = lazy(() => import("./components/modals/PluginMarketplaceModal").then(m=>({default:m.PluginMarketplaceModal})));
 const NotificationCenter    = lazy(() => import("./components/NotificationCenter").then(m=>({default:m.NotificationCenter})));
+const MobileSecurityModal   = lazy(() => import("./components/modals/MobileSecurityModal").then(m=>({default:m.MobileSecurityModal})));
 
 // ── NEW PAGES (opened as modals via WindowChrome) ─────────────────────────────
 const AccountSettingsPage   = lazy(() => import("./pages/AccountSettingsPage").then(m=>({default:m.AccountSettingsPage})));
@@ -384,6 +385,7 @@ const MODAL_IDS = [
   'nexusPanel',
   'omnixAbsolute',
   'osintHub',
+  'mobileSecurity',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -444,6 +446,7 @@ const ARSENAL_MAP: Partial<Record<string, ModalId>> = {
   "swarmEvolution": "swarmEvolution",
   "agentProjectGenerator": "agentProjectGenerator",
   "agentEvolutionDashboard": "agentEvolutionDashboard",
+  "mobilesecurity": "mobileSecurity",
 };
 
 const queryClient = new QueryClient();
@@ -1118,6 +1121,9 @@ function AppContent() {
             <OsintHubModal onClose={() => close('osintHub')} />
           </Suspense>
         </WindowChrome>
+        <Suspense fallback={null}>
+          <MobileSecurityModal isOpen={modals.mobileSecurity} onClose={() => close('mobileSecurity')} />
+        </Suspense>
         <WindowChrome open={modals.changelog} color="#e21227" title="CHANGELOG" onClose={() => close('changelog')}>
           <ChangelogModal open={modals.changelog} onOpenChange={(v) => mDispatch({type:'SET',id:'changelog',value:v})} />
         </WindowChrome>
