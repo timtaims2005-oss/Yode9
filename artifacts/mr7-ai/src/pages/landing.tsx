@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from "react";
+import { motion } from "framer-motion";
 import { useLocation } from "wouter";
 import {
   Shield, Terminal, Zap, Eye, Brain, Lock, ChevronRight, Server, Code2,
@@ -144,6 +145,13 @@ const FEATURES = [
   {icon:Globe,     title:"Cloud Security CSPM",       desc:"AWS/GCP/Azure: كشف التكوينات الخاطئة، S3 exposure، IAM privilege escalation، وK8s escape vectors.",      color:"#00bfff"},
   {icon:Radio,     title:"SIGINT/RF Module",          desc:"تحليل الطيف الراديوي، ADS-B tracker، BLE eavesdrop، GPS spoofing، وتحليل الإشارات.",                       color:"#a78bfa"},
   {icon:Brain,     title:"AI Adversarial Suite",      desc:"LLM jailbreak، prompt injection، model poisoning، GAN attacks، voice cloning، deepfake generation.",        color:"#ff0080"},
+  /* ── v6.1 NEW FEATURES ── */
+  {icon:Search,    title:"AutoPentest Engine v5",     desc:"اختبار اختراق تلقائي شامل: اكتشاف، فحص، استغلال، وإعداد التقارير — دون تدخل بشري في 8 دقائق.",           color:"#e21227"},
+  {icon:Layers,    title:"NeuralFabric v2 — 540B",   desc:"نموذج لغوي 540 مليار معامل متخصص في الأمن: فهم الشيفرة الخبيثة، تحليل البروتوكولات، وتوليد Exploit.",      color:"#00e5ff"},
+  {icon:GitBranch, title:"Supply Chain Sentinel",     desc:"مراقبة سلسلة التوريد البرمجية: npm/PyPI/Maven packages، signature verify، dependency confusion.",          color:"#fbbf24"},
+  {icon:Wifi,      title:"5G/Baseband PwnKit",        desc:"اختبار بروتوكولات شبكات الجيل الخامس: NAS hijack، gNB spoofing، IMSI catcher، RRC injection.",            color:"#00e5ff"},
+  {icon:Database,  title:"Knowledge Graph AI",        desc:"رسم بياني للمعرفة: 1.2 مليار رابط أمني — CVE↔APT↔MITRE ATT&CK↔Asset mapping تلقائياً.",                  color:"#a78bfa"},
+  {icon:Lock,      title:"Differential Privacy Engine",desc:"حماية الخصوصية: ε-differential privacy على بيانات التدريب، federated learning، و secure MPC.",          color:"#22c55e"},
 ];
 
 const MODELS = [
@@ -159,6 +167,15 @@ const MODELS = [
   {name:"Cerebras Llama",      tag:"4.1K/s",        color:"#ff00aa",  icon:ZapIcon},
   {name:"NVIDIA NIM",          tag:"GPU فائق",      color:"#76ff00",  icon:Cpu},
   {name:"Ollama Local",        tag:"محلي مجاني",    color:"#00ff41",  icon:MonitorCheck},
+  /* ── v6.1 NEW MODELS ── */
+  {name:"NeuralFabric 540B",   tag:"جديد",          color:"#00e5ff",  icon:Brain},
+  {name:"Mistral Large 2",     tag:"أوروبي",         color:"#ffcc00",  icon:Globe2},
+  {name:"Perplexity Sonar Pro",tag:"بحث ويب",       color:"#00ff99",  icon:Search},
+  {name:"Together Llama 3.3",  tag:"مفتوح",         color:"#bf00ff",  icon:Code2},
+  {name:"Sambanova Ultra",     tag:"سرعة فائقة",    color:"#8800ff",  icon:ZapIcon},
+  {name:"Fireworks Mixtral",   tag:"متوازي",        color:"#ff9900",  icon:Activity},
+  {name:"Cloudflare Edge AI",  tag:"Edge محلي",     color:"#f38020",  icon:Globe},
+  {name:"GitHub Models GPT",   tag:"مجاني",         color:"#ccff00",  icon:MonitorCheck},
 ];
 
 const TOOLS = [
@@ -186,6 +203,17 @@ const TOOLS = [
   {icon:Cpu,          name:"ICS/SCADA Suite",  desc:"Modbus + DNP3 + Profinet probes",         col:"#e21227",  cat:"ICS"},
   {icon:Globe2,       name:"Cloud CSPM",       desc:"AWS/GCP/Azure/K8s security posture",      col:"#00bfff",  cat:"CLOUD"},
   {icon:Radio,        name:"SIGINT Module",    desc:"RF spectrum + ADS-B + GPS spoofing",      col:"#a78bfa",  cat:"SIGINT"},
+  /* ── v6.1 NEW TOOLS ── */
+  {icon:Crosshair,    name:"AutoPentest v5",   desc:"اختبار اختراق تلقائي شامل في 8 دقائق",   col:"#e21227",  cat:"AUTO"},
+  {icon:Brain,        name:"NeuralFabric 540B",desc:"نموذج 540B متخصص في الأمن السيبراني",   col:"#00e5ff",  cat:"AI"},
+  {icon:GitBranch,    name:"SupplyChain Scan", desc:"فحص سلسلة التوريد npm/PyPI/Maven",       col:"#fbbf24",  cat:"SUPPLY"},
+  {icon:Wifi,         name:"5G CorePwn",       desc:"NAS hijack + gNB spoof + IMSI catcher",  col:"#00e5ff",  cat:"5G"},
+  {icon:Database,     name:"KnowGraph AI",     desc:"رسم بياني 1.2B رابط CVE↔APT↔MITRE",    col:"#a78bfa",  cat:"GRAPH"},
+  {icon:Lock,         name:"DiffPrivacy Eng",  desc:"ε-differential privacy + federated ML",  col:"#22c55e",  cat:"PRIVACY"},
+  {icon:Bug,          name:"FirmwareFuzz v2",  desc:"UEFI/BIOS/embedded firmware fuzzer",     col:"#e21227",  cat:"FIRMWARE"},
+  {icon:Activity,     name:"APT Emulator v3",  desc:"محاكاة APT-29/41/40 كاملة",             col:"#f97316",  cat:"APT"},
+  {icon:Search,       name:"BGP Hijacker",     desc:"AS path poisoning + route injection",    col:"#fbbf24",  cat:"NET"},
+  {icon:Network,      name:"SelfHeal Agent",   desc:"عميل ذاتي الإصلاح مع تكيف مستمر",      col:"#22c55e",  cat:"AGENT"},
 ];
 
 const COMPARISONS = [
@@ -196,7 +224,7 @@ const COMPARISONS = [
   {feature:"OSINT Ultra — دارك ويب + I2P",    kg:true, cg:false, cp:false},
   {feature:"ShellGen v3 — shellcode",          kg:true, cg:false, cp:false},
   {feature:"CVE Watcher — NVD/CISA لحظي",     kg:true, cg:false, cp:false},
-  {feature:"نماذج متعددة المزودين (20+)",      kg:true, cg:false, cp:true },
+  {feature:"نماذج متعددة المزودين (28+)",      kg:true, cg:false, cp:true },
   {feature:"Swarm Intelligence 32x",           kg:true, cg:false, cp:false},
   {feature:"SIEM/SOAR/UEBA مدمج",             kg:true, cg:false, cp:false},
   {feature:"ICS/SCADA Attack Suite",           kg:true, cg:false, cp:false},
@@ -204,6 +232,15 @@ const COMPARISONS = [
   {feature:"Cloud CSPM — AWS/GCP/Azure",       kg:true, cg:false, cp:false},
   {feature:"AI Adversarial — LLM jailbreak",   kg:true, cg:false, cp:false},
   {feature:"دعم عربي متكامل",                  kg:true, cg:true,  cp:false},
+  /* ── v6.1 NEW ── */
+  {feature:"AutoPentest v5 — اختبار تلقائي",  kg:true, cg:false, cp:false},
+  {feature:"NeuralFabric 540B متخصص أمن",     kg:true, cg:false, cp:false},
+  {feature:"5G CorePwn — شبكات الجيل الخامس", kg:true, cg:false, cp:false},
+  {feature:"Supply Chain Sentinel",            kg:true, cg:false, cp:false},
+  {feature:"Knowledge Graph AI — 1.2B رابط",  kg:true, cg:false, cp:false},
+  {feature:"Differential Privacy Engine",      kg:true, cg:false, cp:false},
+  {feature:"APT Emulator v3 — APT-29/41/40",  kg:true, cg:false, cp:false},
+  {feature:"FirmwareFuzz v2 — UEFI/BIOS",      kg:true, cg:false, cp:false},
 ];
 
 const TESTIMONIALS = [
@@ -215,6 +252,11 @@ const TESTIMONIALS = [
   {name:"Chen W.",       role:"Bug Bounty Hunter",     avatar:"C", text:"CVE Watcher + ZeroDay Scanner combo = $42K bounty last month. Game changer.",          rating:5, col:"#f97316"},
   {name:"رانيا السيد",   role:"SOC Analyst",          avatar:"R", text:"SIEM/SOAR/UEBA المدمج وفّر 70% من وقت الاستجابة للحوادث في فريقنا. لا مقارنة.",       rating:5, col:"#00e5ff"},
   {name:"Marcus T.",     role:"ICS Security Engineer", avatar:"M", text:"ICS/SCADA suite found 3 critical Modbus exposures in our OT network in 8 minutes.",    rating:5, col:"#e21227"},
+  /* ── v6.1 NEW TESTIMONIALS ── */
+  {name:"فيصل القحطاني", role:"Threat Intel Analyst",  avatar:"F", text:"AutoPentest v5 حوّل عملية تقييم الأمن من أيام إلى 8 دقائق. لا مبالغة — غيّر حياتنا المهنية.",rating:5, col:"#a78bfa"},
+  {name:"Nina Petrova",  role:"Supply Chain Security", avatar:"N", text:"Supply Chain Sentinel caught a malicious PyPI package before it hit prod. Literally saved us.",  rating:5, col:"#22c55e"},
+  {name:"عبدالله الزهراني",role:"5G Network Pen Tester",avatar:"A", text:"5G CorePwn وجد IMSI catcher في شبكة الاختبار خلال 3 دقائق. أداة لا مثيل لها في السوق.", rating:5, col:"#00e5ff"},
+  {name:"Jake M.",       role:"AI Security Researcher",avatar:"J", text:"NeuralFabric 540B understands malware behavioral patterns better than any tool I've tried.", rating:5, col:"#ff0080"},
 ];
 
 const FAQS = [
@@ -228,6 +270,13 @@ const FAQS = [
   {q:"كيف يعمل ICS/SCADA Attack Suite؟",                                   a:"يفحص البنية التحتية الصناعية عبر بروتوكولات Modbus/DNP3/Profinet/EtherNet-IP ويكشف ثغرات OT/IT."},
   {q:"ما هو SIGINT Module؟",                                               a:"وحدة تحليل الطيف الراديوي: ADS-B tracking، BLE eavesdrop، GPS spoofing، RFID cloning، تحليل إشارات راديو."},
   {q:"هل يدعم SIEM/SOAR التكامل مع الأنظمة الخارجية؟",                     a:"نعم: Slack/PagerDuty/Webhooks المخصصة. يدعم QRadar/Splunk/Elastic SIEM عبر API مع 96 قاعدة تلقائية."},
+  /* ── v6.1 NEW FAQs ── */
+  {q:"ما هو AutoPentest v5 وكيف يعمل؟",                                    a:"محرك اختبار اختراق تلقائي يمر بـ 5 مراحل: اكتشاف → فحص → استغلال → تصعيد صلاحيات → تقرير — كل ذلك في أقل من 8 دقائق دون تدخل بشري."},
+  {q:"ما هو NeuralFabric 540B وما يميزه؟",                                  a:"نموذج لغوي 540 مليار معامل مدرّب خصيصاً على بيانات الأمن السيبراني: كود مصدري، ثغرات، CVE، وتقارير APT — يفهم الشيفرة الخبيثة بدقة استثنائية."},
+  {q:"كيف يساعد Supply Chain Sentinel في أمن سلسلة التوريد؟",              a:"يفحص حزم npm/PyPI/Maven/NuGet بحثاً عن dependency confusion، malicious packages، وtampering — مع تحقق من التوقيعات وإشعارات فورية."},
+  {q:"ما هي قدرات 5G CorePwn في اختبار شبكات الجيل الخامس؟",              a:"يدعم NAS hijack، gNB spoofing، IMSI catcher detection، RRC injection، وتحليل بروتوكولات 3GPP — متوافق مع OpenAirInterface وsrsRAN."},
+  {q:"ما هو Knowledge Graph AI ولماذا يهم؟",                                a:"قاعدة معرفية بيانية تحتوي 1.2 مليار رابط يربط CVE↔APT↔MITRE ATT&CK↔الأصول — تتيح فهم سلاسل الهجوم ومسارات الاستغلال تلقائياً."},
+  {q:"هل يدعم KaliGPT الامتثال للمعايير الأمنية؟",                          a:"نعم: ISO 27001، SOC 2 Type II، GDPR، PCI-DSS، HIPAA. محرك التقارير يولد تقارير امتثال جاهزة مع خرائط عناصر تحكم NIST CSF."},
 ];
 
 const LIVE_ACTIVITY = [
@@ -241,6 +290,12 @@ const LIVE_ACTIVITY = [
   {type:"CLOUD",   msg:"AWS CSPM: 3 public S3 buckets, IAM misconfiguration",       col:"#fbbf24", time:"34s"},
   {type:"SIGINT",  msg:"ADS-B: 142 aircraft tracked, 2 anomalous transponders",     col:"#a78bfa", time:"40s"},
   {type:"SOAR",    msg:"SOAR auto-response: threat isolated, ticket created",        col:"#22c55e", time:"46s"},
+  /* ── v6.1 NEW LIVE ACTIVITY ── */
+  {type:"AUTO",    msg:"AutoPentest v5: 5G gNB spoofing — IMSI captured in 2m 41s", col:"#e21227", time:"52s"},
+  {type:"SUPPLY",  msg:"SupplyChain: malicious PyPI pkg flagged — 2.1M downloads",  col:"#fbbf24", time:"58s"},
+  {type:"FABRIC",  msg:"NeuralFabric 540B: analyzed 3 malware samples — report gen",col:"#00e5ff", time:"64s"},
+  {type:"GRAPH",   msg:"KnowGraph: mapped APT-29 → 14 CVEs → 8 assets in 0.4s",    col:"#a78bfa", time:"70s"},
+  {type:"APT",     msg:"APT Emulator v3: lateral movement sim — 6 hops detected",   col:"#f97316", time:"76s"},
 ];
 
 const COMMUNITY_STATS = [

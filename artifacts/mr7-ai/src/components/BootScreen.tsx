@@ -66,6 +66,11 @@ const BOOT_LOG = [
   { ms: 2425, text: "[ K8S  ] Kubernetes attack suite: cluster escape vectors loaded",       col: "#a78bfa" },
   { ms: 2465, text: "[ CLD  ] Cloud attack surface: AWS/GCP/Azure CSPM online",              col: "#00e5ff" },
   { ms: 2505, text: "[ CORE ] All 180 subsystems nominal. Booting UI shell…",                col: "#00ff41" },
+  { ms: 2540, text: "[ NLP  ] Transformer v9: 540B parameters — multilingual ACTIVE",        col: "#00e5ff" },
+  { ms: 2555, text: "[ AGT  ] Autonomous agent kernel v4: self-healing loops ARMED",         col: "#a78bfa" },
+  { ms: 2565, text: "[ PRIV ] Differential privacy engine: ε=0.001 — noise injected",        col: "#22c55e" },
+  { ms: 2572, text: "[ KNOW ] Knowledge graph: 1.2B triples loaded — Neo4j cluster OK",      col: "#00e5ff" },
+  { ms: 2578, text: "[ APIM ] API gateway: rate throttle 50K req/s — CDN edge warm",         col: "#fbbf24" },
   { ms: 2580, text: "[ DONE ] ████████████████████ 100% — WELCOME, OPERATOR. GODSPEED.",    col: "#e21227" },
 ];
 
@@ -176,6 +181,12 @@ const MODULES_FLASH = [
   "ICS Scanner","IoT Finger","K8s Escape","Cloud CSPM","UEBA Engine",
   "LLM Jailbreak","Prompt Inject","MemExtract","DeepFake AI","VoiceClone",
   "GAN Arsenal","AdvAttack","ModelPoison","DataExfil AI","CertForge",
+  /* ── v6.1 NEW ── */
+  "NeuralFabric v2","KnowledgeGraph AI","DiffPrivacy Engine","AutoPentest v5",
+  "QuantumOracle","SelfHeal Agent","APT Emulator v3","SupplyChain Scan",
+  "FirmwareRip v2","SatelliteHack","HardwareFuzz","SideChanAnalyze",
+  "NFC Exploit Kit","5G CorePwn","BGP Hijacker","CDN Poison Pro",
+  "TokenStealer AI","SessionForge","OAuth Bypass","SAMLForge",
 ];
 
 /* ── 30 subsystems ── */
@@ -210,6 +221,17 @@ const SUBSYSTEMS = [
   { label: "IoT Finger",        status: "12K",  col: "#fbbf24", delay: 2110 },
   { label: "Forensics Suite",   status: "RDY",  col: "#22c55e", delay: 2180 },
   { label: "AI Adversarial",    status: "HOT",  col: "#e21227", delay: 2250 },
+  /* ── v6.1 NEW SUBSYSTEMS ── */
+  { label: "NeuralFabric v2",   status: "540B", col: "#00e5ff", delay: 2320 },
+  { label: "KnowGraph AI",      status: "1.2B", col: "#a78bfa", delay: 2380 },
+  { label: "AutoPentest v5",    status: "ARM",  col: "#e21227", delay: 2430 },
+  { label: "QuantumOracle",     status: "RDY",  col: "#a78bfa", delay: 2480 },
+  { label: "SelfHeal Agent",    status: "OK",   col: "#22c55e", delay: 2520 },
+  { label: "APT Emulator v3",   status: "RDY",  col: "#f97316", delay: 2560 },
+  { label: "SupplyChain Scan",  status: "ON",   col: "#fbbf24", delay: 2600 },
+  { label: "FirmwareFuzz v2",   status: "RDY",  col: "#e21227", delay: 2630 },
+  { label: "5G CorePwn",        status: "ARM",  col: "#00e5ff", delay: 2660 },
+  { label: "DiffPrivacy Eng",   status: "ε≈0",  col: "#22c55e", delay: 2690 },
 ];
 
 /* ── System metrics ── */
@@ -224,6 +246,10 @@ const SYS_METRICS = [
   { label: "SIEM PROC",      pct: 91,  col: "#00e5ff" },
   { label: "IDS ENGINE",     pct: 85,  col: "#fbbf24" },
   { label: "CLOUD CSPM",     pct: 77,  col: "#a78bfa" },
+  { label: "NEURAL FABRIC",  pct: 96,  col: "#00e5ff" },
+  { label: "KNOW GRAPH",     pct: 82,  col: "#a78bfa" },
+  { label: "AUTOPENTEST",    pct: 89,  col: "#e21227" },
+  { label: "DIFF PRIVACY",   pct: 100, col: "#22c55e" },
 ];
 
 /* ── Threat events ── */
@@ -246,6 +272,17 @@ const THREAT_EVENTS = [
   "AI adversarial prompt injection detected",
   "Deepfake voice call attempt on exec",
   "DNS tunneling exfiltration blocked: 9.4MB",
+  /* ── v6.1 NEW THREATS ── */
+  "5G core network slice hijack — baseband exploit detected",
+  "Supply-chain backdoor: malicious npm pkg 2.1M downloads",
+  "Firmware rootkit: UEFI implant on 4 endpoints — isolating",
+  "NFC relay attack: contactless payment skimmer at 2 ATMs",
+  "BGP hijack: AS path poisoning — 14K routes affected",
+  "AI model poisoning: gradient attack on prod classifier",
+  "SIM-swap fraud: 3 exec accounts compromised — alerting",
+  "OAuth token replay: session forged — revoking now",
+  "Zero-trust bypass: lateral movement via trusted service",
+  "Satellite uplink spoof: ADS-B ghost aircraft injected",
 ];
 
 /* ── Network nodes ── */
@@ -294,6 +331,12 @@ const QUICK_LAUNCH = [
   { label: "SIGINT Module",   emoji: "📡", path: "/app",     col: "#a78bfa", sub: "RF Spectrum" },
   { label: "Forensics AI",    emoji: "🔬", path: "/app",     col: "#22c55e", sub: "Volatility3 + YARA" },
   { label: "ZeroDay Scanner", emoji: "🎯", path: "/app",     col: "#fbbf24", sub: "AFL++ + LibFuzzer" },
+  /* ── v6.1 NEW TOOLS ── */
+  { label: "AutoPentest v5",  emoji: "⚔",  path: "/app",     col: "#e21227", sub: "اختبار تلقائي" },
+  { label: "5G CorePwn",      emoji: "📶", path: "/app",     col: "#00e5ff", sub: "شبكات 5G" },
+  { label: "Supply Chain",    emoji: "🔗", path: "/app",     col: "#fbbf24", sub: "سلسلة التوريد" },
+  { label: "AI Red Team",     emoji: "🧬", path: "/app",     col: "#ff0080", sub: "نموذج هجومي" },
+  { label: "KnowGraph AI",    emoji: "🕸",  path: "/app",     col: "#a78bfa", sub: "رسم المعرفة" },
 ];
 
 /* ── AI benchmarks ── */
