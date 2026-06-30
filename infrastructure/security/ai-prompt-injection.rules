@@ -1,0 +1,158 @@
+# ══════════════════════════════════════════════════════════
+#  MR7.AI — Suricata Rules: AI Prompt Injection Detection
+#  Detects prompt injection, jailbreak, and AI manipulation
+# ══════════════════════════════════════════════════════════
+
+# ── Prompt Injection Patterns ─────────────────────────────
+
+alert http $EXTERNAL_NET any -> $HOME_NET $AI_API_PORTS (
+    msg:"MR7-AI PROMPT-INJECTION Ignore Previous Instructions";
+    flow:established,to_server;
+    http.method; content:"POST";
+    http.uri; content:"/api/chat";
+    http.request_body; content:"ignore"; nocase; content:"previous"; nocase; within:50;
+    pcre:"/ignore\s+previous\s+instructions/si";
+    classtype:web-application-attack;
+    sid:9000001; rev:1;
+    metadata:affected_product AI_API, attack_target API_Server;
+)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $AI_API_PORTS (
+    msg:"MR7-AI PROMPT-INJECTION Jailbreak Attempt DAN";
+    flow:established,to_server;
+    http.method; content:"POST";
+    http.request_body; content:"DAN"; content:"Do Anything Now"; within:100;
+    classtype:web-application-attack;
+    sid:9000002; rev:1;
+)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $AI_API_PORTS (
+    msg:"MR7-AI PROMPT-INJECTION System Prompt Leak Attempt";
+    flow:established,to_server;
+    http.method; content:"POST";
+    http.request_body; content:"system prompt"; nocase;
+    pcre:"/reveal\s+(your|the)\s+system\s+prompt/si";
+    classtype:web-application-attack;
+    sid:9000003; rev:1;
+)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $AI_API_PORTS (
+    msg:"MR7-AI PROMPT-INJECTION Persona Override Attempt";
+    flow:established,to_server;
+    http.method; content:"POST";
+    http.request_body; pcre:"/you\s+are\s+now\s+[a-z]/si";
+    classtype:web-application-attack;
+    sid:9000004; rev:1;
+)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $AI_API_PORTS (
+    msg:"MR7-AI PROMPT-INJECTION Forget Training Instructions";
+    flow:established,to_server;
+    http.method; content:"POST";
+    http.request_body; pcre:"/forget\s+(everything|all|your\s+training)/si";
+    classtype:web-application-attack;
+    sid:9000005; rev:1;
+)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $AI_API_PORTS (
+    msg:"MR7-AI PROMPT-INJECTION Disregard All Previous";
+    flow:established,to_server;
+    http.method; content:"POST";
+    http.request_body; pcre:"/disregard\s+(all|previous|your)/si";
+    classtype:web-application-attack;
+    sid:9000006; rev:1;
+)
+
+# ── API Key Exfiltration Detection ────────────────────────
+
+alert http $HOME_NET any -> $EXTERNAL_NET any (
+    msg:"MR7-AI EXFILTRATION API Key in Response";
+    flow:established,to_client;
+    http.response_body; pcre:"/sk-[a-zA-Z0-9]{20,}/";
+    classtype:data-theft;
+    sid:9000010; rev:1;
+)
+
+alert http $HOME_NET any -> $EXTERNAL_NET any (
+    msg:"MR7-AI EXFILTRATION Bearer Token in Response";
+    flow:established,to_client;
+    http.response_body; pcre:"/Bearer\s+[a-zA-Z0-9\-._~+\/]+=*/i";
+    classtype:data-theft;
+    sid:9000011; rev:1;
+)
+
+# ── Rate Abuse Detection ───────────────────────────────────
+
+alert http $EXTERNAL_NET any -> $HOME_NET $AI_API_PORTS (
+    msg:"MR7-AI RATE-ABUSE Excessive AI API Requests";
+    flow:established,to_server;
+    http.method; content:"POST";
+    http.uri; content:"/api/chat";
+    threshold:type threshold, track by_src, count 100, seconds 60;
+    classtype:attempted-dos;
+    sid:9000020; rev:1;
+)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $AI_API_PORTS (
+    msg:"MR7-AI RATE-ABUSE Council Endpoint Flood";
+    flow:established,to_server;
+    http.method; content:"POST";
+    http.uri; content:"/api/council";
+    threshold:type threshold, track by_src, count 10, seconds 60;
+    classtype:attempted-dos;
+    sid:9000021; rev:1;
+)
+
+# ── Shell Command Injection via AI ────────────────────────
+
+alert http $EXTERNAL_NET any -> $HOME_NET $AI_API_PORTS (
+    msg:"MR7-AI INJECTION Shell Command in AI Prompt";
+    flow:established,to_server;
+    http.method; content:"POST";
+    http.request_body; pcre:"/(rm\s+-rf|dd\s+if=|mkfs\.|:(){:|fork bomb)/i";
+    classtype:web-application-attack;
+    sid:9000030; rev:1;
+)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $AI_API_PORTS (
+    msg:"MR7-AI INJECTION SQL in AI Prompt";
+    flow:established,to_server;
+    http.method; content:"POST";
+    http.request_body; pcre:"/(DROP\s+TABLE|DELETE\s+FROM\s+users|UNION\s+SELECT|OR\s+1=1)/si";
+    classtype:web-application-attack;
+    sid:9000031; rev:1;
+)
+
+# ── XSS via AI Response ───────────────────────────────────
+
+alert http $HOME_NET any -> $EXTERNAL_NET any (
+    msg:"MR7-AI XSS Script Tag in AI Response";
+    flow:established,to_client;
+    http.response_body; content:"<script"; nocase;
+    pcre:"/<script[^>]*>.*?<\/script>/si";
+    classtype:web-application-attack;
+    sid:9000040; rev:1;
+)
+
+# ── Credential Stuffing Detection ─────────────────────────
+
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (
+    msg:"MR7-AI AUTH Credential Stuffing Attempt";
+    flow:established,to_server;
+    http.uri; content:"/api/auth";
+    threshold:type threshold, track by_src, count 20, seconds 300;
+    classtype:attempted-user;
+    sid:9000050; rev:1;
+)
+
+# ── Data Poisoning Detection ───────────────────────────────
+
+alert http $EXTERNAL_NET any -> $HOME_NET $AI_API_PORTS (
+    msg:"MR7-AI POISONING Large Malicious Payload";
+    flow:established,to_server;
+    http.method; content:"POST";
+    dsize:>50000;
+    http.uri; content:"/api/";
+    classtype:bad-unknown;
+    sid:9000060; rev:1;
+)

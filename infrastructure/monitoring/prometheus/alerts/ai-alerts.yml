@@ -1,0 +1,149 @@
+groups:
+  - name: mr7-ai-alerts
+    interval: 30s
+    rules:
+      # ── API Health ────────────────────────────────────────
+      - alert: APIDown
+        expr: up{job="mr7-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: api-server
+        annotations:
+          summary: "MR7.AI API server is down"
+          description: "API server {{ $labels.instance }} has been down for more than 1 minute."
+
+      - alert: HighErrorRate
+        expr: |
+          rate(http_requests_total{job="mr7-api",status=~"5.."}[5m])
+          / rate(http_requests_total{job="mr7-api"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: api-server
+        annotations:
+          summary: "High HTTP error rate (>5%)"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.instance }}"
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket{job="mr7-api"}[5m])
+          ) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: api-server
+        annotations:
+          summary: "High API latency (p95 > 5s)"
+          description: "p95 latency is {{ $value }}s for {{ $labels.instance }}"
+
+      # ── AI Inference ───────────────────────────────────────
+      - alert: vLLMDown
+        expr: up{job="vllm"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: vllm
+        annotations:
+          summary: "vLLM inference server is down"
+          description: "vLLM has been unreachable for 2 minutes."
+
+      - alert: HighInferenceLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(vllm:e2e_request_latency_seconds_bucket[5m])
+          ) > 30
+        for: 5m
+        labels:
+          severity: warning
+          service: inference
+        annotations:
+          summary: "High inference latency (p95 > 30s)"
+
+      # ── Database ───────────────────────────────────────────
+      - alert: PostgreSQLDown
+        expr: up{job="postgresql"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL is down"
+
+      - alert: HighDBConnections
+        expr: pg_stat_activity_count / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL connections > 80%"
+          description: "Connection usage is {{ $value | humanizePercentage }}"
+
+      # ── Cache ──────────────────────────────────────────────
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis cache is down"
+
+      - alert: LowCacheHitRate
+        expr: redis_keyspace_hits_total / (redis_keyspace_hits_total + redis_keyspace_misses_total) < 0.7
+        for: 15m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis cache hit rate < 70%"
+
+      # ── System Resources ───────────────────────────────────
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage (>85%)"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: HighMemoryUsage
+        expr: |
+          (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)
+          / node_memory_MemTotal_bytes > 0.90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High memory usage (>90%)"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space < 15%"
+          description: "Available disk: {{ $value | humanizePercentage }} on {{ $labels.mountpoint }}"
+
+      # ── Security ───────────────────────────────────────────
+      - alert: HighPromptInjectionRate
+        expr: rate(mr7_security_prompt_injections_blocked_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High prompt injection attempt rate (>10/min)"
+
+      - alert: SuspiciousRateLimitHits
+        expr: rate(mr7_ratelimit_blocked_total[5m]) > 50
+        for: 2m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High rate limit violations (>50/min)"

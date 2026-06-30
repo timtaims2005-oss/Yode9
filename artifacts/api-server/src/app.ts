@@ -25,6 +25,7 @@ import { startBackupScheduler } from "./lib/backup";
 import { seedDefaultFlags } from "./lib/feature-flags";
 import threatIntelRouter from "./routes/threat-intel";
 import osintAdvancedRouter from "./routes/osint-advanced";
+import aiToolsRouter from "./routes/ai-tools";
 
 // Validate environment at startup — exits if critical vars missing
 validateEnv();
@@ -252,6 +253,9 @@ app.use("/api", threatIntelRouter);
 
 // ── OSINT Advanced — public scanner endpoints ─────────────────────────────────
 app.use("/api/osint-advanced", osintAdvancedRouter);
+
+// ── AI Tools — security, cache, providers, validation ─────────────────────────
+app.use("/api/ai-tools", aiToolsRouter);
 
 // ── All remaining API routes — protected by internalAuth ─────────────────────
 app.use("/api", internalAuth, cloudChatsRouter);
