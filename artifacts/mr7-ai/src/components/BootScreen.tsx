@@ -97,6 +97,30 @@ const RADAR_CONTACTS = [
   { id:"TGT-10", type:"K8S",     threat:"HIGH", ang:340,  dist: 0.58, col:"#fbbf24" },
 ];
 
+/* ── Mission ops ── */
+const MISSION_OPS = [
+  { id:"OP-PHANTOM",  target:"203.0.113.48",    type:"RED TEAM",   status:"ACTIVE",  progress:78, agent:"SA-07", col:"#e21227", start:"04:12" },
+  { id:"OP-NIGHTFALL",target:"corp.target.io",  type:"OSINT",      status:"ACTIVE",  progress:91, agent:"SA-13", col:"#00e5ff", start:"03:44" },
+  { id:"OP-VORTEX",   target:"10.0.5.0/24",     type:"NET SCAN",   status:"PENDING", progress:0,  agent:"SA-02", col:"#fbbf24", start:"05:00" },
+  { id:"OP-CIPHER",   target:"api.corp.internal",type:"CRYPTO",     status:"DONE",    progress:100,agent:"SA-21", col:"#22c55e", start:"02:11" },
+  { id:"OP-SPECTRE",  target:"192.168.50.1",    type:"ICS/SCADA",  status:"ACTIVE",  progress:55, agent:"SA-09", col:"#a78bfa", start:"04:37" },
+  { id:"OP-BLACKOUT", target:"cloud.aws.target", type:"CLOUD CSPM", status:"ACTIVE",  progress:62, agent:"SA-18", col:"#f97316", start:"04:51" },
+  { id:"OP-POLARIS",  target:"wifi-range-b2",   type:"SIGINT",     status:"ACTIVE",  progress:34, agent:"SA-31", col:"#00bfff", start:"04:58" },
+  { id:"OP-ZERO",     target:"plc.factory.ics",  type:"ZERO-DAY",   status:"PENDING", progress:0,  agent:"SA-06", col:"#ff0080", start:"05:15" },
+];
+
+/* ── Vuln scan targets ── */
+const VULN_TARGETS = [
+  { host:"web01.corp",    ip:"10.0.1.11",  cves:3,  critical:2, col:"#e21227", score:9.8, status:"EXPLOITABLE" },
+  { host:"db02.corp",     ip:"10.0.1.22",  cves:7,  critical:1, col:"#fbbf24", score:7.5, status:"PATCHING"    },
+  { host:"api.corp",      ip:"10.0.1.35",  cves:1,  critical:0, col:"#22c55e", score:4.2, status:"MONITORING"  },
+  { host:"vpn.corp",      ip:"10.0.1.50",  cves:5,  critical:3, col:"#e21227", score:9.1, status:"CRITICAL"    },
+  { host:"ics-plc01",     ip:"192.168.50.1",cves:9, critical:4, col:"#e21227", score:10,  status:"EMERGENCY"   },
+  { host:"k8s-master",    ip:"10.0.2.1",   cves:4,  critical:1, col:"#fbbf24", score:8.8, status:"PATCHING"    },
+  { host:"mail.corp",     ip:"10.0.1.80",  cves:2,  critical:0, col:"#00e5ff", score:5.5, status:"MONITORING"  },
+  { host:"backup.corp",   ip:"10.0.1.99",  cves:6,  critical:2, col:"#f97316", score:8.0, status:"RISK"        },
+];
+
 /* ── 70 modules ── */
 const MODULES_FLASH = [
   "KaliAgent v6","NEXUS CORE","JARVIS PRO","Parseltongue v4","RAGFlow v2","OpenGravity",
@@ -532,6 +556,115 @@ function SwarmAgentPanel() {
   );
 }
 
+function MissionPanel() {
+  const active = MISSION_OPS.filter(m => m.status === "ACTIVE");
+  const done   = MISSION_OPS.filter(m => m.status === "DONE");
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ fontSize: 6.5, fontFamily: "monospace", letterSpacing: "0.3em", marginBottom: 8, color: "rgba(226,18,39,0.55)", fontWeight: 700 }}>
+        ▶ MISSION CONTROL — {active.length} OPS ACTIVE
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, marginBottom: 8 }}>
+        {[
+          { label: "ACTIVE", val: active.length, col: "#e21227" },
+          { label: "DONE",   val: done.length,   col: "#22c55e" },
+          { label: "PENDING",val: MISSION_OPS.filter(m=>m.status==="PENDING").length, col: "#fbbf24" },
+        ].map(s => (
+          <div key={s.label} style={{ textAlign: "center", padding: "4px 2px", borderRadius: 4, background: `${s.col}08`, border: `1px solid ${s.col}20` }}>
+            <div style={{ fontSize: 13, fontFamily: "monospace", fontWeight: 900, color: s.col }}>{s.val}</div>
+            <div style={{ fontSize: 5, fontFamily: "monospace", color: "rgba(255,255,255,0.22)", letterSpacing: "0.2em" }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        {MISSION_OPS.map((op, i) => (
+          <motion.div key={op.id} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.055 }}
+            style={{ padding: "5px 7px", borderRadius: 5, background: `${op.col}07`, border: `1px solid ${op.col}18` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
+              <motion.div style={{ width: 4, height: 4, borderRadius: "50%", background: op.col, flexShrink: 0 }}
+                animate={op.status === "ACTIVE" ? { opacity: [0.5, 1, 0.5] } : { opacity: 0.4 }} transition={{ duration: 1.2, repeat: Infinity }} />
+              <span style={{ fontSize: 6.5, fontFamily: "monospace", fontWeight: 700, color: op.col, flex: 1 }}>{op.id}</span>
+              <span style={{ fontSize: 5.5, fontFamily: "monospace", color: "rgba(255,255,255,0.25)", marginLeft: "auto" }}>{op.type}</span>
+              <span style={{ fontSize: 5, fontFamily: "monospace", fontWeight: 700, padding: "1px 3px", borderRadius: 2,
+                background: op.status==="ACTIVE"?"rgba(226,18,39,0.15)":op.status==="DONE"?"rgba(34,197,94,0.12)":"rgba(251,191,36,0.1)",
+                color: op.status==="ACTIVE"?"#e21227":op.status==="DONE"?"#22c55e":"#fbbf24",
+                border: `1px solid ${op.status==="ACTIVE"?"rgba(226,18,39,0.25)":op.status==="DONE"?"rgba(34,197,94,0.2)":"rgba(251,191,36,0.2)"}` }}>
+                {op.status}
+              </span>
+            </div>
+            <div style={{ fontSize: 5.5, fontFamily: "monospace", color: "rgba(255,255,255,0.28)", marginBottom: 3, paddingLeft: 9 }}>
+              {op.target} · {op.agent} · {op.start}
+            </div>
+            {op.progress > 0 && (
+              <div style={{ height: 2.5, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden", marginLeft: 9 }}>
+                <motion.div style={{ height: "100%", background: `linear-gradient(90deg,${op.col}66,${op.col})`, borderRadius: 2 }}
+                  initial={{ width: 0 }} animate={{ width: `${op.progress}%` }} transition={{ delay: i * 0.06 + 0.3, duration: 1 }} />
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VulnScanPanel() {
+  const [scanIdx, setScanIdx] = useState(0);
+  const [pulseMap, setPulseMap] = useState<Record<string,boolean>>({});
+  useEffect(() => {
+    const id = setInterval(() => {
+      setScanIdx(i => (i + 1) % VULN_TARGETS.length);
+      setPulseMap(p => { const n = {...p}; VULN_TARGETS.forEach(v => { n[v.host] = Math.random() > 0.5; }); return n; });
+    }, 900);
+    return () => clearInterval(id);
+  }, []);
+  const totalCrit = VULN_TARGETS.reduce((s, v) => s + v.critical, 0);
+  const totalCves = VULN_TARGETS.reduce((s, v) => s + v.cves, 0);
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ fontSize: 6.5, fontFamily: "monospace", letterSpacing: "0.3em", marginBottom: 8, color: "rgba(226,18,39,0.55)", fontWeight: 700 }}>
+        ▶ VULNERABILITY SCANNER — {VULN_TARGETS.length} HOSTS
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, marginBottom: 8 }}>
+        {[
+          { label: "TOTAL CVEs",  val: totalCves,  col: "#fbbf24" },
+          { label: "CRITICAL",    val: totalCrit,  col: "#e21227" },
+          { label: "AVG SCORE",   val: (VULN_TARGETS.reduce((s,v)=>s+v.score,0)/VULN_TARGETS.length).toFixed(1), col: "#f97316" },
+        ].map(s => (
+          <div key={s.label} style={{ textAlign: "center", padding: "4px 2px", borderRadius: 4, background: `${s.col}08`, border: `1px solid ${s.col}20` }}>
+            <div style={{ fontSize: 13, fontFamily: "monospace", fontWeight: 900, color: s.col }}>{s.val}</div>
+            <div style={{ fontSize: 5, fontFamily: "monospace", color: "rgba(255,255,255,0.22)", letterSpacing: "0.15em" }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {VULN_TARGETS.map((v, i) => (
+          <motion.div key={v.host} initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+            style={{ padding: "4px 6px", borderRadius: 4, background: `${v.col}07`, border: `1px solid ${v.col}${scanIdx===i?"35":"14"}`,
+              transition: "border-color 0.3s" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <motion.div style={{ width: 4, height: 4, borderRadius: "50%", background: v.col, flexShrink: 0 }}
+                animate={pulseMap[v.host] ? { scale: [1, 1.6, 1], opacity: [1, 0.5, 1] } : { scale: 1 }} transition={{ duration: 0.4 }} />
+              <span style={{ fontSize: 6.5, fontFamily: "monospace", fontWeight: 700, color: "rgba(255,255,255,0.65)", flex: 1 }}>{v.host}</span>
+              <span style={{ fontSize: 5.5, fontFamily: "monospace", color: "rgba(255,255,255,0.25)" }}>{v.ip}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2, paddingLeft: 8 }}>
+              <span style={{ fontSize: 5.5, fontFamily: "monospace", color: "#fbbf24" }}>CVEs: {v.cves}</span>
+              <span style={{ fontSize: 5.5, fontFamily: "monospace", color: "#e21227" }}>CRIT: {v.critical}</span>
+              <div style={{ flex: 1, height: 2.5, background: "rgba(255,255,255,0.04)", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ width: `${(v.score/10)*100}%`, height: "100%", background: `linear-gradient(90deg,${v.col}66,${v.col})`, borderRadius: 2 }} />
+              </div>
+              <span style={{ fontSize: 5.5, fontFamily: "monospace", fontWeight: 700, color: v.col }}>CVSS {v.score}</span>
+              <span style={{ fontSize: 5, fontFamily: "monospace", padding: "1px 3px", borderRadius: 2,
+                background: `${v.col}12`, color: v.col, border: `1px solid ${v.col}22`, whiteSpace: "nowrap" }}>{v.status}</span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function RadarPanel() {
   const cv = useRef<HTMLCanvasElement>(null);
   const raf = useRef(0);
@@ -812,13 +945,15 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
   const fmtPkt  = (n: number) => n >= 1e9 ? `${(n/1e9).toFixed(1)}G` : n >= 1e6 ? `${(n/1e6).toFixed(1)}M` : `${(n/1e3).toFixed(0)}K`;
 
   const tabs = [
-    { id: "log",    label: "LOG"    },
-    { id: "nodes",  label: "NET"    },
-    { id: "bench",  label: "BENCH"  },
-    { id: "swarm",  label: "SWARM"  },
-    { id: "intel",  label: "INTEL"  },
-    { id: "radar",  label: "RADAR"  },
-    { id: "crypto", label: "CRYPTO" },
+    { id: "log",     label: "LOG"    },
+    { id: "nodes",   label: "NET"    },
+    { id: "bench",   label: "BENCH"  },
+    { id: "swarm",   label: "SWARM"  },
+    { id: "intel",   label: "INTEL"  },
+    { id: "radar",   label: "RADAR"  },
+    { id: "crypto",  label: "CRYPTO" },
+    { id: "mission", label: "OPS"    },
+    { id: "vuln",    label: "VULN"   },
   ] as const;
 
   return (
@@ -1068,6 +1203,16 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
                 {rightTab==="crypto" && (
                   <motion.div key="crypto" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="flex-1 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
                     <CryptoPanel />
+                  </motion.div>
+                )}
+                {rightTab==="mission" && (
+                  <motion.div key="mission" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="flex-1 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
+                    <MissionPanel />
+                  </motion.div>
+                )}
+                {rightTab==="vuln" && (
+                  <motion.div key="vuln" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="flex-1 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
+                    <VulnScanPanel />
                   </motion.div>
                 )}
               </AnimatePresence>

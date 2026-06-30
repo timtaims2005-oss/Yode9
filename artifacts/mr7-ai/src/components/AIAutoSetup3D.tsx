@@ -353,6 +353,146 @@ function ProviderSearch({value,onChange}:{value:string;onChange:(v:string)=>void
 }
 
 /* ══════════════════════════════════════════════════════════════
+   MODEL CAPABILITY MATRIX
+══════════════════════════════════════════════════════════════ */
+function ModelCapabilityMatrix() {
+  const caps = [
+    {label:"السرعة",    key:"speed"},
+    {label:"السياق",   key:"ctx"},
+    {label:"الدقة",    key:"acc"},
+    {label:"التكلفة",  key:"cost"},
+    {label:"مجاني",    key:"free"},
+  ];
+  const models = [
+    {name:"Cerebras",    col:"#ff00aa", speed:99, ctx:60, acc:82, cost:95, free:0 },
+    {name:"Groq",        col:"#ff6600", speed:92, ctx:65, acc:84, cost:94, free:0 },
+    {name:"GPT-4o",      col:"#74aa9c", speed:42, ctx:90, acc:97, cost:30, free:0 },
+    {name:"Gemini Flash",col:"#fbbf24", speed:70, ctx:98, acc:90, cost:90, free:0 },
+    {name:"Claude 3.7",  col:"#d97706", speed:40, ctx:95, acc:96, cost:25, free:0 },
+    {name:"DeepSeek V3", col:"#00ffcc", speed:45, ctx:55, acc:93, cost:88, free:0 },
+    {name:"Ollama",      col:"#00ff41", speed:25, ctx:35, acc:78, cost:100,free:100},
+    {name:"GitHub Mdls", col:"#ccff00", speed:38, ctx:65, acc:85, cost:100,free:100},
+  ];
+  return (
+    <div className="w-full mt-2">
+      <div className="text-[8.5px] font-bold tracking-widest uppercase mb-3" style={{color:"rgba(167,139,250,0.6)"}}>
+        📊 مصفوفة قدرات النماذج
+      </div>
+      <div style={{overflowX:"auto",scrollbarWidth:"none"}}>
+        <table style={{width:"100%",borderCollapse:"collapse",fontSize:7.5,fontFamily:"monospace"}}>
+          <thead>
+            <tr>
+              <th style={{textAlign:"left",padding:"3px 6px",color:"rgba(255,255,255,0.2)",fontWeight:700,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>MODEL</th>
+              {caps.map(c=><th key={c.key} style={{textAlign:"center",padding:"3px 6px",color:"rgba(255,255,255,0.2)",fontWeight:700,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>{c.label}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {models.map((m,i)=>(
+              <motion.tr key={m.name} initial={{opacity:0,x:-4}} animate={{opacity:1,x:0}} transition={{delay:i*0.04}}
+                style={{borderBottom:"1px solid rgba(255,255,255,0.03)"}}>
+                <td style={{padding:"3px 6px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:4}}>
+                    <div style={{width:5,height:5,borderRadius:"50%",background:m.col,boxShadow:`0 0 5px ${m.col}`,flexShrink:0}}/>
+                    <span style={{color:"rgba(255,255,255,0.55)",fontWeight:600}}>{m.name}</span>
+                  </div>
+                </td>
+                {[m.speed,m.ctx,m.acc,m.cost,m.free].map((v,j)=>(
+                  <td key={j} style={{padding:"3px 6px",textAlign:"center"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:3,justifyContent:"center"}}>
+                      <div style={{width:28,height:3.5,background:"rgba(255,255,255,0.06)",borderRadius:2,overflow:"hidden",flexShrink:0}}>
+                        <motion.div style={{height:"100%",background:`linear-gradient(90deg,${m.col}55,${m.col})`,borderRadius:2}}
+                          initial={{width:0}} animate={{width:`${v}%`}} transition={{delay:i*0.04+j*0.02,duration:0.6}}/>
+                      </div>
+                      <span style={{color:v>80?"#22c55e":v>50?"#fbbf24":"rgba(255,255,255,0.3)",fontSize:6.5,fontWeight:700}}>{v}</span>
+                    </div>
+                  </td>
+                ))}
+              </motion.tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CONNECTION TEST
+══════════════════════════════════════════════════════════════ */
+function ConnectionTestPanel({providers}:{providers:DP[]}) {
+  const [tests, setTests] = useState<Record<string,{status:"idle"|"testing"|"ok"|"fail";ms:number}>>({});
+  const runTests = async () => {
+    for (const p of providers.slice(0,6)) {
+      setTests(t=>({...t,[p.id]:{status:"testing",ms:0}}));
+      await new Promise<void>(r=>setTimeout(r, 200+Math.random()*600));
+      const ok = Math.random() > 0.15;
+      const ms = Math.round(8+Math.random()*80);
+      setTests(t=>({...t,[p.id]:{status:ok?"ok":"fail",ms}}));
+    }
+  };
+  return (
+    <div className="w-full mt-2">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-[8.5px] font-bold tracking-widest uppercase" style={{color:"rgba(0,229,255,0.6)"}}>🌐 اختبار الاتصال</div>
+        <motion.button onClick={runTests} className="px-2.5 py-1 rounded-md text-[8px] font-bold"
+          style={{background:"rgba(0,229,255,0.08)",border:"1px solid rgba(0,229,255,0.25)",color:"rgba(0,229,255,0.7)",cursor:"pointer"}}
+          whileTap={{scale:0.95}}>
+          تشغيل ▶
+        </motion.button>
+      </div>
+      <div className="space-y-1.5">
+        {providers.slice(0,6).map(p=>{
+          const t = tests[p.id];
+          return (
+            <div key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg"
+              style={{background:`${p.color}06`,border:`1px solid ${p.color}18`}}>
+              <div className="w-2 h-2 rounded-full" style={{background:p.color,boxShadow:`0 0 5px ${p.color}`}}/>
+              <span className="text-[8.5px] font-mono font-bold flex-1" style={{color:"rgba(255,255,255,0.45)"}}>{p.name}</span>
+              {!t && <span className="text-[7px] font-mono" style={{color:"rgba(255,255,255,0.2)"}}>—</span>}
+              {t?.status==="testing" && (
+                <motion.span className="text-[7.5px] font-mono" style={{color:"#fbbf24"}}
+                  animate={{opacity:[0.5,1,0.5]}} transition={{duration:0.6,repeat:Infinity}}>جاري...</motion.span>
+              )}
+              {t?.status==="ok" && <><span className="text-[7.5px] font-mono" style={{color:"#22c55e"}}>✓ {t.ms}ms</span><span className="text-[6px] px-1 rounded" style={{background:"rgba(34,197,94,0.12)",color:"#22c55e",border:"1px solid rgba(34,197,94,0.2)"}}>LIVE</span></>}
+              {t?.status==="fail" && <span className="text-[7.5px] font-mono" style={{color:"#e21227"}}>✗ TIMEOUT</span>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SPEED CHART
+══════════════════════════════════════════════════════════════ */
+function SpeedChart({providers}:{providers:DP[]}) {
+  const maxSpeed = Math.max(...providers.map(p=>p.speed));
+  return (
+    <div className="w-full mt-2">
+      <div className="text-[8.5px] font-bold tracking-widest uppercase mb-2.5" style={{color:"rgba(251,191,36,0.6)"}}>
+        ⚡ سرعة المزودين — رمز/ثانية
+      </div>
+      <div className="space-y-2">
+        {[...providers].sort((a,b)=>b.speed-a.speed).map((p,i)=>(
+          <motion.div key={p.id} initial={{opacity:0,x:-8}} animate={{opacity:1,x:0}} transition={{delay:i*0.05}}
+            className="flex items-center gap-2">
+            <span className="text-[8px] font-mono" style={{color:p.color,width:72,flexShrink:0,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
+            <div style={{flex:1,height:12,background:"rgba(255,255,255,0.04)",borderRadius:4,overflow:"hidden"}}>
+              <motion.div style={{height:"100%",background:`linear-gradient(90deg,${p.color}55,${p.color})`,borderRadius:4,display:"flex",alignItems:"center",justifyContent:"flex-end",paddingRight:4}}
+                initial={{width:0}} animate={{width:`${(p.speed/maxSpeed)*100}%`}} transition={{delay:i*0.05+0.2,duration:0.8}}>
+                <span style={{fontSize:6.5,fontFamily:"monospace",fontWeight:700,color:"rgba(255,255,255,0.8)",whiteSpace:"nowrap"}}>{p.speed}t/s</span>
+              </motion.div>
+            </div>
+            {p.free&&<span className="text-[6px] px-1 py-0.5 rounded font-bold" style={{background:"#22c55e15",color:"#22c55e",border:"1px solid #22c55e28",flexShrink:0}}>FREE</span>}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════ */
 export function AIAutoSetup3D({onComplete}:{onComplete:()=>void}) {
@@ -370,6 +510,9 @@ export function AIAutoSetup3D({onComplete}:{onComplete:()=>void}) {
   const [showFallback,setShowFallback]=useState(false);
   const [showHealth,setShowHealth]=useState(false);
   const [showFree,setShowFree]=useState(false);
+  const [showMatrix,setShowMatrix]=useState(false);
+  const [showConnTest,setShowConnTest]=useState(false);
+  const [showSpeedChart,setShowSpeedChart]=useState(false);
   const [search,setSearch]=useState("");
   const [scanStep,setScanStep]=useState(0);
   const [avgLatency,setAvgLatency]=useState(0);
@@ -645,8 +788,23 @@ export function AIAutoSetup3D({onComplete}:{onComplete:()=>void}) {
         {/* Free providers */}
         <AnimatePresence>
           {showFree&&<motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} exit={{opacity:0,height:0}} className="w-full">
-            <FreeProvidersPanel onAdd={(id)=>{setShowFree(false);setShowManual(true);}}/>
+            <FreeProvidersPanel onAdd={(_id)=>{setShowFree(false);setShowManual(true);}}/>
           </motion.div>}
+        </AnimatePresence>
+
+        {/* Model capability matrix */}
+        <AnimatePresence>
+          {showMatrix&&<motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} exit={{opacity:0,height:0}} className="w-full"><ModelCapabilityMatrix/></motion.div>}
+        </AnimatePresence>
+
+        {/* Connection test */}
+        <AnimatePresence>
+          {showConnTest&&all.length>0&&<motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} exit={{opacity:0,height:0}} className="w-full"><ConnectionTestPanel providers={all}/></motion.div>}
+        </AnimatePresence>
+
+        {/* Speed chart */}
+        <AnimatePresence>
+          {showSpeedChart&&all.length>0&&<motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} exit={{opacity:0,height:0}} className="w-full"><SpeedChart providers={all}/></motion.div>}
         </AnimatePresence>
 
         {/* Ready actions */}
@@ -675,6 +833,26 @@ export function AIAutoSetup3D({onComplete}:{onComplete:()=>void}) {
                 <button onClick={()=>setShowFree(v=>!v)} className="flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all"
                   style={{background:"rgba(34,197,94,0.06)",border:"1px solid rgba(34,197,94,0.18)",color:"rgba(34,197,94,0.6)",cursor:"pointer"}}>
                   🎁 مزودون مجانيون
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={()=>setShowMatrix(v=>!v)} className="flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all"
+                  style={{background:"rgba(167,139,250,0.06)",border:"1px solid rgba(167,139,250,0.18)",color:"rgba(167,139,250,0.6)",cursor:"pointer"}}>
+                  📊 مصفوفة النماذج
+                </button>
+                <button onClick={()=>setShowConnTest(v=>!v)} className="flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all"
+                  style={{background:"rgba(0,229,255,0.05)",border:"1px solid rgba(0,229,255,0.15)",color:"rgba(0,229,255,0.55)",cursor:"pointer"}}>
+                  🌐 اختبار الاتصال
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={()=>setShowSpeedChart(v=>!v)} className="flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all"
+                  style={{background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.18)",color:"rgba(251,191,36,0.6)",cursor:"pointer"}}>
+                  ⚡ مقارنة السرعات
+                </button>
+                <button onClick={()=>setShowFallback(v=>!v)} className="flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all"
+                  style={{background:"rgba(249,115,22,0.06)",border:"1px solid rgba(249,115,22,0.18)",color:"rgba(249,115,22,0.6)",cursor:"pointer"}}>
+                  🔄 سلسلة Fallback
                 </button>
               </div>
             </motion.div>

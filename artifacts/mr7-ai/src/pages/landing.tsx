@@ -260,9 +260,27 @@ const PARTNERS = [
 ];
 
 const WHATS_NEW = [
-  {ver:"v6.0", date:"يونيو 2025",  items:["Swarm AI 32x","ICS/SCADA Suite","SIGINT Module","AI Adversarial Suite","Cloud CSPM v2","GodMode 22x"]},
-  {ver:"v5.0", date:"مارس 2025",  items:["SIEM/SOAR/UEBA","ZeroDay Scanner v2","WiFi/BLE/RFID","Council 256 Ultra","Arsenal v3"]},
-  {ver:"v4.0", date:"يناير 2025",  items:["Council Mode","GodMode 18x","Swarm AI 16x","CVE Watcher","Arsenal v2"]},
+  {ver:"v6.0", date:"يونيو 2025",    col:"#e21227", items:["Swarm AI 32x","ICS/SCADA Suite","SIGINT Module","AI Adversarial Suite","Cloud CSPM v2","GodMode 22x","ZeroDay Scanner v2","PrivEsc AI v3"]},
+  {ver:"v5.0", date:"مارس 2025",     col:"#00e5ff", items:["SIEM/SOAR/UEBA","ZeroDay Scanner v2","WiFi/BLE/RFID","Council 256 Ultra","Arsenal v3","Binary Analysis"]},
+  {ver:"v4.0", date:"يناير 2025",    col:"#a78bfa", items:["Council Mode","GodMode 18x","Swarm AI 16x","CVE Watcher","Arsenal v2","Forensics AI"]},
+  {ver:"v3.0", date:"أكتوبر 2024",   col:"#fbbf24", items:["OSINT Ultra","Dark Web Monitor","ShellGen v3","RAGFlow v2","HoneyPot v2"]},
+  {ver:"v2.0", date:"يوليو 2024",    col:"#22c55e", items:["Red Team AI","Arsenal v1","JARVIS Pro","NetScan Pro","PhishKit"]},
+];
+
+const ATTACK_SCENARIOS = [
+  { title:"APT Supply Chain", steps:["OSINT: مورّد مستهدف","حقن كود في حزمة NPM","انتشار داخلي (lateral move)","اختراق 3 شركات ضحية","تقرير PoC كامل"], col:"#e21227", icon:"🎯", time:"~12 دقيقة", agents:32 },
+  { title:"ICS Power Grid",   steps:["مسح Modbus/DNP3","كشف PLC عرضة","SCADA exploit","إيقاف المحطة محاكاة","تقييم الأثر OT/IT"],   col:"#fbbf24", icon:"⚡", time:"~8 دقائق",  agents:8  },
+  { title:"Cloud Takeover",   steps:["AWS CSPM فحص","S3 public buckets","IAM privilege esc","Root access محاكاة","تقرير CSPM كامل"],  col:"#00e5ff", icon:"☁",  time:"~6 دقائق",  agents:16 },
+  { title:"WiFi Corporate",   steps:["WPA3 PMKID capture","Rogue AP deploy","MITM SSL strip","credential harvest","VPN bypass"],       col:"#a78bfa", icon:"📡", time:"~5 دقائق",  agents:4  },
+];
+
+const CTF_LABS = [
+  { name:"Web Exploitation Lab",  difficulty:"MEDIUM", points:500,  topics:["SQLi","XSS","SSRF","CSRF","JWT bypass"],   col:"#00e5ff", solved:1240 },
+  { name:"Binary Pwn Arena",      difficulty:"HARD",   points:1000, topics:["BOF","ROP chain","heap spray","ret2libc"],  col:"#e21227", solved:780  },
+  { name:"Crypto Challenges",     difficulty:"MEDIUM", points:750,  topics:["RSA","AES-CBC","Padding Oracle","ECDSA"],   col:"#a78bfa", solved:960  },
+  { name:"OSINT Missions",        difficulty:"EASY",   points:300,  topics:["WHOIS","Shodan","LinkedIn","GitHub"],        col:"#22c55e", solved:2100 },
+  { name:"Malware Reverse Eng",   difficulty:"EXPERT", points:2000, topics:["x86","IDA Pro","YARA","Sandbox"],           col:"#fbbf24", solved:320  },
+  { name:"Cloud Security CTF",    difficulty:"HARD",   points:1200, topics:["AWS IAM","S3","Lambda","K8s escape"],       col:"#f97316", solved:560  },
 ];
 
 /* ══════════════════════════════════════════════════════════════
@@ -619,6 +637,55 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── ATTACK SCENARIOS ── */}
+      <section style={{padding:"80px 24px",position:"relative",zIndex:10,borderTop:"1px solid rgba(255,255,255,0.04)",background:"rgba(226,18,39,0.012)"}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:48}}>
+            <SectionLabel text="ATTACK SCENARIOS"/>
+            <h2 style={{fontSize:"clamp(24px,3.5vw,44px)",fontWeight:800,letterSpacing:"-1.5px",marginBottom:8}}>سيناريوهات هجوم حقيقية</h2>
+            <p style={{color:"rgba(255,255,255,0.3)",fontSize:13}}>KaliGPT يُنفّذ سيناريوهات Red Team متكاملة من الاستطلاع إلى التقرير</p>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16}}>
+            {ATTACK_SCENARIOS.map((sc,i)=>(
+              <HoloCard key={i}>
+                <div style={{padding:"24px 20px",borderRadius:18,background:"rgba(255,255,255,0.02)",border:`1px solid ${sc.col}18`,position:"relative",overflow:"hidden"}}>
+                  <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${sc.col}66,transparent)`}}/>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                    <span style={{fontSize:28}}>{sc.icon}</span>
+                    <div>
+                      <div style={{fontSize:12.5,fontWeight:800,color:"#fff"}}>{sc.title}</div>
+                      <div style={{display:"flex",gap:6,marginTop:2}}>
+                        <span style={{fontSize:8,fontFamily:"monospace",padding:"1px 5px",borderRadius:3,background:`${sc.col}15`,color:sc.col,border:`1px solid ${sc.col}30`}}>
+                          ⚡ {sc.time}
+                        </span>
+                        <span style={{fontSize:8,fontFamily:"monospace",padding:"1px 5px",borderRadius:3,background:"rgba(167,139,250,0.1)",color:"#a78bfa",border:"1px solid rgba(167,139,250,0.2)"}}>
+                          🤖 {sc.agents} agents
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                    {sc.steps.map((step,j)=>(
+                      <div key={j} style={{display:"flex",alignItems:"flex-start",gap:7}}>
+                        <div style={{width:16,height:16,borderRadius:5,background:`${sc.col}15`,border:`1px solid ${sc.col}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:7.5,fontFamily:"monospace",fontWeight:700,color:sc.col,flexShrink:0}}>
+                          {j+1}
+                        </div>
+                        <span style={{fontSize:10.5,color:"rgba(255,255,255,0.45)",lineHeight:1.5}}>{step}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={()=>navigate("/app")} style={{width:"100%",marginTop:14,padding:"8px",borderRadius:9,background:`${sc.col}12`,border:`1px solid ${sc.col}28`,color:sc.col,fontSize:10.5,fontWeight:700,cursor:"pointer",transition:"all .2s"}}
+                    onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background=`${sc.col}22`;}}
+                    onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background=`${sc.col}12`;}}>
+                    جرّب السيناريو ←
+                  </button>
+                </div>
+              </HoloCard>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── THREAT MAP ── */}
       <section style={{padding:"80px 24px",position:"relative",zIndex:10,borderTop:"1px solid rgba(255,255,255,0.04)",background:"rgba(226,18,39,0.015)"}}>
         <div style={{maxWidth:820,margin:"0 auto"}}>
@@ -750,6 +817,100 @@ export default function LandingPage() {
                 ))}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CHANGELOG ── */}
+      <section id="changelog" style={{padding:"100px 24px",position:"relative",zIndex:10,borderTop:"1px solid rgba(255,255,255,0.04)",background:"rgba(0,0,0,0.3)"}}>
+        <div style={{maxWidth:900,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:52}}>
+            <SectionLabel text="CHANGELOG"/>
+            <h2 style={{fontSize:"clamp(24px,3.5vw,44px)",fontWeight:800,letterSpacing:"-1.5px",marginBottom:8}}>تطور KaliGPT عبر الزمن</h2>
+            <p style={{color:"rgba(255,255,255,0.3)",fontSize:13}}>من الإصدار 2.0 إلى 6.0 — رحلة الأسلحة الرقمية</p>
+          </div>
+          <div style={{position:"relative"}}>
+            <div style={{position:"absolute",left:20,top:0,bottom:0,width:1,background:"linear-gradient(180deg,transparent,rgba(226,18,39,0.35) 15%,rgba(226,18,39,0.35) 85%,transparent)"}}/>
+            <div style={{display:"flex",flexDirection:"column",gap:0}}>
+              {WHATS_NEW.map((rel,i)=>(
+                <div key={rel.ver} style={{paddingLeft:48,paddingBottom:36,position:"relative"}}>
+                  <div style={{position:"absolute",left:12,top:4,width:17,height:17,borderRadius:"50%",background:`linear-gradient(135deg,${rel.col},${rel.col}88)`,border:`2px solid ${rel.col}55`,boxShadow:`0 0 12px ${rel.col}55`,zIndex:2}}/>
+                  <div style={{padding:"20px 24px",borderRadius:14,background:"rgba(255,255,255,0.02)",border:`1px solid ${rel.col}18`,position:"relative",overflow:"hidden"}}>
+                    <div style={{position:"absolute",top:0,left:0,bottom:0,width:2,background:`linear-gradient(180deg,${rel.col}88,transparent)`}}/>
+                    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+                      <span style={{fontSize:18,fontFamily:"monospace",fontWeight:900,color:rel.col}}>{rel.ver}</span>
+                      <span style={{fontSize:9,fontFamily:"monospace",padding:"2px 8px",borderRadius:20,background:`${rel.col}15`,color:rel.col,border:`1px solid ${rel.col}30`}}>{rel.date}</span>
+                      {i===0&&<span style={{fontSize:8,fontFamily:"monospace",padding:"2px 8px",borderRadius:20,background:"rgba(226,18,39,0.15)",color:"#e21227",border:"1px solid rgba(226,18,39,0.35)",fontWeight:700}}>● LATEST</span>}
+                    </div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                      {rel.items.map(item=>(
+                        <span key={item} style={{fontSize:10,padding:"3px 9px",borderRadius:6,background:`${rel.col}0c`,color:"rgba(255,255,255,0.55)",border:`1px solid ${rel.col}18`,fontFamily:"monospace"}}>
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTF LABS ── */}
+      <section style={{padding:"80px 24px",position:"relative",zIndex:10,borderTop:"1px solid rgba(255,255,255,0.04)",background:"rgba(34,197,94,0.008)"}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:44}}>
+            <SectionLabel text="CTF TRAINING LABS"/>
+            <h2 style={{fontSize:"clamp(22px,3vw,40px)",fontWeight:800,letterSpacing:"-1.5px",marginBottom:8}}>مختبرات التدريب CTF</h2>
+            <p style={{color:"rgba(255,255,255,0.3)",fontSize:13}}>تحديات حقيقية — ابدأ من المستوى المناسب لك</p>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(270px,1fr))",gap:14}}>
+            {CTF_LABS.map((lab,i)=>(
+              <HoloCard key={i}>
+                <div style={{padding:"20px 18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:`1px solid ${lab.col}18`,position:"relative",overflow:"hidden"}}>
+                  <div style={{position:"absolute",top:0,left:0,right:0,height:1.5,background:`linear-gradient(90deg,transparent,${lab.col}55,transparent)`}}/>
+                  <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:10}}>
+                    <h3 style={{fontSize:12.5,fontWeight:700,color:"#fff",flex:1,paddingRight:8}}>{lab.name}</h3>
+                    <div style={{textAlign:"right",flexShrink:0}}>
+                      <div style={{fontSize:14,fontFamily:"monospace",fontWeight:900,color:lab.col}}>{lab.points.toLocaleString()}</div>
+                      <div style={{fontSize:7.5,fontFamily:"monospace",color:"rgba(255,255,255,0.2)"}}>POINTS</div>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:6,marginBottom:10}}>
+                    <span style={{fontSize:8,fontFamily:"monospace",padding:"2px 7px",borderRadius:4,
+                      background:lab.difficulty==="EASY"?"rgba(34,197,94,0.12)":lab.difficulty==="MEDIUM"?"rgba(251,191,36,0.12)":lab.difficulty==="HARD"?"rgba(249,115,22,0.12)":"rgba(226,18,39,0.12)",
+                      color:lab.difficulty==="EASY"?"#22c55e":lab.difficulty==="MEDIUM"?"#fbbf24":lab.difficulty==="HARD"?"#f97316":"#e21227",
+                      border:`1px solid ${lab.difficulty==="EASY"?"rgba(34,197,94,0.25)":lab.difficulty==="MEDIUM"?"rgba(251,191,36,0.25)":lab.difficulty==="HARD"?"rgba(249,115,22,0.25)":"rgba(226,18,39,0.25)"}`,fontWeight:700}}>
+                      {lab.difficulty}
+                    </span>
+                    <span style={{fontSize:8,fontFamily:"monospace",padding:"2px 7px",borderRadius:4,background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.3)",border:"1px solid rgba(255,255,255,0.07)"}}>
+                      {lab.solved.toLocaleString()} حلّ
+                    </span>
+                  </div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:12}}>
+                    {lab.topics.map(t=>(
+                      <span key={t} style={{fontSize:8.5,padding:"2px 7px",borderRadius:5,background:`${lab.col}0c`,color:`${lab.col}cc`,border:`1px solid ${lab.col}20`,fontFamily:"monospace"}}>{t}</span>
+                    ))}
+                  </div>
+                  <button onClick={()=>navigate("/app")} style={{width:"100%",padding:"7px",borderRadius:8,background:`${lab.col}12`,border:`1px solid ${lab.col}28`,color:lab.col,fontSize:10.5,fontWeight:700,cursor:"pointer",transition:"all .2s"}}
+                    onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background=`${lab.col}22`;}}
+                    onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background=`${lab.col}12`;}}>
+                    ابدأ التحدي →
+                  </button>
+                </div>
+              </HoloCard>
+            ))}
+          </div>
+          <div style={{textAlign:"center",marginTop:32}}>
+            <div style={{display:"inline-flex",gap:20,padding:"14px 28px",borderRadius:12,background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.15)"}}>
+              {[{label:"تحدي إجمالي",val:"120+",col:"#22c55e"},{label:"إجمالي النقاط",val:"50K",col:"#fbbf24"},{label:"متسابق نشط",val:"8,400",col:"#00e5ff"}].map(s=>(
+                <div key={s.label} style={{textAlign:"center"}}>
+                  <div style={{fontSize:18,fontFamily:"monospace",fontWeight:900,color:s.col}}>{s.val}</div>
+                  <div style={{fontSize:8.5,fontFamily:"monospace",color:"rgba(255,255,255,0.28)"}}>{s.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
