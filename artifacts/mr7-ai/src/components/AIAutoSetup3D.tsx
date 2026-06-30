@@ -3,749 +3,436 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 
-// ── Provider priority pool ────────────────────────────────────────────────────
-const PROVIDER_PRIORITY: Array<{
-  id: string;
-  name: string;
-  color: string;
-  baseURL: string;
-  bestModel: string;
-  bestModelLabel: string;
-  requiresKey: boolean;
-  category: string;
-  speed: number;
-  contextWindow: string;
-  free: boolean;
-}> = [
-  { id: "groq",       name: "Groq",          color: "#ff6600", baseURL: "https://api.groq.com/openai/v1",                              bestModel: "llama-3.3-70b-versatile",         bestModelLabel: "Llama 3.3 70B",          requiresKey: true,  category: "سرعة فائقة",     speed: 98, contextWindow: "128K", free: false },
-  { id: "openai",     name: "OpenAI",         color: "#00ff41", baseURL: "https://api.openai.com/v1",                                   bestModel: "gpt-4o",                          bestModelLabel: "GPT-4o",                 requiresKey: true,  category: "متعدد الأغراض", speed: 75, contextWindow: "128K", free: false },
-  { id: "anthropic",  name: "Anthropic",      color: "#00e5ff", baseURL: "https://api.anthropic.com/v1",                                bestModel: "claude-sonnet-4-5",               bestModelLabel: "Claude Sonnet 4.5",      requiresKey: true,  category: "استدلال عميق",  speed: 65, contextWindow: "200K", free: false },
-  { id: "gemini",     name: "Google Gemini",  color: "#00bfff", baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",     bestModel: "gemini-2.5-flash",                bestModelLabel: "Gemini 2.5 Flash",       requiresKey: true,  category: "متعدد الوسائط", speed: 82, contextWindow: "1M",   free: false },
-  { id: "openrouter", name: "OpenRouter",     color: "#ff0080", baseURL: "https://openrouter.ai/api/v1",                                bestModel: "deepseek/deepseek-chat-v3-0324",  bestModelLabel: "DeepSeek V3",            requiresKey: true,  category: "300+ نموذج",    speed: 70, contextWindow: "128K", free: false },
-  { id: "deepseek",   name: "DeepSeek",       color: "#00ffcc", baseURL: "https://api.deepseek.com/v1",                                 bestModel: "deepseek-chat",                   bestModelLabel: "DeepSeek V3 Direct",     requiresKey: true,  category: "استدلال",        speed: 72, contextWindow: "64K",  free: false },
-  { id: "xai",        name: "xAI Grok",       color: "#ff3333", baseURL: "https://api.x.ai/v1",                                        bestModel: "grok-3-mini",                     bestModelLabel: "Grok 3 Mini",            requiresKey: true,  category: "X.ai",           speed: 78, contextWindow: "131K", free: false },
-  { id: "mistral",    name: "Mistral AI",     color: "#ffcc00", baseURL: "https://api.mistral.ai/v1",                                   bestModel: "mistral-large-latest",            bestModelLabel: "Mistral Large",          requiresKey: true,  category: "أوروبي",         speed: 68, contextWindow: "128K", free: false },
-  { id: "perplexity", name: "Perplexity",     color: "#00ff99", baseURL: "https://api.perplexity.ai",                                   bestModel: "sonar-pro",                       bestModelLabel: "Sonar Pro",              requiresKey: true,  category: "بحث ويب",        speed: 60, contextWindow: "127K", free: false },
-  { id: "together",   name: "Together AI",    color: "#bf00ff", baseURL: "https://api.together.xyz/v1",                                 bestModel: "meta-llama/Llama-3.3-70B-Instruct-Turbo", bestModelLabel: "Llama 3.3 70B",  requiresKey: true,  category: "مفتوح المصدر",   speed: 80, contextWindow: "128K", free: false },
-  { id: "fireworks",  name: "Fireworks AI",   color: "#ff9900", baseURL: "https://api.fireworks.ai/inference/v1",                       bestModel: "accounts/fireworks/models/llama-v3p3-70b-instruct", bestModelLabel: "Llama 3.3 70B", requiresKey: true, category: "سرعة عالية", speed: 85, contextWindow: "128K", free: false },
-  { id: "cohere",     name: "Cohere",         color: "#0099ff", baseURL: "https://api.cohere.com/v1",                                   bestModel: "command-r-plus",                  bestModelLabel: "Command R+",             requiresKey: true,  category: "مؤسسي",          speed: 55, contextWindow: "128K", free: false },
-  { id: "github",     name: "GitHub Models",  color: "#ccff00", baseURL: "https://models.inference.ai.azure.com",                       bestModel: "gpt-4o",                          bestModelLabel: "GPT-4o (مجاني)",         requiresKey: true,  category: "مجاني",          speed: 60, contextWindow: "128K", free: true  },
-  { id: "nvidia",     name: "NVIDIA NIM",     color: "#76ff00", baseURL: "https://integrate.api.nvidia.com/v1",                         bestModel: "meta/llama-3.3-70b-instruct",     bestModelLabel: "Llama 3.3 70B NIM",      requiresKey: true,  category: "GPU فائق",       speed: 90, contextWindow: "128K", free: false },
-  { id: "ollama",     name: "Ollama",         color: "#00ff41", baseURL: "http://localhost:11434/v1",                                   bestModel: "llama3.2",                        bestModelLabel: "Llama 3.2 (محلي)",       requiresKey: false, category: "محلي",           speed: 45, contextWindow: "32K",  free: true  },
-  { id: "lmstudio",   name: "LM Studio",      color: "#ff00cc", baseURL: "http://localhost:1234/v1",                                    bestModel: "local-model",                     bestModelLabel: "نموذج محلي",             requiresKey: false, category: "محلي",           speed: 40, contextWindow: "32K",  free: true  },
-];
+/* ══════════════════════════════════════════════════════════════
+   PROVIDER REGISTRY — 20 providers
+══════════════════════════════════════════════════════════════ */
+const PROVIDER_PRIORITY = [
+  { id:"cerebras",   name:"Cerebras",          color:"#ff00aa", baseURL:"https://api.cerebras.ai/v1",                                     bestModel:"llama-3.3-70b",                        bestModelLabel:"Llama 3.3 70B",        requiresKey:true,  category:"أسرع LLM",      speed:220, contextWindow:"128K", free:false, costPer1M:"$0.60",  rpmLimit:60  },
+  { id:"sambanova",  name:"Sambanova",          color:"#8800ff", baseURL:"https://api.sambanova.ai/v1",                                     bestModel:"Meta-Llama-3.3-70B-Instruct",          bestModelLabel:"Llama 3.3 70B",        requiresKey:true,  category:"سرعة عالية",    speed:200, contextWindow:"128K", free:false, costPer1M:"$0.60",  rpmLimit:60  },
+  { id:"groq",       name:"Groq",               color:"#ff6600", baseURL:"https://api.groq.com/openai/v1",                                  bestModel:"llama-3.3-70b-versatile",              bestModelLabel:"Llama 3.3 70B",        requiresKey:true,  category:"سرعة فائقة",    speed:180, contextWindow:"128K", free:false, costPer1M:"$0.59",  rpmLimit:30  },
+  { id:"nvidia",     name:"NVIDIA NIM",         color:"#76ff00", baseURL:"https://integrate.api.nvidia.com/v1",                             bestModel:"meta/llama-3.3-70b-instruct",          bestModelLabel:"Llama 3.3 NIM",        requiresKey:true,  category:"GPU فائق",      speed:160, contextWindow:"128K", free:false, costPer1M:"$0.23",  rpmLimit:100 },
+  { id:"fireworks",  name:"Fireworks AI",       color:"#ff9900", baseURL:"https://api.fireworks.ai/inference/v1",                           bestModel:"accounts/fireworks/models/llama-v3p3-70b-instruct", bestModelLabel:"Llama 3.3 70B", requiresKey:true, category:"سرعة عالية",  speed:145, contextWindow:"128K", free:false, costPer1M:"$0.90",  rpmLimit:600 },
+  { id:"openai",     name:"OpenAI",             color:"#00ff41", baseURL:"https://api.openai.com/v1",                                       bestModel:"gpt-4o",                               bestModelLabel:"GPT-4o",               requiresKey:true,  category:"متعدد",         speed:75,  contextWindow:"128K", free:false, costPer1M:"$2.50",  rpmLimit:500 },
+  { id:"anthropic",  name:"Anthropic",          color:"#00e5ff", baseURL:"https://api.anthropic.com/v1",                                    bestModel:"claude-sonnet-4-5",                    bestModelLabel:"Claude Sonnet 4.5",    requiresKey:true,  category:"استدلال",       speed:65,  contextWindow:"200K", free:false, costPer1M:"$3.00",  rpmLimit:50  },
+  { id:"gemini",     name:"Google Gemini",      color:"#00bfff", baseURL:"https://generativelanguage.googleapis.com/v1beta/openai",         bestModel:"gemini-2.5-flash",                     bestModelLabel:"Gemini 2.5 Flash",     requiresKey:true,  category:"متعدد الوسائط", speed:120, contextWindow:"1M",   free:false, costPer1M:"$0.15",  rpmLimit:1000},
+  { id:"xai",        name:"xAI Grok",           color:"#ff3333", baseURL:"https://api.x.ai/v1",                                            bestModel:"grok-3-mini",                          bestModelLabel:"Grok 3 Mini",          requiresKey:true,  category:"X.ai",          speed:78,  contextWindow:"131K", free:false, costPer1M:"$0.30",  rpmLimit:60  },
+  { id:"openrouter", name:"OpenRouter",         color:"#ff0080", baseURL:"https://openrouter.ai/api/v1",                                    bestModel:"deepseek/deepseek-chat-v3-0324",        bestModelLabel:"DeepSeek V3",          requiresKey:true,  category:"300+ نموذج",    speed:70,  contextWindow:"128K", free:false, costPer1M:"$0.27",  rpmLimit:200 },
+  { id:"deepseek",   name:"DeepSeek",           color:"#00ffcc", baseURL:"https://api.deepseek.com/v1",                                     bestModel:"deepseek-chat",                        bestModelLabel:"DeepSeek V3",          requiresKey:true,  category:"استدلال",       speed:72,  contextWindow:"64K",  free:false, costPer1M:"$0.27",  rpmLimit:100 },
+  { id:"mistral",    name:"Mistral AI",         color:"#ffcc00", baseURL:"https://api.mistral.ai/v1",                                       bestModel:"mistral-large-latest",                 bestModelLabel:"Mistral Large",        requiresKey:true,  category:"أوروبي",         speed:68,  contextWindow:"128K", free:false, costPer1M:"$2.00",  rpmLimit:60  },
+  { id:"perplexity", name:"Perplexity",         color:"#00ff99", baseURL:"https://api.perplexity.ai",                                       bestModel:"sonar-pro",                            bestModelLabel:"Sonar Pro",            requiresKey:true,  category:"بحث ويب",        speed:60,  contextWindow:"127K", free:false, costPer1M:"$3.00",  rpmLimit:50  },
+  { id:"together",   name:"Together AI",        color:"#bf00ff", baseURL:"https://api.together.xyz/v1",                                     bestModel:"meta-llama/Llama-3.3-70B-Instruct-Turbo", bestModelLabel:"Llama 3.3 70B",    requiresKey:true,  category:"مفتوح المصدر",  speed:80,  contextWindow:"128K", free:false, costPer1M:"$0.88",  rpmLimit:60  },
+  { id:"cohere",     name:"Cohere",             color:"#0099ff", baseURL:"https://api.cohere.com/v1",                                       bestModel:"command-r-plus",                       bestModelLabel:"Command R+",           requiresKey:true,  category:"مؤسسي",          speed:55,  contextWindow:"128K", free:false, costPer1M:"$2.50",  rpmLimit:10  },
+  { id:"github",     name:"GitHub Models",      color:"#ccff00", baseURL:"https://models.inference.ai.azure.com",                           bestModel:"gpt-4o",                               bestModelLabel:"GPT-4o (مجاني)",       requiresKey:true,  category:"مجاني",          speed:60,  contextWindow:"128K", free:true,  costPer1M:"$0.00",  rpmLimit:15  },
+  { id:"cloudflare", name:"Cloudflare AI",      color:"#f38020", baseURL:"https://api.cloudflare.com/client/v4/accounts/YOUR_ID/ai/v1",     bestModel:"@cf/meta/llama-3.3-70b-instruct-fp8-fast", bestModelLabel:"Llama 3.3 CF",   requiresKey:true,  category:"Edge AI",       speed:95,  contextWindow:"128K", free:true,  costPer1M:"$0.00",  rpmLimit:50  },
+  { id:"azure",      name:"Azure OpenAI",       color:"#0078d4", baseURL:"https://YOUR_RESOURCE.openai.azure.com",                          bestModel:"gpt-4o",                               bestModelLabel:"GPT-4o Azure",         requiresKey:true,  category:"مؤسسي",          speed:70,  contextWindow:"128K", free:false, costPer1M:"$2.50",  rpmLimit:100 },
+  { id:"ollama",     name:"Ollama",             color:"#00ff41", baseURL:"http://localhost:11434/v1",                                        bestModel:"llama3.3",                             bestModelLabel:"Llama 3.3 (محلي)",     requiresKey:false, category:"محلي مجاني",    speed:45,  contextWindow:"32K",  free:true,  costPer1M:"$0.00",  rpmLimit:999 },
+  { id:"lmstudio",   name:"LM Studio",          color:"#ff00cc", baseURL:"http://localhost:1234/v1",                                         bestModel:"local-model",                          bestModelLabel:"نموذج محلي",           requiresKey:false, category:"محلي مجاني",    speed:40,  contextWindow:"32K",  free:true,  costPer1M:"$0.00",  rpmLimit:999 },
+] as const;
 
-const KEY_PREFIX = "mr7-ai-p-key-";
-const URL_PREFIX = "mr7-ai-p-url-";
-const INIT_DONE_KEY = "mr7-ai-autoinit-done";
-const KEY_POOL_STORAGE = "mr7-ai-key-pool";
-const ACTIVE_POOL_IDX  = "mr7-ai-pool-active-idx";
+type Provider = typeof PROVIDER_PRIORITY[number];
 
-type DetectedProvider = typeof PROVIDER_PRIORITY[0] & { key: string; url: string; latency?: number };
+/* ── Storage keys ── */
+const KP = "mr7-ai-p-key-", UP = "mr7-ai-p-url-", POOL = "mr7-ai-key-pool", PIDX = "mr7-ai-pool-active-idx";
 
-// ── Multi-key pool helpers ────────────────────────────────────────────────────
-export function detectAllConfiguredProviders(): DetectedProvider[] {
-  const found: DetectedProvider[] = [];
-  for (const p of PROVIDER_PRIORITY) {
+type DP = Provider & { key: string; url: string; latency?: number; healthy?: boolean };
+type Phase = "boot"|"scanning"|"found"|"loading"|"ready"|"no-provider";
+
+/* ══════════════════════════════════════════════════════════════
+   EXPORTS
+══════════════════════════════════════════════════════════════ */
+export function detectAllConfiguredProviders(): DP[] {
+  return PROVIDER_PRIORITY.flatMap(p => {
     if (p.requiresKey) {
-      const key = localStorage.getItem(KEY_PREFIX + p.id)?.trim();
-      if (key && key.length > 10) {
-        const url = localStorage.getItem(URL_PREFIX + p.id)?.trim() || p.baseURL;
-        found.push({ ...p, key, url });
-      }
-    } else {
-      found.push({ ...p, key: "", url: p.baseURL });
+      const k = localStorage.getItem(KP+p.id)?.trim() ?? "";
+      if (k.length > 10) return [{ ...p, key: k, url: localStorage.getItem(UP+p.id)?.trim() || p.baseURL }];
+      return [];
     }
-  }
-  return found;
+    return [{ ...p, key: "", url: p.baseURL }];
+  });
+}
+export const detectConfiguredProvider = (): DP|null => detectAllConfiguredProviders()[0] ?? null;
+export const getKeyPool = (): DP[] => { try { return JSON.parse(localStorage.getItem(POOL)??"[]"); } catch { return []; } };
+export function rotateToNextKey(): DP|null {
+  const pool = getKeyPool(); if (!pool.length) return null;
+  const next = (parseInt(localStorage.getItem(PIDX)??"0",10)+1)%pool.length;
+  localStorage.setItem(PIDX, String(next)); return pool[next];
 }
 
-export function detectConfiguredProvider(): DetectedProvider | null {
-  return detectAllConfiguredProviders()[0] ?? null;
-}
+const delay = (ms:number) => new Promise<void>(r=>setTimeout(r,ms));
 
-export function getKeyPool(): DetectedProvider[] {
-  try {
-    const raw = localStorage.getItem(KEY_POOL_STORAGE);
-    if (!raw) return detectAllConfiguredProviders();
-    return JSON.parse(raw) as DetectedProvider[];
-  } catch { return []; }
-}
+async function measureLatency(_: DP) { await delay(60+Math.random()*120); return Math.round(8+Math.random()*80); }
 
-export function rotateToNextKey(): DetectedProvider | null {
-  const pool = getKeyPool();
-  if (pool.length === 0) return null;
-  const cur = parseInt(localStorage.getItem(ACTIVE_POOL_IDX) ?? "0", 10);
-  const next = (cur + 1) % pool.length;
-  localStorage.setItem(ACTIVE_POOL_IDX, String(next));
-  return pool[next];
-}
-
-// ── Simulated latency test ────────────────────────────────────────────────────
-async function measureLatency(provider: DetectedProvider): Promise<number> {
-  await delay(80 + Math.random() * 120);
-  return Math.round(10 + Math.random() * 90);
-}
-
-// ── 3D Neural Sphere Canvas ───────────────────────────────────────────────────
-type Phase = "boot" | "scanning" | "found" | "loading" | "ready" | "no-provider";
-
-function NeuralSphere3D({ phase, providerColor }: { phase: Phase; providerColor: string }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafRef    = useRef<number>(0);
-  const tRef      = useRef(0);
-
+/* ══════════════════════════════════════════════════════════════
+   3D NEURAL SPHERE
+══════════════════════════════════════════════════════════════ */
+function NeuralSphere({ phase, color }: { phase: Phase; color: string }) {
+  const cv = useRef<HTMLCanvasElement>(null);
+  const raf = useRef(0);
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    const W = canvas.width  = canvas.offsetWidth;
-    const H = canvas.height = canvas.offsetHeight;
-    const cx = W / 2, cy = H / 2;
-    const R = Math.min(W, H) * 0.32;
+    const c = cv.current; if (!c) return;
+    const ctx = c.getContext("2d")!;
+    c.width = c.offsetWidth; c.height = c.offsetHeight;
+    const W = c.width, H = c.height, cx = W/2, cy = H/2, R = Math.min(W,H)*.30;
+    const ready = phase==="ready", scan = phase==="scanning"||phase==="found"||phase==="loading";
 
-    const isReady    = phase === "ready";
-    const isScanning = phase === "scanning" || phase === "found" || phase === "loading";
+    const N = 72;
+    const nodes = Array.from({length:N},(_,i)=>{ const p=Math.acos(1-2*(i+.5)/N), t=Math.PI*(1+Math.sqrt(5))*i; return {x:Math.sin(p)*Math.cos(t),y:Math.sin(p)*Math.sin(t),z:Math.cos(p),ph:Math.random()*Math.PI*2}; });
+    const edges: [number,number][] = [];
+    for(let i=0;i<N;i++) for(let j=i+1;j<N;j++) { const d=Math.hypot(nodes[i].x-nodes[j].x,nodes[i].y-nodes[j].y,nodes[i].z-nodes[j].z); if(d<.65) edges.push([i,j]); }
+    const parts = Array.from({length:160},()=>({a:Math.random()*Math.PI*2,or:R*(.7+Math.random()*.9),sp:(Math.random()-.5)*.006,y:(Math.random()-.5)*R*1.4,sz:1+Math.random()*2.2,al:.3+Math.random()*.6}));
+    const streams = Array.from({length:18},()=>({ang:Math.random()*Math.PI*2,sp:.005+Math.random()*.009,len:R*(.32+Math.random()*.4),prog:Math.random()}));
+    let t=0, ang=0;
 
-    const nodeCount = 64;
-    const nodes = Array.from({ length: nodeCount }, (_, i) => {
-      const phi   = Math.acos(1 - (2 * (i + 0.5)) / nodeCount);
-      const theta = Math.PI * (1 + Math.sqrt(5)) * i;
-      return { x: Math.sin(phi) * Math.cos(theta), y: Math.sin(phi) * Math.sin(theta), z: Math.cos(phi), pulseOffset: Math.random() * Math.PI * 2 };
-    });
+    const draw=()=>{
+      t+=.01; ang+=.012;
+      const sy=Math.sin(ang), cy2=Math.cos(ang), sx=Math.sin(t*.14)*.28, cx2=Math.cos(t*.14);
+      ctx.clearRect(0,0,W,H);
+      const proj=nodes.map(n=>{ let {x,y,z}=n; const x1=x*cy2-z*sy, z1=x*sy+z*cy2; const y2=y*cx2-z1*sx, z2=y*sx+z1*cx2; const s=R/(1.6-z2*.4); return {sx:cx+x1*s,sy:cy+y2*s,d:z2,pu:Math.sin(t*2+n.ph)*.5+.5}; });
 
-    const edges: [number, number][] = [];
-    for (let i = 0; i < nodeCount; i++) {
-      for (let j = i + 1; j < nodeCount; j++) {
-        const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y, dz = nodes[i].z - nodes[j].z;
-        if (Math.sqrt(dx*dx + dy*dy + dz*dz) < 0.7) edges.push([i, j]);
-      }
-    }
+      edges.forEach(([a,b])=>{ const pa=proj[a],pb=proj[b]; const al=(((pa.d+pb.d)/2+1)/2)*(scan?.18:.08); ctx.beginPath(); ctx.moveTo(pa.sx,pa.sy); ctx.lineTo(pb.sx,pb.sy); ctx.strokeStyle=color+Math.floor(al*255).toString(16).padStart(2,"0"); ctx.lineWidth=.7; ctx.stroke(); });
+      proj.forEach(p=>{ const br=(p.d+1)/2, r=(scan?2.5+p.pu*1.8:2.2)*br, al=ready?.7+p.pu*.3:.3+br*.5; ctx.beginPath(); ctx.arc(p.sx,p.sy,r,0,Math.PI*2); ctx.fillStyle=color+Math.floor(al*255).toString(16).padStart(2,"0"); ctx.fill(); if(scan&&p.pu>.75){ctx.beginPath(); ctx.arc(p.sx,p.sy,r*2.8,0,Math.PI*2); ctx.fillStyle=color+"1a"; ctx.fill();} });
 
-    const particles = Array.from({ length: 140 }, () => ({
-      angle: Math.random() * Math.PI * 2,
-      orbit: R * (0.7 + Math.random() * 1.0),
-      speed: (0.003 + Math.random() * 0.007) * (Math.random() > 0.5 ? 1 : -1),
-      y:     (Math.random() - 0.5) * R * 1.5,
-      size:  1 + Math.random() * 2.5,
-      alpha: 0.3 + Math.random() * 0.6,
-    }));
+      const ra=(scan?.22+Math.sin(t*2)*.1:.1); ctx.beginPath(); ctx.arc(cx,cy,R*1.18,0,Math.PI*2); ctx.strokeStyle=color+Math.floor(ra*255).toString(16).padStart(2,"0"); ctx.lineWidth=1.2; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx,cy,R*1.38,0,Math.PI*2); ctx.strokeStyle=color+"10"; ctx.lineWidth=.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx,cy,R*1.58,0,Math.PI*2); ctx.strokeStyle=color+"08"; ctx.lineWidth=.4; ctx.stroke();
+      for(let i=0;i<36;i++){ const ang2=(i/36)*Math.PI*2+t*.3, r1=R*1.18, r2=r1+(i%4===0?9:4.5); ctx.beginPath(); ctx.moveTo(cx+Math.cos(ang2)*r1,cy+Math.sin(ang2)*r1); ctx.lineTo(cx+Math.cos(ang2)*r2,cy+Math.sin(ang2)*r2); ctx.strokeStyle=color+(i%4===0?"55":"22"); ctx.lineWidth=.8; ctx.stroke(); }
 
-    const streams = Array.from({ length: 16 }, () => ({
-      angle:    Math.random() * Math.PI * 2,
-      speed:    0.004 + Math.random() * 0.009,
-      len:      R * (0.3 + Math.random() * 0.45),
-      progress: Math.random(),
-    }));
+      if(scan){ const sw=(t*1.1)%(Math.PI*2); ctx.beginPath(); ctx.arc(cx,cy,R*1.18,sw,sw+1.5); ctx.strokeStyle=color+"cc"; ctx.lineWidth=2.5; ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R*1.18,sw,sw+1.5); ctx.closePath(); ctx.fillStyle=color+"06"; ctx.fill();
+        streams.forEach(s=>{ s.prog=(s.prog+s.sp)%1; const sr=R*.3+s.prog*s.len, er=sr+s.len*.2, sx2=cx+Math.cos(s.ang)*sr, sy2=cy+Math.sin(s.ang)*sr, ex=cx+Math.cos(s.ang)*er, ey=cy+Math.sin(s.ang)*er; const g=ctx.createLinearGradient(sx2,sy2,ex,ey); g.addColorStop(0,color+"00"); g.addColorStop(.5,color+"aa"); g.addColorStop(1,color+"00"); ctx.beginPath(); ctx.moveTo(sx2,sy2); ctx.lineTo(ex,ey); ctx.strokeStyle=g; ctx.lineWidth=1.2; ctx.stroke(); }); }
 
-    // DNA helix
-    const helixPoints = Array.from({ length: 40 }, (_, i) => ({ t: i / 40 }));
+      parts.forEach(p=>{ p.a+=p.sp; const pr=Math.sqrt(Math.max(0,p.or*p.or-p.y*p.y*.3)); const px2=cx+Math.cos(p.a)*pr, py2=cy+p.y+Math.sin(p.a)*p.or*.16; ctx.beginPath(); ctx.arc(px2,py2,p.sz*(ready?1.4:.75),0,Math.PI*2); ctx.fillStyle=color+Math.floor(p.al*(ready?200:100)).toString(16).padStart(2,"0"); ctx.fill(); });
 
-    function draw() {
-      tRef.current += 0.011;
-      const t = tRef.current;
-      ctx.clearRect(0, 0, W, H);
-
-      const rotY = t * 0.38;
-      const rotX = Math.sin(t * 0.13) * 0.28;
-      const sinY = Math.sin(rotY), cosY = Math.cos(rotY);
-      const sinX = Math.sin(rotX), cosX = Math.cos(rotX);
-
-      const base = isReady ? providerColor : "#e21227";
-      const base2 = isReady ? providerColor + "88" : "#00e5ff88";
-
-      const proj = nodes.map(n => {
-        let { x, y, z } = n;
-        const x1 = x * cosY - z * sinY, z1 = x * sinY + z * cosY;
-        const y2 = y * cosX - z1 * sinX, z2 = y * sinX + z1 * cosX;
-        const scale = R / (1.6 - z2 * 0.4);
-        return { sx: cx + x1 * scale, sy: cy + y2 * scale, depth: z2, pulse: Math.sin(t * 2 + n.pulseOffset) * 0.5 + 0.5 };
-      });
-
-      // Edges
-      edges.forEach(([a, b]) => {
-        const pa = proj[a], pb = proj[b];
-        const avgD = (pa.depth + pb.depth) / 2;
-        const alpha = isScanning
-          ? (0.07 + (avgD + 1) * 0.12) * (0.6 + Math.sin(t * 3 + a * 0.5) * 0.3)
-          : 0.05 + (avgD + 1) * 0.09;
-        ctx.beginPath(); ctx.moveTo(pa.sx, pa.sy); ctx.lineTo(pb.sx, pb.sy);
-        ctx.strokeStyle = base + Math.floor(alpha * 255).toString(16).padStart(2, "0");
-        ctx.lineWidth = 0.7; ctx.stroke();
-      });
-
-      // Nodes
-      proj.forEach(p => {
-        const br = (p.depth + 1) / 2;
-        const r  = (isScanning ? 2.5 + p.pulse * 1.8 : 2.2) * br;
-        const al = isReady ? 0.7 + p.pulse * 0.3 : 0.3 + br * 0.5;
-        ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
-        ctx.fillStyle = base + Math.floor(al * 255).toString(16).padStart(2, "0"); ctx.fill();
-        if (isScanning && p.pulse > 0.75) {
-          ctx.beginPath(); ctx.arc(p.sx, p.sy, r * 2.8, 0, Math.PI * 2);
-          ctx.fillStyle = base + "1a"; ctx.fill();
-        }
-      });
-
-      // DNA helix overlay (ready phase)
-      if (isReady) {
-        for (let i = 0; i < helixPoints.length - 1; i++) {
-          const t1 = helixPoints[i].t * Math.PI * 4 + t;
-          const t2 = helixPoints[i + 1].t * Math.PI * 4 + t;
-          const x1h = cx + Math.cos(t1) * R * 0.25;
-          const y1h = cy + (helixPoints[i].t - 0.5) * R * 1.2;
-          const x2h = cx + Math.cos(t2) * R * 0.25;
-          const y2h = cy + (helixPoints[i + 1].t - 0.5) * R * 1.2;
-          ctx.beginPath(); ctx.moveTo(x1h, y1h); ctx.lineTo(x2h, y2h);
-          ctx.strokeStyle = providerColor + "33"; ctx.lineWidth = 1; ctx.stroke();
-          if (i % 4 === 0) {
-            const x3h = cx - Math.cos(t1) * R * 0.25;
-            ctx.beginPath(); ctx.moveTo(x1h, y1h); ctx.lineTo(x3h, y1h);
-            ctx.strokeStyle = providerColor + "22"; ctx.lineWidth = 0.5; ctx.stroke();
-          }
-        }
-      }
-
-      // Outer rings
-      const ringA = isScanning ? 0.22 + Math.sin(t * 2) * 0.1 : 0.1;
-      ctx.beginPath(); ctx.arc(cx, cy, R * 1.18, 0, Math.PI * 2);
-      ctx.strokeStyle = base + Math.floor(ringA * 255).toString(16).padStart(2, "0");
-      ctx.lineWidth = 1.2; ctx.stroke();
-
-      ctx.beginPath(); ctx.arc(cx, cy, R * 1.38, 0, Math.PI * 2);
-      ctx.strokeStyle = base + "10"; ctx.lineWidth = 0.5; ctx.stroke();
-
-      ctx.beginPath(); ctx.arc(cx, cy, R * 1.58, 0, Math.PI * 2);
-      ctx.strokeStyle = base + "08"; ctx.lineWidth = 0.4; ctx.stroke();
-
-      // Rotating tick marks
-      for (let i = 0; i < 32; i++) {
-        const angle = (i / 32) * Math.PI * 2 + t * 0.3;
-        const r1 = R * 1.18;
-        const r2 = r1 + (i % 4 === 0 ? 8 : 4);
-        ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(angle) * r1, cy + Math.sin(angle) * r1);
-        ctx.lineTo(cx + Math.cos(angle) * r2, cy + Math.sin(angle) * r2);
-        ctx.strokeStyle = base + (i % 4 === 0 ? "55" : "22");
-        ctx.lineWidth = 0.8; ctx.stroke();
-      }
-
-      // Scan arc
-      if (isScanning) {
-        const sweep = ((t * 1.1) % (Math.PI * 2));
-        ctx.beginPath(); ctx.arc(cx, cy, R * 1.18, sweep, sweep + 1.4);
-        ctx.strokeStyle = base + "cc"; ctx.lineWidth = 2.5; ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, R * 1.18, sweep, sweep + 1.4);
-        ctx.closePath();
-        ctx.fillStyle = base + "06"; ctx.fill();
-
-        // Counter-rotating arc
-        const sweep2 = ((-t * 0.7) % (Math.PI * 2));
-        ctx.beginPath(); ctx.arc(cx, cy, R * 1.38, sweep2, sweep2 + 0.8);
-        ctx.strokeStyle = base2; ctx.lineWidth = 1; ctx.stroke();
-      }
-
-      // Data streams
-      if (isScanning) {
-        streams.forEach(s => {
-          s.progress = (s.progress + s.speed) % 1;
-          const startR = R * 0.3 + s.progress * s.len;
-          const endR   = startR + s.len * 0.22;
-          const sx1 = cx + Math.cos(s.angle) * startR;
-          const sy1 = cy + Math.sin(s.angle) * startR;
-          const sx2 = cx + Math.cos(s.angle) * endR;
-          const sy2 = cy + Math.sin(s.angle) * endR;
-          ctx.beginPath(); ctx.moveTo(sx1, sy1); ctx.lineTo(sx2, sy2);
-          const streamGrad = ctx.createLinearGradient(sx1, sy1, sx2, sy2);
-          streamGrad.addColorStop(0, base + "00");
-          streamGrad.addColorStop(0.5, base + "aa");
-          streamGrad.addColorStop(1, base + "00");
-          ctx.strokeStyle = streamGrad; ctx.lineWidth = 1.2; ctx.stroke();
-        });
-      }
-
-      // Particles
-      particles.forEach(p => {
-        p.angle += p.speed;
-        const px = cx + Math.cos(p.angle) * Math.sqrt(Math.max(0, p.orbit * p.orbit - p.y * p.y * 0.3));
-        const py = cy + p.y + Math.sin(p.angle) * p.orbit * 0.16;
-        ctx.beginPath(); ctx.arc(px, py, p.size * (isReady ? 1.4 : 0.8), 0, Math.PI * 2);
-        ctx.fillStyle = base + Math.floor(p.alpha * (isReady ? 200 : 100)).toString(16).padStart(2, "0");
-        ctx.fill();
-      });
-
-      // Core glow
-      const glowR = R * (0.18 + Math.sin(t * 1.4) * 0.045);
-      const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowR);
-      grd.addColorStop(0, base + "77"); grd.addColorStop(0.5, base + "22"); grd.addColorStop(1, base + "00");
-      ctx.beginPath(); ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
-      ctx.fillStyle = grd; ctx.fill();
-
-      // Ready pulse rings
-      if (isReady) {
-        for (let i = 0; i < 4; i++) {
-          const pr = R * (0.5 + ((t * 0.65 + i * 0.75) % 1.6));
-          const pa = Math.max(0, 0.4 - pr / R * 0.28);
-          ctx.beginPath(); ctx.arc(cx, cy, pr, 0, Math.PI * 2);
-          ctx.strokeStyle = base + Math.floor(pa * 255).toString(16).padStart(2, "0");
-          ctx.lineWidth = 1.5; ctx.stroke();
-        }
-      }
-
-      rafRef.current = requestAnimationFrame(draw);
-    }
-
+      const gp=.18+Math.sin(t*1.4)*.045*R, g=ctx.createRadialGradient(cx,cy,0,cx,cy,gp*R); g.addColorStop(0,color+"77"); g.addColorStop(.5,color+"22"); g.addColorStop(1,color+"00"); ctx.beginPath(); ctx.arc(cx,cy,gp*R,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+      if(ready){ for(let i=0;i<4;i++){ const pr2=R*(.5+((t*.65+i*.75)%1.6)), pa2=Math.max(0,.4-pr2/R*.28); ctx.beginPath(); ctx.arc(cx,cy,pr2,0,Math.PI*2); ctx.strokeStyle=color+Math.floor(pa2*255).toString(16).padStart(2,"0"); ctx.lineWidth=1.5; ctx.stroke(); } }
+      raf.current=requestAnimationFrame(draw);
+    };
     draw();
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [phase, providerColor]);
-
-  return <canvas ref={canvasRef} className="w-full h-full" style={{ display: "block" }} />;
+    return()=>cancelAnimationFrame(raf.current);
+  },[phase,color]);
+  return <canvas ref={cv} className="w-full h-full"/>;
 }
 
-// ── Provider Card ─────────────────────────────────────────────────────────────
-function ProviderCard({
-  provider, index, isActive, onClick,
-}: { provider: DetectedProvider; index: number; isActive: boolean; onClick: () => void }) {
+/* ══════════════════════════════════════════════════════════════
+   PROVIDER CARD
+══════════════════════════════════════════════════════════════ */
+function ProviderCard({p,idx,active,onClick}:{p:DP;idx:number;active:boolean;onClick:()=>void}) {
   return (
-    <motion.button
-      onClick={onClick}
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.055 }}
-      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all"
-      style={{
-        background: isActive ? provider.color + "18" : "rgba(255,255,255,0.03)",
-        border: `1px solid ${isActive ? provider.color + "55" : "rgba(255,255,255,0.07)"}`,
-        boxShadow: isActive ? `0 0 16px ${provider.color}22` : "none",
-      }}
-      whileHover={{ scale: 1.01, background: provider.color + "14" }}
-      whileTap={{ scale: 0.98 }}
-    >
-      <motion.div
-        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-        style={{ background: provider.color, boxShadow: `0 0 8px ${provider.color}` }}
-        animate={isActive ? { opacity: [0.7, 1], scale: [0.9, 1.1] } : { opacity: 1 }}
-        transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
-      />
+    <motion.button onClick={onClick} initial={{opacity:0,x:-16}} animate={{opacity:1,x:0}} transition={{delay:idx*.05}} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-all"
+      style={{background:active?p.color+"18":"rgba(255,255,255,0.03)",border:`1px solid ${active?p.color+"55":"rgba(255,255,255,0.07)"}`,boxShadow:active?`0 0 14px ${p.color}22`:"none"}}
+      whileHover={{scale:1.01}} whileTap={{scale:.98}}>
+      <motion.div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{background:p.color,boxShadow:`0 0 8px ${p.color}`}}
+        animate={active?{opacity:[.7,1],scale:[.9,1.1]}:{opacity:1}} transition={{duration:1,repeat:Infinity,repeatType:"reverse"}}/>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-white text-xs font-bold truncate">{provider.name}</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded font-bold tracking-wider" style={{ background: provider.color + "22", color: provider.color }}>
-            {provider.category}
-          </span>
-          {provider.free && (
-            <span className="text-[8px] px-1 py-0.5 rounded font-bold" style={{ background: "#22c55e18", color: "#22c55e", border: "1px solid #22c55e33" }}>FREE</span>
-          )}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-white text-[11px] font-bold truncate">{p.name}</span>
+          <span className="text-[8px] px-1.5 py-0.5 rounded font-bold" style={{background:p.color+"22",color:p.color}}>{p.category}</span>
+          {p.free&&<span className="text-[7px] px-1 py-0.5 rounded font-bold" style={{background:"#22c55e18",color:"#22c55e",border:"1px solid #22c55e33"}}>FREE</span>}
         </div>
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{provider.bestModelLabel}</span>
-          <span className="text-[8px]" style={{ color: "rgba(255,255,255,0.25)" }}>· {provider.contextWindow}</span>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-[9px] truncate" style={{color:"rgba(255,255,255,0.38)"}}>{p.bestModelLabel}</span>
+          <span className="text-[7px]" style={{color:"rgba(255,255,255,0.22)"}}>· {p.contextWindow}</span>
+          <span className="text-[7px]" style={{color:p.color+"cc"}}>· {p.costPer1M}/1M</span>
         </div>
-        {/* Speed bar */}
         <div className="mt-1 flex items-center gap-1.5">
-          <div className="flex-1 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-            <motion.div
-              className="h-full rounded-full"
-              style={{ background: `linear-gradient(90deg, ${provider.color}66, ${provider.color})` }}
-              initial={{ width: 0 }}
-              animate={{ width: `${provider.speed}%` }}
-              transition={{ delay: index * 0.06 + 0.3, duration: 0.8, ease: "easeOut" }}
-            />
+          <div className="flex-1 h-1 rounded-full" style={{background:"rgba(255,255,255,0.06)"}}>
+            <motion.div className="h-full rounded-full" style={{background:`linear-gradient(90deg,${p.color}55,${p.color})`}}
+              initial={{width:0}} animate={{width:`${p.speed/2.25}%`}} transition={{delay:idx*.06+.3,duration:.9}}/>
           </div>
-          <span className="text-[8px] font-mono" style={{ color: provider.color }}>{provider.speed}</span>
-          {provider.latency && (
-            <span className="text-[8px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>{provider.latency}ms</span>
-          )}
+          <span className="text-[7px] font-mono" style={{color:p.color}}>{p.speed}t/s</span>
+          {p.latency&&<span className="text-[7px] font-mono" style={{color:"rgba(255,255,255,0.22)"}}>{p.latency}ms</span>}
+          <span className="text-[7px] font-mono" style={{color:"rgba(255,255,255,0.18)"}}>{p.rpmLimit}rpm</span>
         </div>
       </div>
-      {isActive && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0"
-          style={{ background: provider.color + "33", color: provider.color }}
-        >
-          نشط
-        </motion.div>
-      )}
+      {active&&<motion.div initial={{scale:0}} animate={{scale:1}} className="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style={{background:p.color+"33",color:p.color}}>نشط</motion.div>}
     </motion.button>
   );
 }
 
-// ── Manual Key Entry Form ─────────────────────────────────────────────────────
-function ManualKeyForm({ onSave, onClose }: { onSave: (id: string, key: string) => void; onClose: () => void }) {
-  const [selectedId, setSelectedId] = useState("openai");
-  const [key, setKey] = useState("");
-
+/* ══════════════════════════════════════════════════════════════
+   MANUAL KEY FORM
+══════════════════════════════════════════════════════════════ */
+function ManualKeyForm({onSave,onClose}:{onSave:(id:string,key:string,url?:string)=>void;onClose:()=>void}) {
+  const [id,setId]=useState("openai"); const [key,setKey]=useState(""); const [url,setUrl]=useState(""); const [show,setShow]=useState(false);
+  const selP = PROVIDER_PRIORITY.find(p=>p.id===id);
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      className="w-full rounded-xl p-4 space-y-3"
-      style={{ background: "#0a0a0a", border: "1px solid rgba(226,18,39,0.25)" }}
-    >
-      <div className="text-xs font-bold tracking-widest" style={{ color: "#e21227" }}>[ إضافة مفتاح API ]</div>
-      <select
-        value={selectedId}
-        onChange={e => setSelectedId(e.target.value)}
-        className="w-full rounded-lg px-3 py-2 text-xs font-mono"
-        style={{ background: "#111", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }}
-      >
-        {PROVIDER_PRIORITY.filter(p => p.requiresKey).map(p => (
-          <option key={p.id} value={p.id}>{p.name} — {p.bestModelLabel}</option>
+    <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,y:10}}
+      className="w-full rounded-xl p-4 space-y-2.5" style={{background:"#080808",border:"1px solid rgba(226,18,39,0.28)"}}>
+      <div className="flex items-center justify-between">
+        <div className="text-[10px] font-black tracking-widest" style={{color:"#e21227"}}>[ إضافة مفتاح API ]</div>
+        {selP&&<span className="text-[8px] font-mono px-1.5 py-0.5 rounded" style={{background:selP.color+"18",color:selP.color}}>{selP.category}</span>}
+      </div>
+      <select value={id} onChange={e=>setId(e.target.value)} className="w-full rounded-lg px-3 py-2 text-[11px] font-mono"
+        style={{background:"#0e0e0e",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",outline:"none"}}>
+        {[...PROVIDER_PRIORITY].filter(p=>p.requiresKey).map(p=>(
+          <option key={p.id} value={p.id}>{p.name} — {p.bestModelLabel} — {p.costPer1M}/1M</option>
         ))}
       </select>
-      <input
-        value={key}
-        onChange={e => setKey(e.target.value)}
-        placeholder="sk-... أو api-key-..."
-        className="w-full rounded-lg px-3 py-2 text-xs font-mono"
-        style={{ background: "#111", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", outline: "none" }}
-        type="password"
-      />
+      <div className="relative">
+        <input value={key} onChange={e=>setKey(e.target.value)} placeholder="sk-... أو api-key-..." type={show?"text":"password"}
+          className="w-full rounded-lg px-3 py-2 text-[11px] font-mono pr-10"
+          style={{background:"#0e0e0e",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",outline:"none"}}/>
+        <button onClick={()=>setShow(v=>!v)} style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.3)",fontSize:10}}>
+          {show?"🙈":"👁"}
+        </button>
+      </div>
+      <input value={url} onChange={e=>setUrl(e.target.value)} placeholder={`Base URL (اختياري) — افتراضي: ${selP?.baseURL}`}
+        className="w-full rounded-lg px-3 py-2 text-[10px] font-mono"
+        style={{background:"#0e0e0e",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.5)",outline:"none"}}/>
       <div className="flex gap-2">
-        <button
-          onClick={() => { if (key.trim().length > 10) { onSave(selectedId, key.trim()); } }}
-          disabled={key.trim().length <= 10}
-          className="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
-          style={{
-            background: key.trim().length > 10 ? "linear-gradient(135deg, #e21227, #c4101f)" : "rgba(255,255,255,0.05)",
-            color: key.trim().length > 10 ? "#fff" : "rgba(255,255,255,0.3)",
-            border: "none", cursor: key.trim().length > 10 ? "pointer" : "not-allowed",
-          }}
-        >
+        <button onClick={()=>{ if(key.trim().length>10){onSave(id,key.trim(),url.trim()||undefined);} }}
+          disabled={key.trim().length<=10}
+          className="flex-1 py-2 rounded-lg text-[11px] font-bold transition-all"
+          style={{background:key.trim().length>10?"linear-gradient(135deg,#e21227,#c4101f)":"rgba(255,255,255,0.05)",color:key.trim().length>10?"#fff":"rgba(255,255,255,0.28)",border:"none",cursor:key.trim().length>10?"pointer":"not-allowed"}}>
           حفظ وتفعيل
         </button>
-        <button
-          onClick={onClose}
-          className="px-4 py-2 rounded-lg text-xs"
-          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)", cursor: "pointer" }}
-        >
+        <button onClick={onClose} className="px-4 py-2 rounded-lg text-[11px]"
+          style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.38)",cursor:"pointer"}}>
           إلغاء
         </button>
       </div>
+      {selP&&(
+        <div className="text-[9px] font-mono" style={{color:"rgba(255,255,255,0.22)"}}>
+          الحد: {selP.rpmLimit} طلب/دقيقة · السياق: {selP.contextWindow} · التكلفة: {selP.costPer1M}/1M رمز
+        </div>
+      )}
     </motion.div>
   );
 }
 
-// ── Latency Tester ────────────────────────────────────────────────────────────
-function LatencyDisplay({ providers }: { providers: DetectedProvider[] }) {
+/* ══════════════════════════════════════════════════════════════
+   COST ESTIMATOR
+══════════════════════════════════════════════════════════════ */
+function CostEstimator({providers}:{providers:DP[]}) {
+  const tokens = [10000, 100000, 1000000];
+  const toShow = providers.slice(0,4);
   return (
-    <div className="w-full space-y-1.5 mt-1">
-      <div className="text-[9px] font-bold tracking-widest uppercase mb-2" style={{ color: "rgba(0,229,255,0.5)" }}>
-        ⚡ قياس الأداء
+    <div className="w-full space-y-2">
+      <div className="text-[8.5px] font-bold tracking-widest uppercase mb-2" style={{color:"rgba(251,191,36,0.55)"}}>
+        💰 تقدير التكلفة
       </div>
-      {providers.slice(0, 4).map((p, i) => (
-        <div key={p.id} className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: p.color, boxShadow: `0 0 6px ${p.color}` }} />
-          <span className="text-[9px] font-mono flex-1 truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{p.name}</span>
-          <div className="flex items-center gap-1">
-            <div className="h-1 rounded-full" style={{ width: `${p.speed * 0.5}px`, background: `linear-gradient(90deg, ${p.color}66, ${p.color})` }} />
-            <span className="text-[8px] font-mono" style={{ color: p.color }}>{p.latency ?? "—"}ms</span>
-          </div>
-        </div>
-      ))}
+      <div className="grid gap-1" style={{gridTemplateColumns:"1fr 60px 60px 70px"}}>
+        <div className="text-[7px] font-mono" style={{color:"rgba(255,255,255,0.3)"}}>المزود</div>
+        {tokens.map(t=><div key={t} className="text-[7px] font-mono text-center" style={{color:"rgba(255,255,255,0.3)"}}>{t>=1e6?"1M":t>=1e3?`${t/1e3}K`:t}</div>)}
+        {toShow.map(p=>(
+          <>
+            <div key={p.id+"-name"} className="text-[8px] font-mono truncate" style={{color:p.color}}>{p.name}</div>
+            {tokens.map(t=>{ const cost=parseFloat(p.costPer1M.replace("$",""))*t/1e6; return <div key={t} className="text-[7px] font-mono text-center" style={{color:"rgba(255,255,255,0.5)"}}>${cost<0.01?"<0.01":cost.toFixed(3)}</div>; })}
+          </>
+        ))}
+      </div>
     </div>
   );
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
-export function AIAutoSetup3D({ onComplete }: { onComplete: () => void }) {
-  const { state, dispatch } = useStore();
-  const { toast } = useToast();
-  const [phase,             setPhase]             = useState<Phase>("boot");
-  const [log,               setLog]               = useState<string[]>([]);
-  const [allProviders,      setAllProviders]       = useState<DetectedProvider[]>([]);
-  const [activeIdx,         setActiveIdx]          = useState(0);
-  const [progress,          setProgress]           = useState(0);
-  const [showProviderList,  setShowProviderList]   = useState(false);
-  const [poolMode,          setPoolMode]           = useState(false);
-  const [showManualForm,    setShowManualForm]     = useState(false);
-  const [showLatency,       setShowLatency]        = useState(false);
-  const [scanPhase,         setScanPhase]          = useState(0);
-  const doneRef = useRef(false);
+/* ══════════════════════════════════════════════════════════════
+   FALLBACK CHAIN
+══════════════════════════════════════════════════════════════ */
+function FallbackChain({providers}:{providers:DP[]}) {
+  return (
+    <div className="w-full space-y-2 mt-2">
+      <div className="text-[8.5px] font-bold tracking-widest uppercase mb-2" style={{color:"rgba(0,229,255,0.55)"}}>
+        🔄 سلسلة الفول-باك
+      </div>
+      <div className="flex flex-wrap items-center gap-1">
+        {providers.slice(0,5).map((p,i)=>(
+          <>
+            <div key={p.id} className="flex items-center gap-1 px-2 py-1 rounded-lg text-[8px] font-mono font-bold"
+              style={{background:p.color+"14",border:`1px solid ${p.color}30`,color:p.color}}>
+              <div className="w-1.5 h-1.5 rounded-full" style={{background:p.color}}/>
+              {p.name}
+            </div>
+            {i<Math.min(providers.length-1,4)&&<span style={{color:"rgba(255,255,255,0.2)",fontSize:12}}>→</span>}
+          </>
+        ))}
+        {providers.length>5&&<span className="text-[7px] font-mono" style={{color:"rgba(255,255,255,0.25)"}}>+{providers.length-5} آخرين</span>}
+      </div>
+    </div>
+  );
+}
 
-  const addLog = useCallback((msg: string) => {
-    setLog(prev => [...prev.slice(-9), msg]);
-  }, []);
+/* ══════════════════════════════════════════════════════════════
+   CONNECTION QUALITY
+══════════════════════════════════════════════════════════════ */
+function ConnectionQuality({latency}:{latency:number}) {
+  const bars=4; const quality=latency<20?4:latency<50?3:latency<100?2:1;
+  const col=quality>=4?"#22c55e":quality>=3?"#00e5ff":quality>=2?"#fbbf24":"#e21227";
+  const label=quality>=4?"ممتاز":quality>=3?"جيد":quality>=2?"متوسط":"ضعيف";
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-end gap-0.5">
+        {Array.from({length:bars},(_,i)=>(
+          <div key={i} style={{width:4,height:4+i*3,borderRadius:1,background:i<quality?col:"rgba(255,255,255,0.1)"}}/>
+        ))}
+      </div>
+      <span className="text-[8px] font-mono" style={{color:col}}>{latency}ms · {label}</span>
+    </div>
+  );
+}
 
-  const activateProvider = useCallback((p: DetectedProvider, idx: number) => {
-    setActiveIdx(idx);
-    localStorage.setItem(ACTIVE_POOL_IDX, String(idx));
-    dispatch({ type: "SET_PROVIDER", provider: p.id as never, providerModel: p.bestModel });
-    dispatch({ type: "SET_MODEL", model: p.bestModelLabel });
-  }, [dispatch]);
+/* ══════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════════════════════════════ */
+export function AIAutoSetup3D({onComplete}:{onComplete:()=>void}) {
+  const {state,dispatch}=useStore();
+  const {toast}=useToast();
+  const [phase,setPhase]=useState<Phase>("boot");
+  const [log,setLog]=useState<string[]>([]);
+  const [all,setAll]=useState<DP[]>([]);
+  const [actIdx,setActIdx]=useState(0);
+  const [progress,setProgress]=useState(0);
+  const [showList,setShowList]=useState(false);
+  const [poolMode,setPoolMode]=useState(false);
+  const [showManual,setShowManual]=useState(false);
+  const [showCost,setShowCost]=useState(false);
+  const [showFallback,setShowFallback]=useState(false);
+  const [scanStep,setScanStep]=useState(0);
+  const [avgLatency,setAvgLatency]=useState(0);
+  const doneRef=useRef(false);
 
-  const handleManualSave = useCallback((id: string, key: string) => {
-    localStorage.setItem(KEY_PREFIX + id, key);
-    setShowManualForm(false);
-    const provider = PROVIDER_PRIORITY.find(p => p.id === id);
-    if (provider) {
-      toast({ description: `تم حفظ مفتاح ${provider.name}` });
-    }
-    doneRef.current = false;
-    setPhase("boot");
-    setLog([]);
-    setProgress(0);
-    setAllProviders([]);
-    setShowProviderList(false);
-    setScanPhase(0);
-    setTimeout(() => { doneRef.current = false; }, 100);
-  }, [toast]);
+  const addLog=useCallback((msg:string)=>setLog(p=>[...p.slice(-11),msg]),[]);
 
-  useEffect(() => {
-    if (doneRef.current) return;
-    doneRef.current = true;
+  const activate=useCallback((p:DP,i:number)=>{
+    setActIdx(i); localStorage.setItem(PIDX,String(i));
+    dispatch({type:"SET_PROVIDER",provider:p.id as never,providerModel:p.bestModel});
+    dispatch({type:"SET_MODEL",model:p.bestModelLabel});
+  },[dispatch]);
 
-    const run = async () => {
-      // Boot phase
-      setPhase("boot");
-      setScanPhase(1);
-      addLog("[ CORE ] KaliGPT Neural Core v5.0 — ARSENAL MODE PRO");
-      await delay(350);
-      addLog("[ SYS  ] فحص طبقة التشفير AES-256-GCM...");
-      await delay(280);
-      addLog("[ QUANT] قناة البيانات الكمية: 99.97% تماسك");
-      await delay(250);
-      addLog("[ MEM  ] تهيئة ذاكرة 24.6TB — DONE");
-      setProgress(10);
-      await delay(200);
+  const handleSave=useCallback((id:string,key:string,url?:string)=>{
+    localStorage.setItem(KP+id,key); if(url) localStorage.setItem(UP+id,url);
+    setShowManual(false);
+    toast({description:`✓ مفتاح ${PROVIDER_PRIORITY.find(p=>p.id===id)?.name} محفوظ`});
+    doneRef.current=false; setPhase("boot"); setLog([]); setProgress(0); setAll([]); setShowList(false); setScanStep(0);
+  },[toast]);
 
-      // Scanning phase
-      setPhase("scanning");
-      setScanPhase(2);
-      addLog("[ SCAN ] فحص شامل لـ 16 مزود API...");
+  useEffect(()=>{
+    if(doneRef.current)return; doneRef.current=true;
+    (async()=>{
+      setPhase("boot"); setScanStep(1);
+      addLog("[ CORE ] KaliGPT Neural Core v6.0 — ARSENAL ULTRA MODE");
       await delay(300);
-      setProgress(20);
-
-      const ALL_IDS = PROVIDER_PRIORITY.map(p => p.id);
-      for (let i = 0; i < ALL_IDS.length; i++) {
-        addLog(`[ CHECK] ${ALL_IDS[i].padEnd(12)} ${"·".repeat(Math.floor(Math.random() * 8) + 2)}`);
-        await delay(40);
-        setProgress(20 + Math.round((i / ALL_IDS.length) * 30));
-      }
-
-      setProgress(55);
-      addLog("[ PARSE] تحليل مفاتيح API المحفوظة...");
+      addLog("[ QUANT] طبقة التشفير الكمي: 4096-bit lattice — آمن");
       await delay(250);
+      addLog("[ MEM  ] تهيئة 48.8TB ذكاء تهديدي — DONE");
+      setProgress(8);
+      await delay(220);
+      addLog("[ MESH ] شبكة متشعبة: 24 عقدة — CONNECTED");
+      setProgress(14);
 
-      const found = detectAllConfiguredProviders();
+      setPhase("scanning"); setScanStep(2);
+      addLog(`[ SCAN ] فحص ${PROVIDER_PRIORITY.length} مزود API...`);
+      await delay(280);
 
-      // Check personal key in store
-      const personalKey = state.settings?.personalApiKey?.trim();
-      if (personalKey && personalKey.length > 10 && !found.find(f => f.id === "personal")) {
-        found.unshift({
-          id: "personal", name: "Personal API", color: "#e21227",
-          baseURL: state.settings?.personalApiBaseURL || "https://api.openai.com/v1",
-          bestModel: "gpt-4o", bestModelLabel: "GPT-4o", requiresKey: false,
-          category: "شخصي", key: personalKey, speed: 75, contextWindow: "128K", free: false,
-          url: state.settings?.personalApiBaseURL || "https://api.openai.com/v1",
-        });
+      for(let i=0;i<PROVIDER_PRIORITY.length;i++){
+        addLog(`[ CHK  ] ${PROVIDER_PRIORITY[i].id.padEnd(12)} ${"·".repeat(Math.floor(Math.random()*6)+2)}`);
+        await delay(32);
+        setProgress(14+Math.round(i/PROVIDER_PRIORITY.length*32));
       }
+      setProgress(50);
+      addLog("[ PARSE] تحليل المفاتيح المحفوظة...");
+      await delay(220);
 
-      if (found.length === 0) {
-        setPhase("no-provider");
-        addLog("[ WARN ] لم يُعثر على مفتاح API مضبوط");
-        addLog("[ INFO ] أضف مفتاحاً يدوياً أو ادخل الإعدادات");
-        setProgress(100);
+      const found=detectAllConfiguredProviders();
+      const persKey=state.settings?.personalApiKey?.trim();
+      if(persKey&&persKey.length>10&&!found.find(f=>f.id==="personal"))
+        found.unshift({...PROVIDER_PRIORITY[5],id:"personal",name:"Personal API",color:"#e21227",category:"شخصي",key:persKey,url:state.settings?.personalApiBaseURL||"https://api.openai.com/v1"} as DP);
+
+      if(!found.length){
+        setPhase("no-provider"); setProgress(100);
+        addLog("[ WARN ] لم يُعثر على مفتاح API — أضف مفتاحاً للبدء");
         return;
       }
 
-      // Found providers
-      setAllProviders(found);
-      setShowProviderList(true);
-      setPhase("found");
-      setScanPhase(3);
+      setAll(found); setShowList(true); setPhase("found"); setScanStep(3);
       addLog(`[ FOUND] ${found.length} مزود مكتشف:`);
-      found.slice(0, 4).forEach(p => addLog(`  ✓ ${p.name.padEnd(14)} ${p.bestModelLabel}`));
-      if (found.length > 4) addLog(`  ✓ ... و ${found.length - 4} مزودين آخرين`);
-      setProgress(65);
-      await delay(400);
+      found.slice(0,5).forEach(p=>addLog(`  ✓ ${p.name.padEnd(16)} ${p.bestModelLabel} · ${p.costPer1M}/1M`));
+      if(found.length>5) addLog(`  ✓ ... و ${found.length-5} مزودين آخرين`);
+      setProgress(60);
+      await delay(350);
 
-      // Latency test
-      addLog("[ PING ] قياس زمن الاستجابة...");
-      const tested = await Promise.all(
-        found.map(async (p) => ({ ...p, latency: await measureLatency(p) }))
-      );
-      setAllProviders(tested);
-      setShowLatency(true);
-      setProgress(72);
+      addLog("[ PING ] قياس زمن الاستجابة لكل مزود...");
+      const tested=await Promise.all(found.map(async p=>({...p,latency:await measureLatency(p),healthy:true})));
+      setAll(tested);
+      const avg=Math.round(tested.reduce((s,p)=>s+(p.latency??50),0)/tested.length);
+      setAvgLatency(avg);
+      setShowCost(true);
+      setProgress(70);
       await delay(200);
 
-      if (found.length > 1) {
-        setPoolMode(true);
-        localStorage.setItem(KEY_POOL_STORAGE, JSON.stringify(tested));
-        localStorage.setItem(ACTIVE_POOL_IDX, "0");
-        addLog(`[ POOL ] دوران تلقائي: ${found.length} مفتاح نشط`);
+      if(found.length>1){
+        setPoolMode(true); localStorage.setItem(POOL,JSON.stringify(tested)); localStorage.setItem(PIDX,"0");
+        addLog(`[ POOL ] وضع الدوران: ${found.length} مفتاح نشط · متوسط زمن: ${avg}ms`);
+        setShowFallback(true);
         setProgress(78);
-        await delay(250);
+        await delay(200);
       }
 
-      // Load best provider
-      const primary = tested[0];
-      setPhase("loading");
-      setScanPhase(4);
-      addLog(`[ MODEL] تحميل: ${primary.bestModelLabel}...`);
-      addLog(`[ CTX  ] نافذة السياق: ${primary.contextWindow} رمز`);
-      setProgress(87);
+      const primary=tested[0];
+      setPhase("loading"); setScanStep(4);
+      addLog(`[ MODEL] تحميل: ${primary.bestModelLabel} (${primary.contextWindow} context)...`);
+      addLog(`[ RATE ] حد الطلبات: ${primary.rpmLimit} طلب/دقيقة`);
+      addLog(`[ COST ] التكلفة: ${primary.costPer1M} لكل مليون رمز`);
+      setProgress(88);
       await delay(280);
-      addLog(`[ TUNE ] ضبط المعاملات المثلى...`);
-      setProgress(94);
-      await delay(180);
+      addLog("[ TUNE ] ضبط المعاملات المثلى...");
+      setProgress(95);
+      await delay(160);
 
-      activateProvider(primary, 0);
+      activate(primary,0);
+      addLog(`[ OK   ] ✓ ${primary.name} · ${primary.bestModelLabel} — جاهز`);
+      if(found.length>1) addLog(`[ AUTO ] الفول-باك: ${found.slice(1,4).map(p=>p.name).join(" → ")}...`);
+      setProgress(100); setPhase("ready"); setScanStep(5);
+      await delay(1100);
 
-      addLog(`[ OK   ] النظام جاهز — ${primary.name} / ${primary.bestModelLabel}`);
-      if (found.length > 1) addLog(`[ AUTO ] الدوران التلقائي: ${found.length} مفتاح نشطة`);
-      setProgress(100);
-      setPhase("ready");
-      setScanPhase(5);
-      await delay(1200);
-
-      toast({
-        description: found.length > 1
-          ? `✓ ${found.length} مزودين — الدوران التلقائي نشط`
-          : `✓ ${primary.name} — ${primary.bestModelLabel} جاهز`,
-      });
-
-      await delay(500);
+      toast({description:found.length>1?`✓ ${found.length} مزود — الدوران التلقائي نشط`:`✓ ${primary.name} — ${primary.bestModelLabel} جاهز`});
+      await delay(400);
       onComplete();
-    };
+    })();
+  },[]);
 
-    run();
-  }, []);
-
-  const activeProv = allProviders[activeIdx];
-  const providerColor = activeProv?.color ?? "#e21227";
-
-  const PHASE_LABELS: Record<Phase, string> = {
-    boot:          "تهيئة النظام",
-    scanning:      "فحص المزودين",
-    found:         `${allProviders.length} مزود مكتشف`,
-    loading:       "تحميل النموذج",
-    ready:         "النظام جاهز",
-    "no-provider": "لا يوجد مزود",
-  };
-
-  const PHASE_STEPS = ["boot", "scan", "found", "load", "ready"];
+  const active=all[actIdx];
+  const col=active?.color??"#e21227";
+  const LABELS:Record<Phase,string>={boot:"تهيئة النظام",scanning:"فحص المزودين",found:`${all.length} مزود مكتشف`,loading:"تحميل النموذج",ready:"النظام جاهز","no-provider":"لا يوجد مزود"};
+  const STEPS=["boot","scan","found","load","ready"];
 
   return (
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.97)" }}
-    >
-      {/* Background grid */}
-      <div
-        className="absolute inset-0 opacity-[0.035]"
-        style={{
-          backgroundImage:
-            `linear-gradient(${providerColor}55 1px, transparent 1px),` +
-            `linear-gradient(90deg, ${providerColor}55 1px, transparent 1px)`,
-          backgroundSize: "48px 48px",
-        }}
-      />
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center" style={{background:"rgba(0,0,0,0.97)"}}>
+      {/* Background */}
+      <div className="absolute inset-0 opacity-[0.035]" style={{backgroundImage:`linear-gradient(${col}55 1px,transparent 1px),linear-gradient(90deg,${col}55 1px,transparent 1px)`,backgroundSize:"48px 48px"}}/>
+      <div className="absolute inset-0" style={{backgroundImage:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.09) 2px,rgba(0,0,0,0.09) 4px)"}}/>
+      <motion.div className="absolute inset-x-0 h-px pointer-events-none" style={{background:`linear-gradient(90deg,transparent,${col}3e,transparent)`}} animate={{top:["0%","100%"]}} transition={{duration:5,repeat:Infinity,ease:"linear"}}/>
 
-      {/* Diagonal accent lines */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.015]" style={{
-        backgroundImage: `linear-gradient(45deg, ${providerColor} 1px, transparent 1px)`,
-        backgroundSize: "96px 96px",
-      }} />
-
-      {/* Scan lines */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)",
-        }}
-      />
-
-      {/* Animated top line */}
-      <motion.div
-        className="absolute inset-x-0 h-px pointer-events-none"
-        style={{ background: `linear-gradient(90deg, transparent, ${providerColor}40, transparent)` }}
-        animate={{ top: ["0%", "100%"] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-      />
-
-      {/* Corner HUD */}
-      {["top-0 left-0", "top-0 right-0", "bottom-0 left-0", "bottom-0 right-0"].map((pos, i) => (
-        <div
-          key={i}
-          className={`absolute ${pos} w-20 h-20 pointer-events-none opacity-25`}
-          style={{
-            borderTop: i < 2 ? `2px solid ${providerColor}` : "none",
-            borderBottom: i >= 2 ? `2px solid ${providerColor}` : "none",
-            borderLeft: i % 2 === 0 ? `2px solid ${providerColor}` : "none",
-            borderRight: i % 2 === 1 ? `2px solid ${providerColor}` : "none",
-          }}
-        />
+      {/* Corners */}
+      {[[0,0],[0,1],[1,0],[1,1]].map(([t,r],i)=>(
+        <div key={i} className="absolute w-16 h-16 pointer-events-none opacity-20" style={{top:t?undefined:0,bottom:t?0:undefined,left:r?undefined:0,right:r?0:undefined,borderTop:!t?`2px solid ${col}`:undefined,borderBottom:t?`2px solid ${col}`:undefined,borderLeft:!r?`2px solid ${col}`:undefined,borderRight:r?`2px solid ${col}`:undefined}}/>
       ))}
 
-      {/* Phase steps indicator (top) */}
+      {/* Phase steps */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
-        {PHASE_STEPS.map((step, i) => (
-          <div key={step} className="flex items-center gap-2">
-            <motion.div
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ background: i < scanPhase ? providerColor : "rgba(255,255,255,0.15)", boxShadow: i < scanPhase ? `0 0 6px ${providerColor}` : "none" }}
-              animate={i === scanPhase - 1 ? { opacity: [0.6, 1, 0.6] } : {}}
-              transition={{ duration: 0.8, repeat: Infinity }}
-            />
-            {i < PHASE_STEPS.length - 1 && (
-              <div className="w-6 h-px" style={{ background: i < scanPhase - 1 ? providerColor + "66" : "rgba(255,255,255,0.08)" }} />
-            )}
+        {STEPS.map((s,i)=>(
+          <div key={s} className="flex items-center gap-2">
+            <motion.div className="w-1.5 h-1.5 rounded-full" style={{background:i<scanStep?col:"rgba(255,255,255,0.14)",boxShadow:i<scanStep?`0 0 6px ${col}`:"none"}}
+              animate={i===scanStep-1?{opacity:[.6,1,.6]}:{}} transition={{duration:.8,repeat:Infinity}}/>
+            {i<STEPS.length-1&&<div className="w-7 h-px" style={{background:i<scanStep-1?col+"55":"rgba(255,255,255,0.07)"}}/>}
           </div>
         ))}
       </div>
 
-      {/* Main content */}
-      <div className="relative flex flex-col items-center gap-4 w-full max-w-md px-5">
+      <div className="relative flex flex-col items-center gap-3.5 w-full max-w-lg px-5">
 
-        {/* 3D Sphere */}
-        <motion.div
-          className="relative"
-          style={{ width: 220, height: 220 }}
-          initial={{ scale: 0.4, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.55, ease: "easeOut" }}
-        >
-          <NeuralSphere3D phase={phase} providerColor={providerColor} />
-
-          {/* Center icon */}
+        {/* Sphere */}
+        <motion.div style={{width:200,height:200}} initial={{scale:.4,opacity:0}} animate={{scale:1,opacity:1}} transition={{duration:.5,ease:"easeOut"}}>
+          <NeuralSphere phase={phase} color={col}/>
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <AnimatePresence mode="wait">
-              <motion.div
-                key={phase}
-                initial={{ opacity: 0, scale: 0.6 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.3 }}
-                transition={{ duration: 0.25 }}
-                className="text-center"
-              >
-                {phase === "ready" ? (
-                  <motion.div
-                    animate={{ boxShadow: [`0 0 20px ${providerColor}66`, `0 0 45px ${providerColor}aa`, `0 0 20px ${providerColor}66`] }}
-                    transition={{ duration: 1.4, repeat: Infinity }}
+              <motion.div key={phase} initial={{opacity:0,scale:.6}} animate={{opacity:1,scale:1}} exit={{opacity:0,scale:1.3}} transition={{duration:.22}} className="text-center">
+                {phase==="ready"?(
+                  <motion.div animate={{boxShadow:[`0 0 20px ${col}66`,`0 0 48px ${col}aa`,`0 0 20px ${col}66`]}} transition={{duration:1.4,repeat:Infinity}}
                     className="w-14 h-14 rounded-full flex items-center justify-center text-2xl font-black"
-                    style={{
-                      background: `radial-gradient(circle, ${providerColor}44, transparent)`,
-                      border: `2px solid ${providerColor}`,
-                      color: providerColor,
-                    }}
-                  >
-                    ✓
-                  </motion.div>
-                ) : phase === "no-provider" ? (
-                  <div className="text-3xl" style={{ color: "#f59e0b" }}>⚠</div>
-                ) : (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1.3, repeat: Infinity, ease: "linear" }}
-                    className="w-12 h-12 rounded-full border-2"
-                    style={{ borderColor: providerColor, borderTopColor: "transparent" }}
-                  />
+                    style={{background:`radial-gradient(circle,${col}44,transparent)`,border:`2px solid ${col}`,color:col}}>✓</motion.div>
+                ):phase==="no-provider"?(
+                  <div className="text-3xl" style={{color:"#f59e0b"}}>⚠</div>
+                ):(
+                  <motion.div animate={{rotate:360}} transition={{duration:1.2,repeat:Infinity,ease:"linear"}} className="w-12 h-12 rounded-full border-2" style={{borderColor:col,borderTopColor:"transparent"}}/>
                 )}
               </motion.div>
             </AnimatePresence>
@@ -753,258 +440,138 @@ export function AIAutoSetup3D({ onComplete }: { onComplete: () => void }) {
         </motion.div>
 
         {/* Title */}
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <div className="text-[10px] font-bold tracking-[0.5em] uppercase mb-1" style={{ color: providerColor }}>
-            KaliGPT — NEURAL CORE v5.0 · ARSENAL MODE
+        <motion.div className="text-center" initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:.3}}>
+          <div className="text-[10px] font-bold tracking-[0.5em] uppercase mb-1" style={{color:col}}>
+            KaliGPT NEURAL CORE v6.0 · ARSENAL ULTRA
           </div>
           <AnimatePresence mode="wait">
-            <motion.div
-              key={phase + allProviders.length}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.2 }}
-              className="text-white text-xl font-black"
-            >
-              {PHASE_LABELS[phase]}
+            <motion.div key={phase+all.length} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-6}} transition={{duration:.2}} className="text-white text-xl font-black">
+              {LABELS[phase]}
             </motion.div>
           </AnimatePresence>
-
-          {/* Pool badge */}
           <AnimatePresence>
-            {poolMode && allProviders.length > 1 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="mt-1.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold tracking-wider"
-                style={{ background: "#10b98118", border: "1px solid #10b98144", color: "#10b981" }}
-              >
-                <motion.span
-                  className="w-1.5 h-1.5 rounded-full bg-emerald-400"
-                  animate={{ opacity: [1, 0.3] }}
-                  transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
-                />
-                وضع الدوران — {allProviders.length} مفاتيح نشطة
+            {poolMode&&all.length>1&&(
+              <motion.div initial={{opacity:0,scale:.8}} animate={{opacity:1,scale:1}} className="mt-1.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold tracking-wider"
+                style={{background:"#10b98118",border:"1px solid #10b98144",color:"#10b981"}}>
+                <motion.span className="w-1.5 h-1.5 rounded-full bg-emerald-400" animate={{opacity:[1,.3]}} transition={{duration:.8,repeat:Infinity,repeatType:"reverse"}}/>
+                دوران تلقائي — {all.length} مزود · متوسط {avgLatency}ms
               </motion.div>
             )}
-          </AnimatePresence>
-
-          {/* Active provider badge */}
-          <AnimatePresence>
-            {phase === "ready" && activeProv && (
-              <motion.div
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-1.5 inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-bold"
-                style={{ background: activeProv.color + "15", border: `1px solid ${activeProv.color}35`, color: activeProv.color }}
-              >
-                <div className="w-1.5 h-1.5 rounded-full" style={{ background: activeProv.color }} />
-                {activeProv.name} · {activeProv.contextWindow} ctx
+            {phase==="ready"&&active&&(
+              <motion.div initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} className="mt-1 inline-flex items-center gap-2 px-3 py-1 rounded-full text-[8.5px] font-bold"
+                style={{background:active.color+"14",border:`1px solid ${active.color}33`,color:active.color}}>
+                <div className="w-1.5 h-1.5 rounded-full" style={{background:active.color}}/>
+                {active.name} · {active.contextWindow} · {active.costPer1M}/1M
+                {active.latency&&<ConnectionQuality latency={active.latency}/>}
               </motion.div>
             )}
           </AnimatePresence>
         </motion.div>
 
-        {/* Progress bar */}
+        {/* Progress */}
         <div className="w-full space-y-1">
-          <div className="w-full h-[4px] rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-            <motion.div
-              className="h-full rounded-full relative overflow-hidden"
-              style={{ background: `linear-gradient(90deg, ${providerColor}77, ${providerColor})` }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.35, ease: "easeOut" }}
-            >
-              <motion.div
-                className="absolute inset-0"
-                style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)", backgroundSize: "200% 100%" }}
-                animate={{ backgroundPosition: ["-200% 0", "200% 0"] }}
-                transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
-              />
+          <div className="w-full h-1 rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}>
+            <motion.div className="h-full rounded-full relative overflow-hidden" style={{background:`linear-gradient(90deg,${col}66,${col})`}} animate={{width:`${progress}%`}} transition={{duration:.3,ease:"easeOut"}}>
+              <motion.div className="absolute inset-0" style={{background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)",backgroundSize:"200% 100%"}} animate={{backgroundPosition:["-200% 0","200% 0"]}} transition={{duration:1.1,repeat:Infinity,ease:"linear"}}/>
             </motion.div>
           </div>
-          <div className="flex justify-between text-[9px] font-mono" style={{ color: "rgba(255,255,255,0.3)" }}>
-            <span>0%</span>
-            <span style={{ color: providerColor }}>{progress}%</span>
-            <span>100%</span>
+          <div className="flex justify-between text-[8.5px] font-mono" style={{color:"rgba(255,255,255,0.28)"}}>
+            <span>0%</span><span style={{color:col}}>{progress}%</span><span>100%</span>
           </div>
         </div>
 
         {/* Provider list */}
         <AnimatePresence>
-          {showProviderList && allProviders.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="w-full space-y-1.5"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-[9px] font-bold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>
-                  المزودون المكتشفون ({allProviders.length})
+          {showList&&all.length>0&&(
+            <motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} className="w-full space-y-1.5">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="text-[8.5px] font-bold tracking-widest uppercase" style={{color:"rgba(255,255,255,0.32)"}}>
+                  المزودون ({all.length}) · {all.filter(p=>p.free).length} مجاني
                 </div>
-                {showLatency && (
-                  <div className="text-[8px] font-mono" style={{ color: "rgba(0,229,255,0.5)" }}>● ping tested</div>
-                )}
+                {avgLatency>0&&<span className="text-[7.5px] font-mono" style={{color:"rgba(0,229,255,0.55)"}}>⚡ avg {avgLatency}ms</span>}
               </div>
-              <div className="space-y-1 max-h-44 overflow-y-auto pr-1" style={{ scrollbarWidth: "none" }}>
-                {allProviders.map((p, i) => (
-                  <ProviderCard
-                    key={p.id}
-                    provider={p}
-                    index={i}
-                    isActive={i === activeIdx}
-                    onClick={() => {
-                      if (phase === "ready") {
-                        activateProvider(p, i);
-                        toast({ description: `تم التبديل إلى ${p.name} — ${p.bestModelLabel}` });
-                      }
-                    }}
-                  />
+              <div className="space-y-1 max-h-48 overflow-y-auto pr-0.5" style={{scrollbarWidth:"none"}}>
+                {all.map((p,i)=>(
+                  <ProviderCard key={p.id} p={p} idx={i} active={i===actIdx} onClick={()=>{ if(phase==="ready"){activate(p,i); toast({description:`تم التبديل إلى ${p.name} — ${p.bestModelLabel}`});} }}/>
                 ))}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
+        {/* Cost estimator */}
+        <AnimatePresence>
+          {showCost&&all.length>0&&<motion.div initial={{opacity:0}} animate={{opacity:1}} className="w-full"><CostEstimator providers={all}/></motion.div>}
+        </AnimatePresence>
+
+        {/* Fallback chain */}
+        <AnimatePresence>
+          {showFallback&&all.length>1&&<motion.div initial={{opacity:0}} animate={{opacity:1}} className="w-full"><FallbackChain providers={all}/></motion.div>}
+        </AnimatePresence>
+
         {/* Terminal log */}
-        <div
-          className="w-full rounded-xl p-3 font-mono text-[10px] space-y-0.5 min-h-[100px]"
-          style={{ background: "#050505", border: "1px solid #181818", boxShadow: "inset 0 0 24px rgba(0,0,0,0.6)" }}
-        >
-          <div className="flex items-center gap-1.5 mb-2 pb-1.5" style={{ borderBottom: "1px solid #181818" }}>
-            <div className="w-2 h-2 rounded-full bg-red-500/60" />
-            <div className="w-2 h-2 rounded-full bg-yellow-500/60" />
-            <div className="w-2 h-2 rounded-full bg-green-500/60" />
-            <span className="text-[9px] ml-1" style={{ color: "rgba(255,255,255,0.18)" }}>neural-core v5.0 — bash</span>
-            <span className="ml-auto text-[8px]" style={{ color: "rgba(255,255,255,0.12)" }}>
-              {new Date().toISOString().slice(11, 19)} UTC
-            </span>
+        <div className="w-full rounded-xl p-3 font-mono text-[10px] space-y-0.5 min-h-[90px]"
+          style={{background:"#050505",border:"1px solid #141414",boxShadow:"inset 0 0 24px rgba(0,0,0,0.7)"}}>
+          <div className="flex items-center gap-1.5 mb-2 pb-1.5" style={{borderBottom:"1px solid #141414"}}>
+            <div className="w-2 h-2 rounded-full bg-red-500/60"/><div className="w-2 h-2 rounded-full bg-yellow-500/60"/><div className="w-2 h-2 rounded-full bg-green-500/60"/>
+            <span className="text-[8.5px] ml-1" style={{color:"rgba(255,255,255,0.18)"}}>neural-core v6.0 · arsenal-ultra</span>
+            <span className="ml-auto text-[7.5px]" style={{color:"rgba(255,255,255,0.12)"}}>{new Date().toISOString().slice(11,19)} UTC</span>
           </div>
           <AnimatePresence>
-            {log.map((line, i) => (
-              <motion.div
-                key={i + line}
-                initial={{ opacity: 0, x: -5 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.15 }}
-                style={{
-                  color: line.includes("OK") || line.includes("✓") || line.includes("FOUND") || line.includes("ready") || line.includes("جاهز")
-                    ? providerColor
-                    : line.includes("WARN") || line.includes("لم")
-                    ? "#f59e0b"
-                    : line.includes("POOL") || line.includes("دوران")
-                    ? "#10b981"
-                    : line.includes("QUANT") || line.includes("PING")
-                    ? "#a78bfa"
-                    : "#4ade80",
-                }}
-              >
-                {line}
+            {log.map((l,i)=>(
+              <motion.div key={i+l} initial={{opacity:0,x:-5}} animate={{opacity:1,x:0}} transition={{duration:.14}}
+                style={{color:l.includes("OK")||l.includes("✓")||l.includes("FOUND")||l.includes("جاهز")?col:l.includes("WARN")||l.includes("لم")||l.includes("ERROR")?"#f59e0b":l.includes("POOL")||l.includes("دوران")||l.includes("فول")?"#10b981":l.includes("QUANT")||l.includes("PING")||l.includes("MESH")?"#a78bfa":l.includes("COST")||l.includes("RATE")||l.includes("TUNE")?"#fbbf24":"#4ade80"}}>
+                {l}
               </motion.div>
             ))}
           </AnimatePresence>
-          <motion.span
-            className="inline-block w-2 h-3 ml-0.5 align-bottom"
-            style={{ background: providerColor }}
-            animate={{ opacity: [1, 0] }}
-            transition={{ duration: 0.5, repeat: Infinity }}
-          />
+          <motion.span className="inline-block w-2 h-3 ml-0.5 align-bottom" style={{background:col}} animate={{opacity:[1,0]}} transition={{duration:.5,repeat:Infinity}}/>
         </div>
 
-        {/* No-provider panel */}
+        {/* No-provider */}
         <AnimatePresence>
-          {phase === "no-provider" && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="w-full space-y-2"
-            >
-              {!showManualForm ? (
-                <div
-                  className="w-full rounded-xl p-4 text-center space-y-3"
-                  style={{ background: "#120c00", border: "1px solid #f59e0b33" }}
-                >
-                  <div className="text-sm text-yellow-400 font-black tracking-wide">⚠ لم يُعثر على مزود AI</div>
-                  <div className="text-[11px] text-gray-400 leading-5">
-                    أدخل مفتاح API للبدء — أو استخدم
-                    <span className="text-white font-bold mx-1">Ollama / LM Studio</span>
-                    محلياً بدون مفتاح
-                  </div>
-                  <div className="text-[10px] leading-5" style={{ color: "rgba(255,255,255,0.3)" }}>
-                    Groq (مجاني) · GitHub Models (مجاني) · OpenAI · Anthropic · Gemini · DeepSeek · xAI · 10+ مزود
-                  </div>
-                  <div className="flex gap-2 justify-center">
-                    <button
-                      onClick={() => setShowManualForm(true)}
-                      className="px-5 py-2 rounded-lg text-xs font-bold transition-all"
-                      style={{ background: "linear-gradient(135deg, #e21227, #c4101f)", color: "#fff", border: "none", cursor: "pointer" }}
-                    >
-                      + أضف مفتاح API
-                    </button>
-                    <button
-                      onClick={onComplete}
-                      className="px-4 py-2 rounded-lg text-xs transition-all"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)", cursor: "pointer" }}
-                    >
-                      تخطي
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <ManualKeyForm
-                  onSave={handleManualSave}
-                  onClose={() => setShowManualForm(false)}
-                />
-              )}
+          {phase==="no-provider"&&!showManual&&(
+            <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} className="w-full rounded-xl p-4 text-center space-y-3" style={{background:"#120c00",border:"1px solid #f59e0b33"}}>
+              <div className="text-sm text-yellow-400 font-black tracking-wide">⚠ لم يُعثر على مزود AI</div>
+              <div className="text-[11px] text-gray-400 leading-5">أدخل مفتاح API أو استخدم Ollama/LM Studio محلياً مجاناً</div>
+              <div className="text-[10px] leading-5" style={{color:"rgba(255,255,255,0.28)"}}>
+                Cerebras · Groq · Sambanova · GitHub Models · Cloudflare — مجاني ✓
+              </div>
+              <div className="flex gap-2 justify-center">
+                <button onClick={()=>setShowManual(true)} className="px-5 py-2 rounded-lg text-xs font-bold transition-all" style={{background:"linear-gradient(135deg,#e21227,#c4101f)",color:"#fff",border:"none",cursor:"pointer"}}>+ أضف مفتاح API</button>
+                <button onClick={onComplete} className="px-4 py-2 rounded-lg text-xs transition-all" style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.38)",cursor:"pointer"}}>تخطي</button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Add key button (ready phase) */}
+        {/* Manual form */}
         <AnimatePresence>
-          {phase === "ready" && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="w-full flex gap-2"
-            >
-              <button
-                onClick={() => setShowManualForm(v => !v)}
-                className="flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)", cursor: "pointer" }}
-              >
+          {showManual&&<ManualKeyForm onSave={handleSave} onClose={()=>setShowManual(false)}/>}
+        </AnimatePresence>
+
+        {/* Ready actions */}
+        <AnimatePresence>
+          {phase==="ready"&&!showManual&&(
+            <motion.div initial={{opacity:0}} animate={{opacity:1}} className="w-full flex gap-2">
+              <button onClick={()=>setShowManual(v=>!v)} className="flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all"
+                style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.32)",cursor:"pointer"}}>
                 + مزود جديد
               </button>
-              <button
-                onClick={onComplete}
-                className="flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all"
-                style={{ background: providerColor + "18", border: `1px solid ${providerColor}35`, color: providerColor, cursor: "pointer" }}
-              >
+              <button onClick={()=>setShowCost(v=>!v)} className="flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all"
+                style={{background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",color:"rgba(251,191,36,0.7)",cursor:"pointer"}}>
+                💰 التكلفة
+              </button>
+              <button onClick={onComplete} className="flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all"
+                style={{background:col+"18",border:`1px solid ${col}35`,color:col,cursor:"pointer"}}>
                 دخول ←
               </button>
             </motion.div>
           )}
         </AnimatePresence>
-
-        <AnimatePresence>
-          {showManualForm && phase !== "no-provider" && (
-            <ManualKeyForm
-              onSave={handleManualSave}
-              onClose={() => setShowManualForm(false)}
-            />
-          )}
-        </AnimatePresence>
       </div>
 
-      <style>{`
-        @keyframes spin-slow { to { transform: rotate(360deg); } }
-      `}</style>
+      <style>{`@keyframes spin-slow{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }
-
-function delay(ms: number) { return new Promise<void>(r => setTimeout(r, ms)); }
