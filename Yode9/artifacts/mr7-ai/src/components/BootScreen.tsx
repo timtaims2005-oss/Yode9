@@ -72,6 +72,15 @@ const BOOT_LOG = [
   { ms: 2572, text: "[ KNOW ] Knowledge graph: 1.2B triples loaded — Neo4j cluster OK",      col: "#00e5ff" },
   { ms: 2578, text: "[ APIM ] API gateway: rate throttle 50K req/s — CDN edge warm",         col: "#fbbf24" },
   { ms: 2580, text: "[ DONE ] ████████████████████ 100% — WELCOME, OPERATOR. GODSPEED.",    col: "#e21227" },
+  /* ── v6.2 NEW BOOT ENTRIES ── */
+  { ms: 2583, text: "[ DECP ] Deception grid: 120 canary tokens + 40 fake credentials deployed", col: "#fbbf24" },
+  { ms: 2586, text: "[ REDX ] RedXTF engine: 18 red-team task-force agents initialized",          col: "#e21227" },
+  { ms: 2589, text: "[ NTPX ] NTP precision sync: 0.000004s drift — GPS-disciplined OCXO OK",     col: "#00ff41" },
+  { ms: 2592, text: "[ SHLD ] QuantumShield v2: post-quantum TLS 1.4 layer armed",                col: "#a78bfa" },
+  { ms: 2595, text: "[ MDLN ] MalDNA engine: 94M malware feature vectors loaded — ready",         col: "#e21227" },
+  { ms: 2598, text: "[ BRKR ] Circuit breaker v3: 50K req/s burst absorb — thresholds OK",        col: "#00e5ff" },
+  { ms: 2601, text: "[ PRXY ] SOCKS5 proxy pool: 440 rotating exits — anonymity GUARANTEED",      col: "#a78bfa" },
+  { ms: 2604, text: "[ INIT ] Adaptive persona matrix: 64 operator profiles — context aware",     col: "#22c55e" },
 ];
 
 /* ── Crypto status ── */
@@ -187,6 +196,12 @@ const MODULES_FLASH = [
   "FirmwareRip v2","SatelliteHack","HardwareFuzz","SideChanAnalyze",
   "NFC Exploit Kit","5G CorePwn","BGP Hijacker","CDN Poison Pro",
   "TokenStealer AI","SessionForge","OAuth Bypass","SAMLForge",
+  /* ── v6.2 NEW ── */
+  "DeceptionGrid v2","RedXTF Engine","MalDNA v2","QuantumShield v2",
+  "ProxyPool 440x","AdaptivePersona","ThreatGraph v3","SOCAutomate",
+  "MemShield AI","PacketForge Pro","DNSGuard Ultra","ARP Spoofware",
+  "SMBRelay v3","KerbeRoast Kit","DCSync Probe","PassTheHash AI",
+  "EvasionKit v4","AV Bypass Pro","EDR Killer v2","ShellcodeGen AI",
 ];
 
 /* ── 30 subsystems ── */
@@ -232,6 +247,17 @@ const SUBSYSTEMS = [
   { label: "FirmwareFuzz v2",   status: "RDY",  col: "#e21227", delay: 2630 },
   { label: "5G CorePwn",        status: "ARM",  col: "#00e5ff", delay: 2660 },
   { label: "DiffPrivacy Eng",   status: "ε≈0",  col: "#22c55e", delay: 2690 },
+  /* ── v6.2 NEW SUBSYSTEMS ── */
+  { label: "DeceptionGrid v2",  status: "120T", col: "#fbbf24", delay: 2720 },
+  { label: "RedXTF Engine",     status: "18A",  col: "#e21227", delay: 2750 },
+  { label: "MalDNA v2",         status: "94M",  col: "#e21227", delay: 2778 },
+  { label: "QuantumShield v2",  status: "TLS4", col: "#a78bfa", delay: 2806 },
+  { label: "ProxyPool 440x",    status: "440P", col: "#a78bfa", delay: 2830 },
+  { label: "SOC Automate",      status: "LIVE", col: "#00e5ff", delay: 2854 },
+  { label: "ThreatGraph v3",    status: "OK",   col: "#fbbf24", delay: 2876 },
+  { label: "EvasionKit v4",     status: "RDY",  col: "#e21227", delay: 2898 },
+  { label: "ShellcodeGen AI",   status: "ARM",  col: "#e21227", delay: 2918 },
+  { label: "EDR Killer v2",     status: "RDY",  col: "#f97316", delay: 2936 },
 ];
 
 /* ── System metrics ── */
@@ -250,6 +276,11 @@ const SYS_METRICS = [
   { label: "KNOW GRAPH",     pct: 82,  col: "#a78bfa" },
   { label: "AUTOPENTEST",    pct: 89,  col: "#e21227" },
   { label: "DIFF PRIVACY",   pct: 100, col: "#22c55e" },
+  /* ── v6.2 NEW METRICS ── */
+  { label: "DECEPTION GRID",  pct: 100, col: "#fbbf24" },
+  { label: "MALDNA ENGINE",   pct: 93,  col: "#e21227" },
+  { label: "PROXY POOL",      pct: 87,  col: "#a78bfa" },
+  { label: "EDR KILLER",      pct: 79,  col: "#f97316" },
 ];
 
 /* ── Threat events ── */
@@ -283,6 +314,17 @@ const THREAT_EVENTS = [
   "OAuth token replay: session forged — revoking now",
   "Zero-trust bypass: lateral movement via trusted service",
   "Satellite uplink spoof: ADS-B ghost aircraft injected",
+  /* ── v6.2 NEW THREATS ── */
+  "MalDNA match: polymorphic dropper — 94M-vector signature hit",
+  "EDR evasion: reflective DLL injection bypassed CrowdStrike Falcon",
+  "Pass-the-Hash: NTLM relay on 6 domain controllers — mitigating",
+  "Kerberoast: 12 service tickets cracked offline — resetting SPNs",
+  "DCSync attack: domain replication rights detected — isolating",
+  "ARP poisoning: 8 hosts MITM'd on 10.0.1.0/24 — blocking",
+  "SMBRelay v3: NTLM capture → access granted on FILE-SRV03",
+  "Deception canary tripped: attacker touched fake admin credentials",
+  "Red team beacon C2 check-in: 240-second jitter via HTTPS",
+  "Quantum decryption attempt: Shor's algorithm probe on RSA-2048",
 ];
 
 /* ── Network nodes ── */
@@ -337,6 +379,12 @@ const QUICK_LAUNCH = [
   { label: "Supply Chain",    emoji: "🔗", path: "/app",     col: "#fbbf24", sub: "سلسلة التوريد" },
   { label: "AI Red Team",     emoji: "🧬", path: "/app",     col: "#ff0080", sub: "نموذج هجومي" },
   { label: "KnowGraph AI",    emoji: "🕸",  path: "/app",     col: "#a78bfa", sub: "رسم المعرفة" },
+  /* ── v6.2 NEW TOOLS ── */
+  { label: "DeceptionGrid",   emoji: "🪤", path: "/app",     col: "#fbbf24", sub: "canary tokens" },
+  { label: "MalDNA v2",       emoji: "🧬", path: "/app",     col: "#e21227", sub: "94M signatures" },
+  { label: "EDR Killer v2",   emoji: "🔪", path: "/app",     col: "#f97316", sub: "bypass + evade" },
+  { label: "PassHash AI",     emoji: "🗝",  path: "/app",     col: "#a78bfa", sub: "NTLM relay" },
+  { label: "ShellcodeGen AI", emoji: "💣", path: "/app",     col: "#e21227", sub: "AV-bypass shell" },
 ];
 
 /* ── AI benchmarks ── */

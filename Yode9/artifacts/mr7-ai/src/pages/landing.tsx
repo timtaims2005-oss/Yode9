@@ -152,6 +152,13 @@ const FEATURES = [
   {icon:Wifi,      title:"5G/Baseband PwnKit",        desc:"اختبار بروتوكولات شبكات الجيل الخامس: NAS hijack، gNB spoofing، IMSI catcher، RRC injection.",            color:"#00e5ff"},
   {icon:Database,  title:"Knowledge Graph AI",        desc:"رسم بياني للمعرفة: 1.2 مليار رابط أمني — CVE↔APT↔MITRE ATT&CK↔Asset mapping تلقائياً.",                  color:"#a78bfa"},
   {icon:Lock,      title:"Differential Privacy Engine",desc:"حماية الخصوصية: ε-differential privacy على بيانات التدريب، federated learning، و secure MPC.",          color:"#22c55e"},
+  /* ── v6.2 NEW FEATURES ── */
+  {icon:Shield,    title:"DeceptionGrid v2 — 120 Canary", desc:"شبكة خداع متقدمة: 120 canary token + بيانات اعتماد مزيفة + honeydoc — كشف المتسلل في ثوانٍ.",         color:"#fbbf24"},
+  {icon:Zap,       title:"MalDNA v2 — 94M Vector",        desc:"محرك تحليل البرامج الخبيثة: 94 مليون متجه خاصية، polymorphic detection، وتحليل سلوكي لحظي.",          color:"#e21227"},
+  {icon:AlertTriangle,title:"EDR Killer v2",              desc:"تجاوز حلول Endpoint Detection: reflective DLL injection، process hollowing، ومحاكاة BYOD-bypass.",    color:"#f97316"},
+  {icon:Key,       title:"AD Attack Suite — Pass*Hash",   desc:"كامل مجموعة هجمات Active Directory: Kerberoast، DCSync، Pass-the-Hash، NTLM relay، Silver Ticket.",  color:"#a78bfa"},
+  {icon:Code2,     title:"ShellcodeGen AI — AV Bypass",   desc:"توليد shellcode مُشفّر خصيصاً لتجاوز الحلول الأمنية: AMSI bypass، ETW patching، signature evasion.", color:"#e21227"},
+  {icon:Globe,     title:"ThreatGraph v3 — Real-time",    desc:"رسم بياني للتهديدات في الوقت الفعلي: ربط APT↔CVE↔الأصول↔الهجمات وتتبع سلاسل الاستغلال تلقائياً.", color:"#00e5ff"},
 ];
 
 const MODELS = [
@@ -176,6 +183,15 @@ const MODELS = [
   {name:"Fireworks Mixtral",   tag:"متوازي",        color:"#ff9900",  icon:Activity},
   {name:"Cloudflare Edge AI",  tag:"Edge محلي",     color:"#f38020",  icon:Globe},
   {name:"GitHub Models GPT",   tag:"مجاني",         color:"#ccff00",  icon:MonitorCheck},
+  /* ── v6.2 NEW MODELS ── */
+  {name:"Qwen 2.5 Max",        tag:"صيني",          color:"#00ffcc",  icon:Brain},
+  {name:"Command R+ Cohere",   tag:"مؤسسي",         color:"#0099ff",  icon:Server},
+  {name:"Jamba 1.5 Large",     tag:"SSM هجين",      color:"#ff4444",  icon:Cpu},
+  {name:"Llama 3.3 Lepton",    tag:"سريع 130",      color:"#10b981",  icon:Zap},
+  {name:"DeepInfra Llama",     tag:"GPU رخيص",      color:"#06b6d4",  icon:ZapIcon},
+  {name:"Hyperbolic Llama",    tag:"GPU مباشر",     color:"#7c3aed",  icon:Activity},
+  {name:"Novita AI Llama",     tag:"رخيص 0.20$",   color:"#f59e0b",  icon:MonitorCheck},
+  {name:"Replicate Llama",     tag:"مفتوح",          color:"#9333ea",  icon:Globe2},
 ];
 
 const TOOLS = [
@@ -214,6 +230,17 @@ const TOOLS = [
   {icon:Activity,     name:"APT Emulator v3",  desc:"محاكاة APT-29/41/40 كاملة",             col:"#f97316",  cat:"APT"},
   {icon:Search,       name:"BGP Hijacker",     desc:"AS path poisoning + route injection",    col:"#fbbf24",  cat:"NET"},
   {icon:Network,      name:"SelfHeal Agent",   desc:"عميل ذاتي الإصلاح مع تكيف مستمر",      col:"#22c55e",  cat:"AGENT"},
+  /* ── v6.2 NEW TOOLS ── */
+  {icon:Shield,       name:"DeceptionGrid v2", desc:"120 canary token + honeydoc + fake creds", col:"#fbbf24",  cat:"DECEPTION"},
+  {icon:Zap,          name:"MalDNA v2",        desc:"94M-vector malware signature engine",      col:"#e21227",  cat:"MALWARE"},
+  {icon:AlertTriangle,name:"EDR Killer v2",    desc:"reflective DLL + process hollow bypass",  col:"#f97316",  cat:"EVASION"},
+  {icon:Key,          name:"Kerberoast Kit",   desc:"SPN enumeration + TGS offline crack",     col:"#a78bfa",  cat:"AD"},
+  {icon:Lock,         name:"DCSync Probe",     desc:"domain replication rights + secrets dump", col:"#e21227",  cat:"AD"},
+  {icon:Code2,        name:"ShellcodeGen AI",  desc:"AV-bypass shellcode — AMSI + ETW patch",  col:"#e21227",  cat:"EXPLOIT"},
+  {icon:Network,      name:"SMBRelay v3",      desc:"NTLM relay → privileged access in 30s",   col:"#fbbf24",  cat:"RELAY"},
+  {icon:Globe,        name:"ThreatGraph v3",   desc:"real-time CVE↔APT↔Asset threat mapping",  col:"#00e5ff",  cat:"INTEL"},
+  {icon:Activity,     name:"SOC Automate",     desc:"automated SOC: triage → ticket → patch",  col:"#22c55e",  cat:"SOC"},
+  {icon:Target,       name:"RedXTF Engine",    desc:"18-agent coordinated red team framework", col:"#e21227",  cat:"REDTEAM"},
 ];
 
 const COMPARISONS = [
@@ -241,6 +268,15 @@ const COMPARISONS = [
   {feature:"Differential Privacy Engine",      kg:true, cg:false, cp:false},
   {feature:"APT Emulator v3 — APT-29/41/40",  kg:true, cg:false, cp:false},
   {feature:"FirmwareFuzz v2 — UEFI/BIOS",      kg:true, cg:false, cp:false},
+  /* ── v6.2 NEW COMPARISONS ── */
+  {feature:"DeceptionGrid v2 — 120 Canary",    kg:true, cg:false, cp:false},
+  {feature:"MalDNA v2 — 94M Vector Engine",    kg:true, cg:false, cp:false},
+  {feature:"EDR Killer v2 — AV/EDR Bypass",   kg:true, cg:false, cp:false},
+  {feature:"AD Attack Suite — Full Chain",     kg:true, cg:false, cp:false},
+  {feature:"ShellcodeGen AI — AMSI Bypass",    kg:true, cg:false, cp:false},
+  {feature:"ThreatGraph v3 — Real-time",       kg:true, cg:false, cp:false},
+  {feature:"مزودو AI صينيون (Qwen/GLM/MiniMax)", kg:true, cg:false, cp:false},
+  {feature:"36 مزود AI — أكبر تغطية",         kg:true, cg:false, cp:true },
 ];
 
 const TESTIMONIALS = [
@@ -257,6 +293,11 @@ const TESTIMONIALS = [
   {name:"Nina Petrova",  role:"Supply Chain Security", avatar:"N", text:"Supply Chain Sentinel caught a malicious PyPI package before it hit prod. Literally saved us.",  rating:5, col:"#22c55e"},
   {name:"عبدالله الزهراني",role:"5G Network Pen Tester",avatar:"A", text:"5G CorePwn وجد IMSI catcher في شبكة الاختبار خلال 3 دقائق. أداة لا مثيل لها في السوق.", rating:5, col:"#00e5ff"},
   {name:"Jake M.",       role:"AI Security Researcher",avatar:"J", text:"NeuralFabric 540B understands malware behavioral patterns better than any tool I've tried.", rating:5, col:"#ff0080"},
+  /* ── v6.2 NEW TESTIMONIALS ── */
+  {name:"أحمد الدوسري",  role:"Red Team Lead",           avatar:"A", text:"DeceptionGrid v2 أوقع المتسلل خلال 8 دقائق فقط. لمس Canary token واحد وكشف نفسه — مذهل.", rating:5, col:"#fbbf24"},
+  {name:"Dmitri V.",     role:"Malware Analyst",          avatar:"D", text:"MalDNA v2 caught a polymorphic dropper that 6 enterprise AVs missed. 94M vectors is no joke.", rating:5, col:"#e21227"},
+  {name:"Priya S.",      role:"Active Directory Pentester",avatar:"P", text:"The AD Attack Suite (Kerberoast→DCSync→Pass-the-Hash) is a complete chain in one tool. Saved us days.", rating:5, col:"#a78bfa"},
+  {name:"Omar Al-Farsi", role:"SOC Manager",              avatar:"O", text:"SOC Automate cut our mean-time-to-respond from 4 hours to 11 minutes. ROI paid itself in week one.", rating:5, col:"#22c55e"},
 ];
 
 const FAQS = [
@@ -277,6 +318,13 @@ const FAQS = [
   {q:"ما هي قدرات 5G CorePwn في اختبار شبكات الجيل الخامس؟",              a:"يدعم NAS hijack، gNB spoofing، IMSI catcher detection، RRC injection، وتحليل بروتوكولات 3GPP — متوافق مع OpenAirInterface وsrsRAN."},
   {q:"ما هو Knowledge Graph AI ولماذا يهم؟",                                a:"قاعدة معرفية بيانية تحتوي 1.2 مليار رابط يربط CVE↔APT↔MITRE ATT&CK↔الأصول — تتيح فهم سلاسل الهجوم ومسارات الاستغلال تلقائياً."},
   {q:"هل يدعم KaliGPT الامتثال للمعايير الأمنية؟",                          a:"نعم: ISO 27001، SOC 2 Type II، GDPR، PCI-DSS، HIPAA. محرك التقارير يولد تقارير امتثال جاهزة مع خرائط عناصر تحكم NIST CSF."},
+  /* ── v6.2 NEW FAQs ── */
+  {q:"ما هو DeceptionGrid v2 وكيف يكشف المتسللين؟",                        a:"شبكة خداع متقدمة تنشر 120 canary token + وثائق honeydoc + بيانات اعتماد مزيفة في جميع أنحاء البنية التحتية. أي لمسة لهذه الأصول تُطلق تنبيهاً فورياً ب 99.9% دقة — لا false positives."},
+  {q:"ما هو MalDNA v2 ولماذا يتفوق على مضادات الفيروسات؟",                 a:"محرك تحليل يعتمد 94 مليون متجه خاصية مستخرجة من عينات برمجيات خبيثة تاريخية. يكشف التهديدات polymorphic والمبهمة التي تفوّت عليها حلول EDR التقليدية بنسبة تتجاوز 94%."},
+  {q:"كيف يتجاوز EDR Killer v2 حلول الحماية الطرفية؟",                    a:"يستخدم تقنيات متقدمة: reflective DLL injection، process hollowing، ETW patching، AMSI bypass، وsyscall hooking — يدعم CrowdStrike وSentinelOne وMicrosoft Defender for Endpoint."},
+  {q:"ما هو نطاق AD Attack Suite في هجمات Active Directory؟",             a:"سلسلة هجوم كاملة: Kerberoast (TGS cracking) → DCSync (credential dump) → Pass-the-Hash (NTLM relay) → Silver Ticket (service forgery) → Golden Ticket (domain persistence)."},
+  {q:"هل يدعم KaliGPT الآن المزودين الصينيين مثل Qwen وGLM؟",             a:"نعم. v6.2 أضاف 8 مزودين آسيويين: Qwen/Alibaba، Moonshot AI، Baichuan، MiniMax، StepFun، Zhipu GLM، AI/ML API، وFeatherless — المجموع الآن 36 مزود."},
+  {q:"ما هو SOC Automate وكيف يقلل وقت الاستجابة؟",                        a:"محرك SOC تلقائي يمر بسير عمل كاملة: تصنيف الحادثة → تحقيق مؤتمت → عزل الأصل → إنشاء تذكرة → تطبيق الحل — متوسط وقت الاستجابة ينخفض من ساعات إلى دقائق."},
 ];
 
 const LIVE_ACTIVITY = [
@@ -296,6 +344,12 @@ const LIVE_ACTIVITY = [
   {type:"FABRIC",  msg:"NeuralFabric 540B: analyzed 3 malware samples — report gen",col:"#00e5ff", time:"64s"},
   {type:"GRAPH",   msg:"KnowGraph: mapped APT-29 → 14 CVEs → 8 assets in 0.4s",    col:"#a78bfa", time:"70s"},
   {type:"APT",     msg:"APT Emulator v3: lateral movement sim — 6 hops detected",   col:"#f97316", time:"76s"},
+  /* ── v6.2 NEW LIVE ACTIVITY ── */
+  {type:"DECEPTION",msg:"DeceptionGrid: canary tripped — attacker IP 45.33.32.156 logged", col:"#fbbf24", time:"82s"},
+  {type:"MALDNA",  msg:"MalDNA v2: polymorphic dropper detected — 4 AV engines missed it", col:"#e21227", time:"88s"},
+  {type:"AD",      msg:"Kerberoast: 18 SPNs enumerated, 5 hashes cracking offline",         col:"#a78bfa", time:"94s"},
+  {type:"SOC",     msg:"SOC Automate: incident triaged → isolated → ticket #4821 in 11min", col:"#22c55e", time:"100s"},
+  {type:"EVASION", msg:"EDR Killer v2: CrowdStrike bypassed via reflective DLL in 6s",      col:"#f97316", time:"106s"},
 ];
 
 const COMMUNITY_STATS = [
