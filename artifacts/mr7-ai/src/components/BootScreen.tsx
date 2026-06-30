@@ -69,6 +69,34 @@ const BOOT_LOG = [
   { ms: 2580, text: "[ DONE ] ████████████████████ 100% — WELCOME, OPERATOR. GODSPEED.",    col: "#e21227" },
 ];
 
+/* ── Crypto status ── */
+const CRYPTO_STATUS = [
+  { algo: "Kyber-1024",     type: "KEM",        bits: 1024, status: "ACTIVE",  col: "#a78bfa", strength: 98 },
+  { algo: "Dilithium-5",    type: "SIGN",       bits: 256,  status: "ACTIVE",  col: "#a78bfa", strength: 99 },
+  { algo: "SPHINCS+-256",   type: "HASH-SIGN",  bits: 256,  status: "ACTIVE",  col: "#00e5ff", strength: 97 },
+  { algo: "AES-256-GCM",    type: "SYMM",       bits: 256,  status: "ACTIVE",  col: "#22c55e", strength: 100 },
+  { algo: "ChaCha20-Poly",  type: "SYMM",       bits: 256,  status: "ACTIVE",  col: "#22c55e", strength: 99 },
+  { algo: "X25519",         type: "DH",         bits: 255,  status: "ACTIVE",  col: "#00e5ff", strength: 96 },
+  { algo: "Ed448",          type: "SIGN",       bits: 448,  status: "ACTIVE",  col: "#a78bfa", strength: 99 },
+  { algo: "NTRU-Prime",     type: "KEM",        bits: 761,  status: "ARMED",   col: "#fbbf24", strength: 95 },
+  { algo: "FrodoKEM",       type: "KEM",        bits: 1344, status: "STANDBY", col: "#f97316", strength: 94 },
+  { algo: "RSA-8192",       type: "LEGACY",     bits: 8192, status: "MONITOR", col: "#e21227", strength: 72 },
+];
+
+/* ── Radar contacts ── */
+const RADAR_CONTACTS = [
+  { id:"TGT-01", type:"HOST",    threat:"CRIT", ang: 30,  dist: 0.55, col:"#e21227" },
+  { id:"TGT-02", type:"APT",     threat:"HIGH", ang: 75,  dist: 0.72, col:"#fbbf24" },
+  { id:"TGT-03", type:"BOT",     threat:"MED",  ang:140,  dist: 0.38, col:"#a78bfa" },
+  { id:"TGT-04", type:"CVE",     threat:"CRIT", ang:200,  dist: 0.61, col:"#e21227" },
+  { id:"TGT-05", type:"SCAN",    threat:"LOW",  ang:255,  dist: 0.83, col:"#22c55e" },
+  { id:"TGT-06", type:"RANSOMW", threat:"CRIT", ang:310,  dist: 0.45, col:"#e21227" },
+  { id:"TGT-07", type:"ICS",     threat:"HIGH", ang:  5,  dist: 0.92, col:"#fbbf24" },
+  { id:"TGT-08", type:"CLOUD",   threat:"MED",  ang:105,  dist: 0.67, col:"#a78bfa" },
+  { id:"TGT-09", type:"WIFI",    threat:"LOW",  ang:170,  dist: 0.29, col:"#00e5ff" },
+  { id:"TGT-10", type:"K8S",     threat:"HIGH", ang:340,  dist: 0.58, col:"#fbbf24" },
+];
+
 /* ── 70 modules ── */
 const MODULES_FLASH = [
   "KaliAgent v6","NEXUS CORE","JARVIS PRO","Parseltongue v4","RAGFlow v2","OpenGravity",
@@ -198,6 +226,10 @@ const QUICK_LAUNCH = [
   { label: "Roadmap",         emoji: "🗺",  path: "/roadmap", col: "#22c55e", sub: "خريطة الطريق" },
   { label: "CVE Watcher",     emoji: "🛡",  path: "/app",     col: "#fbbf24", sub: "ثغرات حية" },
   { label: "Binary Analysis", emoji: "💻", path: "/app",     col: "#a78bfa", sub: "Ghidra + r2" },
+  { label: "AI Adversarial",  emoji: "🤖", path: "/app",     col: "#ff0080", sub: "LLM Jailbreak" },
+  { label: "SIGINT Module",   emoji: "📡", path: "/app",     col: "#a78bfa", sub: "RF Spectrum" },
+  { label: "Forensics AI",    emoji: "🔬", path: "/app",     col: "#22c55e", sub: "Volatility3 + YARA" },
+  { label: "ZeroDay Scanner", emoji: "🎯", path: "/app",     col: "#fbbf24", sub: "AFL++ + LibFuzzer" },
 ];
 
 /* ── AI benchmarks ── */
@@ -500,6 +532,147 @@ function SwarmAgentPanel() {
   );
 }
 
+function RadarPanel() {
+  const cv = useRef<HTMLCanvasElement>(null);
+  const raf = useRef(0);
+  useEffect(() => {
+    const c = cv.current; if (!c) return;
+    const ctx = c.getContext("2d")!;
+    c.width = 280; c.height = 280;
+    const cx = 140, cy = 140, R = 120;
+    let sweep = 0, t = 0;
+    const blips: { ang: number; dist: number; col: string; alpha: number; id: string; type: string; threat: string }[] = RADAR_CONTACTS.map(rc => ({
+      ang: (rc.ang * Math.PI) / 180, dist: rc.dist, col: rc.col, alpha: 0, id: rc.id, type: rc.type, threat: rc.threat,
+    }));
+    const draw = () => {
+      t += 0.018; sweep = (sweep + 0.022) % (Math.PI * 2);
+      ctx.clearRect(0, 0, 280, 280);
+      ctx.fillStyle = "#020808"; ctx.fillRect(0, 0, 280, 280);
+      const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+      bg.addColorStop(0, "rgba(0,229,255,0.06)"); bg.addColorStop(1, "rgba(0,229,255,0.01)");
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fillStyle = bg; ctx.fill();
+      [1, 0.75, 0.5, 0.25].forEach(f => {
+        ctx.beginPath(); ctx.arc(cx, cy, R * f, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0,229,255,${0.06 + f * 0.04})`; ctx.lineWidth = 0.7; ctx.stroke();
+      });
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
+        ctx.strokeStyle = "rgba(0,229,255,0.07)"; ctx.lineWidth = 0.5; ctx.stroke();
+      }
+      const sweepGrad = ctx.createConicalGradient ? null : null;
+      ctx.save();
+      const grad = ctx.createLinearGradient(cx, cy, cx + Math.cos(sweep) * R, cy + Math.sin(sweep) * R);
+      grad.addColorStop(0, "rgba(0,229,255,0.0)"); grad.addColorStop(1, "rgba(0,229,255,0.35)");
+      for (let a = sweep - 0.9; a < sweep; a += 0.04) {
+        const fadeA = (a - (sweep - 0.9)) / 0.9;
+        ctx.beginPath(); ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, R, a, a + 0.04);
+        ctx.closePath();
+        ctx.fillStyle = `rgba(0,229,255,${fadeA * 0.18})`; ctx.fill();
+      }
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(sweep) * R, cy + Math.sin(sweep) * R);
+      ctx.strokeStyle = "rgba(0,229,255,0.9)"; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.restore();
+      blips.forEach(b => {
+        const diff = Math.abs(((sweep - b.ang) + Math.PI * 4) % (Math.PI * 2));
+        if (diff < 0.1) b.alpha = 1;
+        else b.alpha = Math.max(0, b.alpha - 0.003);
+        if (b.alpha > 0) {
+          const bx = cx + Math.cos(b.ang) * R * b.dist;
+          const by = cy + Math.sin(b.ang) * R * b.dist;
+          const glow = ctx.createRadialGradient(bx, by, 0, bx, by, 10);
+          glow.addColorStop(0, b.col + Math.floor(b.alpha * 200).toString(16).padStart(2, "0"));
+          glow.addColorStop(1, b.col + "00");
+          ctx.beginPath(); ctx.arc(bx, by, 10, 0, Math.PI * 2); ctx.fillStyle = glow; ctx.fill();
+          ctx.beginPath(); ctx.arc(bx, by, 3, 0, Math.PI * 2);
+          ctx.fillStyle = b.col; ctx.fill();
+          ctx.font = "bold 6.5px monospace"; ctx.fillStyle = `rgba(255,255,255,${b.alpha * 0.75})`;
+          ctx.fillText(`${b.type}`, bx + 5, by - 4);
+        }
+      });
+      ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fillStyle = "#00e5ff"; ctx.fill();
+      ctx.font = "7px monospace"; ctx.fillStyle = "rgba(0,229,255,0.4)";
+      ctx.fillText("N", cx - 3, cy - R - 4); ctx.fillText("S", cx - 2, cy + R + 12);
+      ctx.fillText("E", cx + R + 4, cy + 3); ctx.fillText("W", cx - R - 12, cy + 3);
+      raf.current = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(raf.current);
+  }, []);
+  const critCount = RADAR_CONTACTS.filter(r => r.threat === "CRIT").length;
+  const highCount = RADAR_CONTACTS.filter(r => r.threat === "HIGH").length;
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ fontSize: 6.5, fontFamily: "monospace", letterSpacing: "0.3em", marginBottom: 8, color: "rgba(226,18,39,0.55)", fontWeight: 700 }}>
+        ▶ THREAT RADAR — {RADAR_CONTACTS.length} CONTACTS
+      </div>
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <canvas ref={cv} style={{ display: "block", width: 200, height: 200 }} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, marginTop: 6 }}>
+        {[{ label: "CRITICAL", val: critCount, col: "#e21227" }, { label: "HIGH", val: highCount, col: "#fbbf24" }, { label: "TOTAL", val: RADAR_CONTACTS.length, col: "#00e5ff" }].map(s => (
+          <div key={s.label} style={{ textAlign: "center", padding: "4px 2px", borderRadius: 4, background: `${s.col}08`, border: `1px solid ${s.col}20` }}>
+            <div style={{ fontSize: 11, fontFamily: "monospace", fontWeight: 700, color: s.col }}>{s.val}</div>
+            <div style={{ fontSize: 5.5, fontFamily: "monospace", color: "rgba(255,255,255,0.25)" }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 3 }}>
+        {RADAR_CONTACTS.slice(0, 5).map((rc, i) => (
+          <motion.div key={rc.id} initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+            style={{ display: "flex", alignItems: "center", gap: 5, padding: "2px 4px", borderRadius: 3, background: `${rc.col}08`, border: `1px solid ${rc.col}15` }}>
+            <motion.div style={{ width: 4, height: 4, borderRadius: "50%", background: rc.col, flexShrink: 0 }} animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 1, repeat: Infinity }} />
+            <span style={{ fontSize: 5.5, fontFamily: "monospace", color: rc.col, fontWeight: 700, width: 40, flexShrink: 0 }}>{rc.id}</span>
+            <span style={{ fontSize: 5.5, fontFamily: "monospace", color: "rgba(255,255,255,0.4)" }}>{rc.type}</span>
+            <span style={{ fontSize: 5, fontFamily: "monospace", color: rc.col, marginLeft: "auto" }}>{rc.threat}</span>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CryptoPanel() {
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ fontSize: 6.5, fontFamily: "monospace", letterSpacing: "0.3em", marginBottom: 8, color: "rgba(167,139,250,0.55)", fontWeight: 700 }}>
+        ▶ QUANTUM CRYPTO SUITE
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {CRYPTO_STATUS.map((c, i) => (
+          <motion.div key={c.algo} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
+            style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 5px", borderRadius: 4, background: `${c.col}06`, border: `1px solid ${c.col}15` }}>
+            <motion.div style={{ width: 5, height: 5, borderRadius: "50%", background: c.col, boxShadow: `0 0 6px ${c.col}`, flexShrink: 0 }}
+              animate={c.status === "ACTIVE" ? { opacity: [0.7, 1, 0.7] } : { opacity: 0.4 }} transition={{ duration: 1.4, repeat: Infinity }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 6.5, fontFamily: "monospace", color: "rgba(255,255,255,0.6)", fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.algo}</div>
+              <div style={{ fontSize: 5.5, fontFamily: "monospace", color: "rgba(255,255,255,0.22)" }}>{c.type} · {c.bits}b</div>
+            </div>
+            <div style={{ width: 32, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden", flexShrink: 0 }}>
+              <motion.div style={{ height: "100%", background: `linear-gradient(90deg,${c.col}55,${c.col})`, borderRadius: 2 }}
+                initial={{ width: 0 }} animate={{ width: `${c.strength}%` }} transition={{ delay: i * 0.07 + 0.3, duration: 0.8 }} />
+            </div>
+            <span style={{ fontSize: 5, fontFamily: "monospace", fontWeight: 700, padding: "1px 3px", borderRadius: 2, background: `${c.col}18`, color: c.col, flexShrink: 0 }}>{c.status}</span>
+          </motion.div>
+        ))}
+      </div>
+      <div style={{ marginTop: 8, padding: "5px 8px", borderRadius: 6, background: "rgba(167,139,250,0.06)", border: "1px solid rgba(167,139,250,0.15)" }}>
+        <div style={{ fontSize: 6, fontFamily: "monospace", color: "rgba(167,139,250,0.7)", marginBottom: 3 }}>QUANTUM COHERENCE</div>
+        <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+          <motion.div style={{ height: "100%", background: "linear-gradient(90deg,#a78bfa,#00e5ff,#a78bfa)", borderRadius: 2 }}
+            animate={{ width: ["97%", "99.99%", "97%"] }} transition={{ duration: 3.5, repeat: Infinity }} />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+          <span style={{ fontSize: 5.5, fontFamily: "monospace", color: "rgba(255,255,255,0.2)" }}>4096-bit lattice</span>
+          <span style={{ fontSize: 5.5, fontFamily: "monospace", color: "#a78bfa" }}>99.99%</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function IntelFeedPanel() {
   return (
     <div style={{ marginTop: 4 }}>
@@ -639,11 +812,13 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
   const fmtPkt  = (n: number) => n >= 1e9 ? `${(n/1e9).toFixed(1)}G` : n >= 1e6 ? `${(n/1e6).toFixed(1)}M` : `${(n/1e3).toFixed(0)}K`;
 
   const tabs = [
-    { id: "log",   label: "LOG"   },
-    { id: "nodes", label: "NET"   },
-    { id: "bench", label: "BENCH" },
-    { id: "swarm", label: "SWARM" },
-    { id: "intel", label: "INTEL" },
+    { id: "log",    label: "LOG"    },
+    { id: "nodes",  label: "NET"    },
+    { id: "bench",  label: "BENCH"  },
+    { id: "swarm",  label: "SWARM"  },
+    { id: "intel",  label: "INTEL"  },
+    { id: "radar",  label: "RADAR"  },
+    { id: "crypto", label: "CRYPTO" },
   ] as const;
 
   return (
@@ -883,6 +1058,16 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
                 {rightTab==="intel" && (
                   <motion.div key="intel" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="flex-1 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
                     <IntelFeedPanel />
+                  </motion.div>
+                )}
+                {rightTab==="radar" && (
+                  <motion.div key="radar" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="flex-1 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
+                    <RadarPanel />
+                  </motion.div>
+                )}
+                {rightTab==="crypto" && (
+                  <motion.div key="crypto" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="flex-1 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
+                    <CryptoPanel />
                   </motion.div>
                 )}
               </AnimatePresence>

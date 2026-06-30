@@ -525,6 +525,83 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── HOW IT WORKS ── */}
+      <section style={{padding:"100px 24px",position:"relative",zIndex:10,borderTop:"1px solid rgba(255,255,255,0.04)",background:"rgba(0,229,255,0.008)"}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:60}}>
+            <SectionLabel text="HOW IT WORKS"/>
+            <h2 style={{fontSize:"clamp(26px,3.8vw,46px)",fontWeight:800,letterSpacing:"-1.5px",marginBottom:10}}>أربع خطوات للسيطرة الكاملة</h2>
+            <p style={{color:"rgba(255,255,255,0.3)",fontSize:14,maxWidth:480,margin:"0 auto"}}>من الإعداد إلى التقرير في دقائق — لا خبرة مسبقة مطلوبة</p>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:20,position:"relative"}}>
+            {/* connector line */}
+            <div style={{position:"absolute",top:36,left:"12.5%",right:"12.5%",height:1,background:"linear-gradient(90deg,transparent,rgba(226,18,39,0.3),rgba(0,229,255,0.3),rgba(226,18,39,0.3),transparent)",pointerEvents:"none",display:"none"}}/>
+            {[
+              {step:"01",emoji:"🔑",title:"اتصل بمزودك",desc:"أضف مفاتيح API من Groq أو OpenAI أو Gemini أو أي من 20+ مزود — أو ابدأ بدون مفتاح مع النماذج المجانية",col:"#e21227"},
+              {step:"02",emoji:"⚡",title:"اختر وضع الهجوم",desc:"Council 256، GodMode 22x، Swarm 32x، Arsenal v3 — كل وضع مصمم لسيناريو محدد",col:"#fbbf24"},
+              {step:"03",emoji:"🎯",title:"شغّل الاستطلاع",desc:"OSINT Ultra يجمع البيانات تلقائياً — ثغرات CVE، شبكات، أهداف — كل شيء في ثوانٍ",col:"#00e5ff"},
+              {step:"04",emoji:"📊",title:"احصل على التقرير",desc:"تقرير احترافي كامل مع PoC والتوصيات والترميز اللوني حسب خطورة كل ثغرة",col:"#22c55e"},
+            ].map((s,i)=>(
+              <HoloCard key={i}>
+                <div style={{padding:"28px 24px",borderRadius:20,background:"rgba(255,255,255,0.025)",border:`1px solid ${s.col}18`,position:"relative",overflow:"hidden",textAlign:"center"}}>
+                  <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${s.col}55,transparent)`}}/>
+                  <div style={{fontSize:9,fontFamily:"monospace",fontWeight:700,color:`${s.col}66`,letterSpacing:"0.3em",marginBottom:12}}>STEP {s.step}</div>
+                  <div style={{fontSize:36,marginBottom:14}}>{s.emoji}</div>
+                  <h3 style={{fontSize:14,fontWeight:700,marginBottom:10,color:"#fff"}}>{s.title}</h3>
+                  <p style={{fontSize:11.5,color:"rgba(255,255,255,0.38)",lineHeight:1.75}}>{s.desc}</p>
+                  <div style={{position:"absolute",bottom:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${s.col}30,transparent)`}}/>
+                </div>
+              </HoloCard>
+            ))}
+          </div>
+          {/* CTA under steps */}
+          <div style={{textAlign:"center",marginTop:40}}>
+            <button onClick={()=>navigate("/app")} className="holo-btn" style={{display:"inline-flex",alignItems:"center",gap:10,padding:"14px 36px",borderRadius:12,background:"linear-gradient(135deg,#e21227,#c4101f)",color:"#fff",fontSize:14,fontWeight:700,border:"none",cursor:"pointer",boxShadow:"0 0 40px rgba(226,18,39,0.3)"}}>
+              ابدأ الآن — مجاناً <ArrowRight style={{width:15,height:15}}/>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── AI SPEED COMPARISON ── */}
+      <section style={{padding:"80px 24px",position:"relative",zIndex:10,borderTop:"1px solid rgba(255,255,255,0.04)"}}>
+        <div style={{maxWidth:820,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:44}}>
+            <SectionLabel text="AI SPEED BENCHMARK"/>
+            <h2 style={{fontSize:"clamp(22px,3vw,38px)",fontWeight:800,letterSpacing:"-1.5px",marginBottom:8}}>أسرع نماذج الذكاء الاصطناعي</h2>
+            <p style={{color:"rgba(255,255,255,0.3)",fontSize:13}}>مقارنة سرعة توليد الرموز — رموز/ثانية</p>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {[
+              {name:"Cerebras Llama 3.3",speed:2100,col:"#ff00aa",badge:"FASTEST"},
+              {name:"Groq Llama 3.3 70B", speed:1800,col:"#ff6600",badge:"ULTRA"},
+              {name:"Groq Mixtral 8x7B",  speed:1400,col:"#f97316",badge:"FAST"},
+              {name:"DeepSeek R2",         speed:900, col:"#00e5ff",badge:"SMART"},
+              {name:"Gemini Flash 2.0",    speed:780, col:"#fbbf24",badge:""},
+              {name:"GPT-4o",              speed:320, col:"#74aa9c",badge:""},
+              {name:"Claude Sonnet 3.7",   speed:290, col:"#d97706",badge:""},
+              {name:"Ollama Local",         speed:180, col:"#00ff41",badge:"LOCAL"},
+            ].map((m,i)=>(
+              <div key={m.name} style={{display:"flex",alignItems:"center",gap:14,padding:"8px 0"}}>
+                <div style={{width:160,fontSize:11,fontFamily:"monospace",color:"rgba(255,255,255,0.45)",textAlign:"right",flexShrink:0,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{m.name}</div>
+                <div style={{flex:1,height:20,background:"rgba(255,255,255,0.04)",borderRadius:6,overflow:"hidden",position:"relative"}}>
+                  <div style={{width:`${(m.speed/2100)*100}%`,height:"100%",background:`linear-gradient(90deg,${m.col}44,${m.col})`,borderRadius:6,transition:"width 1s ease",display:"flex",alignItems:"center",justifyContent:"flex-end",paddingRight:8}}>
+                    <span style={{fontSize:9,fontFamily:"monospace",fontWeight:700,color:"rgba(255,255,255,0.8)",whiteSpace:"nowrap"}}>{m.speed.toLocaleString()}</span>
+                  </div>
+                </div>
+                <div style={{width:52,flexShrink:0,display:"flex",justifyContent:"flex-end"}}>
+                  {m.badge&&<span style={{fontSize:7.5,fontFamily:"monospace",fontWeight:800,padding:"2px 5px",borderRadius:4,background:`${m.col}18`,color:m.col,border:`1px solid ${m.col}30`,letterSpacing:"0.1em"}}>{m.badge}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{marginTop:20,padding:"12px 18px",borderRadius:10,background:"rgba(226,18,39,0.04)",border:"1px solid rgba(226,18,39,0.15)",display:"flex",alignItems:"center",gap:12}}>
+            <Zap style={{width:14,height:14,color:"#e21227",flexShrink:0}}/>
+            <p style={{fontSize:11.5,color:"rgba(255,255,255,0.38)"}}>KaliGPT يختار تلقائياً أسرع نموذج متاح لديك — ويتبدّل للاحتياطي إذا كان الأول مشغولاً.</p>
+          </div>
+        </div>
+      </section>
+
       {/* ── TERMINAL DEMO ── */}
       <section id="terminal-demo" style={{padding:"80px 24px",position:"relative",zIndex:10,borderTop:"1px solid rgba(255,255,255,0.04)"}}>
         <div style={{maxWidth:920,margin:"0 auto"}}>
