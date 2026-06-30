@@ -283,6 +283,55 @@ const CTF_LABS = [
   { name:"Cloud Security CTF",    difficulty:"HARD",   points:1200, topics:["AWS IAM","S3","Lambda","K8s escape"],       col:"#f97316", solved:560  },
 ];
 
+const HOW_IT_WORKS = [
+  { step:"01", title:"اختر المزوّد",     desc:"يكتشف KaliGPT تلقائياً جميع مفاتيح API وNماذج Ollama — أو أضف مزوّدك في ثانية واحدة.",     icon:"🔑", col:"#e21227"  },
+  { step:"02", title:"حدّد الهدف",       desc:"أدخل IP/دومين/ملف أو وصف سيناريو Red Team — KaliGPT يُحلّل ويُخطّط استراتيجية الهجوم.",    icon:"🎯", col:"#fbbf24"  },
+  { step:"03", title:"أطلق الـ Swarm",   desc:"32 عميل ذكاء اصطناعي يعملون بالتوازي — استطلاع، استغلال، تحليل، تقرير — في دقائق.",          icon:"🤖", col:"#00e5ff"  },
+  { step:"04", title:"احصل على التقرير", desc:"تقرير احترافي شامل: نقاط الضعف، الـ PoC، التوصيات، جاهز للتسليم للعميل أو للـ CVE.",          icon:"📋", col:"#22c55e"  },
+];
+
+const INTEGRATIONS = [
+  { name:"Kali Linux",    icon:"🐉", col:"#3572A5", cat:"OS"        },
+  { name:"Metasploit",    icon:"💀", col:"#e21227", cat:"Exploit"   },
+  { name:"Burp Suite",    icon:"🦊", col:"#ff6600", cat:"Web"       },
+  { name:"Nmap",          icon:"🗺", col:"#00e5ff", cat:"Recon"     },
+  { name:"Shodan",        icon:"👁", col:"#f97316", cat:"OSINT"     },
+  { name:"VirusTotal",    icon:"🦠", col:"#22c55e", cat:"Threat"    },
+  { name:"Wireshark",     icon:"🦈", col:"#1679a7", cat:"Network"   },
+  { name:"SQLmap",        icon:"🗃", col:"#fbbf24", cat:"Database"  },
+  { name:"Hydra",         icon:"🐍", col:"#a78bfa", cat:"Brute"     },
+  { name:"Aircrack-ng",   icon:"📡", col:"#00bfff", cat:"WiFi"      },
+  { name:"Hashcat",       icon:"🔓", col:"#ff0080", cat:"Password"  },
+  { name:"Volatility",    icon:"🔬", col:"#4ade80", cat:"Forensics" },
+  { name:"YARA",          icon:"🎯", col:"#f59e0b", cat:"Malware"   },
+  { name:"OpenAI",        icon:"🤖", col:"#00ff41", cat:"AI"        },
+  { name:"Anthropic",     icon:"🧠", col:"#00e5ff", cat:"AI"        },
+  { name:"Groq",          icon:"⚡", col:"#ff6600", cat:"AI"        },
+  { name:"DeepSeek",      icon:"🚀", col:"#00ffcc", cat:"AI"        },
+  { name:"Ollama",        icon:"🦙", col:"#22c55e", cat:"Local AI"  },
+  { name:"MITRE ATT&CK",  icon:"🛡", col:"#e21227", cat:"Framework" },
+  { name:"OWASP Top 10",  icon:"🔟", col:"#0080ff", cat:"Framework" },
+  { name:"NVD/NIST",      icon:"📚", col:"#fbbf24", cat:"CVE"       },
+  { name:"Exploit-DB",    icon:"💣", col:"#ff3333", cat:"Exploit"   },
+  { name:"CyberChef",     icon:"🍳", col:"#e91e63", cat:"Encode"    },
+  { name:"Ghidra",        icon:"🔭", col:"#a78bfa", cat:"Reverse"   },
+];
+
+const ARSENAL_TOOLS = [
+  { name:"ShellGen v3",      desc:"توليد Reverse Shells متعددة اللغات والمنصات", col:"#e21227",  tag:"RED TEAM"   },
+  { name:"OSINT Ultra",      desc:"مسح شامل: DNS، WHOIS، Dark Web، Shodan، LinkedIn",  col:"#00e5ff",  tag:"INTEL"      },
+  { name:"Council 256",      desc:"256 وكيل ذكاء اصطناعي يحللون بالتوازي ويجمعون نتائج", col:"#a78bfa", tag:"COUNCIL"    },
+  { name:"ZeroDay Scanner",  desc:"كشف ثغرات 0-Day عبر قواعد بيانات CVE وAI Heuristics", col:"#f97316",  tag:"CVE"        },
+  { name:"WiFi Arsenal",     desc:"WPA3 capture، PMKID، Rogue AP، MITM، Deauth", col:"#00bfff",  tag:"WIRELESS"   },
+  { name:"ICS/SCADA Kit",    desc:"Modbus/DNP3/Profinet fuzzing وPLC exploitation", col:"#fbbf24",  tag:"ICS"        },
+  { name:"Binary Analyzer",  desc:"Ghidra integration، ROP chains، Heap spray، ret2libc", col:"#22c55e",  tag:"REVERSE"   },
+  { name:"Cloud CSPM",       desc:"AWS/GCP/Azure misconfiguration detector وIAM PrivEsc", col:"#00ffcc",  tag:"CLOUD"      },
+  { name:"SIGINT Module",    desc:"ADS-B، BLE eavesdrop، GPS spoofing، RFID cloning", col:"#ff0080",  tag:"SIGINT"     },
+  { name:"PhishKit Pro",     desc:"صفحات تصيّد متقدمة مع bypass MFA وcredential harvest", col:"#ffcc00",  tag:"SOCIAL"     },
+  { name:"Swarm 32x",        desc:"32 عميل متوازٍ — Recon → Exploit → Report في دقائق",   col:"#00ff41",  tag:"SWARM"      },
+  { name:"PrivEsc AI",       desc:"كشف مسارات PrivEsc تلقائياً: SUID، Sudo، Cron، Path", col:"#bf00ff",  tag:"PRIVESC"    },
+];
+
 /* ══════════════════════════════════════════════════════════════
    TERMINAL DEMO
 ══════════════════════════════════════════════════════════════ */
@@ -633,6 +682,96 @@ export default function LandingPage() {
             <button onClick={()=>navigate("/app")} className="holo-btn" style={{display:"inline-flex",alignItems:"center",gap:10,padding:"14px 38px",borderRadius:12,background:"linear-gradient(135deg,#e21227,#c4101f)",color:"#fff",fontSize:14,fontWeight:700,border:"none",cursor:"pointer",boxShadow:"0 0 40px rgba(226,18,39,0.35)"}}>
               جرّب الآن — مجاناً <ChevronRight style={{width:16,height:16}}/>
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section style={{padding:"90px 24px",position:"relative",zIndex:10,borderTop:"1px solid rgba(255,255,255,0.04)"}}>
+        <div style={{maxWidth:960,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:52}}>
+            <SectionLabel text="HOW IT WORKS"/>
+            <h2 style={{fontSize:"clamp(24px,3.5vw,44px)",fontWeight:800,letterSpacing:"-1.5px",marginBottom:8}}>كيف يعمل KaliGPT؟</h2>
+            <p style={{color:"rgba(255,255,255,0.3)",fontSize:13}}>أربع خطوات من الصفر إلى تقرير Red Team احترافي</p>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:0,position:"relative"}}>
+            {HOW_IT_WORKS.map((s,i)=>(
+              <div key={i} style={{position:"relative",padding:"28px 24px",textAlign:"center"}}>
+                {i<HOW_IT_WORKS.length-1&&(
+                  <div style={{position:"absolute",top:42,right:-1,width:"100%",height:1,background:`linear-gradient(90deg,${s.col}40,transparent)`,zIndex:1,display:"none"}}/>
+                )}
+                <div style={{width:56,height:56,borderRadius:16,margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",
+                  background:`linear-gradient(135deg,${s.col}18,${s.col}08)`,border:`1px solid ${s.col}30`,fontSize:24,position:"relative"}}>
+                  <span>{s.icon}</span>
+                  <div style={{position:"absolute",top:-8,right:-8,width:20,height:20,borderRadius:"50%",background:`linear-gradient(135deg,${s.col},${s.col}88)`,
+                    display:"flex",alignItems:"center",justifyContent:"center",fontSize:7.5,fontFamily:"monospace",fontWeight:900,color:"#000"}}>
+                    {s.step}
+                  </div>
+                </div>
+                <h3 style={{fontSize:14,fontWeight:800,color:"#fff",marginBottom:8}}>{s.title}</h3>
+                <p style={{fontSize:11,color:"rgba(255,255,255,0.38)",lineHeight:1.7}}>{s.desc}</p>
+                {i<HOW_IT_WORKS.length-1&&(
+                  <div style={{position:"absolute",right:-12,top:"50%",transform:"translateY(-50%)",fontSize:16,color:"rgba(255,255,255,0.15)",zIndex:2}}>›</div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div style={{textAlign:"center",marginTop:36}}>
+            <button onClick={()=>navigate("/app")} className="holo-btn"
+              style={{display:"inline-flex",alignItems:"center",gap:8,padding:"12px 32px",borderRadius:10,background:"linear-gradient(135deg,#e21227,#c4101f)",color:"#fff",fontSize:13,fontWeight:700,border:"none",cursor:"pointer",boxShadow:"0 0 32px rgba(226,18,39,0.3)"}}>
+              ابدأ الآن مجاناً ←
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── INTEGRATIONS ── */}
+      <section style={{padding:"80px 24px",position:"relative",zIndex:10,borderTop:"1px solid rgba(255,255,255,0.04)",background:"rgba(0,229,255,0.008)"}}>
+        <div style={{maxWidth:1200,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:44}}>
+            <SectionLabel text="INTEGRATIONS & TOOLS"/>
+            <h2 style={{fontSize:"clamp(22px,3vw,40px)",fontWeight:800,letterSpacing:"-1.5px",marginBottom:8}}>يتكامل مع كل أدوات الأمن</h2>
+            <p style={{color:"rgba(255,255,255,0.3)",fontSize:13}}>24+ أداة وإطار عمل مدمجان مباشرةً في KaliGPT</p>
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center"}}>
+            {INTEGRATIONS.map((intg,i)=>(
+              <motion.div key={i} initial={{opacity:0,scale:0.9}} whileInView={{opacity:1,scale:1}} viewport={{once:true}} transition={{delay:i*0.02}}
+                style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",borderRadius:10,background:"rgba(255,255,255,0.025)",
+                  border:`1px solid ${intg.col}18`,cursor:"default",transition:"all .2s"}}
+                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background=`${intg.col}0c`;(e.currentTarget as HTMLElement).style.borderColor=`${intg.col}35`;}}
+                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background="rgba(255,255,255,0.025)";(e.currentTarget as HTMLElement).style.borderColor=`${intg.col}18`;}}>
+                <span style={{fontSize:16}}>{intg.icon}</span>
+                <div>
+                  <div style={{fontSize:10.5,fontWeight:700,color:"rgba(255,255,255,0.7)"}}>{intg.name}</div>
+                  <div style={{fontSize:8,fontFamily:"monospace",color:intg.col,opacity:0.7}}>{intg.cat}</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ARSENAL TOOLS ── */}
+      <section style={{padding:"80px 24px",position:"relative",zIndex:10,borderTop:"1px solid rgba(255,255,255,0.04)"}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:44}}>
+            <SectionLabel text="ARSENAL v3"/>
+            <h2 style={{fontSize:"clamp(22px,3vw,40px)",fontWeight:800,letterSpacing:"-1.5px",marginBottom:8}}>ترسانة الأسلحة الرقمية</h2>
+            <p style={{color:"rgba(255,255,255,0.3)",fontSize:13}}>12 سلاح احترافي مدمج — جاهز للاستخدام فوراً</p>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",gap:12}}>
+            {ARSENAL_TOOLS.map((tool,i)=>(
+              <HoloCard key={i}>
+                <motion.div initial={{opacity:0,y:8}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{delay:i*0.04}}
+                  style={{padding:"18px 16px",borderRadius:14,background:"rgba(255,255,255,0.02)",border:`1px solid ${tool.col}15`,position:"relative",overflow:"hidden"}}>
+                  <div style={{position:"absolute",top:0,right:0,padding:"3px 8px",borderRadius:"0 14px 0 8px",background:`${tool.col}15`,
+                    border:`1px solid ${tool.col}25`,fontSize:7,fontFamily:"monospace",fontWeight:700,color:tool.col}}>{tool.tag}</div>
+                  <div style={{fontSize:13,fontWeight:800,color:"#fff",marginBottom:7,paddingRight:40}}>{tool.name}</div>
+                  <p style={{fontSize:10.5,color:"rgba(255,255,255,0.38)",lineHeight:1.6}}>{tool.desc}</p>
+                  <div style={{marginTop:10,height:1.5,background:`linear-gradient(90deg,${tool.col}50,transparent)`,borderRadius:1}}/>
+                </motion.div>
+              </HoloCard>
+            ))}
           </div>
         </div>
       </section>

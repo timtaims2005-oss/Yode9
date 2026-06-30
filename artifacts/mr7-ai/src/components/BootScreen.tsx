@@ -97,6 +97,46 @@ const RADAR_CONTACTS = [
   { id:"TGT-10", type:"K8S",     threat:"HIGH", ang:340,  dist: 0.58, col:"#fbbf24" },
 ];
 
+/* ── Network topology nodes ── */
+const NET_NODES = [
+  { id:"GW-01",  label:"Gateway",    type:"ROUTER",    ip:"10.0.0.1",   status:"OK",      conns:["FW-01","SW-01"],          threat:"none",  col:"#00e5ff" },
+  { id:"FW-01",  label:"Firewall",   type:"FIREWALL",  ip:"10.0.0.2",   status:"ALERT",   conns:["SW-01","DMZ-01"],         threat:"HIGH",  col:"#e21227" },
+  { id:"SW-01",  label:"Switch-Core",type:"SWITCH",    ip:"10.0.1.1",   status:"OK",      conns:["SRV-01","SRV-02","DB-01"],threat:"none",  col:"#00e5ff" },
+  { id:"DMZ-01", label:"DMZ Zone",   type:"SEGMENT",   ip:"10.0.5.0/24",status:"WARN",    conns:["WEB-01","API-01"],        threat:"MED",   col:"#fbbf24" },
+  { id:"SRV-01", label:"App Server", type:"SERVER",    ip:"10.0.1.10",  status:"OK",      conns:["DB-01"],                  threat:"none",  col:"#22c55e" },
+  { id:"SRV-02", label:"Auth Server",type:"SERVER",    ip:"10.0.1.11",  status:"OK",      conns:["DB-01"],                  threat:"none",  col:"#22c55e" },
+  { id:"DB-01",  label:"DB Cluster", type:"DATABASE",  ip:"10.0.1.20",  status:"CRITICAL",conns:[],                         threat:"CRIT",  col:"#e21227" },
+  { id:"WEB-01", label:"Web Server", type:"SERVER",    ip:"10.0.5.10",  status:"WARN",    conns:[],                         threat:"MED",   col:"#fbbf24" },
+  { id:"API-01", label:"API GW",     type:"GATEWAY",   ip:"10.0.5.20",  status:"OK",      conns:[],                         threat:"LOW",   col:"#00bfff" },
+  { id:"K8S-01", label:"K8s Master", type:"CONTAINER", ip:"10.0.2.1",   status:"WARN",    conns:["SRV-01","SRV-02"],        threat:"MED",   col:"#a78bfa" },
+];
+
+/* ── Zero-day tracker ── */
+const ZERODAY_LIST = [
+  { cve:"CVE-2025-1337", cvss:10.0, product:"Apache 2.4.x",      type:"RCE",      status:"ACTIVE",  discovered:"2025-06-01", col:"#e21227", poc:true  },
+  { cve:"CVE-2025-0892", cvss:9.8,  product:"OpenSSL 3.x",       type:"OVERFLOW", status:"PATCH",   discovered:"2025-05-20", col:"#fbbf24", poc:true  },
+  { cve:"CVE-2025-2041", cvss:9.1,  product:"Linux Kernel 6.x",  type:"PRIVESC",  status:"ACTIVE",  discovered:"2025-06-10", col:"#e21227", poc:false },
+  { cve:"CVE-2025-3318", cvss:8.9,  product:"VMware ESXi 8",     type:"ESCAPE",   discovered:"2025-06-12", col:"#f97316", status:"ACTIVE",  poc:true  },
+  { cve:"CVE-2025-4401", cvss:8.5,  product:"Cisco IOS-XE",      type:"AUTH BYP", discovered:"2025-06-08", col:"#fbbf24", status:"PATCH",   poc:false },
+  { cve:"CVE-2025-5599", cvss:7.8,  product:"Windows AD",        type:"LDAP INJ", discovered:"2025-05-30", col:"#fbbf24", status:"PENDING", poc:false },
+  { cve:"CVE-2025-6700", cvss:9.5,  product:"Fortinet FortiOS",  type:"RCE",      discovered:"2025-06-14", col:"#e21227", status:"ACTIVE",  poc:true  },
+  { cve:"CVE-2025-7812", cvss:7.5,  product:"MySQL 8.x",         type:"SQLi",     discovered:"2025-06-05", col:"#00e5ff", status:"PATCH",   poc:false },
+];
+
+/* ── SIEM events ── */
+const SIEM_EVENTS = [
+  { id:"EVT-1001", rule:"BRUTE_FORCE",       src:"185.220.101.42", dst:"10.0.1.11", severity:"HIGH",   action:"BLOCKED", proto:"SSH",   time:"04:51:22", col:"#e21227" },
+  { id:"EVT-1002", rule:"DATA_EXFIL",        src:"10.0.1.20",      dst:"203.0.113.5",severity:"CRITICAL",action:"ALERT",  proto:"HTTPS", time:"04:49:38", col:"#e21227" },
+  { id:"EVT-1003", rule:"LATERAL_MOVEMENT",  src:"10.0.1.10",      dst:"10.0.1.20", severity:"HIGH",   action:"MONITOR", proto:"SMB",   time:"04:48:11", col:"#f97316" },
+  { id:"EVT-1004", rule:"PORT_SCAN",         src:"45.33.32.156",   dst:"10.0.5.0",  severity:"MEDIUM", action:"BLOCKED", proto:"TCP",   time:"04:47:55", col:"#fbbf24" },
+  { id:"EVT-1005", rule:"SQL_INJECTION",     src:"92.118.160.5",   dst:"10.0.5.10", severity:"HIGH",   action:"BLOCKED", proto:"HTTP",  time:"04:46:30", col:"#e21227" },
+  { id:"EVT-1006", rule:"PRIV_ESC_ATTEMPT",  src:"10.0.1.11",      dst:"10.0.1.11", severity:"CRITICAL",action:"ALERT",  proto:"LOCAL", time:"04:45:09", col:"#e21227" },
+  { id:"EVT-1007", rule:"ANOMALY_BASELINE",  src:"10.0.1.15",      dst:"8.8.8.8",   severity:"LOW",    action:"LOG",     proto:"DNS",   time:"04:44:02", col:"#22c55e" },
+  { id:"EVT-1008", rule:"RANSOMWARE_SIG",    src:"10.0.1.30",      dst:"*",          severity:"CRITICAL",action:"QUARANT",proto:"FILE",  time:"04:42:50", col:"#e21227" },
+  { id:"EVT-1009", rule:"BEACONING",         src:"10.0.1.22",      dst:"198.51.100.3",severity:"HIGH",  action:"BLOCK",   proto:"HTTPS", time:"04:41:17", col:"#f97316" },
+  { id:"EVT-1010", rule:"CERT_ANOMALY",      src:"10.0.5.20",      dst:"*",          severity:"MEDIUM", action:"ALERT",   proto:"TLS",   time:"04:39:44", col:"#fbbf24" },
+];
+
 /* ── Mission ops ── */
 const MISSION_OPS = [
   { id:"OP-PHANTOM",  target:"203.0.113.48",    type:"RED TEAM",   status:"ACTIVE",  progress:78, agent:"SA-07", col:"#e21227", start:"04:12" },
@@ -556,6 +596,156 @@ function SwarmAgentPanel() {
   );
 }
 
+function NetworkTopologyPanel() {
+  const critical = NET_NODES.filter(n => n.status === "CRITICAL").length;
+  const alerts   = NET_NODES.filter(n => n.status === "ALERT" || n.status === "WARN").length;
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ fontSize: 6.5, fontFamily: "monospace", letterSpacing: "0.3em", marginBottom: 8, color: "rgba(0,229,255,0.55)", fontWeight: 700 }}>
+        ▶ NETWORK TOPOLOGY — {NET_NODES.length} NODES
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, marginBottom: 8 }}>
+        {[
+          { label:"NODES",    val: NET_NODES.length, col:"#00e5ff" },
+          { label:"CRITICAL", val: critical,          col:"#e21227" },
+          { label:"ALERTS",   val: alerts,            col:"#fbbf24" },
+        ].map(s => (
+          <div key={s.label} style={{ textAlign:"center", padding:"4px 2px", borderRadius:4, background:`${s.col}08`, border:`1px solid ${s.col}20` }}>
+            <div style={{ fontSize:13, fontFamily:"monospace", fontWeight:900, color:s.col }}>{s.val}</div>
+            <div style={{ fontSize:5, fontFamily:"monospace", color:"rgba(255,255,255,0.22)", letterSpacing:"0.2em" }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+        {NET_NODES.map((n, i) => (
+          <motion.div key={n.id} initial={{ opacity:0, x:-5 }} animate={{ opacity:1, x:0 }} transition={{ delay:i*0.04 }}
+            style={{ padding:"4px 6px", borderRadius:5, background:`${n.col}07`, border:`1px solid ${n.col}18` }}>
+            <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+              <motion.div style={{ width:4, height:4, borderRadius:"50%", background:n.col, flexShrink:0 }}
+                animate={n.status==="CRITICAL"||n.status==="ALERT"?{opacity:[1,0.2,1]}:{opacity:0.6}} transition={{ duration:0.9, repeat:Infinity }}/>
+              <span style={{ fontSize:6.5, fontFamily:"monospace", fontWeight:700, color:"rgba(255,255,255,0.7)", flex:1 }}>{n.id}</span>
+              <span style={{ fontSize:5.5, fontFamily:"monospace", color:"rgba(255,255,255,0.28)" }}>{n.type}</span>
+              <span style={{ fontSize:5, fontFamily:"monospace", fontWeight:700, padding:"1px 3px", borderRadius:2,
+                background:n.status==="OK"?"rgba(34,197,94,0.12)":n.status==="CRITICAL"?"rgba(226,18,39,0.18)":n.status==="ALERT"?"rgba(226,18,39,0.12)":"rgba(251,191,36,0.1)",
+                color:n.status==="OK"?"#22c55e":n.status==="CRITICAL"||n.status==="ALERT"?"#e21227":"#fbbf24",
+                border:`1px solid ${n.status==="OK"?"rgba(34,197,94,0.2)":n.status==="CRITICAL"||n.status==="ALERT"?"rgba(226,18,39,0.25)":"rgba(251,191,36,0.2)"}` }}>
+                {n.status}
+              </span>
+            </div>
+            <div style={{ fontSize:5, fontFamily:"monospace", color:"rgba(255,255,255,0.22)", paddingLeft:9, marginTop:1.5 }}>
+              {n.ip} · {n.conns.length > 0 ? `→ ${n.conns.slice(0,2).join(", ")}` : "leaf node"}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ZeroDayPanel() {
+  const active = ZERODAY_LIST.filter(z => z.status === "ACTIVE");
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ fontSize: 6.5, fontFamily: "monospace", letterSpacing: "0.3em", marginBottom: 8, color: "rgba(226,18,39,0.55)", fontWeight: 700 }}>
+        ▶ ZERO-DAY TRACKER — {active.length} ACTIVE
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, marginBottom: 8 }}>
+        {[
+          { label:"ACTIVE",  val: active.length, col:"#e21227" },
+          { label:"POC RDY", val: ZERODAY_LIST.filter(z=>z.poc).length, col:"#ff0080" },
+          { label:"PATCHED", val: ZERODAY_LIST.filter(z=>z.status==="PATCH").length, col:"#22c55e" },
+        ].map(s => (
+          <div key={s.label} style={{ textAlign:"center", padding:"4px 2px", borderRadius:4, background:`${s.col}08`, border:`1px solid ${s.col}20` }}>
+            <div style={{ fontSize:13, fontFamily:"monospace", fontWeight:900, color:s.col }}>{s.val}</div>
+            <div style={{ fontSize:5, fontFamily:"monospace", color:"rgba(255,255,255,0.22)", letterSpacing:"0.18em" }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+        {ZERODAY_LIST.map((z, i) => (
+          <motion.div key={z.cve} initial={{ opacity:0, y:4 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*0.05 }}
+            style={{ padding:"5px 7px", borderRadius:5, background:`${z.col}07`, border:`1px solid ${z.col}18` }}>
+            <div style={{ display:"flex", alignItems:"center", gap:4, marginBottom:2 }}>
+              <span style={{ fontSize:6.5, fontFamily:"monospace", fontWeight:700, color:z.col, flex:1 }}>{z.cve}</span>
+              <span style={{ fontSize:5, fontFamily:"monospace", fontWeight:900, color:"#fff",
+                background:z.cvss>=9.5?"#e21227":z.cvss>=8?"#f97316":"#fbbf24",
+                padding:"1px 3px", borderRadius:2 }}>CVSS {z.cvss}</span>
+              {z.poc && <span style={{ fontSize:5, fontFamily:"monospace", fontWeight:700, padding:"1px 3px", borderRadius:2,
+                background:"rgba(255,0,128,0.15)", color:"#ff0080", border:"1px solid rgba(255,0,128,0.3)" }}>PoC</span>}
+            </div>
+            <div style={{ display:"flex", gap:6, paddingLeft:0 }}>
+              <span style={{ fontSize:5.5, fontFamily:"monospace", color:"rgba(255,255,255,0.38)", flex:1 }}>{z.product}</span>
+              <span style={{ fontSize:5.5, fontFamily:"monospace", color:"rgba(255,255,255,0.25)" }}>{z.type}</span>
+              <span style={{ fontSize:5, fontFamily:"monospace", padding:"1px 3px", borderRadius:2,
+                background:z.status==="ACTIVE"?"rgba(226,18,39,0.15)":z.status==="PATCH"?"rgba(34,197,94,0.1)":"rgba(251,191,36,0.1)",
+                color:z.status==="ACTIVE"?"#e21227":z.status==="PATCH"?"#22c55e":"#fbbf24",
+                border:`1px solid ${z.status==="ACTIVE"?"rgba(226,18,39,0.25)":z.status==="PATCH"?"rgba(34,197,94,0.2)":"rgba(251,191,36,0.2)"}` }}>
+                {z.status}
+              </span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SIEMPanel() {
+  const crit = SIEM_EVENTS.filter(e=>e.severity==="CRITICAL").length;
+  const [liveIdx, setLiveIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setLiveIdx(i => (i+1) % SIEM_EVENTS.length), 1400);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ fontSize: 6.5, fontFamily:"monospace", letterSpacing:"0.3em", marginBottom:8, color:"rgba(167,139,250,0.55)", fontWeight:700 }}>
+        ▶ SIEM — {SIEM_EVENTS.length} EVENTS
+      </div>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4, marginBottom:8 }}>
+        {[
+          { label:"CRITICAL", val:crit, col:"#e21227" },
+          { label:"BLOCKED",  val:SIEM_EVENTS.filter(e=>e.action==="BLOCKED"||e.action==="BLOCK").length, col:"#22c55e" },
+          { label:"ALERTS",   val:SIEM_EVENTS.filter(e=>e.action==="ALERT").length, col:"#fbbf24" },
+        ].map(s => (
+          <div key={s.label} style={{ textAlign:"center", padding:"4px 2px", borderRadius:4, background:`${s.col}08`, border:`1px solid ${s.col}20` }}>
+            <div style={{ fontSize:13, fontFamily:"monospace", fontWeight:900, color:s.col }}>{s.val}</div>
+            <div style={{ fontSize:5, fontFamily:"monospace", color:"rgba(255,255,255,0.22)", letterSpacing:"0.15em" }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:3.5 }}>
+        {SIEM_EVENTS.map((e, i) => (
+          <motion.div key={e.id} initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:i*0.04 }}
+            style={{ padding:"4px 6px", borderRadius:4, background:liveIdx===i?`${e.col}10`:`${e.col}05`,
+              border:`1px solid ${liveIdx===i?e.col+"35":e.col+"12"}`, transition:"all 0.4s" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:4, marginBottom:1.5 }}>
+              <span style={{ fontSize:5.5, fontFamily:"monospace", fontWeight:700, color:e.col, flex:1 }}>{e.rule}</span>
+              <span style={{ fontSize:5, fontFamily:"monospace", color:"rgba(255,255,255,0.25)" }}>{e.time}</span>
+              <span style={{ fontSize:5, fontFamily:"monospace", fontWeight:700, padding:"1px 3px", borderRadius:2,
+                background:e.severity==="CRITICAL"?"rgba(226,18,39,0.18)":e.severity==="HIGH"?"rgba(249,115,22,0.12)":"rgba(251,191,36,0.08)",
+                color:e.severity==="CRITICAL"?"#e21227":e.severity==="HIGH"?"#f97316":"#fbbf24",
+                border:`1px solid ${e.severity==="CRITICAL"?"rgba(226,18,39,0.3)":e.severity==="HIGH"?"rgba(249,115,22,0.2)":"rgba(251,191,36,0.15)"}` }}>
+                {e.severity}
+              </span>
+            </div>
+            <div style={{ display:"flex", gap:5, paddingLeft:0 }}>
+              <span style={{ fontSize:5, fontFamily:"monospace", color:"rgba(255,255,255,0.22)", flex:1 }}>
+                {e.src} → {e.dst}
+              </span>
+              <span style={{ fontSize:5, fontFamily:"monospace", color:"rgba(255,255,255,0.25)" }}>{e.proto}</span>
+              <span style={{ fontSize:5, fontFamily:"monospace", fontWeight:700, color:
+                e.action==="BLOCKED"||e.action==="BLOCK"||e.action==="QUARANT"?"#22c55e":e.action==="ALERT"?"#e21227":"#fbbf24" }}>
+                {e.action}
+              </span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function MissionPanel() {
   const active = MISSION_OPS.filter(m => m.status === "ACTIVE");
   const done   = MISSION_OPS.filter(m => m.status === "DONE");
@@ -952,8 +1142,11 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
     { id: "intel",   label: "INTEL"  },
     { id: "radar",   label: "RADAR"  },
     { id: "crypto",  label: "CRYPTO" },
-    { id: "mission", label: "OPS"    },
-    { id: "vuln",    label: "VULN"   },
+    { id: "mission",  label: "OPS"    },
+    { id: "vuln",     label: "VULN"   },
+    { id: "net-topo", label: "TOPO"   },
+    { id: "zero",     label: "0-DAY"  },
+    { id: "siem",     label: "SIEM"   },
   ] as const;
 
   return (
@@ -1213,6 +1406,21 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
                 {rightTab==="vuln" && (
                   <motion.div key="vuln" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="flex-1 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
                     <VulnScanPanel />
+                  </motion.div>
+                )}
+                {rightTab==="net-topo" && (
+                  <motion.div key="net-topo" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="flex-1 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
+                    <NetworkTopologyPanel />
+                  </motion.div>
+                )}
+                {rightTab==="zero" && (
+                  <motion.div key="zero" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="flex-1 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
+                    <ZeroDayPanel />
+                  </motion.div>
+                )}
+                {rightTab==="siem" && (
+                  <motion.div key="siem" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} className="flex-1 overflow-y-auto" style={{ scrollbarWidth:"none" }}>
+                    <SIEMPanel />
                   </motion.div>
                 )}
               </AnimatePresence>
