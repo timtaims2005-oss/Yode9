@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "while fuser 8080/tcp >/dev/null 2>&1; do fuser -k 8080/tcp 2>/dev/null; sleep 1; done; export NODE_ENV=development && pnpm run build && pnpm run start",
+    "dev": "while fuser 8082/tcp >/dev/null 2>&1; do fuser -k 8082/tcp 2>/dev/null; sleep 1; done; export NODE_ENV=development && pnpm run build && PORT=8082 pnpm run start",
     "build": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
