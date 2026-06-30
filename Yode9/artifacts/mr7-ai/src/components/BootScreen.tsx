@@ -123,6 +123,13 @@ const NET_NODES = [
   { id:"WEB-01", label:"Web Server", type:"SERVER",    ip:"10.0.5.10",  status:"WARN",    conns:[],                         threat:"MED",   col:"#fbbf24" },
   { id:"API-01", label:"API GW",     type:"GATEWAY",   ip:"10.0.5.20",  status:"OK",      conns:[],                         threat:"LOW",   col:"#00bfff" },
   { id:"K8S-01", label:"K8s Master", type:"CONTAINER", ip:"10.0.2.1",   status:"WARN",    conns:["SRV-01","SRV-02"],        threat:"MED",   col:"#a78bfa" },
+  /* ── v6.2 NEW NET NODES ── */
+  { id:"DC-01",  label:"Domain Ctrl",type:"SERVER",    ip:"10.0.1.5",   status:"CRITICAL",conns:["SRV-01","SRV-02","DB-01"],threat:"CRIT",  col:"#e21227" },
+  { id:"MAIL-01",label:"Mail Server",type:"SERVER",    ip:"10.0.1.80",  status:"WARN",    conns:["FW-01"],                  threat:"MED",   col:"#fbbf24" },
+  { id:"PROXY-1",label:"Squid Proxy",type:"PROXY",     ip:"10.0.5.30",  status:"OK",      conns:["WEB-01"],                 threat:"LOW",   col:"#00e5ff" },
+  { id:"HSM-01", label:"HSM Vault",  type:"CRYPTO",    ip:"10.0.1.200", status:"OK",      conns:["SRV-02"],                 threat:"none",  col:"#a78bfa" },
+  { id:"IDS-01", label:"IDS Sensor", type:"MONITOR",   ip:"10.0.9.1",   status:"ACTIVE",  conns:["FW-01","SW-01"],          threat:"none",  col:"#22c55e" },
+  { id:"SCADA-1",label:"SCADA HMI",  type:"ICS",       ip:"192.168.50.5",status:"CRITICAL",conns:[],                        threat:"CRIT",  col:"#e21227" },
 ];
 
 /* ── Zero-day tracker ── */
@@ -135,6 +142,15 @@ const ZERODAY_LIST = [
   { cve:"CVE-2025-5599", cvss:7.8,  product:"Windows AD",        type:"LDAP INJ", discovered:"2025-05-30", col:"#fbbf24", status:"PENDING", poc:false },
   { cve:"CVE-2025-6700", cvss:9.5,  product:"Fortinet FortiOS",  type:"RCE",      discovered:"2025-06-14", col:"#e21227", status:"ACTIVE",  poc:true  },
   { cve:"CVE-2025-7812", cvss:7.5,  product:"MySQL 8.x",         type:"SQLi",     discovered:"2025-06-05", col:"#00e5ff", status:"PATCH",   poc:false },
+  /* ── v6.2 NEW CVEs ── */
+  { cve:"CVE-2025-8811", cvss:10.0, product:"Jenkins 2.x",        type:"RCE",      discovered:"2025-06-20", col:"#e21227", status:"ACTIVE",  poc:true  },
+  { cve:"CVE-2025-9130", cvss:9.6,  product:"Kubernetes API",     type:"PRIVESC",  discovered:"2025-06-22", col:"#e21227", status:"ACTIVE",  poc:true  },
+  { cve:"CVE-2025-9274", cvss:9.4,  product:"GitLab CE/EE 17.x",  type:"RCE",      discovered:"2025-06-24", col:"#e21227", status:"ACTIVE",  poc:false },
+  { cve:"CVE-2025-9501", cvss:9.0,  product:"Palo Alto PAN-OS",   type:"AUTH BYP", discovered:"2025-06-25", col:"#f97316", status:"PATCH",   poc:true  },
+  { cve:"CVE-2025-9688", cvss:8.7,  product:"Redis 7.x",          type:"RCE",      discovered:"2025-06-23", col:"#fbbf24", status:"ACTIVE",  poc:false },
+  { cve:"CVE-2025-9812", cvss:8.4,  product:"NGINX 1.27.x",       type:"OVERFLOW", discovered:"2025-06-21", col:"#fbbf24", status:"PENDING", poc:false },
+  { cve:"CVE-2025-9900", cvss:9.8,  product:"Android Kernel",     type:"PRIVESC",  discovered:"2025-06-26", col:"#e21227", status:"ACTIVE",  poc:true  },
+  { cve:"CVE-2025-9999", cvss:10.0, product:"Windows LDAP",       type:"RCE",      discovered:"2025-06-28", col:"#e21227", status:"ACTIVE",  poc:true  },
 ];
 
 /* ── SIEM events ── */
@@ -149,6 +165,17 @@ const SIEM_EVENTS = [
   { id:"EVT-1008", rule:"RANSOMWARE_SIG",    src:"10.0.1.30",      dst:"*",          severity:"CRITICAL",action:"QUARANT",proto:"FILE",  time:"04:42:50", col:"#e21227" },
   { id:"EVT-1009", rule:"BEACONING",         src:"10.0.1.22",      dst:"198.51.100.3",severity:"HIGH",  action:"BLOCK",   proto:"HTTPS", time:"04:41:17", col:"#f97316" },
   { id:"EVT-1010", rule:"CERT_ANOMALY",      src:"10.0.5.20",      dst:"*",          severity:"MEDIUM", action:"ALERT",   proto:"TLS",   time:"04:39:44", col:"#fbbf24" },
+  /* ── v6.2 NEW SIEM EVENTS ── */
+  { id:"EVT-1011", rule:"KERBEROAST",        src:"10.0.1.55",      dst:"10.0.1.5",   severity:"CRITICAL",action:"ALERT",  proto:"KRB5",  time:"04:38:11", col:"#e21227" },
+  { id:"EVT-1012", rule:"DCSYNC",            src:"10.0.1.44",      dst:"10.0.1.5",   severity:"CRITICAL",action:"BLOCK",  proto:"DRSR",  time:"04:36:50", col:"#e21227" },
+  { id:"EVT-1013", rule:"PASS_THE_HASH",     src:"10.0.1.44",      dst:"10.0.1.20",  severity:"HIGH",   action:"BLOCK",   proto:"NTLM",  time:"04:35:22", col:"#f97316" },
+  { id:"EVT-1014", rule:"DNS_TUNNELING",     src:"10.0.1.77",      dst:"8.8.8.8",    severity:"HIGH",   action:"BLOCK",   proto:"DNS",   time:"04:33:08", col:"#fbbf24" },
+  { id:"EVT-1015", rule:"ARP_POISON",        src:"10.0.1.99",      dst:"10.0.1.0",   severity:"MEDIUM", action:"ALERT",   proto:"ARP",   time:"04:31:44", col:"#fbbf24" },
+  { id:"EVT-1016", rule:"CANARY_TRIPPED",    src:"45.33.32.156",   dst:"10.0.1.201", severity:"CRITICAL",action:"TRAP",   proto:"HTTP",  time:"04:29:59", col:"#e21227" },
+  { id:"EVT-1017", rule:"MALDNA_DETECTED",   src:"10.0.1.30",      dst:"*",          severity:"CRITICAL",action:"QUARANT",proto:"FILE",  time:"04:27:31", col:"#e21227" },
+  { id:"EVT-1018", rule:"EDR_BYPASS_ATTEMPT",src:"10.0.1.55",      dst:"10.0.1.55",  severity:"HIGH",   action:"ALERT",   proto:"LOCAL", time:"04:25:18", col:"#f97316" },
+  { id:"EVT-1019", rule:"SMB_RELAY",         src:"10.0.1.88",      dst:"10.0.1.20",  severity:"HIGH",   action:"BLOCK",   proto:"SMB",   time:"04:22:40", col:"#fbbf24" },
+  { id:"EVT-1020", rule:"SUPPLY_CHAIN_IOC",  src:"172.16.4.1",     dst:"10.0.1.11",  severity:"CRITICAL",action:"BLOCK",  proto:"HTTPS", time:"04:20:05", col:"#e21227" },
 ];
 
 /* ── Mission ops ── */
@@ -161,6 +188,15 @@ const MISSION_OPS = [
   { id:"OP-BLACKOUT", target:"cloud.aws.target", type:"CLOUD CSPM", status:"ACTIVE",  progress:62, agent:"SA-18", col:"#f97316", start:"04:51" },
   { id:"OP-POLARIS",  target:"wifi-range-b2",   type:"SIGINT",     status:"ACTIVE",  progress:34, agent:"SA-31", col:"#00bfff", start:"04:58" },
   { id:"OP-ZERO",     target:"plc.factory.ics",  type:"ZERO-DAY",   status:"PENDING", progress:0,  agent:"SA-06", col:"#ff0080", start:"05:15" },
+  /* ── v6.2 NEW MISSIONS ── */
+  { id:"OP-DARKSTAR", target:"dc01.corp.internal",type:"AD ATTACK",  status:"ACTIVE",  progress:44, agent:"SA-14", col:"#a78bfa", start:"05:02" },
+  { id:"OP-CANARY",   target:"honeynet-grid-A",  type:"DECEPTION",  status:"ACTIVE",  progress:100,agent:"SA-32", col:"#fbbf24", start:"04:01" },
+  { id:"OP-MALDNA",   target:"endpoint-cluster", type:"MALWARE",    status:"ACTIVE",  progress:87, agent:"SA-19", col:"#e21227", start:"04:44" },
+  { id:"OP-CHIMERA",  target:"supply.vendor.io", type:"SUPPLY CHN", status:"ACTIVE",  progress:63, agent:"SA-22", col:"#22c55e", start:"04:29" },
+  { id:"OP-HYDRA",    target:"5g-testbed-b1",    type:"5G CORE",    status:"ACTIVE",  progress:28, agent:"SA-28", col:"#00e5ff", start:"05:08" },
+  { id:"OP-STYX",     target:"siem.corp.local",  type:"SOC AUDIT",  status:"DONE",    progress:100,agent:"SA-04", col:"#22c55e", start:"01:30" },
+  { id:"OP-WRAITH",   target:"firmware.dev",     type:"FIRMWARE",   status:"ACTIVE",  progress:51, agent:"SA-11", col:"#f97316", start:"04:20" },
+  { id:"OP-NEXUS",    target:"kerberos.corp",    type:"KERBEROAST", status:"ACTIVE",  progress:72, agent:"SA-16", col:"#a78bfa", start:"04:55" },
 ];
 
 /* ── Vuln scan targets ── */
@@ -173,6 +209,15 @@ const VULN_TARGETS = [
   { host:"k8s-master",    ip:"10.0.2.1",   cves:4,  critical:1, col:"#fbbf24", score:8.8, status:"PATCHING"    },
   { host:"mail.corp",     ip:"10.0.1.80",  cves:2,  critical:0, col:"#00e5ff", score:5.5, status:"MONITORING"  },
   { host:"backup.corp",   ip:"10.0.1.99",  cves:6,  critical:2, col:"#f97316", score:8.0, status:"RISK"        },
+  /* ── v6.2 NEW VULN TARGETS ── */
+  { host:"dc01.corp",     ip:"10.0.1.5",   cves:4,  critical:3, col:"#e21227", score:9.9, status:"CRITICAL"    },
+  { host:"jenkins.corp",  ip:"10.0.1.60",  cves:2,  critical:2, col:"#e21227", score:10,  status:"EMERGENCY"   },
+  { host:"gitlab.corp",   ip:"10.0.1.70",  cves:3,  critical:2, col:"#e21227", score:9.4, status:"EXPLOITABLE" },
+  { host:"redis.corp",    ip:"10.0.1.85",  cves:1,  critical:1, col:"#fbbf24", score:8.7, status:"RISK"        },
+  { host:"5g-gnb-01",     ip:"192.168.60.1",cves:5, critical:3, col:"#e21227", score:9.6, status:"CRITICAL"    },
+  { host:"hsm.corp",      ip:"10.0.1.200", cves:0,  critical:0, col:"#22c55e", score:1.0, status:"HARDENED"    },
+  { host:"scada-hmi01",   ip:"192.168.50.5",cves:11,critical:5, col:"#e21227", score:10,  status:"EMERGENCY"   },
+  { host:"proxy.corp",    ip:"10.0.5.30",  cves:2,  critical:0, col:"#00e5ff", score:4.8, status:"MONITORING"  },
 ];
 
 /* ── 70 modules ── */
@@ -397,6 +442,15 @@ const AI_BENCHMARKS = [
   { name: "GPT-4o",            speed: 75,  tokens: "1.1K/s",  col: "#00ff41", latency: "66ms"  },
   { name: "Gemini 2.5 Flash",  speed: 120, tokens: "1.8K/s",  col: "#00bfff", latency: "40ms"  },
   { name: "DeepSeek V3",       speed: 95,  tokens: "1.4K/s",  col: "#00ffcc", latency: "55ms"  },
+  /* ── v6.2 NEW BENCHMARKS ── */
+  { name: "Lepton Llama 3.3", speed: 130, tokens: "2.4K/s",  col: "#10b981", latency: "25ms"  },
+  { name: "DeepInfra Llama",  speed: 110, tokens: "2.1K/s",  col: "#06b6d4", latency: "32ms"  },
+  { name: "Hyperbolic Llama", speed: 120, tokens: "2.2K/s",  col: "#7c3aed", latency: "29ms"  },
+  { name: "Novita AI Llama",  speed: 100, tokens: "1.9K/s",  col: "#f59e0b", latency: "38ms"  },
+  { name: "Qwen Max",         speed: 110, tokens: "2.0K/s",  col: "#00ffcc", latency: "33ms"  },
+  { name: "Claude Opus 4",    speed: 48,  tokens: "0.7K/s",  col: "#00e5ff", latency: "95ms"  },
+  { name: "Grok 3 Mini",      speed: 78,  tokens: "1.2K/s",  col: "#ff3333", latency: "58ms"  },
+  { name: "MiniMax 6.5S",     speed: 88,  tokens: "1.6K/s",  col: "#a3e635", latency: "46ms"  },
 ];
 
 /* ── Swarm agents ── */
@@ -417,6 +471,23 @@ const SWARM_AGENTS = [
   { id: "SA-14", role: "PRIV-ESC", status: "HUNTING",  col: "#fbbf24", target: "kernel surface"  },
   { id: "SA-15", role: "EXFIL",    status: "STAGING",  col: "#f97316", target: "dns tunnel"     },
   { id: "SA-16", role: "COVER",    status: "ACTIVE",   col: "#22c55e", target: "log cleanup"    },
+  /* ── v6.2 NEW SWARM AGENTS ── */
+  { id: "SA-17", role: "AD-ATK",   status: "ACTIVE",   col: "#a78bfa", target: "dc01.corp"       },
+  { id: "SA-18", role: "KERB",     status: "CRACKING", col: "#a78bfa", target: "18 TGS tickets"  },
+  { id: "SA-19", role: "MALDNA",   status: "SCANNING", col: "#e21227", target: "endpoint fleet"  },
+  { id: "SA-20", role: "DECEPTION",status: "WATCHING", col: "#fbbf24", target: "honeynet grid"   },
+  { id: "SA-21", role: "SUPPLY",   status: "MONITOR",  col: "#22c55e", target: "npm/pypi feeds"  },
+  { id: "SA-22", role: "5G-PWNER", status: "PROBING",  col: "#00e5ff", target: "gNB-01:38412"    },
+  { id: "SA-23", role: "EDR-BYP",  status: "EVADING",  col: "#f97316", target: "crowdstrike"     },
+  { id: "SA-24", role: "SHELLCODE",status: "CRAFTING", col: "#e21227", target: "AMSI+ETW patch"  },
+  { id: "SA-25", role: "SOC-AUT",  status: "TRIAGING", col: "#22c55e", target: "evt queue 2.4K"  },
+  { id: "SA-26", role: "GRAPH",    status: "MAPPING",  col: "#00e5ff", target: "CVE→APT→Asset"   },
+  { id: "SA-27", role: "SMB-RLY",  status: "RELAYING", col: "#fbbf24", target: "10.0.1.20"       },
+  { id: "SA-28", role: "FIRMWARE", status: "FUZZING",  col: "#f97316", target: "UEFI rom v2.4"   },
+  { id: "SA-29", role: "DARK-WEB", status: "CRAWLING", col: "#a78bfa", target: ".onion markets"  },
+  { id: "SA-30", role: "DRONE",    status: "TRACKING", col: "#00bfff", target: "ADS-B 142 a/c"   },
+  { id: "SA-31", role: "VOICE-CLN",status: "CLONING",  col: "#ff0080", target: "exec voice model" },
+  { id: "SA-32", role: "SYNTH",    status: "FUSING",   col: "#e21227", target: "all SA outputs"  },
 ];
 
 /* ── Intel feed ── */
@@ -433,6 +504,15 @@ const INTEL_FEED = [
   { sev: "HIGH", src: "BUG BOUNTY",msg: "P1 Android kernel — $150K payout",                  col: "#fbbf24" },
   { sev: "CRIT", src: "CLOUD",     msg: "AWS IAM privilege esc 0-day — unpatched",           col: "#e21227" },
   { sev: "MED",  src: "AI",        msg: "GPT-4 jailbreak — 99% bypass rate (new prompt)",    col: "#a78bfa" },
+  /* ── v6.2 NEW INTEL ── */
+  { sev: "CRIT", src: "MALDNA",    msg: "Polymorphic dropper 'BlackStar.3' — 6 AV missed",   col: "#e21227" },
+  { sev: "CRIT", src: "AD INTEL",  msg: "DCSync detected on dc01.corp — domain exposed",     col: "#e21227" },
+  { sev: "HIGH", src: "DECEPTION", msg: "Canary doc opened by 45.33.32.156 — attacker live", col: "#fbbf24" },
+  { sev: "CRIT", src: "5G",        msg: "IMSI catcher: 14 devices tracked — gNB-01 rogue",   col: "#e21227" },
+  { sev: "HIGH", src: "SUPPLY CHN",msg: "Malicious pypi pkg 'cryptoutils-pro' — 1.8M d/l",   col: "#fbbf24" },
+  { sev: "MED",  src: "SOC",       msg: "MTTR 11min: incident auto-triaged by SOC Automate", col: "#22c55e" },
+  { sev: "CRIT", src: "CVE",       msg: "CVE-2025-9999 Windows LDAP CVSS 10.0 — no patch",  col: "#e21227" },
+  { sev: "HIGH", src: "REDTEAM",   msg: "RedXTF: 18-agent team pwned corp in 4h 22m",        col: "#f97316" },
 ];
 
 /* ── Precomputed values ── */

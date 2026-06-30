@@ -118,14 +118,14 @@ function SectionLabel({text}:{text:string}) {
    DATA
 ══════════════════════════════════════════════════════════════ */
 const LIVE_STATS = [
-  {label:"مستخدم نشط",  value:22480, suffix:"",  icon:Users,        col:"#e21227"},
-  {label:"فحص اليوم",    value:142800,suffix:"+", icon:Target,       col:"#00e5ff"},
-  {label:"CVE مُكتشف",   value:2341,  suffix:"",  icon:AlertTriangle,col:"#fbbf24"},
-  {label:"نموذج AI",      value:20,    suffix:"+", icon:Brain,        col:"#a78bfa"},
+  {label:"مستخدم نشط",  value:31200, suffix:"",  icon:Users,        col:"#e21227"},
+  {label:"فحص اليوم",    value:218400,suffix:"+", icon:Target,       col:"#00e5ff"},
+  {label:"CVE مُكتشف",   value:3182,  suffix:"",  icon:AlertTriangle,col:"#fbbf24"},
+  {label:"نموذج AI",      value:36,    suffix:"+", icon:Brain,        col:"#a78bfa"},
   {label:"دقة التهديد",  value:99,    suffix:"%", icon:TrendingUp,   col:"#22c55e"},
   {label:"وضع عمل",       value:22,    suffix:"",  icon:Layers,       col:"#f97316"},
   {label:"عميل Swarm",   value:32,    suffix:"",  icon:Hexagon,      col:"#a78bfa"},
-  {label:"شريك أمني",    value:48,    suffix:"+", icon:Award,        col:"#fbbf24"},
+  {label:"شريك أمني",    value:62,    suffix:"+", icon:Award,        col:"#fbbf24"},
 ];
 
 const FEATURES = [
@@ -353,10 +353,10 @@ const LIVE_ACTIVITY = [
 ];
 
 const COMMUNITY_STATS = [
-  {label:"أعضاء Discord",     value:18400, suffix:"+", icon:MessageSquare, col:"#5865F2"},
-  {label:"GitHub Stars",      value:9200,  suffix:"+", icon:Github,        col:"#22c55e"},
-  {label:"CTF انتصارات",      value:1240,  suffix:"",  icon:Award,         col:"#fbbf24"},
-  {label:"مساهم مفتوح",       value:340,   suffix:"+", icon:Heart,         col:"#e21227"},
+  {label:"أعضاء Discord",     value:26800, suffix:"+", icon:MessageSquare, col:"#5865F2"},
+  {label:"GitHub Stars",      value:14200, suffix:"+", icon:Github,        col:"#22c55e"},
+  {label:"CTF انتصارات",      value:1940,  suffix:"",  icon:Award,         col:"#fbbf24"},
+  {label:"مساهم مفتوح",       value:520,   suffix:"+", icon:Heart,         col:"#e21227"},
 ];
 
 const PARTNERS = [
@@ -366,9 +366,18 @@ const PARTNERS = [
   {name:"Groq",        col:"#ff6600"}, {name:"DeepSeek",    col:"#00ffcc"},
   {name:"NVD/NIST",   col:"#fbbf24"}, {name:"CISA",        col:"#e21227"},
   {name:"Shodan",      col:"#f97316"}, {name:"VT",          col:"#22c55e"},
+  /* ── v6.2 NEW PARTNERS ── */
+  {name:"Mistral AI",  col:"#ffcc00"}, {name:"Perplexity",  col:"#00ff99"},
+  {name:"Together AI", col:"#bf00ff"}, {name:"Cohere",      col:"#0099ff"},
+  {name:"Replicate",   col:"#9333ea"}, {name:"DeepInfra",   col:"#06b6d4"},
+  {name:"Lepton AI",   col:"#10b981"}, {name:"Novita AI",   col:"#f59e0b"},
+  {name:"Qwen/Alibaba",col:"#00ffcc"}, {name:"Moonshot AI", col:"#c084fc"},
+  {name:"MITRE",       col:"#e21227"}, {name:"ExploitDB",   col:"#ff3333"},
 ];
 
 const WHATS_NEW = [
+  {ver:"v6.2", date:"يونيو 2026",    col:"#ff0080", items:["DeceptionGrid v2 — 120 Canary","MalDNA v2 — 94M Vector","EDR Killer v2","AD Attack Suite Full","ShellcodeGen AI — AMSI","ThreatGraph v3 Real-time","36 AI Providers","SOC Automate","RedXTF 18-Agent Engine","Swarm 32x Full"]},
+  {ver:"v6.1", date:"مايو 2026",     col:"#a78bfa", items:["AutoPentest v5","NeuralFabric 540B","5G CorePwn","Supply Chain Sentinel","Knowledge Graph AI","Differential Privacy","APT Emulator v3","FirmwareFuzz v2","BGP Hijacker","28 AI Providers"]},
   {ver:"v6.0", date:"يونيو 2025",    col:"#e21227", items:["Swarm AI 32x","ICS/SCADA Suite","SIGINT Module","AI Adversarial Suite","Cloud CSPM v2","GodMode 22x","ZeroDay Scanner v2","PrivEsc AI v3"]},
   {ver:"v5.0", date:"مارس 2025",     col:"#00e5ff", items:["SIEM/SOAR/UEBA","ZeroDay Scanner v2","WiFi/BLE/RFID","Council 256 Ultra","Arsenal v3","Binary Analysis"]},
   {ver:"v4.0", date:"يناير 2025",    col:"#a78bfa", items:["Council Mode","GodMode 18x","Swarm AI 16x","CVE Watcher","Arsenal v2","Forensics AI"]},
@@ -381,6 +390,11 @@ const ATTACK_SCENARIOS = [
   { title:"ICS Power Grid",   steps:["مسح Modbus/DNP3","كشف PLC عرضة","SCADA exploit","إيقاف المحطة محاكاة","تقييم الأثر OT/IT"],   col:"#fbbf24", icon:"⚡", time:"~8 دقائق",  agents:8  },
   { title:"Cloud Takeover",   steps:["AWS CSPM فحص","S3 public buckets","IAM privilege esc","Root access محاكاة","تقرير CSPM كامل"],  col:"#00e5ff", icon:"☁",  time:"~6 دقائق",  agents:16 },
   { title:"WiFi Corporate",   steps:["WPA3 PMKID capture","Rogue AP deploy","MITM SSL strip","credential harvest","VPN bypass"],       col:"#a78bfa", icon:"📡", time:"~5 دقائق",  agents:4  },
+  /* ── v6.2 NEW SCENARIOS ── */
+  { title:"AD Full Compromise",steps:["LDAP enum users","Kerberoast TGS crack","DCSync domain dump","Pass-the-Hash all DCs","Golden Ticket persist"], col:"#a78bfa", icon:"🏰", time:"~18 دقيقة", agents:6  },
+  { title:"Supply Chain Hit",  steps:["PyPI/npm package scan","backdoor injection","build pipeline pwn","staging→prod spread","silent persistence"],  col:"#22c55e", icon:"📦", time:"~24 دقيقة", agents:12 },
+  { title:"5G Core Exploit",   steps:["gNB rogue setup","NAS session hijack","IMSI catcher active","SMS intercept","location track"],                 col:"#00e5ff", icon:"📶", time:"~9 دقائق",  agents:4  },
+  { title:"Ransomware Sim",    steps:["phish + initial access","lateral movement SMB","exfil 100GB data","encrypt all endpoints","ransom note deploy"], col:"#e21227", icon:"💀", time:"~31 دقيقة", agents:16 },
 ];
 
 const CTF_LABS = [
@@ -390,13 +404,23 @@ const CTF_LABS = [
   { name:"OSINT Missions",        difficulty:"EASY",   points:300,  topics:["WHOIS","Shodan","LinkedIn","GitHub"],        col:"#22c55e", solved:2100 },
   { name:"Malware Reverse Eng",   difficulty:"EXPERT", points:2000, topics:["x86","IDA Pro","YARA","Sandbox"],           col:"#fbbf24", solved:320  },
   { name:"Cloud Security CTF",    difficulty:"HARD",   points:1200, topics:["AWS IAM","S3","Lambda","K8s escape"],       col:"#f97316", solved:560  },
+  /* ── v6.2 NEW CTF LABS ── */
+  { name:"Active Directory Lab",  difficulty:"HARD",   points:1500, topics:["Kerberoast","DCSync","PTH","Golden Ticket"],  col:"#a78bfa", solved:410  },
+  { name:"5G Security Arena",     difficulty:"EXPERT", points:2500, topics:["NAS hijack","IMSI catcher","gNB spoof"],      col:"#00e5ff", solved:88   },
+  { name:"Malware Dev Lab",       difficulty:"EXPERT", points:3000, topics:["shellcode","AV bypass","EDR evasion","C2"],   col:"#e21227", solved:210  },
+  { name:"Supply Chain CTF",      difficulty:"HARD",   points:1800, topics:["npm backdoor","pypi typosquat","SBOMs"],      col:"#22c55e", solved:340  },
+  { name:"Deception & HoneyNet",  difficulty:"MEDIUM", points:700,  topics:["canary tokens","honeydoc","HoneyPot"],        col:"#fbbf24", solved:890  },
+  { name:"ICS/OT Hacking Lab",    difficulty:"EXPERT", points:2000, topics:["Modbus","DNP3","PLC exploit","SCADA"],        col:"#f97316", solved:175  },
+  { name:"AI Security Red Team",  difficulty:"HARD",   points:1600, topics:["LLM jailbreak","prompt inject","model pwn"],  col:"#ff0080", solved:620  },
+  { name:"Firmware Reverse Lab",  difficulty:"EXPERT", points:2200, topics:["UEFI","BIOS","embedded","QEMU fuzz"],         col:"#f97316", solved:140  },
 ];
 
 const HOW_IT_WORKS = [
-  { step:"01", title:"اختر المزوّد",     desc:"يكتشف KaliGPT تلقائياً جميع مفاتيح API وNماذج Ollama — أو أضف مزوّدك في ثانية واحدة.",     icon:"🔑", col:"#e21227"  },
-  { step:"02", title:"حدّد الهدف",       desc:"أدخل IP/دومين/ملف أو وصف سيناريو Red Team — KaliGPT يُحلّل ويُخطّط استراتيجية الهجوم.",    icon:"🎯", col:"#fbbf24"  },
-  { step:"03", title:"أطلق الـ Swarm",   desc:"32 عميل ذكاء اصطناعي يعملون بالتوازي — استطلاع، استغلال، تحليل، تقرير — في دقائق.",          icon:"🤖", col:"#00e5ff"  },
-  { step:"04", title:"احصل على التقرير", desc:"تقرير احترافي شامل: نقاط الضعف، الـ PoC، التوصيات، جاهز للتسليم للعميل أو للـ CVE.",          icon:"📋", col:"#22c55e"  },
+  { step:"01", title:"اختر المزوّد (36+)",  desc:"يكتشف KaliGPT تلقائياً 36 مزود AI: OpenAI/Claude/Gemini/Groq/Qwen/GLM وأكثر — أو أضف مزوّدك في ثانية.",    icon:"🔑", col:"#e21227"  },
+  { step:"02", title:"حدّد الهدف",          desc:"أدخل IP/دومين/ملف أو وصف سيناريو Red Team/AD/ICS/5G — KaliGPT يُخطّط سلسلة الهجوم الكاملة.",              icon:"🎯", col:"#fbbf24"  },
+  { step:"03", title:"أطلق الـ Swarm 32x",  desc:"32 عميل ذكاء اصطناعي متخصص بالتوازي: Recon → Exploit → PrivEsc → Deception → Exfil — في دقائق.",            icon:"🤖", col:"#00e5ff"  },
+  { step:"04", title:"راقب بالـ SIEM/SOC",  desc:"SOC Automate + ThreatGraph v3: تتبع الحادثة لحظياً، عزل تلقائي، تذكرة، وتطبيق الحل في 11 دقيقة.",           icon:"📡", col:"#a78bfa"  },
+  { step:"05", title:"احصل على التقرير",    desc:"تقرير احترافي: ثغرات + PoC + CVSS + MITRE ATT&CK mapping + توصيات — جاهز للتسليم للعميل.",                    icon:"📋", col:"#22c55e"  },
 ];
 
 const INTEGRATIONS = [
@@ -424,6 +448,23 @@ const INTEGRATIONS = [
   { name:"Exploit-DB",    icon:"💣", col:"#ff3333", cat:"Exploit"   },
   { name:"CyberChef",     icon:"🍳", col:"#e91e63", cat:"Encode"    },
   { name:"Ghidra",        icon:"🔭", col:"#a78bfa", cat:"Reverse"   },
+  /* ── v6.2 NEW INTEGRATIONS ── */
+  { name:"BloodHound",    icon:"🩸", col:"#e21227", cat:"AD Recon"   },
+  { name:"CrackMapExec",  icon:"🗡", col:"#a78bfa", cat:"AD Attack"  },
+  { name:"Impacket",      icon:"📦", col:"#f97316", cat:"SMB/AD"     },
+  { name:"Empire C2",     icon:"👑", col:"#fbbf24", cat:"C2"         },
+  { name:"Covenant C2",   icon:"⚔",  col:"#e21227", cat:"C2"         },
+  { name:"Elastic SIEM",  icon:"🔍", col:"#f7dc0a", cat:"SIEM"       },
+  { name:"Splunk",        icon:"📊", col:"#00e5ff", cat:"SIEM"       },
+  { name:"Suricata IDS",  icon:"🐉", col:"#22c55e", cat:"IDS/IPS"    },
+  { name:"MISP",          icon:"🦠", col:"#e21227", cat:"Threat Intel"},
+  { name:"TheHive",       icon:"🐝", col:"#fbbf24", cat:"SOC"        },
+  { name:"Cortex",        icon:"🧠", col:"#00e5ff", cat:"SOAR"       },
+  { name:"Zeek/Bro",      icon:"🦈", col:"#00bfff", cat:"Network"    },
+  { name:"OpenCTI",       icon:"🕵", col:"#a78bfa", cat:"Threat Intel"},
+  { name:"CALDERA",       icon:"🎯", col:"#e21227", cat:"Emulation"  },
+  { name:"Atomic RT",     icon:"⚛",  col:"#f97316", cat:"Emulation"  },
+  { name:"Sigma Rules",   icon:"📋", col:"#22c55e", cat:"Detection"  },
 ];
 
 const ARSENAL_TOOLS = [
@@ -439,6 +480,19 @@ const ARSENAL_TOOLS = [
   { name:"PhishKit Pro",     desc:"صفحات تصيّد متقدمة مع bypass MFA وcredential harvest", col:"#ffcc00",  tag:"SOCIAL"     },
   { name:"Swarm 32x",        desc:"32 عميل متوازٍ — Recon → Exploit → Report في دقائق",   col:"#00ff41",  tag:"SWARM"      },
   { name:"PrivEsc AI",       desc:"كشف مسارات PrivEsc تلقائياً: SUID، Sudo، Cron، Path", col:"#bf00ff",  tag:"PRIVESC"    },
+  /* ── v6.2 NEW ARSENAL ── */
+  { name:"DeceptionGrid v2", desc:"120 canary token + honeydoc: كشف المتسلل في ثوانٍ",  col:"#fbbf24",  tag:"DECEPTION"  },
+  { name:"MalDNA v2",        desc:"94M-vector polymorphic malware detection engine",       col:"#e21227",  tag:"MALWARE"    },
+  { name:"EDR Killer v2",    desc:"Reflective DLL + ETW patch + AMSI bypass suite",       col:"#f97316",  tag:"EVASION"    },
+  { name:"Kerberoast Kit",   desc:"SPN enum + TGS offline crack + DC replication dump",  col:"#a78bfa",  tag:"AD ATTACK"  },
+  { name:"ShellcodeGen AI",  desc:"AV-bypass shellcode — AMSI + ETW + syscall hook",     col:"#e21227",  tag:"EXPLOIT"    },
+  { name:"ThreatGraph v3",   desc:"Real-time CVE↔APT↔Asset threat chain mapping",         col:"#00e5ff",  tag:"INTEL"      },
+  { name:"SOC Automate",     desc:"Auto-triage → isolate → ticket → patch in 11 min",    col:"#22c55e",  tag:"SOC"        },
+  { name:"RedXTF Engine",    desc:"18-agent coordinated red team framework full chain",    col:"#e21227",  tag:"RED TEAM"   },
+  { name:"5G CorePwn",       desc:"gNB rogue + NAS hijack + IMSI catcher real-time",     col:"#00e5ff",  tag:"5G"         },
+  { name:"Supply Sentinel",  desc:"npm/pypi/maven backdoor + SBOM verify + alert",        col:"#22c55e",  tag:"SUPPLY CHN" },
+  { name:"Proxy Pool 440x",  desc:"440 rotating SOCKS5 exits — full anonymity layer",    col:"#a78bfa",  tag:"ANON"       },
+  { name:"AutoPentest v5",   desc:"فحص → استغلال → تصعيد → تقرير في 8 دقائق",           col:"#e21227",  tag:"AUTO"       },
 ];
 
 /* ══════════════════════════════════════════════════════════════

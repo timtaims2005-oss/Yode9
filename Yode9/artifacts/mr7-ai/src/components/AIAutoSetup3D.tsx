@@ -4,7 +4,7 @@ import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 
 /* ══════════════════════════════════════════════════════════════
-   PROVIDER REGISTRY — 20 providers
+   PROVIDER REGISTRY — 36 providers
 ══════════════════════════════════════════════════════════════ */
 const PROVIDER_PRIORITY = [
   { id:"cerebras",   name:"Cerebras",          color:"#ff00aa", baseURL:"https://api.cerebras.ai/v1",                                     bestModel:"llama-3.3-70b",                        bestModelLabel:"Llama 3.3 70B",        requiresKey:true,  category:"أسرع LLM",      speed:220, contextWindow:"128K", free:false, costPer1M:"$0.60",  rpmLimit:60  },
