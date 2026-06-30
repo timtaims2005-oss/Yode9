@@ -4,7 +4,9 @@ import {
   Shield, Terminal, Zap, Eye, Brain, Lock, ChevronRight, Server, Code2,
   Crosshair, Cpu, Activity, Globe, Wifi, Database, Search, Network,
   FlaskConical, Layers, Radar, Bug, Fingerprint, Key, BarChart3,
-  GitBranch, Boxes, Swords, BookOpen, Radio, MonitorCheck,
+  GitBranch, Boxes, Swords, BookOpen, Radio, MonitorCheck, Target,
+  Cpu as CpuIcon, Hexagon, ShieldCheck, AlertTriangle, TrendingUp,
+  Users, Clock, Flame, Star, ChevronDown, Play,
 } from "lucide-react";
 import { MatrixRain } from "@/components/MatrixRain";
 import { HoloCoreOrb } from "@/components/HoloCoreOrb";
@@ -39,10 +41,10 @@ function ParticleCanvas() {
     resize();
     window.addEventListener("resize", resize);
 
-    const COLORS = ["#e21227","#ff3c3c","#ff6b35","rgba(226,18,39,0.6)","rgba(255,255,255,0.5)","rgba(255,255,255,0.2)"];
+    const COLORS = ["#e21227","#ff3c3c","#ff6b35","rgba(226,18,39,0.6)","rgba(255,255,255,0.5)","rgba(255,255,255,0.2)","rgba(167,139,250,0.5)","rgba(0,229,255,0.3)"];
     const TYPES: Particle["type"][] = ["dot","dot","dot","cross","ring"];
 
-    particles.current = Array.from({ length: 180 }, () => ({
+    particles.current = Array.from({ length: 220 }, () => ({
       x: Math.random() * canvas!.width,
       y: Math.random() * canvas!.height,
       z: Math.random() * 1000,
@@ -134,6 +136,32 @@ function ParticleCanvas() {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   LIVE STATS COUNTER
+══════════════════════════════════════════════════════════════ */
+function LiveCounter({ target, suffix = "", duration = 2000, color = "#e21227" }: { target: number; suffix?: string; duration?: number; color?: string }) {
+  const [val, setVal] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      observer.disconnect();
+      let start = 0;
+      const step = target / (duration / 16);
+      const interval = setInterval(() => {
+        start = Math.min(start + step, target);
+        setVal(Math.floor(start));
+        if (start >= target) clearInterval(interval);
+      }, 16);
+    }, { threshold: 0.3 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target, duration]);
+
+  return <span ref={ref} style={{ color }}>{val.toLocaleString()}{suffix}</span>;
+}
+
+/* ══════════════════════════════════════════════════════════════
    DATA
 ══════════════════════════════════════════════════════════════ */
 const features = [
@@ -141,11 +169,14 @@ const features = [
   { icon: Terminal, title: "ترمينال تفاعلي", desc: "طرفية أوامر مدمجة في المتصفح تتيح تنفيذ أوامر Shell بشكل مباشر داخل جلسة الذكاء الاصطناعي.", color: "#ff6b35" },
   { icon: Eye, title: "وحدة OSINT المتقدمة", desc: "جمع المعلومات مفتوحة المصدر، تحليل المواقع، وتتبع البصمة الرقمية بدقة عالية.", color: "#00e5ff" },
   { icon: Crosshair, title: "أسلوب Red Team", desc: "محاكاة هجمات حقيقية، تقييم الدفاعات، وتحليل نقاط الضعف من منظور المهاجم.", color: "#a78bfa" },
-  { icon: Server, title: "وضع المجلس — Council Mode", desc: "105 عقل متخصص تعمل في آنٍ واحد: مخترق، محلل، مطور، محقق جنائي، وأكثر.", color: "#e21227" },
-  { icon: Code2, title: "ترسانة Arsenal", desc: "+70 أداة متخصصة: JARVIS، Parseltongue، RAGFlow، NexusAI، وأدوات هجومية ودفاعية متكاملة.", color: "#22c55e" },
-  { icon: Radar, title: "CVE Watcher", desc: "مراقبة لحظية لقاعدة بيانات الثغرات العالمية مع تنبيهات فورية وتحليل أثر تلقائي.", color: "#fbbf24" },
-  { icon: Network, title: "Network Interceptor", desc: "تحليل حركة الشبكة، فحص البروتوكولات، واكتشاف الأجهزة المخفية في البنية التحتية.", color: "#f97316" },
-  { icon: Fingerprint, title: "Digital Forensics", desc: "التحليل الجنائي الرقمي: استخراج البيانات، تحليل الأدلة، وإعادة تشكيل سلسلة الهجوم.", color: "#e21227" },
+  { icon: Server, title: "وضع المجلس — Council Mode", desc: "256 عقل متخصص تعمل في آنٍ واحد: مخترق، محلل، مطور، محقق جنائي، وأكثر.", color: "#e21227" },
+  { icon: Code2, title: "ترسانة Arsenal v2", desc: "+120 أداة متخصصة: JARVIS، Parseltongue، RAGFlow، NexusAI، وأدوات هجومية ودفاعية متكاملة.", color: "#22c55e" },
+  { icon: Radar, title: "CVE Watcher Live", desc: "مراقبة لحظية لقاعدة بيانات الثغرات العالمية مع تنبيهات فورية وتحليل أثر تلقائي.", color: "#fbbf24" },
+  { icon: Network, title: "Network Interceptor Pro", desc: "تحليل حركة الشبكة، فحص البروتوكولات، واكتشاف الأجهزة المخفية في البنية التحتية.", color: "#f97316" },
+  { icon: Fingerprint, title: "Digital Forensics AI", desc: "التحليل الجنائي الرقمي: استخراج البيانات، تحليل الأدلة، وإعادة تشكيل سلسلة الهجوم.", color: "#e21227" },
+  { icon: Hexagon, title: "Swarm Intelligence", desc: "16 عميل ذكاء اصطناعي مستقل يعملون بالتوازي على تحليل الأهداف وتنسيق الهجمات.", color: "#a78bfa" },
+  { icon: ShieldCheck, title: "SIEM / SOAR مدمج", desc: "محرك الأحداث الأمنية مع ردود فعل آلية — 48 قاعدة استجابة مُعدّة مسبقاً.", color: "#00e5ff" },
+  { icon: AlertTriangle, title: "Zero-Day Scanner", desc: "محرك فحص الثغرات غير المكتشفة باستخدام تحليل السلوك الديناميكي والأنماط المجهولة.", color: "#fbbf24" },
 ];
 
 const models = [
@@ -154,37 +185,45 @@ const models = [
   { name: "CHAT-GPT Coder",      tag: "برمجة",        color: "#22c55e", icon: Code2 },
   { name: "CHAT-GPT Researcher", tag: "بحث",          color: "#eab308", icon: Search },
   { name: "KaliGPT Red Team",    tag: "هجومي",        color: "#e21227", icon: Swords },
-  { name: "GodMode",             tag: "لا حدود",      color: "#f97316", icon: Zap },
+  { name: "GodMode 18x",         tag: "لا حدود",      color: "#f97316", icon: Zap },
   { name: "Claude Opus",         tag: "تحليل",        color: "#00e5ff", icon: BookOpen },
   { name: "Gemini Ultra",        tag: "متعدد",        color: "#34d399", icon: Layers },
+  { name: "DeepSeek V3",         tag: "استدلال",      color: "#00ffcc", icon: Brain },
+  { name: "Grok 3",              tag: "X.ai",         color: "#ff3333", icon: Flame },
 ];
 
 const faqs = [
   { q: "هل يمكن استخدام KaliGPT للأغراض التعليمية فقط؟", a: "نعم. KaliGPT مصمم للباحثين الأمنيين والمختبرين المرخصين وطلاب الأمن السيبراني في بيئات اختبار قانونية فقط." },
   { q: "ما الفرق بين KaliGPT وChatGPT العادي؟", a: "KaliGPT مخصص 100% للأمن السيبراني ويمتلك قاعدة معرفية بالأدوات الهجومية والدفاعية، بينما ChatGPT نموذج عام متحفظ." },
   { q: "هل بياناتي محفوظة أم تُعالج محلياً؟", a: "تُرسل المحادثات إلى الخادم لمعالجتها عبر نموذج اللغة. لا نحتفظ بمحتوى المحادثات بعد انتهاء الجلسة." },
-  { q: "ما هو وضع المجلس Council Mode؟", a: "وضع فريد يُشغّل 105 نموذج ذكاء اصطناعي متخصص في وقت واحد على نفس المشكلة، ثم يجمع النتائج في تقرير شامل." },
-  { q: "هل يدعم GodMode استخدام مفاتيح API الخاصة بي؟", a: "نعم، يمكنك ربط مفاتيح OpenAI وAnthropic وGroq وGemini والمزيد. GodMode يستخدم أفضل مزود متاح تلقائياً." },
+  { q: "ما هو وضع المجلس Council Mode؟", a: "وضع فريد يُشغّل 256 نموذج ذكاء اصطناعي متخصص في وقت واحد على نفس المشكلة، ثم يجمع النتائج في تقرير شامل." },
+  { q: "هل يدعم GodMode استخدام مفاتيح API الخاصة بي؟", a: "نعم، يمكنك ربط مفاتيح OpenAI وAnthropic وGroq وGemini وDeepSeek وxAI والمزيد. GodMode يستخدم أفضل مزود متاح تلقائياً." },
   { q: "هل يعمل KaliGPT بدون اتصال بالإنترنت؟", a: "يمكن تشغيل النماذج المحلية مثل Ollama وLM Studio بدون إنترنت عبر وحدة Local Engine المدمجة." },
+  { q: "ما هو Swarm Intelligence؟", a: "نظام متقدم يُشغّل 16 عميل ذكاء اصطناعي بشكل مستقل وبالتوازي، يتعاونون لتحليل هدف واحد من زوايا مختلفة ويجمعون النتائج." },
+  { q: "هل يدعم SIEM/SOAR المدمج التكامل مع الأنظمة الخارجية؟", a: "نعم، يدعم إرسال التنبيهات إلى Slack وPagerDuty وWebhooks مخصصة. يمكن ربطه بأي SIEM خارجي عبر API." },
 ];
 
 const arsenalTools = [
-  { icon: Terminal,    name: "ShellGen",     desc: "توليد أوامر Shell هجومية",     col: "#e21227", cat: "OFFENSIVE" },
-  { icon: Eye,         name: "OSINT+",       desc: "استخبارات مصادر مفتوحة",       col: "#00e5ff", cat: "RECON"    },
-  { icon: Bug,         name: "CVEWatch",     desc: "مراقبة الثغرات الحية",          col: "#a78bfa", cat: "INTEL"   },
-  { icon: Network,     name: "NetScan Pro",  desc: "فحص الشبكات والبنية التحتية",  col: "#22c55e", cat: "NETWORK" },
-  { icon: Brain,       name: "Council AI",   desc: "105 عقل في آنٍ واحد",           col: "#fbbf24", cat: "AI"      },
-  { icon: Database,    name: "RAGFlow",      desc: "قاعدة معرفة أمنية متجهية",     col: "#00e5ff", cat: "DB"      },
-  { icon: Radar,       name: "Threat Intel", desc: "تحليل التهديدات اللحظية",      col: "#e21227", cat: "INTEL"   },
-  { icon: Code2,       name: "JARVIS",       desc: "مساعد برمجة هجومية",           col: "#f97316", cat: "DEV"     },
-  { icon: Lock,        name: "CipherBreak",  desc: "تحليل التشفير وكسره",           col: "#a78bfa", cat: "CRYPTO"  },
-  { icon: Globe,       name: "DarkWeb Mon",  desc: "مراقبة الويب المظلم",           col: "#e21227", cat: "OSINT"   },
-  { icon: FlaskConical,name: "Parseltongue", desc: "توليد shellcode متقدم",        col: "#22c55e", cat: "EXPLOIT" },
-  { icon: GitBranch,   name: "ChainBuilder", desc: "بناء سلاسل الهجوم",            col: "#00e5ff", cat: "PIPELINE"},
-  { icon: Fingerprint, name: "Forensics",    desc: "التحليل الجنائي الرقمي",       col: "#fbbf24", cat: "FORENSIC"},
-  { icon: Key,         name: "PrivEsc AI",   desc: "رفع الصلاحيات التلقائي",       col: "#e21227", cat: "EXPLOIT" },
-  { icon: Boxes,       name: "ArsenalHub",   desc: "مركز تحكم الأدوات",            col: "#a78bfa", cat: "HUB"     },
-  { icon: MonitorCheck,name: "GodMode",      desc: "14 وضع بدون قيود",             col: "#ff6b35", cat: "GODMODE" },
+  { icon: Terminal,    name: "ShellGen v2",    desc: "توليد أوامر Shell هجومية",     col: "#e21227", cat: "OFFENSIVE" },
+  { icon: Eye,         name: "OSINT+",         desc: "استخبارات مصادر مفتوحة",       col: "#00e5ff", cat: "RECON"    },
+  { icon: Bug,         name: "CVEWatch Live",  desc: "مراقبة الثغرات الحية",          col: "#a78bfa", cat: "INTEL"   },
+  { icon: Network,     name: "NetScan Pro",    desc: "فحص الشبكات والبنية التحتية",  col: "#22c55e", cat: "NETWORK" },
+  { icon: Brain,       name: "Council 256",    desc: "256 عقل في آنٍ واحد",           col: "#fbbf24", cat: "AI"      },
+  { icon: Database,    name: "RAGFlow v2",     desc: "قاعدة معرفة أمنية متجهية",     col: "#00e5ff", cat: "DB"      },
+  { icon: Radar,       name: "Threat Intel",   desc: "تحليل التهديدات اللحظية",      col: "#e21227", cat: "INTEL"   },
+  { icon: Code2,       name: "JARVIS Pro",     desc: "مساعد برمجة هجومية",           col: "#f97316", cat: "DEV"     },
+  { icon: Lock,        name: "CipherBreak",    desc: "تحليل التشفير وكسره",           col: "#a78bfa", cat: "CRYPTO"  },
+  { icon: Globe,       name: "DarkWeb Mon",    desc: "مراقبة الويب المظلم",           col: "#e21227", cat: "OSINT"   },
+  { icon: FlaskConical,name: "Parseltongue v3",desc: "توليد shellcode متقدم",        col: "#22c55e", cat: "EXPLOIT" },
+  { icon: GitBranch,   name: "ChainBuilder v2",desc: "بناء سلاسل الهجوم",            col: "#00e5ff", cat: "PIPELINE"},
+  { icon: Fingerprint, name: "Forensics AI",   desc: "التحليل الجنائي الرقمي",       col: "#fbbf24", cat: "FORENSIC"},
+  { icon: Key,         name: "PrivEsc AI v2",  desc: "رفع الصلاحيات التلقائي",       col: "#e21227", cat: "EXPLOIT" },
+  { icon: Boxes,       name: "ArsenalHub v2",  desc: "مركز تحكم الأدوات",            col: "#a78bfa", cat: "HUB"     },
+  { icon: MonitorCheck,name: "GodMode 18x",    desc: "18 وضع بدون قيود",             col: "#ff6b35", cat: "GODMODE" },
+  { icon: Hexagon,     name: "Swarm AI",       desc: "16 عميل مستقل",               col: "#a78bfa", cat: "AI"      },
+  { icon: ShieldCheck, name: "SIEM/SOAR",      desc: "استجابة آلية للتهديدات",       col: "#00e5ff", cat: "DEFENSE" },
+  { icon: AlertTriangle,name: "ZeroDay Scan",  desc: "فحص الثغرات المجهولة",         col: "#fbbf24", cat: "SCANNER" },
+  { icon: Target,      name: "C2 Framework",   desc: "إطار القيادة والسيطرة",        col: "#e21227", cat: "C2"      },
 ];
 
 const howItWorks = [
@@ -194,7 +233,7 @@ const howItWorks = [
   },
   {
     step: "02", icon: Layers, title: "اختر وضع العمل", col: "#00e5ff",
-    desc: "اختر من 14 وضع عمل: من Chat البسيط إلى GodMode وCouncil وRed Team AI.",
+    desc: "اختر من 18 وضع عمل: من Chat البسيط إلى GodMode وCouncil وRed Team AI وSwarm.",
   },
   {
     step: "03", icon: Swords, title: "اطلق العملية", col: "#a78bfa",
@@ -204,31 +243,46 @@ const howItWorks = [
 
 const comparisons = [
   { feature: "تخصص الأمن السيبراني", kg: true,  cg: false, cp: false },
-  { feature: "Council Mode — 105 عقل", kg: true,  cg: false, cp: false },
-  { feature: "GodMode بدون قيود",      kg: true,  cg: false, cp: false },
-  { feature: "Arsenal 70+ أداة",        kg: true,  cg: false, cp: false },
-  { feature: "OSINT متقدم",             kg: true,  cg: false, cp: false },
-  { feature: "ShellGen هجومي",          kg: true,  cg: false, cp: false },
+  { feature: "Council Mode — 256 عقل", kg: true,  cg: false, cp: false },
+  { feature: "GodMode 18x بدون قيود", kg: true,  cg: false, cp: false },
+  { feature: "Arsenal 120+ أداة",       kg: true,  cg: false, cp: false },
+  { feature: "OSINT متقدم + دارك ويب",  kg: true,  cg: false, cp: false },
+  { feature: "ShellGen هجومي v2",       kg: true,  cg: false, cp: false },
   { feature: "نماذج متعددة المزودين",   kg: true,  cg: false, cp: true  },
   { feature: "CVE Watcher لحظي",        kg: true,  cg: false, cp: false },
   { feature: "وضع الشبكة المحلية",      kg: true,  cg: false, cp: false },
+  { feature: "Swarm Intelligence",      kg: true,  cg: false, cp: false },
+  { feature: "SIEM/SOAR مدمج",          kg: true,  cg: false, cp: false },
   { feature: "دعم عربي متكامل",          kg: true,  cg: true,  cp: false },
 ];
 
 const testimonials = [
-  { name: "محمد الشمري", role: "Senior Pentester", avatar: "M", text: "KaliGPT غيّر طريقة عملي كلياً. Council Mode وحده يساوي فريق كامل.", rating: 5, col: "#e21227" },
-  { name: "Sarah K.", role: "Red Team Lead", avatar: "S", text: "The Arsenal is unmatched. ShellGen + OSINT+ saved me 3 hours per engagement.", rating: 5, col: "#00e5ff" },
-  { name: "خالد العمري", role: "CTF Player", avatar: "K", text: "GodMode للـ CTF = الشفرة المطلقة. لا قيود، لا رقابة، نتائج مباشرة.", rating: 5, col: "#a78bfa" },
-  { name: "Alex R.", role: "CISO @ SecureCorp", avatar: "A", text: "We integrated KaliGPT into our threat intel pipeline. Phenomenal accuracy.", rating: 5, col: "#22c55e" },
+  { name: "محمد الشمري", role: "Senior Pentester", avatar: "M", text: "KaliGPT غيّر طريقة عملي كلياً. Council Mode وحده يساوي فريق كامل من المختبرين.", rating: 5, col: "#e21227" },
+  { name: "Sarah K.", role: "Red Team Lead", avatar: "S", text: "The Arsenal v2 is unmatched. ShellGen + OSINT+ saved me 3 hours per engagement.", rating: 5, col: "#00e5ff" },
+  { name: "خالد العمري", role: "CTF Player", avatar: "K", text: "GodMode للـ CTF = الشفرة المطلقة. لا قيود، لا رقابة، نتائج مباشرة ومدهشة.", rating: 5, col: "#a78bfa" },
+  { name: "Alex R.", role: "CISO @ SecureCorp", avatar: "A", text: "We integrated KaliGPT into our threat intel pipeline. Phenomenal accuracy on APT detection.", rating: 5, col: "#22c55e" },
+  { name: "يوسف المالكي", role: "Security Researcher", avatar: "Y", text: "Swarm AI ثوري. أرسل 16 عميل يحللون هدف واحد في آنٍ واحد — النتائج خارقة.", rating: 5, col: "#fbbf24" },
+  { name: "Chen W.", role: "Bug Bounty Hunter", avatar: "C", text: "CVE Watcher + ZeroDay Scanner combo is a game changer for bug bounty programs.", rating: 5, col: "#f97316" },
 ];
 
 const liveActivity = [
-  { type: "SCAN",   msg: "Red team scan initiated on 192.168.1.0/24",   col: "#e21227", time: "now" },
-  { type: "CVE",    msg: "CVE-2024-9873 — CVSS 9.8 detected in feed",  col: "#fbbf24", time: "2s"  },
-  { type: "OSINT",  msg: "OSINT sweep: 14 subdomains found",            col: "#00e5ff", time: "5s"  },
-  { type: "SHELL",  msg: "Reverse shell payload generated",              col: "#a78bfa", time: "8s"  },
-  { type: "COUNCIL",msg: "Council session: 105 brains analyzing target", col: "#22c55e", time: "12s" },
-  { type: "ALERT",  msg: "Dark web actor 0xDEAD pinged endpoint",       col: "#f97316", time: "18s" },
+  { type: "SCAN",   msg: "Red team scan initiated on 192.168.1.0/24",       col: "#e21227", time: "now" },
+  { type: "CVE",    msg: "CVE-2025-1337 — CVSS 10.0 CRITICAL detected",     col: "#fbbf24", time: "2s"  },
+  { type: "OSINT",  msg: "OSINT sweep: 23 subdomains + 8 exposed APIs",      col: "#00e5ff", time: "5s"  },
+  { type: "SHELL",  msg: "Reverse shell payload generated (polymorphic)",     col: "#a78bfa", time: "8s"  },
+  { type: "SWARM",  msg: "Swarm session: 16 agents analyzing target",         col: "#22c55e", time: "11s" },
+  { type: "COUNCIL",msg: "Council session: 256 brains analyzing CVE",         col: "#22c55e", time: "14s" },
+  { type: "ALERT",  msg: "APT-29 lateral movement blocked",                   col: "#f97316", time: "18s" },
+  { type: "SIEM",   msg: "SIEM: 847 events/sec — 3 critical alerts fired",   col: "#00e5ff", time: "22s" },
+];
+
+const liveStats = [
+  { label: "مستخدم نشط",  value: 14823, suffix: "", icon: Users,       col: "#e21227" },
+  { label: "فحص اليوم",    value: 98200, suffix: "+", icon: Target,     col: "#00e5ff" },
+  { label: "CVE مُكتشف",   value: 1893,  suffix: "",  icon: AlertTriangle, col: "#fbbf24" },
+  { label: "نموذج AI",      value: 10,    suffix: "+", icon: Brain,       col: "#a78bfa" },
+  { label: "دقة التهديد",  value: 99,    suffix: "%", icon: TrendingUp,  col: "#22c55e" },
+  { label: "وضع عمل",       value: 18,    suffix: "",  icon: Layers,      col: "#f97316" },
 ];
 
 /* ══════════════════════════════════════════════════════════════
@@ -300,7 +354,7 @@ function NeuralNetCanvas() {
     const onResize = () => { W = window.innerWidth; H = window.innerHeight; cv.width = W; cv.height = H; };
     window.addEventListener("resize", onResize);
 
-    const NODE_COUNT = Math.min(55, Math.floor(W * H / 18000));
+    const NODE_COUNT = Math.min(65, Math.floor(W * H / 15000));
     interface Node { x: number; y: number; vx: number; vy: number; r: number; pulse: number; phase: number }
     const nodes: Node[] = Array.from({ length: NODE_COUNT }, () => ({
       x: Math.random() * W, y: Math.random() * H,
@@ -367,11 +421,12 @@ function ScanLine() {
 const TYPEWRITER_PHRASES = [
   "اختبار الاختراق المتقدم بالذكاء الاصطناعي",
   "Advanced Penetration Testing AI",
-  "Red Team · OSINT · Council Mode · Arsenal",
-  "105 عقل ذكاء اصطناعي في وقت واحد",
-  "Shell Generator · Dark Web Search · Godmode",
+  "Red Team · OSINT · Council Mode · Arsenal v2",
+  "256 عقل ذكاء اصطناعي في وقت واحد",
+  "Shell Generator · Dark Web Search · Godmode 18x",
   "مساعدك الهجومي الأول في الأمن السيبراني",
-  "CVE Watcher · Forensics · Network Interceptor",
+  "CVE Watcher · Forensics · ZeroDay Scanner",
+  "Swarm Intelligence · SIEM/SOAR · C2 Framework",
 ];
 
 function TypewriterText({ className = "", style = {} }: { className?: string; style?: CSSProperties }) {
@@ -424,550 +479,434 @@ function HexScanLine() {
   return (
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 2 }}>
       <div style={{ position: "absolute", left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent 0%, rgba(0,229,255,0.0) 10%, rgba(0,229,255,0.6) 30%, rgba(226,18,39,0.8) 50%, rgba(0,229,255,0.6) 70%, rgba(0,229,255,0.0) 90%, transparent 100%)", animation: "scanline 9s linear infinite", animationDelay: "3s", boxShadow: "0 0 12px rgba(0,229,255,0.4)" }} />
-      <div style={{ position: "absolute", top: 0, bottom: 0, width: "1px", background: "linear-gradient(180deg, transparent 0%, rgba(167,139,250,0.0) 10%, rgba(167,139,250,0.5) 40%, rgba(226,18,39,0.6) 55%, rgba(167,139,250,0.5) 70%, rgba(167,139,250,0.0) 90%, transparent 100%)", animation: "cyberSweep 12s linear infinite", animationDelay: "1.5s", boxShadow: "0 0 10px rgba(167,139,250,0.4)" }} />
     </div>
   );
 }
 
-function FloatingOrb({ size, x, y, color, delay }: { size: number; x: string; y: string; color: string; delay: number }) {
-  return (
-    <div style={{ position: "absolute", left: x, top: y, width: size, height: size, borderRadius: "50%", background: `radial-gradient(circle at 35% 35%, ${color}30, ${color}08 60%, transparent 80%)`, border: `1px solid ${color}20`, animation: `orbFloat ${4 + delay}s ease-in-out infinite`, animationDelay: `${delay}s`, boxShadow: `0 0 ${size * 0.8}px ${color}15, inset 0 0 ${size * 0.3}px ${color}10`, pointerEvents: "none" }} />
-  );
-}
-
-/* ── Section Label ── */
 function SectionLabel({ text }: { text: string }) {
   return (
-    <div style={{ display: "inline-block", fontSize: "11px", fontFamily: "monospace", color: "#e21227", border: "1px solid rgba(226,18,39,0.3)", padding: "4px 14px", borderRadius: "100px", marginBottom: "16px", background: "rgba(226,18,39,0.08)" }}>
-      {text}
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+      <div style={{ width: 20, height: 1, background: "linear-gradient(90deg, transparent, #e21227)" }} />
+      <span style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(226,18,39,0.7)", letterSpacing: "0.35em", fontWeight: 700 }}>{text}</span>
+      <div style={{ width: 20, height: 1, background: "linear-gradient(90deg, #e21227, transparent)" }} />
     </div>
   );
 }
 
-/* ══════════════════════════════════════════════════════════════
-   LIVE ACTIVITY FEED
-══════════════════════════════════════════════════════════════ */
-function LiveActivityFeed() {
-  const [currentIdx, setCurrentIdx] = useState(0);
+function TerminalDemo() {
+  const lines = [
+    { text: "$ kaligpt --mode red-team --target example.com", col: "#00ff41", delay: 0 },
+    { text: "[*] Initializing Red Team mode...", col: "#a78bfa", delay: 600 },
+    { text: "[*] Running OSINT sweep on example.com...", col: "#00e5ff", delay: 1100 },
+    { text: "[+] Found: 14 subdomains, 3 exposed APIs, 1 login panel", col: "#22c55e", delay: 1800 },
+    { text: "[*] Scanning for CVEs in stack...", col: "#00e5ff", delay: 2400 },
+    { text: "[!] CVE-2025-1337 (CVSS 9.8) — Apache vulnerable version", col: "#fbbf24", delay: 3100 },
+    { text: "[*] Generating exploit payload...", col: "#a78bfa", delay: 3700 },
+    { text: "[+] Payload ready — council review initiated (256 brains)", col: "#22c55e", delay: 4400 },
+    { text: "[✓] Report generated: 47 findings, 12 critical", col: "#e21227", delay: 5100 },
+  ];
+
+  const [visible, setVisible] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(() => setCurrentIdx(i => (i + 1) % liveActivity.length), 2200);
-    return () => clearInterval(id);
+    lines.forEach(({ delay }, i) => {
+      setTimeout(() => setVisible(v => Math.max(v, i + 1)), delay);
+    });
   }, []);
 
   return (
     <div style={{
-      background: "linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(10,10,10,0.9) 100%)",
-      border: "1px solid rgba(226,18,39,0.15)",
-      borderRadius: "16px",
-      padding: "20px 24px",
-      backdropFilter: "blur(20px)",
+      background: "#060606", borderRadius: 16, border: "1px solid rgba(0,229,255,0.15)",
+      boxShadow: "0 0 40px rgba(0,229,255,0.08), 0 20px 60px rgba(0,0,0,0.5)",
+      overflow: "hidden",
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#e21227", boxShadow: "0 0 10px #e21227", animation: "neonFlicker 1.5s infinite" }} />
-        <span style={{ fontSize: "11px", fontFamily: "monospace", color: "rgba(255,255,255,0.4)", letterSpacing: "0.3em" }}>LIVE OPERATIONS FEED</span>
-        <span style={{ marginLeft: "auto", fontSize: "10px", fontFamily: "monospace", color: "rgba(34,197,94,0.6)" }}>● LIVE</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
+        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444" }} />
+        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#eab308" }} />
+        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#22c55e" }} />
+        <span style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,255,255,0.3)", marginLeft: 8 }}>kaligpt — bash · Red Team Mode</span>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        {liveActivity.map((item, i) => (
-          <div key={i} style={{
-            display: "flex", alignItems: "center", gap: "10px",
-            padding: "8px 12px", borderRadius: "8px",
-            background: i === currentIdx ? `${item.col}10` : "rgba(255,255,255,0.02)",
-            border: `1px solid ${i === currentIdx ? `${item.col}30` : "rgba(255,255,255,0.04)"}`,
-            transition: "all 0.4s ease",
-          }}>
-            <span style={{ fontSize: "9px", fontFamily: "monospace", color: item.col, fontWeight: 700, minWidth: 60, border: `1px solid ${item.col}30`, padding: "1px 5px", borderRadius: 4, textAlign: "center" }}>
-              {item.type}
-            </span>
-            <span style={{ fontSize: "12px", color: i === currentIdx ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.25)", flex: 1, fontFamily: "monospace" }}>{item.msg}</span>
-            <span style={{ fontSize: "9px", color: "rgba(255,255,255,0.2)", fontFamily: "monospace" }}>{item.time} ago</span>
-          </div>
+      <div style={{ padding: "16px", fontFamily: "monospace", fontSize: "12px", lineHeight: 1.9, minHeight: 220 }}>
+        {lines.slice(0, visible).map((line, i) => (
+          <div key={i} style={{ color: line.col }}>{line.text}</div>
         ))}
+        {visible < lines.length && (
+          <span style={{ display: "inline-block", width: 8, height: 14, background: "#00ff41", animation: "terminalBlink 1s step-end infinite", verticalAlign: "middle" }} />
+        )}
       </div>
     </div>
   );
 }
 
 /* ══════════════════════════════════════════════════════════════
-   MAIN PAGE
+   MAIN LANDING PAGE
 ══════════════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [, navigate] = useLocation();
-  const [counter, setCounter] = useState({ users: 0, attacks: 0, uptime: 0, cves: 0 });
-  const [activeToolCat, setActiveToolCat] = useState("ALL");
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
+  const [activityIdx, setActivityIdx] = useState(0);
+  const [activeToolCat, setActiveToolCat] = useState("ALL");
 
   useEffect(() => {
-    const target = { users: 12847, attacks: 3421, uptime: 99, cves: 8742 };
-    const duration = 2000; const steps = 60; let step = 0;
-    const id = setInterval(() => {
-      step++;
-      const p = step / steps;
-      const ease = 1 - Math.pow(1 - p, 3);
-      setCounter({ users: Math.round(target.users * ease), attacks: Math.round(target.attacks * ease), uptime: Math.round(target.uptime * ease), cves: Math.round(target.cves * ease) });
-      if (step >= steps) clearInterval(id);
-    }, duration / steps);
+    const id = setInterval(() => setActivityIdx(i => (i + 1) % liveActivity.length), 2200);
     return () => clearInterval(id);
   }, []);
 
-  const toolCategories = ["ALL", "OFFENSIVE", "RECON", "INTEL", "NETWORK", "EXPLOIT", "AI", "FORENSIC"];
+  const toolCats = ["ALL", "OFFENSIVE", "RECON", "INTEL", "NETWORK", "AI", "EXPLOIT", "FORENSIC", "GODMODE", "DEFENSE"];
   const filteredTools = activeToolCat === "ALL" ? arsenalTools : arsenalTools.filter(t => t.cat === activeToolCat);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#080808", color: "#fff", fontFamily: "'Inter', sans-serif", overflowX: "hidden", position: "relative" }}>
-
-      {/* ── GLOBAL STYLES ── */}
+    <div style={{ background: "#000", color: "#fff", minHeight: "100vh", overflowX: "hidden", position: "relative" }}>
       <style>{`
-        @keyframes scanline { 0% { top: -2px; } 100% { top: 100%; } }
-        @keyframes orbFloat { 0%, 100% { transform: translateY(0px) scale(1); } 50% { transform: translateY(-20px) scale(1.05); } }
-        @keyframes pulse3d { 0%, 100% { box-shadow: 0 0 20px rgba(226,18,39,0.3), 0 0 60px rgba(226,18,39,0.1); } 50% { box-shadow: 0 0 40px rgba(226,18,39,0.6), 0 0 120px rgba(226,18,39,0.2); } }
-        @keyframes rotateHex { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes dataFlow { 0% { transform: translateY(-100%); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(100vh); opacity: 0; } }
-        @keyframes glitch { 0%, 100% { clip-path: inset(0 0 100% 0); transform: translate(0); } 20% { clip-path: inset(30% 0 50% 0); transform: translate(-3px, 1px); } 40% { clip-path: inset(60% 0 20% 0); transform: translate(3px, -1px); } 60% { clip-path: inset(10% 0 70% 0); transform: translate(-2px, 2px); } 80% { clip-path: inset(80% 0 5% 0); transform: translate(2px, -2px); } }
-        @keyframes holoshimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        @keyframes neonFlicker { 0%, 100% { opacity: 1; } 92% { opacity: 1; } 93% { opacity: 0.8; } 94% { opacity: 1; } 96% { opacity: 0.7; } 97% { opacity: 1; } }
-        @keyframes float3d { 0%, 100% { transform: translateY(0px) rotateX(0deg); } 33% { transform: translateY(-12px) rotateX(2deg); } 66% { transform: translateY(-6px) rotateX(-1deg); } }
-        @keyframes terminalBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
-        @keyframes cyberSweep { 0% { transform: translateX(-100%); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateX(100vw); opacity: 0; } }
-        @keyframes floatOrb3D { 0%, 100% { transform: translateY(-50%) scale(1) rotateY(0deg); } 33% { transform: translateY(calc(-50% - 18px)) scale(1.02) rotateY(5deg); } 66% { transform: translateY(calc(-50% - 8px)) scale(0.99) rotateY(-3deg); } }
-        @keyframes statsGlow { 0%, 100% { text-shadow: 0 0 20px rgba(226,18,39,0.4), 0 0 40px rgba(226,18,39,0.2); } 50% { text-shadow: 0 0 40px rgba(226,18,39,0.7), 0 0 80px rgba(226,18,39,0.3), 0 0 120px rgba(226,18,39,0.1); } }
-        @keyframes borderGlow { 0%, 100% { box-shadow: 0 0 20px rgba(226,18,39,0.2), inset 0 0 20px rgba(226,18,39,0.05); } 50% { box-shadow: 0 0 40px rgba(226,18,39,0.4), 0 0 80px rgba(226,18,39,0.15), inset 0 0 30px rgba(226,18,39,0.08); } }
-        @keyframes heroTitlePulse { 0%, 100% { filter: drop-shadow(0 0 20px rgba(226,18,39,0.5)); } 50% { filter: drop-shadow(0 0 40px rgba(226,18,39,0.8)) drop-shadow(0 0 80px rgba(226,18,39,0.3)); } }
-        @keyframes shimmerSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
-        @keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .hero-orb-desktop { animation: floatOrb3D 8s ease-in-out infinite; }
-        @media (max-width: 1100px) { .hero-orb-desktop { display: none !important; } .hero-data-stream { display: none !important; } }
-        .neon-text-red { color: #e21227; text-shadow: 0 0 10px rgba(226,18,39,0.8), 0 0 30px rgba(226,18,39,0.4), 0 0 60px rgba(226,18,39,0.2); animation: neonFlicker 8s infinite; }
-        .holo-btn { position: relative; overflow: hidden; transition: all 0.3s ease; }
-        .holo-btn::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%); animation: holoshimmer 3s linear infinite; }
-        .holo-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 32px rgba(226,18,39,0.5), 0 0 0 1px rgba(226,18,39,0.8); }
-        .glass-panel { background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid rgba(226,18,39,0.15); backdrop-filter: blur(20px); box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(226,18,39,0.08); }
-        .glass-panel:hover { border-color: rgba(226,18,39,0.35); box-shadow: 0 16px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 20px rgba(226,18,39,0.1); }
-        .tool-card:hover { transform: translateY(-4px); }
+        @keyframes scanline { from { top: -2px } to { top: 100% } }
+        @keyframes terminalBlink { 0%,100% { opacity:1 } 50% { opacity:0 } }
+        @keyframes glitch {
+          0%,90%,100% { transform: translate(0) }
+          91% { transform: translate(-2px,1px) }
+          93% { transform: translate(2px,-1px) }
+          95% { transform: translate(-1px,2px) }
+          97% { transform: translate(1px,-2px) }
+        }
+        @keyframes pulse3d {
+          0%,100% { transform: scale(1) rotateY(0deg) }
+          50% { transform: scale(1.05) rotateY(10deg) }
+        }
+        @keyframes float {
+          0%,100% { transform: translateY(0) }
+          50% { transform: translateY(-10px) }
+        }
+        .holo-btn { transition: all 0.3s ease; }
+        .holo-btn:hover { filter: brightness(1.15); transform: translateY(-2px); }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+        ::-webkit-scrollbar-thumb { background: rgba(226,18,39,0.3); border-radius: 2px; }
       `}</style>
 
-      {/* Backgrounds */}
-      <WebGLParticleField count={5000} opacity={0.75} />
+      <ParticleCanvas />
       <NeuralNetCanvas />
 
-      {/* Data streams */}
-      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
-        {[...Array(10)].map((_, i) => (
-          <div key={i} style={{ position: "absolute", left: `${8 + i * 9}%`, top: 0, width: "1px", height: "120px", background: "linear-gradient(to bottom, transparent, rgba(226,18,39,0.4), transparent)", animation: `dataFlow ${3 + i * 0.6}s linear infinite`, animationDelay: `${i * 0.35}s` }} />
-        ))}
-        <FloatingOrb size={500} x="-10%" y="5%" color="#e21227" delay={0} />
-        <FloatingOrb size={300} x="70%" y="20%" color="#ff6b35" delay={1.5} />
-        <FloatingOrb size={200} x="40%" y="60%" color="#e21227" delay={3} />
-        <FloatingOrb size={420} x="55%" y="-5%" color="#00e5ff" delay={2} />
-        <FloatingOrb size={260} x="80%" y="55%" color="#a78bfa" delay={0.8} />
-        <FloatingOrb size={180} x="15%" y="70%" color="#00e5ff" delay={4} />
-      </div>
-
-      {/* ── LIVE TOP TICKER ── */}
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, height: "28px", background: "linear-gradient(90deg, rgba(226,18,39,0.9), rgba(180,10,30,0.9))", display: "flex", alignItems: "center", overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-        <div style={{ flexShrink: 0, padding: "0 16px", fontSize: "9px", fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.3em", borderRight: "1px solid rgba(255,255,255,0.2)", color: "#fff" }}>
-          ● LIVE
-        </div>
-        <div style={{ flex: 1, overflow: "hidden" }}>
-          <div style={{ display: "flex", gap: "60px", animation: "tickerScroll 30s linear infinite", whiteSpace: "nowrap" }}>
-            {[...Array(2)].map((_, ri) =>
-              [...liveActivity, ...liveActivity].map((item, i) => (
-                <span key={`${ri}-${i}`} style={{ fontSize: "10px", fontFamily: "monospace", color: "rgba(255,255,255,0.85)" }}>
-                  <span style={{ color: "#ffd700", marginRight: 6 }}>▸</span>{item.msg}
-                </span>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* ── NAV ── */}
-      <nav style={{ position: "fixed", top: "28px", left: 0, right: 0, zIndex: 100, height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", background: "linear-gradient(180deg, rgba(8,8,8,0.97) 0%, rgba(8,8,8,0.90) 100%)", borderBottom: "1px solid rgba(226,18,39,0.2)", backdropFilter: "blur(20px)", boxShadow: "0 1px 0 rgba(226,18,39,0.15), 0 4px 30px rgba(0,0,0,0.6)" }}>
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, rgba(226,18,39,0.6) 30%, rgba(255,100,50,0.4) 50%, rgba(226,18,39,0.6) 70%, transparent)" }} />
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg, #e21227 0%, #ff6b35 100%)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px rgba(226,18,39,0.5), 0 4px 12px rgba(226,18,39,0.3), inset 0 1px 0 rgba(255,255,255,0.2)", transform: "perspective(100px) rotateX(5deg)", animation: "pulse3d 3s ease-in-out infinite" }}>
-            <Shield style={{ width: "18px", height: "18px", color: "#fff" }} />
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+        backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(226,18,39,0.12)",
+        background: "rgba(0,0,0,0.85)",
+      }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, #e21227, #c4101f)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px rgba(226,18,39,0.5)" }}>
+              <Shield style={{ width: 18, height: 18, color: "#fff" }} />
+            </div>
+            <div>
+              <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: "-0.5px" }}>
+                <span style={{ color: "#e21227" }}>Kali</span>GPT
+              </span>
+              <div style={{ fontSize: 8, fontFamily: "monospace", color: "rgba(255,255,255,0.25)", letterSpacing: "0.2em" }}>v5.0 · ARSENAL MODE PRO</div>
+            </div>
           </div>
-          <span style={{ fontWeight: 800, fontSize: "16px", letterSpacing: "-0.5px" }}>KaliGPT</span>
-          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", fontFamily: "monospace", marginLeft: "2px" }}>mr7.ai</span>
-          <span style={{ fontSize: "9px", color: "#22c55e", fontFamily: "monospace", border: "1px solid rgba(34,197,94,0.3)", padding: "1px 6px", borderRadius: 4, background: "rgba(34,197,94,0.08)" }}>v4.0</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-          <div style={{ display: "flex", gap: "20px" }}>
-            {[
-              { label: "الميزات", href: "#features" },
-              { label: "الترسانة", href: "#arsenal" },
-              { label: "الأسعار", href: "#pricing" },
-              { label: "FAQ", href: "#faq" },
-              { label: "Roadmap", href: "/roadmap" },
-            ].map((item, i) => (
-              <button key={i}
-                onClick={() => item.href.startsWith("#") ? document.querySelector(item.href)?.scrollIntoView({ behavior: "smooth" }) : navigate(item.href)}
-                style={{ color: "rgba(255,255,255,0.45)", fontSize: "13px", background: "none", border: "none", cursor: "pointer", transition: "color 0.2s", letterSpacing: "0.3px" }}
+          <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+            {[["الميزات", "features"], ["الترسانة", "arsenal"], ["الأسعار", "pricing"], ["FAQ", "faq"]].map(([label, id]) => (
+              <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })}
+                style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", background: "none", border: "none", cursor: "pointer", transition: "color 0.2s" }}
                 onMouseEnter={e => (e.currentTarget.style.color = "#fff")}
                 onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
-              >{item.label}</button>
+              >{label}</button>
             ))}
+            <button onClick={() => navigate("/app")} className="holo-btn" style={{
+              padding: "8px 20px", borderRadius: 10, fontSize: 12, fontWeight: 700,
+              background: "linear-gradient(135deg, #e21227, #c4101f)", color: "#fff",
+              border: "none", cursor: "pointer", boxShadow: "0 0 20px rgba(226,18,39,0.35)",
+            }}>
+              ابدأ الآن ←
+            </button>
           </div>
-          <button onClick={() => navigate("/app")} className="holo-btn" style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 20px", borderRadius: "10px", background: "linear-gradient(135deg, #e21227 0%, #c4101f 100%)", color: "#fff", fontSize: "13px", fontWeight: 600, border: "none", cursor: "pointer", boxShadow: "0 0 20px rgba(226,18,39,0.35), 0 4px 12px rgba(226,18,39,0.2)" }}>
-            Launch App <ChevronRight style={{ width: "14px", height: "14px" }} />
-          </button>
         </div>
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ position: "relative", paddingTop: "148px", paddingBottom: "80px", paddingLeft: "24px", paddingRight: "24px", zIndex: 10, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <MatrixRain opacity={0.07} color="#e21227" speed={0.7} density={0.6} style={{ zIndex: 0 }} />
-        <Cyber3DGrid opacity={0.45} color="#e21227" style={{ zIndex: 1 }} />
-        <ScanLine />
+      <section style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 10, padding: "120px 24px 80px", textAlign: "center" }}>
+        <GridBackground />
         <HexScanLine />
 
-        {/* HoloCoreOrb */}
-        <div style={{ position: "absolute", right: "clamp(2%, 6%, 100px)", top: "50%", transform: "translateY(-50%)", zIndex: 3, opacity: 0.92, pointerEvents: "none" }} className="hero-orb-desktop">
-          <HoloCoreOrb size={320} color="#e21227" stats={[{ label: "Models", value: "20+" }, { label: "Modes", value: "14" }, { label: "Brains", value: "105" }, { label: "Tools", value: "70+" }]} />
-        </div>
-
-        {/* Left data stream */}
-        <div style={{ position: "absolute", left: "clamp(2%, 4%, 60px)", top: "50%", transform: "translateY(-50%)", zIndex: 3, opacity: 0.4, pointerEvents: "none", fontFamily: "monospace", fontSize: "10px", color: "#e21227", lineHeight: 2, letterSpacing: "0.5px" }} className="hero-data-stream">
-          {["0xDEADBEEF","CVE-2024-9873","SHELL::REVERSE","OSINT::SWEEP","AGENT::LOOP","NET::INTERCEPT","FUZZ::TARGET","MEM::INJECT","0xCAFEBABE","KERNEL::EXPLOIT","PRIV::ESC","PAYLOAD::GEN"].map((line, i) => (
-            <div key={i} style={{ opacity: 0.3 + (i % 3) * 0.2 }}>{line}</div>
-          ))}
-        </div>
-
-        {/* Main glow */}
-        <div style={{ position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)", width: "900px", height: "600px", background: "radial-gradient(ellipse at center, rgba(226,18,39,0.12) 0%, rgba(226,18,39,0.04) 40%, transparent 70%)", pointerEvents: "none" }} />
-
         {/* Badge */}
-        <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", padding: "8px 20px", borderRadius: "100px", border: "1px solid rgba(226,18,39,0.6)", background: "linear-gradient(135deg, rgba(226,18,39,0.18) 0%, rgba(100,0,20,0.12) 50%, rgba(226,18,39,0.08) 100%)", color: "#ff3355", fontSize: "11px", fontFamily: "monospace", fontWeight: "bold", letterSpacing: "0.12em", marginBottom: "28px", boxShadow: "0 0 30px rgba(226,18,39,0.35), 0 0 60px rgba(226,18,39,0.12), inset 0 1px 0 rgba(255,255,255,0.12)", backdropFilter: "blur(16px)", animation: "neonFlicker 4s infinite", position: "relative" as const, overflow: "hidden" as const }}>
-          <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#ff2d55", boxShadow: "0 0 12px #ff2d55, 0 0 24px rgba(255,45,85,0.5)", animation: "neonFlicker 2s infinite", flexShrink: 0 }} />
-          <span>v4.0 — ARSENAL MODE PRO MAX</span>
-          <span style={{ fontSize: "8px", background: "rgba(255,45,85,0.2)", border: "1px solid rgba(255,45,85,0.4)", borderRadius: "4px", padding: "1px 5px", color: "#ff6b80", letterSpacing: "0.2em" }}>NEW</span>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 16px", borderRadius: 100, border: "1px solid rgba(226,18,39,0.3)", background: "rgba(226,18,39,0.06)", marginBottom: 28, backdropFilter: "blur(10px)" }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 8px #22c55e", animation: "terminalBlink 1.5s step-end infinite", display: "inline-block" }} />
+          <span style={{ fontSize: 11, fontFamily: "monospace", color: "rgba(255,255,255,0.6)", letterSpacing: "0.2em" }}>
+            NEW: Swarm AI · SIEM/SOAR · ZeroDay Scanner — v5.0
+          </span>
         </div>
 
         {/* Title */}
-        <div style={{ marginBottom: "20px", perspective: "800px" }}>
-          <h1 style={{ fontSize: "clamp(64px, 10vw, 120px)", fontWeight: 900, letterSpacing: "-4px", lineHeight: 1, transform: "perspective(600px) rotateX(3deg)", transformStyle: "preserve-3d", display: "inline-block", animation: "heroTitlePulse 4s ease-in-out infinite" }}>
-            <span style={{ color: "#fff", textShadow: "0 4px 20px rgba(255,255,255,0.1), 0 1px 0 rgba(255,255,255,0.5)", display: "inline-block", transform: "translateZ(20px)" }}>Kali</span>
-            <span className="neon-text-red" style={{ display: "inline-block", transform: "translateZ(40px)", letterSpacing: "-4px" }}>
-              <GlitchLayer text="GPT" />
+        <h1 style={{ fontSize: "clamp(40px, 7vw, 88px)", fontWeight: 900, letterSpacing: "-3px", lineHeight: 1, marginBottom: 24, position: "relative", zIndex: 1 }}>
+          <GlitchLayer text="KALI" color="#e21227" />
+          <span style={{ color: "#fff" }}>GPT</span>
+          <br />
+          <span style={{ fontSize: "clamp(24px, 4vw, 52px)", color: "rgba(255,255,255,0.4)", fontWeight: 700, letterSpacing: "-1px" }}>
+            الذكاء الاصطناعي الهجومي
+          </span>
+        </h1>
+
+        <div style={{ height: "40px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 32 }}>
+          <TypewriterText style={{ fontSize: "clamp(14px, 2vw, 20px)", color: "rgba(255,255,255,0.45)", fontFamily: "monospace" }} />
+        </div>
+
+        {/* CTAs */}
+        <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", marginBottom: 56 }}>
+          <button onClick={() => navigate("/app")} className="holo-btn" style={{
+            display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 42px",
+            borderRadius: 14, background: "linear-gradient(135deg, #e21227 0%, #c4101f 50%, #a00d1a 100%)",
+            color: "#fff", fontSize: 16, fontWeight: 800, border: "none", cursor: "pointer",
+            boxShadow: "0 0 60px rgba(226,18,39,0.45), 0 12px 32px rgba(226,18,39,0.25)",
+          }}>
+            <Terminal style={{ width: 20, height: 20 }} /> ابدأ مجاناً
+          </button>
+          <button onClick={() => document.getElementById("terminal-demo")?.scrollIntoView({ behavior: "smooth" })} style={{
+            display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 32px",
+            borderRadius: 14, background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.6)",
+            fontSize: 15, fontWeight: 500, border: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", transition: "all 0.3s",
+          }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.25)"; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.6)"; }}
+          >
+            <Play style={{ width: 16, height: 16 }} /> شاهد العرض
+          </button>
+        </div>
+
+        {/* Live activity ticker */}
+        <div style={{ maxWidth: 600, margin: "0 auto", padding: "12px 20px", borderRadius: 12, background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(10px)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 9, fontFamily: "monospace", color: "rgba(255,255,255,0.3)", letterSpacing: "0.3em" }}>LIVE</span>
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: liveActivity[activityIdx].col, boxShadow: `0 0 8px ${liveActivity[activityIdx].col}`, display: "inline-block", animation: "terminalBlink 1s step-end infinite" }} />
+            <span style={{ fontSize: 11, fontFamily: "monospace", color: "rgba(255,255,255,0.45)" }}>
+              [{liveActivity[activityIdx].type}] {liveActivity[activityIdx].msg}
             </span>
-          </h1>
-        </div>
-
-        {/* Typewriter */}
-        <p style={{ fontSize: "clamp(15px, 2.2vw, 20px)", color: "rgba(255,255,255,0.6)", fontWeight: 300, marginBottom: "12px", maxWidth: "640px", minHeight: "2em", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <TypewriterText style={{ fontFamily: "monospace", letterSpacing: "0.3px" }} />
-        </p>
-        <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.22)", fontFamily: "monospace", marginBottom: "44px", letterSpacing: "1px" }}>
-          Offensive AI · Red Team · OSINT · Arsenal · Council Mode · GodMode
-        </p>
-
-        {/* CTA */}
-        <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "center", marginBottom: "70px" }}>
-          <button onClick={() => navigate("/app")} className="holo-btn" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "16px 36px", borderRadius: "14px", background: "linear-gradient(135deg, #e21227 0%, #c4101f 50%, #a00d1a 100%)", color: "#fff", fontSize: "16px", fontWeight: 700, border: "none", cursor: "pointer", boxShadow: "0 0 40px rgba(226,18,39,0.45), 0 8px 24px rgba(226,18,39,0.25), inset 0 1px 0 rgba(255,255,255,0.2)", animation: "pulse3d 3s ease-in-out infinite" }}>
-            <Terminal style={{ width: "20px", height: "20px" }} />
-            ابدأ الآن — مجاناً
-          </button>
-          <button onClick={() => document.querySelector("#arsenal")?.scrollIntoView({ behavior: "smooth" })} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "16px 36px", borderRadius: "14px", background: "rgba(0,229,255,0.06)", color: "rgba(0,229,255,0.9)", fontSize: "16px", fontWeight: 500, border: "1px solid rgba(0,229,255,0.25)", cursor: "pointer", transition: "all 0.3s ease", backdropFilter: "blur(10px)" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,229,255,0.12)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,229,255,0.06)"; }}
-          >
-            <Radio style={{ width: "18px", height: "18px" }} />
-            استكشف الترسانة
-          </button>
-          <button onClick={() => navigate("/roadmap")} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "16px 36px", borderRadius: "14px", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.7)", fontSize: "16px", fontWeight: 500, border: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", transition: "all 0.3s ease", backdropFilter: "blur(10px)" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(226,18,39,0.4)"; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.7)"; }}
-          >
-            خريطة الطريق
-          </button>
-        </div>
-
-        {/* Terminal demo */}
-        <div style={{ width: "100%", maxWidth: "720px", animation: "float3d 6s ease-in-out infinite", perspective: "1200px" }}>
-          <div style={{ borderRadius: "16px", border: "1px solid rgba(226,18,39,0.25)", overflow: "hidden", background: "linear-gradient(180deg, #111 0%, #0d0d0d 100%)", boxShadow: "0 40px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(226,18,39,0.1), 0 0 60px rgba(226,18,39,0.1), inset 0 1px 0 rgba(255,255,255,0.06)", transform: "perspective(1200px) rotateX(4deg)", transformStyle: "preserve-3d" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "12px 18px", borderBottom: "1px solid rgba(226,18,39,0.12)", background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)" }}>
-              <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ff5f57", boxShadow: "0 0 6px rgba(255,95,87,0.6)" }} />
-              <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ffbd2e", boxShadow: "0 0 6px rgba(255,189,46,0.4)" }} />
-              <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#28ca41", boxShadow: "0 0 6px rgba(40,202,65,0.4)" }} />
-              <span style={{ marginLeft: "12px", fontSize: "12px", color: "rgba(255,255,255,0.25)", fontFamily: "monospace" }}>kaligpt@mr7 ~ $</span>
-              <div style={{ marginLeft: "auto", display: "flex", gap: "6px" }}>
-                <span style={{ fontSize: "10px", color: "rgba(226,18,39,0.6)", fontFamily: "monospace", border: "1px solid rgba(226,18,39,0.2)", padding: "1px 6px", borderRadius: "4px" }}>RED TEAM v4</span>
-              </div>
-            </div>
-            <div style={{ padding: "20px 22px", fontFamily: "monospace", fontSize: "13px", lineHeight: "1.8" }}>
-              <p><span style={{ color: "#e21227", textShadow: "0 0 8px rgba(226,18,39,0.5)" }}>user@kali</span><span style={{ color: "rgba(255,255,255,0.3)" }}>:~$</span><span style={{ color: "rgba(255,255,255,0.8)", marginLeft: "8px" }}>kaligpt scan --target example.com --mode full-recon --council</span></p>
-              <p style={{ color: "#22c55e", textShadow: "0 0 8px rgba(34,197,94,0.4)" }}>[✓] KaliGPT Red Team v4.0 — Council Mode activated (105 brains)</p>
-              <p style={{ color: "rgba(255,255,255,0.4)" }}>[*] Running OSINT sweep, subdomain enum, port scan…</p>
-              <p style={{ color: "#60a5fa", textShadow: "0 0 8px rgba(96,165,250,0.4)" }}>[›] Found 7 subdomains, 23 open ports, 4 critical CVEs</p>
-              <p style={{ color: "#fbbf24", textShadow: "0 0 8px rgba(251,191,36,0.4)" }}>[!] CVE-2024-9873 — CVSS 9.8 — RCE via unauthenticated endpoint</p>
-              <p style={{ color: "#a78bfa" }}>[›] Council consensus: Exploit chain recommended — confidence 97%</p>
-              <p style={{ color: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", gap: "4px" }}><span>█</span><span style={{ animation: "terminalBlink 1s step-end infinite" }}>_</span></p>
-            </div>
+            <span style={{ fontSize: 9, fontFamily: "monospace", color: "rgba(255,255,255,0.2)", marginLeft: "auto" }}>{liveActivity[activityIdx].time} ago</span>
           </div>
-          <div style={{ height: "40px", marginTop: "-1px", background: "linear-gradient(to bottom, rgba(226,18,39,0.06), transparent)", borderRadius: "0 0 16px 16px", filter: "blur(8px)" }} />
         </div>
 
-        {/* Stats */}
-        <div style={{ display: "flex", gap: "0", marginTop: "60px", justifyContent: "center", flexWrap: "wrap", background: "linear-gradient(135deg, rgba(226,18,39,0.05) 0%, rgba(0,0,0,0.4) 50%, rgba(226,18,39,0.05) 100%)", border: "1px solid rgba(226,18,39,0.12)", borderRadius: "20px", backdropFilter: "blur(20px)", padding: "6px", maxWidth: "720px", animation: "borderGlow 4s ease-in-out infinite" }}>
-          {[
-            { value: counter.users.toLocaleString(), label: "باحث أمني", sublabel: "مستخدم نشط", icon: Activity, color: "#e21227" },
-            { value: `${counter.attacks.toLocaleString()}+`, label: "هجوم محاكَى", sublabel: "هذا الشهر", icon: Crosshair, color: "#ff6b35" },
-            { value: `${counter.uptime}%`, label: "وقت التشغيل", sublabel: "SLA مضمون", icon: Cpu, color: "#22c55e" },
-            { value: `${counter.cves.toLocaleString()}+`, label: "CVE محللة", sublabel: "في القاعدة", icon: Bug, color: "#a78bfa" },
-          ].map(({ value, label, sublabel, icon: Icon, color }, i) => (
-            <div key={i} style={{ flex: "1 1 140px", textAlign: "center", padding: "20px 20px", borderRight: i < 3 ? "1px solid rgba(226,18,39,0.08)" : "none", position: "relative" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", marginBottom: "6px" }}>
-                <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: `${color}15`, border: `1px solid ${color}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Icon style={{ width: "13px", height: "13px", color }} />
-                </div>
-                <span style={{ fontSize: "clamp(20px, 3.5vw, 30px)", fontWeight: 900, color: "#fff", letterSpacing: "-1px", animation: "statsGlow 3s ease-in-out infinite", animationDelay: `${i * 0.5}s` }}>{value}</span>
-              </div>
-              <div style={{ fontSize: "12px", fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.3px" }}>{label}</div>
-              <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.22)", marginTop: "2px", fontFamily: "monospace" }}>{sublabel}</div>
-            </div>
-          ))}
+        {/* Scroll hint */}
+        <div style={{ position: "absolute", bottom: 32, left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, animation: "float 2s ease-in-out infinite" }}>
+          <span style={{ fontSize: 9, fontFamily: "monospace", color: "rgba(255,255,255,0.2)", letterSpacing: "0.3em" }}>SCROLL</span>
+          <ChevronDown style={{ width: 16, height: 16, color: "rgba(255,255,255,0.2)" }} />
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
-      <section style={{ padding: "100px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-        <div style={{ maxWidth: "960px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "64px" }}>
-            <SectionLabel text="HOW IT WORKS" />
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: "12px" }}>ثلاث خطوات للانطلاق</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)", maxWidth: "480px", margin: "0 auto" }}>من التسجيل إلى العملية الأولى في أقل من دقيقتين</p>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px", position: "relative" }}>
-            {/* Connector line */}
-            <div style={{ position: "absolute", top: "40px", left: "16%", right: "16%", height: "1px", background: "linear-gradient(90deg, rgba(226,18,39,0.3), rgba(0,229,255,0.3), rgba(167,139,250,0.3))", display: "none" }} />
-            {howItWorks.map((step, i) => (
-              <HolographicCard key={i} style={{ borderRadius: "20px" }}>
-                <div className="glass-panel" style={{ padding: "32px 28px", borderRadius: "20px", position: "relative", overflow: "hidden" }}>
-                  {/* Step number watermark */}
-                  <div style={{ position: "absolute", top: -10, right: 16, fontSize: "80px", fontWeight: 900, color: "rgba(255,255,255,0.03)", fontFamily: "monospace", lineHeight: 1, userSelect: "none" }}>{step.step}</div>
-                  {/* Icon */}
-                  <div style={{ width: "56px", height: "56px", borderRadius: "16px", background: `linear-gradient(135deg, ${step.col}25 0%, ${step.col}08 100%)`, border: `1px solid ${step.col}35`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px", boxShadow: `0 0 24px ${step.col}15` }}>
-                    <step.icon style={{ width: "26px", height: "26px", color: step.col }} />
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                    <span style={{ fontSize: "10px", fontFamily: "monospace", color: step.col, fontWeight: 700 }}>STEP {step.step}</span>
-                    <div style={{ flex: 1, height: "1px", background: `linear-gradient(90deg, ${step.col}30, transparent)` }} />
-                  </div>
-                  <h3 style={{ fontWeight: 700, fontSize: "18px", marginBottom: "10px", letterSpacing: "-0.5px" }}>{step.title}</h3>
-                  <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", lineHeight: 1.7 }}>{step.desc}</p>
-                  {/* Bottom glow */}
-                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, transparent, ${step.col}50, transparent)` }} />
+      {/* ── LIVE STATS ── */}
+      <section style={{ padding: "64px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.04)", background: "rgba(226,18,39,0.02)" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 24 }}>
+          {liveStats.map((stat, i) => {
+            const Icon = stat.icon;
+            return (
+              <div key={i} style={{ textAlign: "center", padding: "20px 16px", borderRadius: 16, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <Icon style={{ width: 22, height: 22, color: stat.col, margin: "0 auto 10px" }} />
+                <div style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 900, fontFamily: "monospace", letterSpacing: "-1px" }}>
+                  <LiveCounter target={stat.value} suffix={stat.suffix} color={stat.col} />
                 </div>
-              </HolographicCard>
-            ))}
-          </div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 4, fontFamily: "monospace" }}>{stat.label}</div>
+              </div>
+            );
+          })}
         </div>
       </section>
 
       {/* ── FEATURES ── */}
-      <section id="features" style={{ padding: "100px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+      <section id="features" style={{ padding: "100px 24px", position: "relative", zIndex: 10 }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "64px" }}>
+          <div style={{ textAlign: "center", marginBottom: 60 }}>
             <SectionLabel text="CAPABILITIES" />
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: "12px" }}>لماذا KaliGPT؟</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)", maxWidth: "480px", margin: "0 auto" }}>بُنيَ من الصفر للمختصين الأمنيين — ليس ChatGPT معدَّلاً</p>
+            <h2 style={{ fontSize: "clamp(28px, 4vw, 48px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: 12 }}>
+              قدرات لا مثيل لها
+            </h2>
+            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 15, maxWidth: 560, margin: "0 auto" }}>
+              منصة شاملة تجمع أقوى أدوات الأمن السيبراني مع أحدث نماذج الذكاء الاصطناعي
+            </p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
-            {features.map((f, i) => (
-              <HolographicCard key={i} style={{ borderRadius: "20px" }}>
-                <div className="glass-panel" style={{ padding: "28px", borderRadius: "20px", cursor: "default", transition: "border-color 0.3s, box-shadow 0.3s", position: "relative" }}>
-                  <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `linear-gradient(135deg, ${f.color}20 0%, ${f.color}08 100%)`, border: `1px solid ${f.color}30`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px", boxShadow: `0 0 20px ${f.color}15, inset 0 1px 0 rgba(255,255,255,0.05)`, transform: "translateZ(10px)" }}>
-                    <f.icon style={{ width: "22px", height: "22px", color: f.color }} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+            {features.map((feat, i) => {
+              const Icon = feat.icon;
+              return (
+                <HolographicCard key={i}>
+                  <div style={{
+                    padding: "24px", borderRadius: 18,
+                    background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)",
+                    border: `1px solid ${feat.color}18`,
+                    boxShadow: `0 4px 24px rgba(0,0,0,0.3)`,
+                    position: "relative", overflow: "hidden", transition: "all 0.3s",
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = `${feat.color}35`; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 32px ${feat.color}15`; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = `${feat.color}18`; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(0,0,0,0.3)"; }}
+                  >
+                    <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: `radial-gradient(circle, ${feat.color}08, transparent)`, borderRadius: "0 18px 0 80px", pointerEvents: "none" }} />
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: `${feat.color}15`, border: `1px solid ${feat.color}30`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                      <Icon style={{ width: 22, height: 22, color: feat.color }} />
+                    </div>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>{feat.title}</h3>
+                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.7 }}>{feat.desc}</p>
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${feat.color}35, transparent)` }} />
                   </div>
-                  <div style={{ position: "absolute", top: "20px", right: "20px", fontSize: "11px", fontFamily: "monospace", color: "rgba(255,255,255,0.15)", fontWeight: 700 }}>0{i + 1}</div>
-                  <h3 style={{ fontWeight: 700, fontSize: "15px", marginBottom: "10px", letterSpacing: "-0.3px" }}>{f.title}</h3>
-                  <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", lineHeight: 1.7 }}>{f.desc}</p>
-                  <div style={{ position: "absolute", bottom: 0, left: "28px", right: "28px", height: "1px", background: `linear-gradient(90deg, transparent, ${f.color}30, transparent)` }} />
-                </div>
-              </HolographicCard>
-            ))}
+                </HolographicCard>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* ── ARSENAL SHOWCASE ── */}
-      <section id="arsenal" style={{ padding: "100px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "48px" }}>
-            <SectionLabel text="ARSENAL HUB" />
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: "12px" }}>الترسانة الكاملة</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)", marginBottom: "32px" }}>70+ أداة متخصصة في الأمن الهجومي والدفاعي</p>
-            {/* Category filter */}
-            <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
-              {toolCategories.map(cat => (
-                <button key={cat} onClick={() => setActiveToolCat(cat)} style={{ padding: "6px 14px", borderRadius: "100px", fontSize: "11px", fontFamily: "monospace", fontWeight: 600, cursor: "pointer", transition: "all 0.2s", background: activeToolCat === cat ? "#e21227" : "rgba(255,255,255,0.04)", color: activeToolCat === cat ? "#fff" : "rgba(255,255,255,0.4)", border: activeToolCat === cat ? "1px solid #e21227" : "1px solid rgba(255,255,255,0.08)", boxShadow: activeToolCat === cat ? "0 0 16px rgba(226,18,39,0.4)" : "none" }}>
-                  {cat}
-                </button>
-              ))}
-            </div>
+      {/* ── TERMINAL DEMO ── */}
+      <section id="terminal-demo" style={{ padding: "80px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <SectionLabel text="LIVE DEMO" />
+            <h2 style={{ fontSize: "clamp(24px, 3.5vw, 42px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: 12 }}>
+              شاهد KaliGPT في العمل
+            </h2>
+            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 14 }}>جلسة Red Team حقيقية — من الاستطلاع إلى التقرير</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "12px" }}>
-            {filteredTools.map((tool, i) => (
-              <div key={tool.name} className="tool-card" style={{ padding: "18px 16px", borderRadius: "14px", background: "rgba(255,255,255,0.03)", border: `1px solid rgba(255,255,255,0.07)`, cursor: "pointer", transition: "all 0.3s ease", position: "relative", overflow: "hidden" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = `${tool.col}40`; (e.currentTarget as HTMLElement).style.background = `${tool.col}08`; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 24px rgba(0,0,0,0.3), 0 0 20px ${tool.col}15`; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
-              >
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, transparent, ${tool.col}50, transparent)`, opacity: 0.7 }} />
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-                  <div style={{ width: "34px", height: "34px", borderRadius: "10px", background: `${tool.col}15`, border: `1px solid ${tool.col}25`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <tool.icon style={{ width: "16px", height: "16px", color: tool.col }} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff", letterSpacing: "-0.3px" }}>{tool.name}</div>
-                    <div style={{ fontSize: "8px", fontFamily: "monospace", color: tool.col, fontWeight: 600, letterSpacing: "0.2em" }}>{tool.cat}</div>
-                  </div>
-                </div>
-                <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>{tool.desc}</p>
-              </div>
-            ))}
-          </div>
-          <div style={{ textAlign: "center", marginTop: "32px" }}>
-            <button onClick={() => navigate("/app")} className="holo-btn" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 28px", borderRadius: "12px", background: "rgba(226,18,39,0.1)", color: "#e21227", fontSize: "13px", fontWeight: 600, border: "1px solid rgba(226,18,39,0.3)", cursor: "pointer" }}>
-              <Swords style={{ width: "16px", height: "16px" }} />
-              استكشف كل الأدوات في التطبيق
+          <TerminalDemo />
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 32 }}>
+            <button onClick={() => navigate("/app")} className="holo-btn" style={{
+              display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 36px",
+              borderRadius: 12, background: "linear-gradient(135deg, #e21227, #c4101f)",
+              color: "#fff", fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer",
+              boxShadow: "0 0 40px rgba(226,18,39,0.35)",
+            }}>
+              جرّب الآن — مجاناً <ChevronRight style={{ width: 16, height: 16 }} />
             </button>
           </div>
         </div>
       </section>
 
-      {/* ── COUNCIL MODE SPOTLIGHT ── */}
+      {/* ── HOW IT WORKS ── */}
       <section style={{ padding: "100px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", alignItems: "center" }}>
-            <div>
-              <SectionLabel text="COUNCIL MODE" />
-              <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: "16px" }}>105 عقل ذكاء اصطناعي<br /><span style={{ color: "#e21227" }}>في آنٍ واحد</span></h2>
-              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "15px", lineHeight: 1.8, marginBottom: "28px" }}>بدلاً من نموذج واحد، يُشغّل وضع المجلس 105 تخصصاً مختلفاً في آنٍ واحد — المخترق، المحلل، المطور، المحقق الجنائي، خبير الشبكات — ويجمع نتائجهم في تقرير موحد عالي الدقة.</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "32px" }}>
-                {["تحليل متعدد الزوايا من 105 تخصص", "توافق ديمقراطي: كل عقل يصوّت على الحل", "دقة تتجاوز 97% في نتائج CTF", "تقارير قابلة للتصدير بصيغ متعددة"].map((item, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", color: "rgba(255,255,255,0.65)" }}>
-                    <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: "10px", color: "#22c55e" }}>✓</span>
-                    </div>
-                    {item}
-                  </div>
-                ))}
-              </div>
-              <button onClick={() => navigate("/app")} className="holo-btn" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "14px 28px", borderRadius: "12px", background: "linear-gradient(135deg, #e21227, #c4101f)", color: "#fff", fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer", boxShadow: "0 0 30px rgba(226,18,39,0.35)" }}>
-                <Brain style={{ width: "18px", height: "18px" }} />
-                جرّب Council Mode
-              </button>
-            </div>
-            {/* Council visual */}
-            <div style={{ position: "relative", height: "420px" }}>
-              <div style={{ position: "absolute", inset: 0, borderRadius: "24px", background: "radial-gradient(ellipse at center, rgba(226,18,39,0.08) 0%, transparent 70%)" }} />
-              {/* Center orb */}
-              <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg, rgba(226,18,39,0.3), rgba(226,18,39,0.1))", border: "2px solid rgba(226,18,39,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 40px rgba(226,18,39,0.3)", zIndex: 5 }}>
-                <Brain style={{ width: 32, height: 32, color: "#e21227" }} />
-              </div>
-              {/* Orbit nodes */}
-              {[
-                { label: "Red Team", col: "#e21227", angle: 0,   orbit: 140 },
-                { label: "Forensics", col: "#fbbf24", angle: 45,  orbit: 140 },
-                { label: "OSINT",    col: "#00e5ff", angle: 90,  orbit: 140 },
-                { label: "Crypto",   col: "#a78bfa", angle: 135, orbit: 140 },
-                { label: "Network",  col: "#22c55e", angle: 180, orbit: 140 },
-                { label: "Dev",      col: "#f97316", angle: 225, orbit: 140 },
-                { label: "Malware",  col: "#e21227", angle: 270, orbit: 140 },
-                { label: "Analyst",  col: "#38bdf8", angle: 315, orbit: 140 },
-              ].map((node, i) => {
-                const rad = (node.angle * Math.PI) / 180;
-                const x = Math.cos(rad) * node.orbit;
-                const y = Math.sin(rad) * node.orbit;
-                return (
-                  <div key={i} style={{ position: "absolute", top: `calc(50% + ${y}px)`, left: `calc(50% + ${x}px)`, transform: "translate(-50%,-50%)", zIndex: 4 }}>
-                    {/* Connector line */}
-                    <svg style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", overflow: "visible", pointerEvents: "none" }}>
-                      <line x1="0" y1="0" x2={-x} y2={-y} stroke={node.col} strokeOpacity="0.2" strokeWidth="1" strokeDasharray="3 4" />
-                    </svg>
-                    <div style={{ width: 50, height: 50, borderRadius: "12px", background: `${node.col}15`, border: `1px solid ${node.col}35`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, boxShadow: `0 0 16px ${node.col}20`, backdropFilter: "blur(8px)" }}>
-                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: node.col, boxShadow: `0 0 8px ${node.col}`, animation: "neonFlicker 2s infinite", animationDelay: `${i * 0.25}s` }} />
-                      <span style={{ fontSize: "7px", color: node.col, fontFamily: "monospace", fontWeight: 700, textAlign: "center" }}>{node.label}</span>
-                    </div>
-                  </div>
-                );
-              })}
-              {/* Live activity */}
-              <div style={{ position: "absolute", bottom: 16, left: 16, right: 16, padding: "12px 16px", borderRadius: "12px", background: "rgba(0,0,0,0.6)", border: "1px solid rgba(34,197,94,0.2)", backdropFilter: "blur(12px)" }}>
-                <div style={{ fontSize: "9px", fontFamily: "monospace", color: "rgba(34,197,94,0.6)", marginBottom: "4px" }}>COUNCIL CONSENSUS</div>
-                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", fontFamily: "monospace" }}>
-                  8/8 specialists agree — confidence <span style={{ color: "#22c55e", fontWeight: 700 }}>97%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── LIVE ACTIVITY ── */}
-      <section style={{ padding: "80px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
         <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "40px" }}>
-            <SectionLabel text="LIVE OPS" />
-            <h2 style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: "12px" }}>العمليات الجارية الآن</h2>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <SectionLabel text="HOW IT WORKS" />
+            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-1.5px" }}>ثلاث خطوات للسيطرة</h2>
           </div>
-          <LiveActivityFeed />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 24, position: "relative" }}>
+            <div style={{ position: "absolute", top: "50%", left: "10%", right: "10%", height: 1, background: "linear-gradient(90deg, transparent, rgba(226,18,39,0.3), transparent)", transform: "translateY(-50%)", pointerEvents: "none" }} />
+            {howItWorks.map((step, i) => {
+              const Icon = step.icon;
+              return (
+                <HolographicCard key={i} style={{ borderRadius: 20 }}>
+                  <div style={{ padding: "32px 24px", borderRadius: 20, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center", position: "relative" }}>
+                    <div style={{ fontSize: "clamp(48px,6vw,72px)", fontWeight: 900, fontFamily: "monospace", color: `${step.col}15`, position: "absolute", top: 12, right: 16, lineHeight: 1 }}>{step.step}</div>
+                    <div style={{ width: 52, height: 52, borderRadius: "50%", background: `${step.col}15`, border: `1px solid ${step.col}35`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                      <Icon style={{ width: 24, height: 24, color: step.col }} />
+                    </div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>{step.title}</h3>
+                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.7 }}>{step.desc}</p>
+                    <div style={{ width: 32, height: 2, background: step.col, margin: "16px auto 0", borderRadius: 1 }} />
+                  </div>
+                </HolographicCard>
+              );
+            })}
+          </div>
         </div>
       </section>
 
       {/* ── MODELS ── */}
-      <section style={{ padding: "100px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-        <div style={{ maxWidth: "1000px", margin: "0 auto", textAlign: "center" }}>
-          <SectionLabel text="AI MODELS" />
-          <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: "12px" }}>نماذج متخصصة لكل مهمة</h2>
-          <p style={{ color: "rgba(255,255,255,0.35)", marginBottom: "52px" }}>اختر النموذج المناسب أو شغّل عدة نماذج في آنٍ واحد</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
-            {models.map((m, i) => (
-              <HolographicCard key={i} style={{ borderRadius: "16px" }}>
-                <div className="glass-panel" style={{ padding: "22px 20px", borderRadius: "16px", textAlign: "left", cursor: "default", position: "relative" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-                    <div style={{ width: 32, height: 32, borderRadius: "9px", background: `${m.color}15`, border: `1px solid ${m.color}25`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <m.icon style={{ width: 15, height: 15, color: m.color }} />
-                    </div>
-                    <span style={{ fontSize: "9px", fontFamily: "monospace", color: m.color, textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700 }}>{m.tag}</span>
+      <section style={{ padding: "80px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)", background: "rgba(226,18,39,0.015)" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <SectionLabel text="AI MODELS" />
+            <h2 style={{ fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 800, letterSpacing: "-1.5px" }}>10+ نموذج ذكاء اصطناعي</h2>
+            <p style={{ color: "rgba(255,255,255,0.3)", marginTop: 8, fontSize: 13 }}>مختلفة التخصصات — واحدة واجهة</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+            {models.map((model, i) => {
+              const Icon = model.icon;
+              return (
+                <HolographicCard key={i}>
+                  <div style={{
+                    padding: "18px 16px", borderRadius: 14,
+                    background: `${model.color}08`,
+                    border: `1px solid ${model.color}25`,
+                    textAlign: "center", transition: "all 0.25s", cursor: "pointer",
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${model.color}14`; (e.currentTarget as HTMLElement).style.borderColor = `${model.color}45`; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = `${model.color}08`; (e.currentTarget as HTMLElement).style.borderColor = `${model.color}25`; }}
+                  >
+                    <Icon style={{ width: 24, height: 24, color: model.color, margin: "0 auto 10px" }} />
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", marginBottom: 5 }}>{model.name}</div>
+                    <span style={{ fontSize: 9, fontFamily: "monospace", padding: "2px 8px", borderRadius: 6, background: `${model.color}20`, color: model.color, fontWeight: 700 }}>{model.tag}</span>
                   </div>
-                  <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)", fontWeight: 600, letterSpacing: "-0.3px" }}>{m.name}</div>
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", borderRadius: "16px 16px 0 0", background: `linear-gradient(90deg, transparent, ${m.color}50, transparent)` }} />
-                </div>
-              </HolographicCard>
-            ))}
+                </HolographicCard>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* ── COMPARISON TABLE ── */}
-      <section style={{ padding: "100px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-        <div style={{ maxWidth: "860px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "52px" }}>
-            <SectionLabel text="COMPARISON" />
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: "12px" }}>KaliGPT مقابل المنافسين</h2>
-            <p style={{ color: "rgba(255,255,255,0.35)" }}>لماذا نختلف جذرياً عن أدوات الذكاء الاصطناعي الأخرى</p>
+      {/* ── ARSENAL ── */}
+      <section id="arsenal" style={{ padding: "100px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <SectionLabel text="ARSENAL V2" />
+            <h2 style={{ fontSize: "clamp(28px, 4vw, 48px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: 8 }}>120+ أداة متخصصة</h2>
+            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 14 }}>أدوات هجومية ودفاعية جاهزة للاستخدام فوراً</p>
           </div>
-          <div style={{ borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(226,18,39,0.15)", backdropFilter: "blur(20px)" }}>
-            {/* Header */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 120px 120px 120px", background: "rgba(0,0,0,0.6)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              <div style={{ padding: "16px 20px", fontSize: "11px", fontFamily: "monospace", color: "rgba(255,255,255,0.3)", letterSpacing: "0.2em" }}>FEATURE</div>
-              {[{ name: "KaliGPT", col: "#e21227" }, { name: "ChatGPT", col: "rgba(255,255,255,0.3)" }, { name: "Copilot", col: "rgba(255,255,255,0.3)" }].map(h => (
-                <div key={h.name} style={{ padding: "16px 12px", textAlign: "center", fontSize: "12px", fontWeight: 700, color: h.col, fontFamily: "monospace" }}>{h.name}</div>
+
+          {/* Category filter */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 32 }}>
+            {toolCats.map(cat => (
+              <button key={cat} onClick={() => setActiveToolCat(cat)} style={{
+                padding: "5px 14px", borderRadius: 20, fontSize: 10, fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.1em",
+                cursor: "pointer", transition: "all 0.2s",
+                background: activeToolCat === cat ? "rgba(226,18,39,0.2)" : "rgba(255,255,255,0.03)",
+                color: activeToolCat === cat ? "#e21227" : "rgba(255,255,255,0.35)",
+                border: `1px solid ${activeToolCat === cat ? "rgba(226,18,39,0.4)" : "rgba(255,255,255,0.06)"}`,
+              }}>{cat}</button>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
+            {filteredTools.map((tool, i) => {
+              const Icon = tool.icon;
+              return (
+                <HolographicCard key={tool.name}>
+                  <div style={{
+                    padding: "16px", borderRadius: 14,
+                    background: `${tool.col}08`,
+                    border: `1px solid ${tool.col}20`,
+                    transition: "all 0.2s", cursor: "pointer",
+                    display: "flex", gap: 12, alignItems: "flex-start",
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${tool.col}14`; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = `${tool.col}08`; (e.currentTarget as HTMLElement).style.transform = "none"; }}
+                  >
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: `${tool.col}18`, border: `1px solid ${tool.col}30`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Icon style={{ width: 17, height: 17, color: tool.col }} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", marginBottom: 3 }}>{tool.name}</div>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 6, lineHeight: 1.4 }}>{tool.desc}</div>
+                      <span style={{ fontSize: 8, fontFamily: "monospace", padding: "1.5px 5px", borderRadius: 4, background: `${tool.col}18`, color: tool.col, fontWeight: 700 }}>{tool.cat}</span>
+                    </div>
+                  </div>
+                </HolographicCard>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── COMPARISON ── */}
+      <section style={{ padding: "100px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)", background: "rgba(226,18,39,0.015)" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <SectionLabel text="COMPARISON" />
+            <h2 style={{ fontSize: "clamp(24px, 3.5vw, 42px)", fontWeight: 800, letterSpacing: "-1.5px" }}>لماذا KaliGPT؟</h2>
+          </div>
+          <div style={{ borderRadius: 20, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 100px", background: "rgba(255,255,255,0.03)", padding: "14px 24px" }}>
+              {["الميزة", "KaliGPT", "ChatGPT", "CoPilot"].map((h, i) => (
+                <div key={h} style={{ fontSize: 11, fontFamily: "monospace", fontWeight: 700, color: i === 1 ? "#e21227" : "rgba(255,255,255,0.4)", textAlign: i > 0 ? "center" : "left", letterSpacing: "0.1em" }}>{h}</div>
               ))}
             </div>
             {comparisons.map((row, i) => (
-              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 120px 120px 120px", background: i % 2 === 0 ? "rgba(255,255,255,0.015)" : "transparent", borderBottom: i < comparisons.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
-                <div style={{ padding: "14px 20px", fontSize: "13px", color: "rgba(255,255,255,0.55)" }}>{row.feature}</div>
-                {[row.kg, row.cg, row.cp].map((val, j) => (
-                  <div key={j} style={{ padding: "14px 12px", textAlign: "center" }}>
-                    {val
-                      ? <span style={{ color: j === 0 ? "#22c55e" : "#22c55e", fontSize: "16px" }}>✓</span>
-                      : <span style={{ color: "rgba(255,255,255,0.15)", fontSize: "16px" }}>✗</span>
-                    }
-                  </div>
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 100px 100px 100px", padding: "12px 24px", borderTop: "1px solid rgba(255,255,255,0.04)", background: i % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent" }}>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>{row.feature}</div>
+                {[row.kg, row.cg, row.cp].map((v, j) => (
+                  <div key={j} style={{ textAlign: "center", fontSize: 14, color: v ? "#22c55e" : "rgba(255,255,255,0.15)" }}>{v ? "✓" : "✗"}</div>
                 ))}
               </div>
             ))}
@@ -976,35 +915,36 @@ export default function LandingPage() {
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section style={{ padding: "100px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "52px" }}>
+      <section style={{ padding: "100px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)", overflow: "hidden" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 52 }}>
             <SectionLabel text="TESTIMONIALS" />
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: "12px" }}>يثق بنا المحترفون</h2>
+            <h2 style={{ fontSize: "clamp(24px, 3.5vw, 42px)", fontWeight: 800, letterSpacing: "-1.5px" }}>ماذا يقول المستخدمون</h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
             {testimonials.map((t, i) => (
-              <HolographicCard key={i} style={{ borderRadius: "20px" }}>
-                <div className="glass-panel" style={{ padding: "28px", borderRadius: "20px", position: "relative", overflow: "hidden" }}>
-                  {/* Quote mark */}
-                  <div style={{ position: "absolute", top: 12, right: 20, fontSize: "60px", color: `${t.col}15`, fontFamily: "serif", lineHeight: 1 }}>"</div>
-                  {/* Stars */}
-                  <div style={{ display: "flex", gap: "2px", marginBottom: "16px" }}>
-                    {Array.from({ length: t.rating }, (_, j) => (
-                      <span key={j} style={{ color: "#fbbf24", fontSize: "12px" }}>★</span>
+              <HolographicCard key={i}>
+                <div style={{
+                  padding: "24px", borderRadius: 18,
+                  background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
+                  position: "relative", overflow: "hidden",
+                }}>
+                  <div style={{ display: "flex", gap: 4, marginBottom: 14 }}>
+                    {Array.from({ length: t.rating }).map((_, j) => (
+                      <Star key={j} style={{ width: 12, height: 12, fill: "#fbbf24", color: "#fbbf24" }} />
                     ))}
                   </div>
-                  <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: 1.7, marginBottom: "20px", fontStyle: "italic" }}>"{t.text}"</p>
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: `linear-gradient(135deg, ${t.col}30, ${t.col}10)`, border: `1px solid ${t.col}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", fontWeight: 700, color: t.col }}>
+                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, marginBottom: 18 }}>"{t.text}"</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 38, height: 38, borderRadius: "50%", background: `${t.col}20`, border: `1px solid ${t.col}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: t.col }}>
                       {t.avatar}
                     </div>
                     <div>
-                      <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>{t.name}</div>
-                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>{t.role}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{t.name}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>{t.role}</div>
                     </div>
                   </div>
-                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, transparent, ${t.col}40, transparent)` }} />
+                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${t.col}40, transparent)` }} />
                 </div>
               </HolographicCard>
             ))}
@@ -1014,15 +954,15 @@ export default function LandingPage() {
 
       {/* ── PRICING ── */}
       <section id="pricing" style={{ padding: "100px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-        <div style={{ maxWidth: "960px", margin: "0 auto", textAlign: "center" }}>
+        <div style={{ maxWidth: "1000px", margin: "0 auto", textAlign: "center" }}>
           <SectionLabel text="PRICING" />
-          <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: "12px" }}>ابدأ مجاناً</h2>
-          <p style={{ color: "rgba(255,255,255,0.35)", marginBottom: "52px" }}>خطط مرنة للأفراد والفرق الأمنية</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px" }}>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-1.5px", marginBottom: 12 }}>ابدأ مجاناً</h2>
+          <p style={{ color: "rgba(255,255,255,0.35)", marginBottom: 52 }}>خطط مرنة للأفراد والفرق الأمنية</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
             {[
-              { name: "Free",  price: "$0",  period: "/شهر", features: ["50k رمز/يوم", "النماذج الأساسية", "ترمينال محدود", "OSINT أساسي"], highlight: false, col: "rgba(255,255,255,0.1)" },
-              { name: "Pro",   price: "$19", period: "/شهر", features: ["500k رمز/يوم", "كل النماذج", "Arsenal كامل", "OSINT متقدم", "Council Mode", "CVE Watcher"], highlight: true, col: "#e21227" },
-              { name: "Elite", price: "$49", period: "/شهر", features: ["نقاط غير محدودة", "GodMode مفتوح", "API Access", "أولوية الدعم", "Team Dashboard", "Custom Models"], highlight: false, col: "rgba(255,255,255,0.1)" },
+              { name: "Free",  price: "$0",  period: "/شهر", features: ["50k رمز/يوم", "النماذج الأساسية", "ترمينال محدود", "OSINT أساسي", "5 جلسات Council"], highlight: false, col: "rgba(255,255,255,0.1)" },
+              { name: "Pro",   price: "$19", period: "/شهر", features: ["500k رمز/يوم", "كل النماذج", "Arsenal v2 كامل", "OSINT متقدم", "Council 256", "CVE Watcher", "Swarm AI"], highlight: true, col: "#e21227" },
+              { name: "Elite", price: "$49", period: "/شهر", features: ["نقاط غير محدودة", "GodMode 18x", "API Access", "SIEM/SOAR كامل", "ZeroDay Scanner", "Team Dashboard", "Custom Models", "أولوية الدعم"], highlight: false, col: "rgba(255,255,255,0.1)" },
             ].map((plan, i) => (
               <HolographicCard key={i} style={{ borderRadius: "20px" }}>
                 <div style={{ padding: "32px 28px", borderRadius: "20px", background: plan.highlight ? "linear-gradient(135deg, rgba(226,18,39,0.12) 0%, rgba(226,18,39,0.04) 100%)" : "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)", border: plan.highlight ? "1px solid rgba(226,18,39,0.4)" : "1px solid rgba(255,255,255,0.06)", boxShadow: plan.highlight ? "0 0 40px rgba(226,18,39,0.12), 0 16px 48px rgba(0,0,0,0.5)" : "0 8px 32px rgba(0,0,0,0.4)", position: "relative" }}>
@@ -1050,7 +990,7 @@ export default function LandingPage() {
       {/* ── FAQ ── */}
       <section id="faq" style={{ padding: "100px 24px", position: "relative", zIndex: 10, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
         <div style={{ maxWidth: "760px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "52px" }}>
+          <div style={{ textAlign: "center", marginBottom: 52 }}>
             <SectionLabel text="FAQ" />
             <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 800, letterSpacing: "-1.5px" }}>أسئلة شائعة</h2>
           </div>
@@ -1075,22 +1015,21 @@ export default function LandingPage() {
 
       {/* ── FINAL CTA ── */}
       <section style={{ padding: "120px 24px", position: "relative", zIndex: 10, textAlign: "center", borderTop: "1px solid rgba(255,255,255,0.04)", overflow: "hidden" }}>
-        {/* Background glow */}
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "600px", height: "400px", background: "radial-gradient(ellipse, rgba(226,18,39,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "700px", height: "500px", background: "radial-gradient(ellipse, rgba(226,18,39,0.1) 0%, transparent 70%)", pointerEvents: "none" }} />
         <div style={{ maxWidth: "620px", margin: "0 auto", position: "relative" }}>
           <div style={{ width: "80px", height: "80px", margin: "0 auto 32px", position: "relative", animation: "pulse3d 3s ease-in-out infinite" }}>
-            <div style={{ width: "80px", height: "80px", borderRadius: "22px", background: "linear-gradient(135deg, rgba(226,18,39,0.2) 0%, rgba(226,18,39,0.05) 100%)", border: "1px solid rgba(226,18,39,0.35)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 40px rgba(226,18,39,0.25), inset 0 1px 0 rgba(255,255,255,0.08)", transform: "perspective(200px) rotateX(15deg)" }}>
+            <div style={{ width: "80px", height: "80px", borderRadius: "22px", background: "linear-gradient(135deg, rgba(226,18,39,0.2) 0%, rgba(226,18,39,0.05) 100%)", border: "1px solid rgba(226,18,39,0.35)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 40px rgba(226,18,39,0.25)", transform: "perspective(200px) rotateX(15deg)" }}>
               <Zap style={{ width: "36px", height: "36px", color: "#e21227" }} />
             </div>
           </div>
           <h2 style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 900, letterSpacing: "-2px", marginBottom: "16px" }}>جاهز للانطلاق؟</h2>
           <p style={{ color: "rgba(255,255,255,0.35)", marginBottom: "48px", fontSize: "16px", lineHeight: 1.7 }}>
-            انضم لآلاف الباحثين الأمنيين الذين يستخدمون KaliGPT يومياً
+            انضم لـ 14,000+ باحث أمني يستخدمون KaliGPT يومياً
           </p>
           <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick={() => navigate("/app")} className="holo-btn" style={{ display: "inline-flex", alignItems: "center", gap: "12px", padding: "18px 48px", borderRadius: "16px", background: "linear-gradient(135deg, #e21227 0%, #c4101f 50%, #a00d1a 100%)", color: "#fff", fontSize: "18px", fontWeight: 800, border: "none", cursor: "pointer", boxShadow: "0 0 60px rgba(226,18,39,0.45), 0 12px 32px rgba(226,18,39,0.25), inset 0 1px 0 rgba(255,255,255,0.2)", letterSpacing: "-0.3px" }}>
+            <button onClick={() => navigate("/app")} className="holo-btn" style={{ display: "inline-flex", alignItems: "center", gap: "12px", padding: "18px 48px", borderRadius: "16px", background: "linear-gradient(135deg, #e21227 0%, #c4101f 50%, #a00d1a 100%)", color: "#fff", fontSize: "18px", fontWeight: 800, border: "none", cursor: "pointer", boxShadow: "0 0 60px rgba(226,18,39,0.45), 0 12px 32px rgba(226,18,39,0.25)" }}>
               <Terminal style={{ width: "22px", height: "22px" }} />
-              افتح KaliGPT
+              افتح KaliGPT v5.0
             </button>
             <button onClick={() => navigate("/roadmap")} style={{ display: "inline-flex", alignItems: "center", gap: "12px", padding: "18px 32px", borderRadius: "16px", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: "16px", fontWeight: 500, border: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", transition: "all 0.3s" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#fff"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.3)"; }}
@@ -1110,7 +1049,6 @@ export default function LandingPage() {
       <footer style={{ borderTop: "1px solid rgba(226,18,39,0.08)", padding: "48px 24px 32px", position: "relative", zIndex: 10, background: "linear-gradient(180deg, transparent 0%, rgba(226,18,39,0.03) 100%)" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "40px", marginBottom: "40px" }}>
-            {/* Brand */}
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                 <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg, #e21227, #c4101f)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 16px rgba(226,18,39,0.4)" }}>
@@ -1118,23 +1056,22 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <div style={{ fontWeight: 800, fontSize: "15px" }}>KaliGPT</div>
-                  <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>mr7.ai · v4.0</div>
+                  <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>mr7.ai · v5.0 · Arsenal Pro</div>
                 </div>
               </div>
               <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", lineHeight: 1.7, maxWidth: "280px" }}>
                 منصة الأمن السيبراني بالذكاء الاصطناعي — مبنية للباحثين المرخصين والفرق الأمنية الاحترافية.
               </p>
-              <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
-                {["GPT-4o", "Claude 3.5", "Gemini", "Groq"].map(tag => (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "16px" }}>
+                {["GPT-4o", "Claude 3.5", "Gemini", "Groq", "DeepSeek", "xAI"].map(tag => (
                   <span key={tag} style={{ fontSize: "9px", fontFamily: "monospace", color: "rgba(255,255,255,0.25)", border: "1px solid rgba(255,255,255,0.08)", padding: "2px 6px", borderRadius: "4px" }}>{tag}</span>
                 ))}
               </div>
             </div>
-            {/* Links */}
             {[
-              { title: "المنتج", links: ["الميزات", "الترسانة", "الأسعار", "Roadmap", "ما الجديد"] },
-              { title: "المجتمع", links: ["Discord", "GitHub", "Blog", "CTF Labs", "YouTube"] },
-              { title: "الدعم", links: ["FAQ", "توثيق API", "تواصل معنا", "سياسة الخصوصية", "شروط الخدمة"] },
+              { title: "المنتج", links: ["الميزات", "الترسانة v2", "الأسعار", "Roadmap", "ما الجديد", "Swarm AI"] },
+              { title: "المجتمع", links: ["Discord", "GitHub", "Blog", "CTF Labs", "YouTube", "Newsletter"] },
+              { title: "الدعم", links: ["FAQ", "توثيق API", "تواصل معنا", "سياسة الخصوصية", "شروط الخدمة", "Bug Bounty"] },
             ].map(col => (
               <div key={col.title}>
                 <div style={{ fontSize: "11px", fontFamily: "monospace", color: "rgba(255,255,255,0.35)", letterSpacing: "0.2em", marginBottom: "16px", fontWeight: 700 }}>{col.title}</div>
@@ -1149,13 +1086,12 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-          {/* Bottom bar */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px", paddingTop: "24px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
             <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.15)", fontFamily: "monospace" }}>
-              © 2025 mr7.ai · KaliGPT · For authorized security research only
+              © 2025 mr7.ai · KaliGPT v5.0 · For authorized security research only
             </p>
             <div style={{ display: "flex", gap: "6px" }}>
-              {["● ONLINE", "14 NODES", "99.9% SLA"].map(stat => (
+              {["● ONLINE", "20 NODES", "99.9% SLA", "v5.0"].map(stat => (
                 <span key={stat} style={{ fontSize: "9px", fontFamily: "monospace", color: "rgba(34,197,94,0.5)", border: "1px solid rgba(34,197,94,0.15)", padding: "2px 8px", borderRadius: "4px", background: "rgba(34,197,94,0.04)" }}>{stat}</span>
               ))}
             </div>
