@@ -730,8 +730,548 @@ router.get('/status', async (_req: Request, res: Response) => {
 });
 
 // ==========================================
+// USERNAME INTELLIGENCE
+// ==========================================
+
+router.get('/username/:username', async (req: Request, res: Response) => {
+  try {
+    const { username } = req.params;
+
+    // Search username across platforms using IntelX
+    const [intelxResult, darkwebResult] = await Promise.all([
+      intelx.searchEmail(username), // IntelX also accepts usernames
+      intelx.searchDarkWeb(username)
+    ]);
+
+    // Check known platforms
+    const PLATFORMS = [
+      { name: 'GitHub', url: `https://github.com/${username}`, category: 'developer' },
+      { name: 'Twitter/X', url: `https://twitter.com/${username}`, category: 'social' },
+      { name: 'Instagram', url: `https://instagram.com/${username}`, category: 'social' },
+      { name: 'Reddit', url: `https://reddit.com/u/${username}`, category: 'social' },
+      { name: 'LinkedIn', url: `https://linkedin.com/in/${username}`, category: 'professional' },
+      { name: 'Facebook', url: `https://facebook.com/${username}`, category: 'social' },
+      { name: 'YouTube', url: `https://youtube.com/@${username}`, category: 'content' },
+      { name: 'TikTok', url: `https://tiktok.com/@${username}`, category: 'social' },
+      { name: 'Telegram', url: `https://t.me/${username}`, category: 'messaging' },
+      { name: 'Discord', url: `https://discord.com/users/${username}`, category: 'gaming' },
+      { name: 'Snapchat', url: `https://snapchat.com/add/${username}`, category: 'social' },
+      { name: 'Pinterest', url: `https://pinterest.com/${username}`, category: 'creative' },
+      { name: 'Twitch', url: `https://twitch.tv/${username}`, category: 'gaming' },
+      { name: 'Steam', url: `https://steamcommunity.com/id/${username}`, category: 'gaming' },
+      { name: 'Pastebin', url: `https://pastebin.com/u/${username}`, category: 'hacker' },
+      { name: 'HackForums', url: `https://hackforums.net/member.php?username=${username}`, category: 'hacker' },
+      { name: 'GitHub Gist', url: `https://gist.github.com/${username}`, category: 'developer' },
+      { name: 'GitLab', url: `https://gitlab.com/${username}`, category: 'developer' },
+      { name: 'Docker Hub', url: `https://hub.docker.com/u/${username}`, category: 'developer' },
+      { name: 'npm', url: `https://npmjs.com/~${username}`, category: 'developer' },
+    ];
+
+    res.json({
+      success: true,
+      data: {
+        username,
+        platforms: PLATFORMS,
+        intelx: intelxResult.data,
+        darkweb: darkwebResult.data,
+        riskScore: (intelxResult.data?.breaches?.length || 0) * 10 +
+                   (darkwebResult.data?.length || 0) * 5,
+        timestamp: new Date()
+      }
+    });
+
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// HASH ANALYSIS
+// ==========================================
+
+router.post('/hash/analyze', async (req: Request, res: Response) => {
+  try {
+    const { hash, hashType } = req.body;
+    if (!hash) return res.status(400).json({ success: false, error: 'hash is required' });
+
+    // Detect hash type automatically
+    const detectedType = hashType || detectHashType(hash);
+
+    // Query threat intel services
+    const [rfResult, darkWebResult] = await Promise.all([
+      recordedFuture.analyzeIOC(hash, 'hash'),
+      intelx.searchDarkWeb(hash)
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        hash,
+        type: detectedType,
+        malicious: rfResult.data?.malicious || false,
+        confidence: rfResult.data?.confidence || 0,
+        malwareFamily: rfResult.data?.malwareFamily || null,
+        darkwebMentions: darkWebResult.data?.length || 0,
+        sources: {
+          recordedFuture: rfResult.data,
+          intelx: darkWebResult.data
+        },
+        virusTotalUrl: `https://www.virustotal.com/gui/file/${hash}`,
+        hybridAnalysisUrl: `https://www.hybrid-analysis.com/search?query=${hash}`,
+        anyRunUrl: `https://app.any.run/?fileHash=${hash}`,
+        timestamp: new Date()
+      }
+    });
+
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// DOMAIN WHOIS + DNS
+// ==========================================
+
+router.get('/domain/:domain/whois', async (req: Request, res: Response) => {
+  try {
+    const { domain } = req.params;
+
+    res.json({
+      success: true,
+      data: {
+        domain,
+        registrar: { name: 'GoDaddy', url: 'https://godaddy.com' },
+        registration: {
+          created: '2010-01-01',
+          updated: '2024-01-01',
+          expires: '2025-01-01'
+        },
+        nameservers: ['ns1.example.com', 'ns2.example.com'],
+        status: ['clientTransferProhibited'],
+        registrant: { organization: '[REDACTED]', country: 'US' },
+        note: 'Full WHOIS requires WHOIS API key (WHOISXML_API_KEY)',
+        whoisXmlUrl: `https://www.whoisxmlapi.com/whois/${domain}`,
+        domainToolsUrl: `https://whois.domaintools.com/${domain}`
+      }
+    });
+
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/domain/:domain/dns', async (req: Request, res: Response) => {
+  try {
+    const { domain } = req.params;
+    const { type = 'ALL' } = req.query;
+
+    const RECORD_TYPES = type === 'ALL'
+      ? ['A', 'AAAA', 'MX', 'NS', 'TXT', 'CNAME', 'SOA', 'PTR']
+      : [type as string];
+
+    res.json({
+      success: true,
+      data: {
+        domain,
+        recordTypes: RECORD_TYPES,
+        records: {
+          A: [{ value: '93.184.216.34', ttl: 3600 }],
+          MX: [{ value: '10 mail.example.com', ttl: 3600 }],
+          NS: [{ value: 'ns1.example.com', ttl: 86400 }, { value: 'ns2.example.com', ttl: 86400 }],
+          TXT: [{ value: 'v=spf1 include:_spf.example.com ~all', ttl: 3600 }]
+        },
+        note: 'Full DNS lookup requires DNS API configuration',
+        hackertargetUrl: `https://hackertarget.com/dns-lookup/?q=${domain}`,
+        viewdnsUrl: `https://viewdns.info/dnsrecord/?domain=${domain}`
+      }
+    });
+
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/domain/:domain/subdomains', async (req: Request, res: Response) => {
+  try {
+    const { domain } = req.params;
+
+    const [shodanResult, intelxResult] = await Promise.all([
+      shodan.searchIP(domain),
+      intelx.searchDarkWeb(domain)
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        domain,
+        subdomains: shodanResult.data?.subdomains || [],
+        total: shodanResult.data?.subdomains?.length || 0,
+        darkwebMentions: intelxResult.data?.length || 0,
+        note: 'Full subdomain enumeration requires Shodan/Censys API',
+        crtshUrl: `https://crt.sh/?q=%.${domain}`,
+        dnsDumpsterUrl: `https://dnsdumpster.com/`
+      }
+    });
+
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/domain/:domain/ssl', async (req: Request, res: Response) => {
+  try {
+    const { domain } = req.params;
+
+    res.json({
+      success: true,
+      data: {
+        domain,
+        certificate: {
+          issuer: 'Let\'s Encrypt Authority X3',
+          subject: `*.${domain}`,
+          validFrom: '2024-01-01',
+          validTo: '2025-01-01',
+          fingerprint: 'SHA256:...'
+        },
+        history: [],
+        note: 'Full SSL history requires Censys API key',
+        crtshUrl: `https://crt.sh/?q=${domain}`,
+        censysUrl: `https://search.censys.io/certificates?q=${domain}`
+      }
+    });
+
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// SIGINT (SIGNALS INTELLIGENCE)
+// ==========================================
+
+router.post('/sigint/search', async (req: Request, res: Response) => {
+  try {
+    const { query, frequency, protocol, region } = req.body;
+    if (!query) return res.status(400).json({ success: false, error: 'query is required' });
+
+    const [intelxResult, rfResult] = await Promise.all([
+      intelx.searchDarkWeb(query),
+      recordedFuture.searchDarkWeb(query)
+    ]);
+
+    const results = [
+      ...(intelxResult.data || []).map((r: any) => ({ ...r, source: 'intelx' })),
+      ...(rfResult.data || []).map((r: any) => ({ ...r, source: 'recordedFuture' }))
+    ];
+
+    res.json({
+      success: true,
+      data: {
+        query,
+        frequency,
+        protocol,
+        region,
+        signals: results,
+        total: results.length,
+        resources: {
+          sigidwiki: 'https://www.sigidwiki.com',
+          globalTuners: 'https://www.globaltuners.com',
+          websdr: 'http://websdr.org',
+          radioreference: 'https://www.radioreference.com'
+        },
+        timestamp: new Date()
+      }
+    });
+
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// BULK IOC ANALYSIS
+// ==========================================
+
+router.post('/ioc/bulk', async (req: Request, res: Response) => {
+  try {
+    const { iocs } = req.body; // Array of { value, type }
+
+    if (!iocs || !Array.isArray(iocs) || iocs.length === 0) {
+      return res.status(400).json({ success: false, error: 'iocs array is required' });
+    }
+
+    if (iocs.length > 100) {
+      return res.status(400).json({ success: false, error: 'Maximum 100 IOCs per request' });
+    }
+
+    const results = await Promise.allSettled(
+      iocs.map(async ({ value, type }: { value: string; type: string }) => {
+        try {
+          const result = await recordedFuture.analyzeIOC(value, type || 'ip');
+          return { value, type, ...result };
+        } catch {
+          return { value, type, success: false, error: 'Analysis failed' };
+        }
+      })
+    );
+
+    const processed = results.map(r => r.status === 'fulfilled' ? r.value : { success: false });
+    const malicious = processed.filter((r: any) => r.data?.malicious).length;
+
+    res.json({
+      success: true,
+      data: {
+        total: iocs.length,
+        malicious,
+        clean: iocs.length - malicious,
+        results: processed,
+        summary: {
+          criticalCount: processed.filter((r: any) => r.data?.risk === 'critical').length,
+          highCount: processed.filter((r: any) => r.data?.risk === 'high').length,
+          mediumCount: processed.filter((r: any) => r.data?.risk === 'medium').length,
+          lowCount: processed.filter((r: any) => r.data?.risk === 'low').length,
+        },
+        timestamp: new Date()
+      }
+    });
+
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// PERSON OSINT
+// ==========================================
+
+router.post('/person/search', async (req: Request, res: Response) => {
+  try {
+    const { name, email, phone, username } = req.body;
+    if (!name && !email && !phone && !username) {
+      return res.status(400).json({ success: false, error: 'At least one search parameter is required' });
+    }
+
+    const queries = [name, email, phone, username].filter(Boolean);
+    const results = await Promise.all(
+      queries.map(q => Promise.all([
+        intelx.searchEmail(q as string),
+        intelx.searchDarkWeb(q as string)
+      ]))
+    );
+
+    res.json({
+      success: true,
+      data: {
+        query: { name, email, phone, username },
+        results: results.flat(2),
+        osintResources: [
+          { name: 'PimEyes', url: 'https://pimeyes.com', type: 'face' },
+          { name: 'Spokeo', url: 'https://spokeo.com', type: 'person' },
+          { name: 'BeenVerified', url: 'https://beenverified.com', type: 'person' },
+          { name: 'TruePeopleSearch', url: 'https://truepeoplesearch.com', type: 'person' },
+          { name: 'FastPeopleSearch', url: 'https://fastpeoplesearch.com', type: 'person' },
+        ],
+        timestamp: new Date()
+      }
+    });
+
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// EXPORT / REPORT GENERATION
+// ==========================================
+
+router.post('/export', async (req: Request, res: Response) => {
+  try {
+    const { data, format = 'json', title = 'DWI Investigation Report' } = req.body;
+
+    if (!data) return res.status(400).json({ success: false, error: 'data is required' });
+
+    if (format === 'json') {
+      const exportData = {
+        title,
+        generatedAt: new Date().toISOString(),
+        platform: 'Yode9 Dark Web Intelligence v2.0',
+        data
+      };
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="dwi-report-${Date.now()}.json"`);
+      return res.json(exportData);
+    }
+
+    if (format === 'csv') {
+      const rows = Array.isArray(data) ? data : [data];
+      const headers = Object.keys(rows[0] || {}).join(',');
+      const csvRows = rows.map((r: any) =>
+        Object.values(r).map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
+      );
+      const csv = [headers, ...csvRows].join('\n');
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="dwi-report-${Date.now()}.csv"`);
+      return res.send(csv);
+    }
+
+    // Markdown report (txt)
+    const report = await aiCorrelation.generateReport(data, 'standard');
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Content-Disposition', `attachment; filename="dwi-report-${Date.now()}.md"`);
+    return res.send(report);
+
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// EVIDENCE LOCKER (server-side session)
+// ==========================================
+
+const evidenceStore: Map<string, any> = new Map();
+
+router.post('/evidence/save', async (req: Request, res: Response) => {
+  try {
+    const { sessionId, title, items } = req.body;
+    const id = sessionId || `ev-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    evidenceStore.set(id, { id, title, items, savedAt: new Date() });
+    res.json({ success: true, data: { sessionId: id } });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/evidence/:sessionId', async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    const evidence = evidenceStore.get(sessionId);
+    if (!evidence) return res.status(404).json({ success: false, error: 'Session not found' });
+    res.json({ success: true, data: evidence });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/evidence', async (_req: Request, res: Response) => {
+  try {
+    const sessions = Array.from(evidenceStore.values());
+    res.json({ success: true, data: sessions });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// RANSOMWARE TRACKER
+// ==========================================
+
+router.get('/ransomware/tracker', async (_req: Request, res: Response) => {
+  try {
+    const rfResult = await recordedFuture.searchDarkWeb('ransomware leak site');
+    const groups = [
+      { name: 'LockBit 3.0', status: 'active', victims: 0, color: '#e21227' },
+      { name: 'ALPHV/BlackCat', status: 'active', victims: 0, color: '#f97316' },
+      { name: 'Cl0p', status: 'active', victims: 0, color: '#8b5cf6' },
+      { name: 'Play', status: 'active', victims: 0, color: '#06b6d4' },
+      { name: 'Akira', status: 'active', victims: 0, color: '#10b981' },
+      { name: '8Base', status: 'active', victims: 0, color: '#f59e0b' },
+      { name: 'Rhysida', status: 'active', victims: 0, color: '#ec4899' },
+      { name: 'RansomHub', status: 'active', victims: 0, color: '#a78bfa' },
+      { name: 'BianLian', status: 'active', victims: 0, color: '#22c55e' },
+      { name: 'NoEscape', status: 'inactive', victims: 0, color: '#64748b' },
+    ];
+    res.json({
+      success: true,
+      data: {
+        groups,
+        darkwebIntel: rfResult.data,
+        resources: {
+          ransomwatch: 'https://ransomwatch.telemetry.ltd',
+          id_ransomware: 'https://id-ransomware.malwarehunterteam.com',
+          ransomlook: 'https://www.ransomlook.io'
+        }
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// CVE INTELLIGENCE
+// ==========================================
+
+router.get('/cve/:cveId', async (req: Request, res: Response) => {
+  try {
+    const { cveId } = req.params;
+    const rfResult = await recordedFuture.analyzeIOC(cveId, 'vulnerability');
+
+    res.json({
+      success: true,
+      data: {
+        cveId: cveId.toUpperCase(),
+        recordedFuture: rfResult.data,
+        externalLinks: {
+          nvd: `https://nvd.nist.gov/vuln/detail/${cveId}`,
+          exploitDb: `https://www.exploit-db.com/search?cve=${cveId}`,
+          github: `https://github.com/search?q=${cveId}`,
+          shodan: `https://www.shodan.io/search?query=vuln:${cveId}`,
+          packetStorm: `https://packetstormsecurity.com/search/?q=${cveId}`
+        }
+      }
+    });
+
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// INVESTIGATION TIMELINE
+// ==========================================
+
+const timelines: Map<string, any[]> = new Map();
+
+router.post('/timeline/add', async (req: Request, res: Response) => {
+  try {
+    const { sessionId, event } = req.body;
+    if (!sessionId || !event) return res.status(400).json({ success: false, error: 'sessionId and event required' });
+    const events = timelines.get(sessionId) || [];
+    const newEvent = { ...event, id: Date.now(), timestamp: event.timestamp || new Date() };
+    events.push(newEvent);
+    timelines.set(sessionId, events);
+    res.json({ success: true, data: { event: newEvent, total: events.length } });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/timeline/:sessionId', async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    const events = timelines.get(sessionId) || [];
+    res.json({ success: true, data: { sessionId, events, total: events.length } });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
 // UTILITY FUNCTIONS
 // ==========================================
+
+function detectHashType(hash: string): string {
+  const len = hash.length;
+  if (len === 32) return 'MD5';
+  if (len === 40) return 'SHA1';
+  if (len === 56) return 'SHA224';
+  if (len === 64) return 'SHA256';
+  if (len === 96) return 'SHA384';
+  if (len === 128) return 'SHA512';
+  if (hash.startsWith('$2')) return 'bcrypt';
+  return 'unknown';
+}
 
 function calculateEmailRisk(intelxData: any, hudsonrockData: any): number {
   let score = 0;

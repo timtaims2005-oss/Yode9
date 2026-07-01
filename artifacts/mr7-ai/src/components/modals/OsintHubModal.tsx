@@ -1238,6 +1238,16 @@ export function OsintHubModal({ onClose }: { onClose: () => void }) {
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             {ALL_TOOLS.length}+ أداة
           </div>
+          <a
+            href="#"
+            onClick={e => { e.preventDefault(); onClose(); setTimeout(() => { const ev = new KeyboardEvent("keydown",{key:"F3",ctrlKey:true,shiftKey:true,bubbles:true}); document.dispatchEvent(ev); }, 100); }}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border transition-all"
+            style={{ background:"#8b5cf618", borderColor:"#8b5cf640", color:"#a78bfa" }}
+            title="Dark Web Intelligence — Ctrl+Shift+F3"
+          >
+            <Eye size={12} />
+            DWI
+          </a>
           <button onClick={onClose} className="text-[#94a3b8] hover:text-red-400 transition-colors p-1">
             <X size={18} />
           </button>

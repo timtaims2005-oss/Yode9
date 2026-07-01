@@ -718,6 +718,7 @@ function AppContent() {
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "y") { e.preventDefault(); toggle('chainOfThought'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F2") { e.preventDefault(); setPerfCCOpen(v => !v); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F1") { e.preventDefault(); toggle('omnixAbsolute'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F3") { e.preventDefault(); toggle('darkWebIntelFull'); }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
