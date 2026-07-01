@@ -269,6 +269,7 @@ const OsintPlatformModal    = lazy(() => import("./components/modals/OsintPlatfo
 const PluginMarketplaceModal = lazy(() => import("./components/modals/PluginMarketplaceModal").then(m=>({default:m.PluginMarketplaceModal})));
 const NotificationCenter    = lazy(() => import("./components/NotificationCenter").then(m=>({default:m.NotificationCenter})));
 const MobileSecurityModal   = lazy(() => import("./components/modals/MobileSecurityModal").then(m=>({default:m.MobileSecurityModal})));
+const DarkWebIntelligenceFullModal = lazy(() => import("./components/modals/DarkWebIntelligenceFullModal").then(m=>({default:m.DarkWebIntelligenceFullModal})));
 
 // ── NEW PAGES (opened as modals via WindowChrome) ─────────────────────────────
 const AccountSettingsPage   = lazy(() => import("./pages/AccountSettingsPage").then(m=>({default:m.AccountSettingsPage})));
@@ -386,6 +387,7 @@ const MODAL_IDS = [
   'omnixAbsolute',
   'osintHub',
   'mobileSecurity',
+  'darkWebIntelFull',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -974,6 +976,7 @@ function AppContent() {
         onOpenNexusPanel={() => open('nexusPanel')}
         onOpenAccountHackeTools={() => open('accountHackeTools')}
         onOpenOmnixAbsolute={() => open('omnixAbsolute')}
+        onOpenDarkWebIntelFull={() => open('darkWebIntelFull')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
@@ -1723,6 +1726,13 @@ function AppContent() {
       <Suspense fallback={null}>
         {modals.accountHackeTools && (
           <AccountHackeToolsModal open={true} onOpenChange={(v) => { if (!v) close('accountHackeTools'); }} />
+        )}
+      </Suspense>
+
+      {/* ── DARK WEB INTELLIGENCE FULL — منظومة الاستخبارات الرقمية المتكاملة ── */}
+      <Suspense fallback={null}>
+        {modals.darkWebIntelFull && (
+          <DarkWebIntelligenceFullModal open={modals.darkWebIntelFull} onClose={() => close('darkWebIntelFull')} />
         )}
       </Suspense>
 

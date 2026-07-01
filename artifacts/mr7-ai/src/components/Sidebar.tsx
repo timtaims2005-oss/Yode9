@@ -175,6 +175,7 @@ interface SidebarProps {
   onOpenNexusPanel?: () => void;
   onOpenAccountHackeTools?: () => void;
   onOpenOmnixAbsolute?: () => void;
+  onOpenDarkWebIntelFull?: () => void;
 }
 
 const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: string }[] = [
@@ -306,7 +307,7 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: DbIcon, label: "Kali SQLi Guide", color: "text-blue-400" },
 ];
 
-export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution, onOpenKgProjectGenerator, onOpenKgAgentMemory, onOpenKgAutonomousSwarm, onOpenKgSocialArsenal, onOpenAptIntel, onOpenNexusPanel, onOpenAccountHackeTools, onOpenOmnixAbsolute }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution, onOpenKgProjectGenerator, onOpenKgAgentMemory, onOpenKgAutonomousSwarm, onOpenKgSocialArsenal, onOpenAptIntel, onOpenNexusPanel, onOpenAccountHackeTools, onOpenOmnixAbsolute, onOpenDarkWebIntelFull }: SidebarProps) {
   const { toast } = useToast();
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -1253,6 +1254,13 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                   <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-violet-400 border border-black animate-pulse" />
                   <Zap className="w-3 h-3 text-violet-400/70 group-hover:text-violet-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">OMNIX</span>
+                </button>
+              )}
+              {onOpenDarkWebIntelFull && (
+                <button onClick={onOpenDarkWebIntelFull} title="منظومة الاستخبارات الرقمية المتكاملة — Dark Web Intelligence" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-purple-950/30 hover:bg-purple-900/40 border border-purple-500/25 hover:border-purple-500/60 transition-all group relative">
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-purple-500 border border-black animate-pulse" />
+                  <Eye className="w-3.5 h-3.5 text-purple-400/70 group-hover:text-purple-400" />
+                  <span className="text-[8px] text-gray-500 group-hover:text-gray-300">DWI</span>
                 </button>
               )}
               {onOpenKgSecurity && (
