@@ -1,7 +1,19 @@
 import { Router, type IRouter } from "express";
 import { requirePersonalOpenAI, PERSONAL_DEFAULT_MODEL } from "../lib/ai-providers";
+import dns from "dns";
 
 const router: IRouter = Router();
+
+const FETCH_TIMEOUT = 8000;
+
+function withTimeout(promise: Promise<Response>, ms: number): Promise<Response> {
+  return Promise.race([
+    promise,
+    new Promise<Response>((_, reject) =>
+      setTimeout(() => reject(new Error(`Request timed out after ${ms}ms`)), ms)
+    ),
+  ]);
+}
 
 function extractIocs(text: string): Record<string, string[]> {
   const t = text.slice(0, 100000);
@@ -22,6 +34,557 @@ const PRIVATE_IP_RE = /^(https?:\/\/)(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\
 function isPrivateUrl(url: string): boolean {
   return PRIVATE_IP_RE.test(url);
 }
+
+async function aiAnalyze(systemPrompt: string, userContent: string): Promise<string> {
+  try {
+    const completion = await requirePersonalOpenAI().chat.completions.create({
+      model: PERSONAL_DEFAULT_MODEL,
+      max_tokens: 1800,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userContent },
+      ],
+    });
+    return completion.choices?.[0]?.message?.content ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function riskFromScore(score: number): "low" | "medium" | "high" | "critical" {
+  if (score >= 80) return "critical";
+  if (score >= 50) return "high";
+  if (score >= 20) return "medium";
+  return "low";
+}
+
+// ── EMAIL ─────────────────────────────────────────────────────────────────────
+router.post("/osint/email", async (req, res) => {
+  try {
+    const { email, language } = req.body as { email?: string; language?: string };
+    if (!email || !email.includes("@")) {
+      return res.status(400).json({ error: "Valid email required" });
+    }
+
+    const langNote = language === "ar" ? "Respond in Arabic." : "Respond in English.";
+    const sources: Record<string, { success: boolean; error?: string; disabled?: boolean }> = {};
+
+    const HIBP_KEY = process.env.HIBP_API_KEY;
+    const HUNTER_KEY = process.env.HUNTER_API_KEY;
+
+    const [hibpResult, hunterResult] = await Promise.allSettled([
+      HIBP_KEY
+        ? withTimeout(
+            fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(email)}?truncateResponse=false`, {
+              headers: { "hibp-api-key": HIBP_KEY, "User-Agent": "mr7-osint/1.0" },
+            }),
+            FETCH_TIMEOUT
+          )
+        : Promise.reject(new Error("HIBP_API_KEY not configured")),
+      HUNTER_KEY
+        ? withTimeout(
+            fetch(`https://api.hunter.io/v2/email-verifier?email=${encodeURIComponent(email)}&api_key=${HUNTER_KEY}`),
+            FETCH_TIMEOUT
+          )
+        : Promise.reject(new Error("HUNTER_API_KEY not configured")),
+    ]);
+
+    let breaches: unknown[] = [];
+    let hunterData: unknown = null;
+
+    if (!HIBP_KEY) {
+      sources["Have I Been Pwned"] = { success: false, disabled: true, error: "HIBP_API_KEY not set — get it at https://haveibeenpwned.com/API/Key" };
+    } else if (hibpResult.status === "fulfilled") {
+      const r = hibpResult.value;
+      if (r.status === 200) {
+        breaches = await r.json() as unknown[];
+        sources["Have I Been Pwned"] = { success: true };
+      } else if (r.status === 404) {
+        sources["Have I Been Pwned"] = { success: true };
+      } else {
+        sources["Have I Been Pwned"] = { success: false, error: `HTTP ${r.status}` };
+      }
+    } else {
+      sources["Have I Been Pwned"] = { success: false, error: (hibpResult as PromiseRejectedResult).reason?.message };
+    }
+
+    if (!HUNTER_KEY) {
+      sources["Hunter.io"] = { success: false, disabled: true, error: "HUNTER_API_KEY not set — get it at https://hunter.io (free: 25 req/month)" };
+    } else if (hunterResult.status === "fulfilled") {
+      const r = hunterResult.value;
+      if (r.ok) {
+        hunterData = await r.json();
+        sources["Hunter.io"] = { success: true };
+      } else {
+        sources["Hunter.io"] = { success: false, error: `HTTP ${r.status}` };
+      }
+    } else {
+      sources["Hunter.io"] = { success: false, error: (hunterResult as PromiseRejectedResult).reason?.message };
+    }
+
+    const riskScore = breaches.length > 5 ? 85 : breaches.length > 2 ? 60 : breaches.length > 0 ? 35 : 5;
+    const riskLevel = riskFromScore(riskScore);
+
+    const analysisText = await aiAnalyze(
+      `You are a cyber OSINT analyst. Analyze this email intelligence data and provide:
+1. Executive Summary
+2. Breach Analysis (if any breaches found)
+3. Email Validity Assessment
+4. Risk Assessment
+5. Specific Recommendations (bullet points)
+Format as structured Markdown. ${langNote}`,
+      `Email: ${email}
+Breaches found: ${breaches.length}
+Breach details: ${JSON.stringify(breaches).slice(0, 3000)}
+Hunter.io verification: ${JSON.stringify(hunterData).slice(0, 500)}`
+    );
+
+    return res.json({
+      sources,
+      results: {
+        email,
+        breaches,
+        breachCount: breaches.length,
+        hunter: hunterData,
+      },
+      analysis: analysisText,
+      riskLevel,
+      recommendations: breaches.length > 0
+        ? ["Change passwords immediately for affected services", "Enable 2FA on all accounts", "Monitor for identity theft", "Use unique passwords per service", "Consider a password manager"]
+        : ["Password appears safe — maintain good hygiene", "Enable 2FA as preventive measure", "Set up breach monitoring alerts"],
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Email OSINT failed" });
+  }
+});
+
+// ── IP ────────────────────────────────────────────────────────────────────────
+router.post("/osint/ip", async (req, res) => {
+  try {
+    const { ip, language } = req.body as { ip?: string; language?: string };
+    if (!ip || !/^[\d.:a-fA-F]+$/.test(ip)) {
+      return res.status(400).json({ error: "Valid IP address required" });
+    }
+
+    const langNote = language === "ar" ? "Respond in Arabic." : "Respond in English.";
+    const ABUSEIPDB_KEY = process.env.ABUSEIPDB_API_KEY;
+    const sources: Record<string, { success: boolean; error?: string; disabled?: boolean }> = {};
+
+    const [abuseResult, ipapiResult, ipApiResult] = await Promise.allSettled([
+      ABUSEIPDB_KEY
+        ? withTimeout(
+            fetch(`https://api.abuseipdb.com/api/v2/check?ipAddress=${encodeURIComponent(ip)}&maxAgeInDays=90&verbose`, {
+              headers: { Key: ABUSEIPDB_KEY, Accept: "application/json" },
+            }),
+            FETCH_TIMEOUT
+          )
+        : Promise.reject(new Error("ABUSEIPDB_API_KEY not configured")),
+      withTimeout(fetch(`https://ipapi.co/${ip}/json/`, { headers: { "User-Agent": "mr7-osint/1.0" } }), FETCH_TIMEOUT),
+      withTimeout(fetch(`http://ip-api.com/json/${ip}?fields=66846719`), FETCH_TIMEOUT),
+    ]);
+
+    let abuseData: unknown = null;
+    let ipapiData: unknown = null;
+    let ipApiData: unknown = null;
+
+    if (!ABUSEIPDB_KEY) {
+      sources["AbuseIPDB"] = { success: false, disabled: true, error: "ABUSEIPDB_API_KEY not set — get it at https://abuseipdb.com (free: 1000 req/day)" };
+    } else if (abuseResult.status === "fulfilled" && abuseResult.value.ok) {
+      abuseData = await abuseResult.value.json();
+      sources["AbuseIPDB"] = { success: true };
+    } else {
+      sources["AbuseIPDB"] = { success: false, error: abuseResult.status === "rejected" ? (abuseResult as PromiseRejectedResult).reason?.message : `HTTP ${(abuseResult as PromiseFulfilledResult<Response>).value.status}` };
+    }
+
+    if (ipapiResult.status === "fulfilled" && ipapiResult.value.ok) {
+      ipapiData = await ipapiResult.value.json();
+      sources["ipapi.co"] = { success: true };
+    } else {
+      sources["ipapi.co"] = { success: false, error: ipapiResult.status === "rejected" ? (ipapiResult as PromiseRejectedResult).reason?.message : "Request failed" };
+    }
+
+    if (ipApiResult.status === "fulfilled" && ipApiResult.value.ok) {
+      ipApiData = await ipApiResult.value.json();
+      sources["ip-api.com"] = { success: true };
+    } else {
+      sources["ip-api.com"] = { success: false, error: ipApiResult.status === "rejected" ? (ipApiResult as PromiseRejectedResult).reason?.message : "Request failed" };
+    }
+
+    const abuseScore = (abuseData as { data?: { abuseConfidenceScore?: number } } | null)?.data?.abuseConfidenceScore ?? 0;
+    const riskLevel = riskFromScore(abuseScore);
+
+    const analysisText = await aiAnalyze(
+      `You are a cyber OSINT analyst specializing in IP threat intelligence. Analyze this IP data and provide:
+1. Executive Summary
+2. Geolocation & Infrastructure Analysis
+3. Threat Assessment (based on abuse score and reports)
+4. Classification (residential/datacenter/VPN/TOR/proxy)
+5. Recommended Actions
+Format as structured Markdown. ${langNote}`,
+      `IP: ${ip}
+AbuseIPDB data: ${JSON.stringify(abuseData).slice(0, 2000)}
+IPAPI.co geo data: ${JSON.stringify(ipapiData).slice(0, 1000)}
+IP-API.com data: ${JSON.stringify(ipApiData).slice(0, 1000)}`
+    );
+
+    return res.json({
+      sources,
+      results: { ip, abuseData, ipapiData, ipApiData, abuseScore },
+      analysis: analysisText,
+      riskLevel,
+      recommendations: abuseScore > 50
+        ? ["Block this IP in firewall immediately", "Review logs for connections from this IP", "Report to your SOC team", "Add to threat blocklist", "Check for lateral movement"]
+        : abuseScore > 10
+        ? ["Monitor traffic from this IP", "Implement rate limiting", "Review access logs periodically"]
+        : ["IP appears clean — continue normal monitoring", "Maintain baseline logging", "Review periodically"],
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "IP OSINT failed" });
+  }
+});
+
+// ── DOMAIN ────────────────────────────────────────────────────────────────────
+router.post("/osint/domain", async (req, res) => {
+  try {
+    const { domain, language } = req.body as { domain?: string; language?: string };
+    if (!domain || !/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(domain)) {
+      return res.status(400).json({ error: "Valid domain required" });
+    }
+
+    const langNote = language === "ar" ? "Respond in Arabic." : "Respond in English.";
+    const sources: Record<string, { success: boolean; error?: string }> = {};
+    const resolver = new dns.promises.Resolver();
+    resolver.setServers(["8.8.8.8", "1.1.1.1"]);
+
+    const [dnsResults, crtResult, rdapResult] = await Promise.allSettled([
+      Promise.allSettled([
+        resolver.resolve4(domain).catch(() => [] as string[]),
+        resolver.resolve6(domain).catch(() => [] as string[]),
+        resolver.resolveMx(domain).catch(() => [] as dns.MxRecord[]),
+        resolver.resolveTxt(domain).catch(() => [] as string[][]),
+        resolver.resolveNs(domain).catch(() => [] as string[]),
+        resolver.resolveSoa(domain).catch(() => null as dns.SoaRecord | null),
+      ]),
+      withTimeout(fetch(`https://crt.sh/?q=%25.${encodeURIComponent(domain)}&output=json`), FETCH_TIMEOUT),
+      withTimeout(fetch(`https://rdap.org/domain/${encodeURIComponent(domain)}`, {
+        headers: { Accept: "application/rdap+json" },
+      }), FETCH_TIMEOUT),
+    ]);
+
+    let dnsRecords: { a: string[]; aaaa: string[]; mx: dns.MxRecord[]; txt: string[][]; ns: string[]; soa: dns.SoaRecord | null } = { a: [], aaaa: [], mx: [], txt: [], ns: [], soa: null };
+    let crtData: unknown[] = [];
+    let rdapData: unknown = null;
+    let subdomains: string[] = [];
+
+    if (dnsResults.status === "fulfilled") {
+      const [a, aaaa, mx, txt, ns, soa] = dnsResults.value;
+      dnsRecords = {
+        a: a.status === "fulfilled" ? (a.value as string[]) : [],
+        aaaa: aaaa.status === "fulfilled" ? (aaaa.value as string[]) : [],
+        mx: mx.status === "fulfilled" ? (mx.value as dns.MxRecord[]) : [],
+        txt: txt.status === "fulfilled" ? (txt.value as string[][]) : [],
+        ns: ns.status === "fulfilled" ? (ns.value as string[]) : [],
+        soa: soa.status === "fulfilled" ? (soa.value as dns.SoaRecord | null) : null,
+      };
+      sources["DNS"] = { success: true };
+    } else {
+      sources["DNS"] = { success: false, error: dnsResults.reason?.message };
+    }
+
+    if (crtResult.status === "fulfilled" && crtResult.value.ok) {
+      const raw = await crtResult.value.json() as { name_value?: string }[];
+      crtData = raw.slice(0, 200);
+      const seen = new Set<string>();
+      for (const entry of raw) {
+        const names = (entry.name_value ?? "").split("\n");
+        for (const n of names) {
+          const cleaned = n.trim().replace(/^\*\./, "");
+          if (cleaned && cleaned.endsWith(domain) && !seen.has(cleaned)) {
+            seen.add(cleaned);
+            subdomains.push(cleaned);
+          }
+        }
+      }
+      subdomains = [...new Set(subdomains)].slice(0, 100);
+      sources["crt.sh (SSL Transparency)"] = { success: true };
+    } else {
+      sources["crt.sh (SSL Transparency)"] = { success: false, error: crtResult.status === "rejected" ? (crtResult as PromiseRejectedResult).reason?.message : "Request failed" };
+    }
+
+    if (rdapResult.status === "fulfilled" && rdapResult.value.ok) {
+      rdapData = await rdapResult.value.json();
+      sources["RDAP/WHOIS"] = { success: true };
+    } else {
+      sources["RDAP/WHOIS"] = { success: false, error: rdapResult.status === "rejected" ? (rdapResult as PromiseRejectedResult).reason?.message : "Request failed" };
+    }
+
+    const analysisText = await aiAnalyze(
+      `You are a cyber OSINT analyst. Build a comprehensive attack surface map for this domain and provide:
+1. Infrastructure Overview
+2. DNS Security Analysis (SPF/DKIM/DMARC from TXT records)
+3. Subdomain Exposure Assessment
+4. WHOIS/Registration Intelligence
+5. SSL Certificate History Insights
+6. Attack Surface Summary
+7. Recommended Hardening Steps
+Format as structured Markdown. ${langNote}`,
+      `Domain: ${domain}
+DNS Records: ${JSON.stringify(dnsRecords).slice(0, 2000)}
+Subdomains found (${subdomains.length}): ${subdomains.slice(0, 30).join(", ")}
+RDAP/WHOIS: ${JSON.stringify(rdapData).slice(0, 1500)}
+SSL certificates count: ${crtData.length}`
+    );
+
+    const riskScore = subdomains.length > 50 ? 55 : subdomains.length > 20 ? 35 : 15;
+
+    return res.json({
+      sources,
+      results: { domain, dnsRecords, subdomains, rdapData, sslCount: crtData.length },
+      analysis: analysisText,
+      riskLevel: riskFromScore(riskScore),
+      recommendations: [
+        "Review all exposed subdomains for unintended services",
+        "Implement DMARC/DKIM/SPF for email security",
+        "Audit DNS zone for stale records",
+        "Enable DNSSEC if not already active",
+        "Monitor crt.sh for unauthorized certificate issuance",
+      ],
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Domain OSINT failed" });
+  }
+});
+
+// ── HASH ──────────────────────────────────────────────────────────────────────
+router.post("/osint/hash", async (req, res) => {
+  try {
+    const { hash, language } = req.body as { hash?: string; language?: string };
+    if (!hash || !/^[0-9a-fA-F]{32,64}$/.test(hash)) {
+      return res.status(400).json({ error: "Valid MD5/SHA1/SHA256 hash required" });
+    }
+
+    const langNote = language === "ar" ? "Respond in Arabic." : "Respond in English.";
+    const VT_KEY = process.env.VT_API_KEY;
+    const sources: Record<string, { success: boolean; error?: string; disabled?: boolean }> = {};
+
+    let vtData: unknown = null;
+
+    if (!VT_KEY) {
+      sources["VirusTotal"] = { success: false, disabled: true, error: "VT_API_KEY not set — get it at https://virustotal.com (free: 500 req/day)" };
+    } else {
+      const vtResult = await Promise.allSettled([
+        withTimeout(
+          fetch(`https://www.virustotal.com/api/v3/files/${hash}`, {
+            headers: { "x-apikey": VT_KEY },
+          }),
+          FETCH_TIMEOUT
+        ),
+      ]);
+      if (vtResult[0].status === "fulfilled" && vtResult[0].value.ok) {
+        vtData = await vtResult[0].value.json();
+        sources["VirusTotal"] = { success: true };
+      } else if (vtResult[0].status === "fulfilled" && vtResult[0].value.status === 404) {
+        sources["VirusTotal"] = { success: true };
+      } else {
+        sources["VirusTotal"] = { success: false, error: vtResult[0].status === "rejected" ? (vtResult[0] as PromiseRejectedResult).reason?.message : `HTTP ${(vtResult[0] as PromiseFulfilledResult<Response>).value.status}` };
+      }
+    }
+
+    const attrs = (vtData as { data?: { attributes?: Record<string, unknown> } } | null)?.data?.attributes ?? {};
+    const stats = (attrs.last_analysis_stats as { malicious?: number; suspicious?: number; undetected?: number; harmless?: number } | undefined) ?? {};
+    const totalEngines = (stats.malicious ?? 0) + (stats.suspicious ?? 0) + (stats.undetected ?? 0) + (stats.harmless ?? 0);
+    const maliciousCount = (stats.malicious ?? 0) + (stats.suspicious ?? 0);
+    const detectionRatio = totalEngines > 0 ? (maliciousCount / totalEngines) * 100 : 0;
+
+    const analysisText = await aiAnalyze(
+      `You are a malware analyst. Analyze this file hash intelligence and provide:
+1. Malware Classification (if detected)
+2. Detection Rate Analysis
+3. Likely Malware Family
+4. MITRE ATT&CK Techniques (if identifiable)
+5. Threat Severity Assessment
+6. Recommended Response Actions
+Format as structured Markdown. ${langNote}`,
+      `Hash: ${hash}
+Hash type: ${hash.length === 32 ? "MD5" : hash.length === 40 ? "SHA1" : "SHA256"}
+VirusTotal data: ${JSON.stringify(vtData).slice(0, 4000)}`
+    );
+
+    const riskLevel = riskFromScore(detectionRatio);
+
+    return res.json({
+      sources,
+      results: {
+        hash,
+        hashType: hash.length === 32 ? "MD5" : hash.length === 40 ? "SHA1" : "SHA256",
+        vtData,
+        detectionStats: stats,
+        maliciousCount,
+        totalEngines,
+        detectionRatio: Math.round(detectionRatio),
+        fileInfo: {
+          name: attrs.meaningful_name ?? attrs.names ?? null,
+          type: attrs.type_description ?? attrs.magic ?? null,
+          size: attrs.size ?? null,
+          firstSeen: attrs.first_submission_date ?? null,
+        },
+      },
+      analysis: analysisText,
+      riskLevel,
+      recommendations: maliciousCount > 0
+        ? ["Quarantine or delete file immediately", "Scan all systems for similar files", "Identify infection vector", "Collect and preserve forensic evidence", "Notify incident response team"]
+        : ["Hash not found or appears clean", "Verify hash integrity", "Continue monitoring", "Submit sample if suspicious behavior observed"],
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Hash OSINT failed" });
+  }
+});
+
+// ── USERNAME ──────────────────────────────────────────────────────────────────
+router.post("/osint/username", async (req, res) => {
+  try {
+    const { username, language } = req.body as { username?: string; language?: string };
+    if (!username || username.length < 2) {
+      return res.status(400).json({ error: "Valid username required" });
+    }
+
+    const langNote = language === "ar" ? "Respond in Arabic." : "Respond in English.";
+    const sources: Record<string, { success: boolean; error?: string }> = {};
+
+    const PLATFORMS = [
+      { name: "GitHub", url: `https://github.com/${username}` },
+      { name: "GitLab", url: `https://gitlab.com/${username}` },
+      { name: "Reddit", url: `https://www.reddit.com/user/${username}` },
+      { name: "HackerOne", url: `https://hackerone.com/${username}` },
+      { name: "Bugcrowd", url: `https://bugcrowd.com/${username}` },
+      { name: "Keybase", url: `https://keybase.io/${username}` },
+      { name: "Telegram", url: `https://t.me/${username}` },
+      { name: "Medium", url: `https://medium.com/@${username}` },
+      { name: "Dev.to", url: `https://dev.to/${username}` },
+      { name: "Pastebin", url: `https://pastebin.com/u/${username}` },
+    ];
+
+    const checkResults = await Promise.allSettled(
+      PLATFORMS.map(async (p) => {
+        try {
+          const r = await withTimeout(
+            fetch(p.url, {
+              method: "HEAD",
+              headers: { "User-Agent": "Mozilla/5.0 (compatible; mr7-osint/1.0)" },
+              redirect: "follow",
+            }),
+            FETCH_TIMEOUT
+          );
+          return { platform: p.name, url: p.url, found: r.status === 200, status: r.status };
+        } catch {
+          return { platform: p.name, url: p.url, found: false, status: 0, error: "timeout" };
+        }
+      })
+    );
+
+    const platformResults = checkResults.map((r) =>
+      r.status === "fulfilled" ? r.value : { platform: "unknown", url: "", found: false, status: 0, error: "failed" }
+    );
+
+    sources["Platform Checks"] = { success: true };
+
+    const foundPlatforms = platformResults.filter((p) => p.found);
+
+    const analysisText = await aiAnalyze(
+      `You are a cyber OSINT analyst. Analyze this username intelligence and provide:
+1. Identity Pattern Analysis
+2. Platform Presence Assessment
+3. Behavioral Patterns (inferred from platform types)
+4. Potential Identity Correlation
+5. Privacy Exposure Level
+6. Recommendations
+Format as structured Markdown. ${langNote}`,
+      `Username: ${username}
+Found on platforms (${foundPlatforms.length}/${PLATFORMS.length}): ${foundPlatforms.map((p) => p.platform).join(", ")}
+All platform check results: ${JSON.stringify(platformResults)}`
+    );
+
+    const riskScore = foundPlatforms.length > 6 ? 65 : foundPlatforms.length > 3 ? 40 : 20;
+
+    return res.json({
+      sources,
+      results: { username, platformResults, foundCount: foundPlatforms.length, totalChecked: PLATFORMS.length },
+      analysis: analysisText,
+      riskLevel: riskFromScore(riskScore),
+      recommendations: [
+        "Review privacy settings on all discovered accounts",
+        "Use different usernames across platforms",
+        "Remove personal information from public profiles",
+        "Enable 2FA on all discovered accounts",
+        "Consider username rotation for sensitive activities",
+      ],
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Username OSINT failed" });
+  }
+});
+
+// ── PHONE ─────────────────────────────────────────────────────────────────────
+router.post("/osint/phone", async (req, res) => {
+  try {
+    const { phone, language } = req.body as { phone?: string; language?: string };
+    if (!phone || phone.length < 7) {
+      return res.status(400).json({ error: "Valid phone number required" });
+    }
+
+    const langNote = language === "ar" ? "Respond in Arabic." : "Respond in English.";
+    const NUMVERIFY_KEY = process.env.NUMVERIFY_API_KEY;
+    const sources: Record<string, { success: boolean; error?: string; disabled?: boolean }> = {};
+
+    let numverifyData: unknown = null;
+
+    if (!NUMVERIFY_KEY) {
+      sources["Numverify"] = { success: false, disabled: true, error: "NUMVERIFY_API_KEY not set — get it at https://numverify.com (free: 100 req/month)" };
+    } else {
+      const result = await Promise.allSettled([
+        withTimeout(
+          fetch(`http://apilayer.net/api/validate?access_key=${NUMVERIFY_KEY}&number=${encodeURIComponent(phone)}&country_code=&format=1`),
+          FETCH_TIMEOUT
+        ),
+      ]);
+      if (result[0].status === "fulfilled" && result[0].value.ok) {
+        numverifyData = await result[0].value.json();
+        sources["Numverify"] = { success: true };
+      } else {
+        sources["Numverify"] = { success: false, error: result[0].status === "rejected" ? (result[0] as PromiseRejectedResult).reason?.message : "Request failed" };
+      }
+    }
+
+    const analysisText = await aiAnalyze(
+      `You are a cyber OSINT analyst. Analyze this phone number intelligence and provide:
+1. Number Type Analysis (mobile/landline/VoIP)
+2. Geographic & Carrier Information
+3. Risk Assessment
+4. Potential Misuse Patterns
+5. Recommendations
+Format as structured Markdown. ${langNote}`,
+      `Phone: ${phone}
+Numverify data: ${JSON.stringify(numverifyData).slice(0, 2000)}`
+    );
+
+    return res.json({
+      sources,
+      results: { phone, numverifyData },
+      analysis: analysisText,
+      riskLevel: "medium" as const,
+      recommendations: [
+        "Verify ownership before taking action",
+        "Check spam databases (TrueCaller-style services)",
+        "Report to carrier if suspected fraud",
+        "Use reverse lookup services for further verification",
+      ],
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err instanceof Error ? err.message : "Phone OSINT failed" });
+  }
+});
+
+// ── Existing endpoints ────────────────────────────────────────────────────────
 
 router.post("/osint/url", async (req, res) => {
   try {

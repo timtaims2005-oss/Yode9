@@ -179,7 +179,7 @@ router.post("/osint/ip", async (req, res) => {
             FETCH_TIMEOUT
           )
         : Promise.reject(new Error("ABUSEIPDB_API_KEY not configured")),
-      withTimeout(fetch(`https://ipapi.co/${ip}/json/`), FETCH_TIMEOUT),
+      withTimeout(fetch(`https://ipapi.co/${ip}/json/`, { headers: { "User-Agent": "mr7-osint/1.0" } }), FETCH_TIMEOUT),
       withTimeout(fetch(`http://ip-api.com/json/${ip}?fields=66846719`), FETCH_TIMEOUT),
     ]);
 
@@ -265,7 +265,7 @@ router.post("/osint/domain", async (req, res) => {
         resolver.resolveNs(domain).catch(() => [] as string[]),
         resolver.resolveSoa(domain).catch(() => null as dns.SoaRecord | null),
       ]),
-      withTimeout(fetch(`https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`), FETCH_TIMEOUT),
+      withTimeout(fetch(`https://crt.sh/?q=%25.${encodeURIComponent(domain)}&output=json`), FETCH_TIMEOUT),
       withTimeout(fetch(`https://rdap.org/domain/${encodeURIComponent(domain)}`, {
         headers: { Accept: "application/rdap+json" },
       }), FETCH_TIMEOUT),

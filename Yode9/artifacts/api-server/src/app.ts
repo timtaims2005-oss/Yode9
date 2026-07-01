@@ -24,6 +24,7 @@ import { setupReplitAuth } from "./routes/auth";
 import { startBackupScheduler } from "./lib/backup";
 import { seedDefaultFlags } from "./lib/feature-flags";
 import threatIntelRouter from "./routes/threat-intel";
+import osintRouter from "./routes/osint";
 
 // Validate environment at startup — exits if critical vars missing
 validateEnv();
@@ -198,6 +199,12 @@ app.use(
     "/api/godmode",
     "/api/osint/url",
     "/api/osint/analyze",
+    "/api/osint/email",
+    "/api/osint/ip",
+    "/api/osint/domain",
+    "/api/osint/hash",
+    "/api/osint/username",
+    "/api/osint/phone",
     "/api/image",
     "/api/vision",
     "/api/agent",
@@ -248,6 +255,9 @@ app.use("/api", subscriptionsRouter);
 
 // ── Threat Intelligence — public read, write protected ───────────────────────
 app.use("/api", threatIntelRouter);
+
+// ── OSINT Intelligence endpoints (email, ip, domain, hash, username, phone) ──
+app.use("/api", osintRouter);
 
 // ── All remaining API routes — protected by internalAuth ─────────────────────
 app.use("/api", internalAuth, cloudChatsRouter);

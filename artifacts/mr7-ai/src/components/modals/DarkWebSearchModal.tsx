@@ -210,22 +210,42 @@ function EmailResults({ data, color }: { data: OsintResult; color: string }) {
 }
 
 function IpResults({ data, color }: { data: OsintResult; color: string }) {
-  const results = data.results as { ip: string; abuseScore: number; abuseData: { data?: { countryCode?: string; usageType?: string; isp?: string; totalReports?: number; lastReportedAt?: string } } | null; ipapiData: { city?: string; region?: string; country_name?: string; org?: string; latitude?: number; longitude?: number } | null; ipApiData: { city?: string; country?: string; isp?: string; as?: string } | null };
+  const results = data.results as {
+    ip: string;
+    abuseScore: number;
+    abuseData: { data?: { countryCode?: string; usageType?: string; isp?: string; totalReports?: number; domain?: string; hostnames?: string[] } } | null;
+    ipapiData: { city?: string; region?: string; country_name?: string; org?: string; latitude?: number; longitude?: number } | null;
+    ipApiData: { city?: string; country?: string; countryCode?: string; regionName?: string; isp?: string; org?: string; as?: string; lat?: number; lon?: number; mobile?: boolean; proxy?: boolean; hosting?: boolean; timezone?: string } | null;
+  };
   const abuse = results.abuseData?.data;
   const geo = results.ipapiData;
+  const geoAlt = results.ipApiData;
   const score = results.abuseScore ?? 0;
+  const cityDisplay = geo?.city ?? geoAlt?.city ?? "—";
+  const countryDisplay = geo?.country_name ?? geoAlt?.country ?? abuse?.countryCode ?? "—";
+  const orgDisplay = geo?.org ?? geoAlt?.isp ?? geoAlt?.org ?? abuse?.isp ?? "—";
+  const latDisplay = geo?.latitude ?? geoAlt?.lat;
+  const lonDisplay = geo?.longitude ?? geoAlt?.lon;
+  const asDisplay = geoAlt?.as ?? null;
+  const isProxy = geoAlt?.proxy ?? false;
+  const isHosting = geoAlt?.hosting ?? false;
+  const isMobile = geoAlt?.mobile ?? false;
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 flex-wrap">
         <code className="text-[11px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(226,18,39,0.1)", color }}>{results.ip}</code>
         <RiskBadge level={data.riskLevel} />
+        {isProxy && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-amber-500/30 text-amber-400 bg-amber-500/10">PROXY</span>}
+        {isHosting && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-blue-500/30 text-blue-400 bg-blue-500/10">HOSTING</span>}
+        {isMobile && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 text-purple-400 bg-purple-500/10">MOBILE</span>}
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-xl border border-[#1a1a2e] p-3 bg-black/30">
           <p className="text-[9px] text-slate-600 font-mono mb-2 uppercase">Geolocation</p>
-          <p className="text-[11px] text-white font-bold">{geo?.city ?? "—"}, {geo?.country_name ?? abuse?.countryCode ?? "—"}</p>
-          <p className="text-[10px] text-slate-400 mt-1">{geo?.org ?? abuse?.isp ?? "—"}</p>
-          {geo?.latitude && <p className="text-[9px] text-slate-600 font-mono mt-1">{geo.latitude}° {geo.longitude}°</p>}
+          <p className="text-[11px] text-white font-bold">{cityDisplay}, {countryDisplay}</p>
+          <p className="text-[10px] text-slate-400 mt-1 truncate">{orgDisplay}</p>
+          {latDisplay && <p className="text-[9px] text-slate-600 font-mono mt-1">{latDisplay?.toFixed(4)}° {lonDisplay?.toFixed(4)}°</p>}
+          {asDisplay && <p className="text-[9px] text-slate-600 font-mono mt-0.5 truncate">{asDisplay}</p>}
         </div>
         <div className="rounded-xl border border-[#1a1a2e] p-3 bg-black/30">
           <p className="text-[9px] text-slate-600 font-mono mb-2 uppercase">Abuse Score</p>
@@ -233,14 +253,14 @@ function IpResults({ data, color }: { data: OsintResult; color: string }) {
           <div className="w-full h-1.5 rounded-full bg-[#1a1a2e] mt-2">
             <div className="h-full rounded-full transition-all" style={{ width: `${score}%`, background: score > 50 ? "#e21227" : score > 10 ? "#f59e0b" : "#10b981" }} />
           </div>
-          {abuse?.totalReports && <p className="text-[9px] text-slate-600 mt-1">{abuse.totalReports} تقرير إساءة</p>}
+          {abuse?.totalReports !== undefined && <p className="text-[9px] text-slate-600 mt-1">{abuse.totalReports} تقرير إساءة</p>}
         </div>
       </div>
-      {abuse?.usageType && (
-        <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono px-3 py-2 rounded-lg border border-[#1a1a2e] bg-black/20">
-          <Server className="w-3 h-3 text-slate-600" /> نوع الاستخدام: <span className="text-slate-200">{abuse.usageType}</span>
-        </div>
-      )}
+      <div className="grid grid-cols-2 gap-2 text-[9px] font-mono">
+        {abuse?.usageType && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">نوع الاستخدام: </span><span className="text-slate-300">{abuse.usageType}</span></div>}
+        {geoAlt?.timezone && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">المنطقة الزمنية: </span><span className="text-slate-300">{geoAlt.timezone}</span></div>}
+        {abuse?.domain && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20 col-span-2"><span className="text-slate-600">الدومين: </span><span className="text-slate-300">{abuse.domain}</span></div>}
+      </div>
     </div>
   );
 }
