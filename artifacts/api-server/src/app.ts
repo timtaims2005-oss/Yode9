@@ -25,6 +25,7 @@ import { startBackupScheduler } from "./lib/backup";
 import { seedDefaultFlags } from "./lib/feature-flags";
 import threatIntelRouter from "./routes/threat-intel";
 import osintAdvancedRouter from "./routes/osint-advanced";
+import osintRouter from "./routes/osint";
 import aiToolsRouter from "./routes/ai-tools";
 
 // Validate environment at startup — exits if critical vars missing
@@ -200,6 +201,12 @@ app.use(
     "/api/godmode",
     "/api/osint/url",
     "/api/osint/analyze",
+    "/api/osint/email",
+    "/api/osint/ip",
+    "/api/osint/domain",
+    "/api/osint/hash",
+    "/api/osint/username",
+    "/api/osint/phone",
     "/api/image",
     "/api/vision",
     "/api/agent",
@@ -253,6 +260,9 @@ app.use("/api", threatIntelRouter);
 
 // ── OSINT Advanced — public scanner endpoints ─────────────────────────────────
 app.use("/api/osint-advanced", osintAdvancedRouter);
+
+// ── OSINT Intelligence endpoints (email, ip, domain, hash, username, phone) ──
+app.use("/api", osintRouter);
 
 // ── AI Tools — security, cache, providers, validation ─────────────────────────
 app.use("/api/ai-tools", aiToolsRouter);

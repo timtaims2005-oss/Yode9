@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Search, Globe, Shield, Eye, AlertTriangle, Terminal, Copy, CheckCheck,
   Zap, Lock, Network, Database, Activity, Target, Crosshair, Radio,
   FileSearch, Hash, Mail, Smartphone, User, Server, Wifi, Key,
   ChevronRight, ExternalLink, Bug, Cpu, ArrowRight, Layers,
+  Download, MessageSquare, RefreshCw, CheckCircle, XCircle, AlertCircle,
+  ChevronDown, ChevronUp,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,6 +17,17 @@ interface Props {
 }
 
 type Tab = "tor" | "osint" | "threats" | "shodan" | "darkweb";
+type OsintType = "email" | "ip" | "domain" | "hash" | "username" | "phone";
+type RiskLevel = "low" | "medium" | "high" | "critical";
+
+interface OsintResult {
+  sources: Record<string, { success: boolean; error?: string; disabled?: boolean }>;
+  results: Record<string, unknown>;
+  analysis: string;
+  riskLevel: RiskLevel;
+  recommendations: string[];
+  error?: string;
+}
 
 const TOR_CATEGORIES = [
   {
@@ -59,13 +72,13 @@ const TOR_CATEGORIES = [
   },
 ];
 
-const OSINT_LOOKUPS = [
-  { id: "email", label: "Email", icon: Mail, color: "#3b82f6", placeholder: "target@domain.com", prompt: (v: string) => `قم بعملية OSINT شاملة للبريد الإلكتروني: ${v}\n\nابحث في:\n• Have I Been Pwned - التسريبات السابقة\n• Hunter.io pattern - نمط البريد في المنظمة\n• Email reputation - سمعة العنوان\n• Social media accounts linked - حسابات مرتبطة\n• Dark web mentions - ذكر في الويب المظلم\n• Breach databases - قواعد بيانات الاختراقات\n\nقدم تقرير OSINT مفصل مع مستوى الخطورة` },
-  { id: "ip", label: "IP Address", icon: Network, color: "#e21227", placeholder: "192.168.1.1", prompt: (v: string) => `حلل عنوان IP التالي بشكل شامل: ${v}\n\nاشمل:\n• Geolocation & ISP/ASN info\n• Reverse DNS lookup\n• Shodan data (open ports, services, vulnerabilities)\n• VirusTotal reputation\n• AbuseIPDB blacklist check\n• Tor exit node / VPN / Proxy detection\n• Historical data (passive DNS)\n• Threat intelligence feeds\n• Associated malware campaigns\n\nقدم تقرير تهديد كامل مع توصيات` },
-  { id: "domain", label: "Domain", icon: Globe, color: "#10b981", placeholder: "target.com", prompt: (v: string) => `قم بتحليل استخباراتي شامل للدومين: ${v}\n\nاشمل:\n• WHOIS & registration history\n• DNS records (A, MX, TXT, NS, CNAME, SOA)\n• SSL certificate transparency logs\n• Subdomain enumeration (crt.sh, Amass, Subfinder)\n• IP history & hosting changes\n• Web technologies (Wappalyzer)\n• Dark web & paste site mentions\n• Related domains & IP clusters\n• Threat intelligence score\n• Email security (SPF, DKIM, DMARC)\n\nقدم attack surface map` },
-  { id: "username", label: "Username", icon: User, color: "#8b5cf6", placeholder: "h4ck3r_name", prompt: (v: string) => `تتبع اسم المستخدم "${v}" عبر الإنترنت\n\nابحث في:\n• GitHub, GitLab, Bitbucket\n• Twitter/X, Reddit, Instagram, TikTok, YouTube\n• Telegram, Discord, Slack communities\n• Dark web forums & markets\n• Keybase, Mastodon, Matrix\n• Gaming platforms (Steam, PSN, Xbox)\n• Hacking forums (Exploit.in, RaidForums archives)\n• Paste sites\n\nاستخدم Sherlock, Maigret patterns\nاستخرج: حسابات مؤكدة، نشاط تاريخي، أنماط سلوك، معلومات تعريفية محتملة` },
-  { id: "phone", label: "Phone Number", icon: Smartphone, color: "#f59e0b", placeholder: "+1234567890", prompt: (v: string) => `قم بـ OSINT لرقم الهاتف: ${v}\n\nاشمل:\n• Carrier & country lookup\n• Spam/scam reputation (NumLookup, WhoCallsMe)\n• Social media accounts (WhatsApp, Telegram, Viber)\n• Data broker databases\n• Truecaller-style lookup\n• Dark web breach data\n• Previous owner history\n\nقدم: نوع الخط، الموقع التقريبي، الحسابات المرتبطة، مستوى المخاطر` },
-  { id: "hash", label: "File Hash", icon: Hash, color: "#06b6d4", placeholder: "d41d8cd98f00b204e9800998ecf8427e", prompt: (v: string) => `حلل hash الملف التالي: ${v}\n\nابحث في:\n• VirusTotal - تقرير engines كاملة\n• MalwareBazaar - بيانات العينة\n• Hybrid Analysis - تقرير sandbox\n• ANY.RUN - التحليل الديناميكي\n• CAPE Sandbox\n• AlienVault OTX\n\nاستخرج: نوع الملف، اسم الملف الأصلي، عائلة البرمجية الخبيثة، IOCs، YARA rules، ATT&CK techniques` },
+const OSINT_LOOKUPS: { id: OsintType; label: string; icon: React.ElementType; color: string; placeholder: string; promptFallback: (v: string) => string }[] = [
+  { id: "email", label: "Email", icon: Mail, color: "#3b82f6", placeholder: "target@domain.com", promptFallback: (v) => `OSINT شامل للبريد الإلكتروني: ${v}\nالمصادر: Have I Been Pwned, Hunter.io, Breach databases` },
+  { id: "ip", label: "IP Address", icon: Network, color: "#e21227", placeholder: "8.8.8.8", promptFallback: (v) => `تحليل IP شامل: ${v}\nالمصادر: AbuseIPDB, ipapi.co, ip-api.com` },
+  { id: "domain", label: "Domain", icon: Globe, color: "#10b981", placeholder: "target.com", promptFallback: (v) => `تحليل استخباراتي للدومين: ${v}\nالمصادر: DNS, crt.sh, RDAP/WHOIS` },
+  { id: "username", label: "Username", icon: User, color: "#8b5cf6", placeholder: "h4ck3r_name", promptFallback: (v) => `OSINT لاسم المستخدم: ${v}\nالمنصات: GitHub, GitLab, Reddit, HackerOne, Bugcrowd, Keybase, Telegram, Medium, Dev.to, Pastebin` },
+  { id: "phone", label: "Phone Number", icon: Smartphone, color: "#f59e0b", placeholder: "+1234567890", promptFallback: (v) => `OSINT لرقم الهاتف: ${v}\nالمصادر: Numverify, carrier lookup` },
+  { id: "hash", label: "File Hash", icon: Hash, color: "#06b6d4", placeholder: "d41d8cd98f00b204e9800998ecf8427e", promptFallback: (v) => `تحليل hash الملف: ${v}\nالمصادر: VirusTotal (MD5/SHA1/SHA256)` },
 ];
 
 const THREAT_KEYWORDS = [
@@ -86,6 +99,318 @@ const SHODAN_TEMPLATES = [
   { title: "Open Proxies & Tor", color: "#ec4899", query: 'port:8080 product:Squid country:XX', prompt: "ابحث عن Proxies مفتوحة وعقد Tor\n\nأنواع:\n• Open HTTP Proxies: port:8080, 3128\n• SOCKS proxies: port:1080, 9050\n• Tor relays: port:9001\n• VPN servers: port:1194 (OpenVPN), 1723 (PPTP)\n\nقدم: طرق استخدامها في حركة مرور مجهولة، مخاطر الاستخدام، كيفية الكشف عن الاستخدام المشبوه في شبكتك" },
 ];
 
+const RISK_CONFIG: Record<RiskLevel, { label: string; color: string; bg: string; border: string }> = {
+  low: { label: "LOW", color: "#10b981", bg: "rgba(16,185,129,0.1)", border: "rgba(16,185,129,0.3)" },
+  medium: { label: "MEDIUM", color: "#f59e0b", bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.3)" },
+  high: { label: "HIGH", color: "#f97316", bg: "rgba(249,115,22,0.1)", border: "rgba(249,115,22,0.3)" },
+  critical: { label: "CRITICAL", color: "#e21227", bg: "rgba(226,18,39,0.1)", border: "rgba(226,18,39,0.3)" },
+};
+
+function RiskBadge({ level }: { level: RiskLevel }) {
+  const cfg = RISK_CONFIG[level];
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black font-mono border"
+      style={{ color: cfg.color, background: cfg.bg, borderColor: cfg.border }}>
+      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: cfg.color }} />
+      {cfg.label}
+    </span>
+  );
+}
+
+function SourceTag({ name, info }: { name: string; info: { success: boolean; error?: string; disabled?: boolean } }) {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-mono border"
+      style={{
+        color: info.disabled ? "#64748b" : info.success ? "#10b981" : "#f97316",
+        borderColor: info.disabled ? "rgba(100,116,139,0.3)" : info.success ? "rgba(16,185,129,0.3)" : "rgba(249,115,22,0.3)",
+        background: info.disabled ? "rgba(100,116,139,0.08)" : info.success ? "rgba(16,185,129,0.08)" : "rgba(249,115,22,0.08)",
+      }}>
+      {info.disabled ? <AlertCircle className="w-2.5 h-2.5" /> : info.success ? <CheckCircle className="w-2.5 h-2.5" /> : <XCircle className="w-2.5 h-2.5" />}
+      {name}
+      {info.error && !info.disabled && <span className="opacity-60 ml-1 truncate max-w-[100px]">{info.error}</span>}
+    </span>
+  );
+}
+
+function LoadingPulse({ text }: { text: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 gap-4">
+      <div className="relative w-16 h-16">
+        <div className="absolute inset-0 rounded-full border-2 border-[#8b5cf6]/20 animate-ping" />
+        <div className="absolute inset-2 rounded-full border-2 border-[#8b5cf6]/40 animate-ping" style={{ animationDelay: "0.15s" }} />
+        <div className="absolute inset-0 rounded-full border-t-2 border-[#8b5cf6] animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Search className="w-5 h-5 text-[#8b5cf6]" />
+        </div>
+      </div>
+      <p className="text-[11px] font-mono text-[#8b5cf6] animate-pulse">{text}</p>
+    </div>
+  );
+}
+
+function MarkdownBlock({ content }: { content: string }) {
+  const lines = content.split("\n");
+  return (
+    <div className="space-y-1">
+      {lines.map((line, i) => {
+        if (line.startsWith("## ")) return <p key={i} className="text-[12px] font-black text-white mt-3 mb-1">{line.slice(3)}</p>;
+        if (line.startsWith("# ")) return <p key={i} className="text-[13px] font-black text-white mt-3 mb-1">{line.slice(2)}</p>;
+        if (line.startsWith("### ")) return <p key={i} className="text-[11px] font-bold text-slate-200 mt-2">{line.slice(4)}</p>;
+        if (line.startsWith("**") && line.endsWith("**")) return <p key={i} className="text-[11px] font-bold text-slate-200">{line.slice(2, -2)}</p>;
+        if (line.startsWith("- ") || line.startsWith("• ")) return <p key={i} className="text-[10px] text-slate-400 pl-3 flex gap-2"><span className="text-[#8b5cf6] shrink-0">▸</span>{line.slice(2)}</p>;
+        if (line.trim() === "---" || line.trim() === "") return <div key={i} className="h-1" />;
+        if (line.startsWith("`") && line.endsWith("`")) return <code key={i} className="block text-[9px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(0,0,0,0.5)", color: "#06b6d4" }}>{line.slice(1, -1)}</code>;
+        return <p key={i} className="text-[10px] text-slate-400 leading-relaxed">{line}</p>;
+      })}
+    </div>
+  );
+}
+
+function EmailResults({ data, color }: { data: OsintResult; color: string }) {
+  const results = data.results as { email: string; breaches: { Name: string; BreachDate: string; PwnCount: number; DataClasses: string[] }[]; breachCount: number; hunter: unknown };
+  const breaches = results.breaches ?? [];
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[10px] font-mono text-slate-500">البريد المُفحوص:</span>
+        <code className="text-[10px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(59,130,246,0.1)", color }}>{results.email}</code>
+        <RiskBadge level={data.riskLevel} />
+      </div>
+      {breaches.length === 0 ? (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+          <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+          <div>
+            <p className="text-[12px] font-bold text-emerald-400">لم يُكتشف تسريب لهذا البريد</p>
+            <p className="text-[10px] text-emerald-400/60">لا توجد سجلات في قواعد بيانات التسريبات المُفحوصة</p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <p className="text-[10px] font-mono text-slate-500">وُجد في <span className="text-[#e21227] font-bold">{breaches.length}</span> تسريب</p>
+          {breaches.map((b, i) => (
+            <div key={i} className="rounded-xl border border-[#e21227]/20 p-3 bg-[#e21227]/5">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <p className="text-[12px] font-bold text-white">{b.Name}</p>
+                <span className="text-[9px] font-mono px-2 py-0.5 rounded border border-[#e21227]/30 text-[#e21227] bg-[#e21227]/10 shrink-0">{b.BreachDate}</span>
+              </div>
+              <p className="text-[10px] text-slate-500 mb-2">
+                {b.PwnCount ? `${b.PwnCount.toLocaleString()} حساب متأثر` : ""}
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {(b.DataClasses ?? []).map((dc: string) => (
+                  <span key={dc} className="text-[9px] px-1.5 py-0.5 rounded font-mono" style={{ background: "rgba(226,18,39,0.15)", color: "#fca5a5" }}>{dc}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IpResults({ data, color }: { data: OsintResult; color: string }) {
+  const results = data.results as { ip: string; abuseScore: number; abuseData: { data?: { countryCode?: string; usageType?: string; isp?: string; totalReports?: number; lastReportedAt?: string } } | null; ipapiData: { city?: string; region?: string; country_name?: string; org?: string; latitude?: number; longitude?: number } | null; ipApiData: { city?: string; country?: string; isp?: string; as?: string } | null };
+  const abuse = results.abuseData?.data;
+  const geo = results.ipapiData;
+  const score = results.abuseScore ?? 0;
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <code className="text-[11px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(226,18,39,0.1)", color }}>{results.ip}</code>
+        <RiskBadge level={data.riskLevel} />
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-xl border border-[#1a1a2e] p-3 bg-black/30">
+          <p className="text-[9px] text-slate-600 font-mono mb-2 uppercase">Geolocation</p>
+          <p className="text-[11px] text-white font-bold">{geo?.city ?? "—"}, {geo?.country_name ?? abuse?.countryCode ?? "—"}</p>
+          <p className="text-[10px] text-slate-400 mt-1">{geo?.org ?? abuse?.isp ?? "—"}</p>
+          {geo?.latitude && <p className="text-[9px] text-slate-600 font-mono mt-1">{geo.latitude}° {geo.longitude}°</p>}
+        </div>
+        <div className="rounded-xl border border-[#1a1a2e] p-3 bg-black/30">
+          <p className="text-[9px] text-slate-600 font-mono mb-2 uppercase">Abuse Score</p>
+          <p className="text-[22px] font-black" style={{ color: score > 50 ? "#e21227" : score > 10 ? "#f59e0b" : "#10b981" }}>{score}%</p>
+          <div className="w-full h-1.5 rounded-full bg-[#1a1a2e] mt-2">
+            <div className="h-full rounded-full transition-all" style={{ width: `${score}%`, background: score > 50 ? "#e21227" : score > 10 ? "#f59e0b" : "#10b981" }} />
+          </div>
+          {abuse?.totalReports && <p className="text-[9px] text-slate-600 mt-1">{abuse.totalReports} تقرير إساءة</p>}
+        </div>
+      </div>
+      {abuse?.usageType && (
+        <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono px-3 py-2 rounded-lg border border-[#1a1a2e] bg-black/20">
+          <Server className="w-3 h-3 text-slate-600" /> نوع الاستخدام: <span className="text-slate-200">{abuse.usageType}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DomainResults({ data, color }: { data: OsintResult; color: string }) {
+  const results = data.results as { domain: string; dnsRecords: { a: string[]; aaaa: string[]; mx: { exchange: string; priority: number }[]; txt: string[][]; ns: string[]; soa: { nsname?: string } | null }; subdomains: string[]; sslCount: number };
+  const dns = results.dnsRecords ?? {};
+  const [showAllSubs, setShowAllSubs] = useState(false);
+  const visibleSubs = showAllSubs ? results.subdomains : results.subdomains?.slice(0, 12);
+
+  const DNS_TYPES = [
+    { key: "a", label: "A", color: "#3b82f6", items: dns.a?.map(v => ({ v })) ?? [] },
+    { key: "aaaa", label: "AAAA", color: "#8b5cf6", items: dns.aaaa?.map(v => ({ v })) ?? [] },
+    { key: "mx", label: "MX", color: "#10b981", items: dns.mx?.map(r => ({ v: `${r.exchange} (priority: ${r.priority})` })) ?? [] },
+    { key: "ns", label: "NS", color: "#f59e0b", items: dns.ns?.map(v => ({ v })) ?? [] },
+    { key: "txt", label: "TXT", color: "#06b6d4", items: dns.txt?.map(r => ({ v: r.join(" ").slice(0, 80) })) ?? [] },
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <code className="text-[11px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(16,185,129,0.1)", color }}>{results.domain}</code>
+        <RiskBadge level={data.riskLevel} />
+        <span className="text-[9px] font-mono text-slate-600">{results.sslCount} شهادة SSL تاريخية</span>
+      </div>
+      <div className="space-y-1.5">
+        <p className="text-[9px] text-slate-600 font-mono uppercase">DNS Records</p>
+        {DNS_TYPES.filter(t => t.items.length > 0).map(t => (
+          <div key={t.key} className="rounded-lg border border-[#1a1a2e] overflow-hidden">
+            <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: `${t.color}11` }}>
+              <span className="text-[9px] font-black font-mono px-1.5 py-0.5 rounded" style={{ background: `${t.color}22`, color: t.color }}>{t.label}</span>
+            </div>
+            <div className="px-3 py-2 space-y-0.5">
+              {t.items.map((item, i) => (
+                <p key={i} className="text-[9px] font-mono text-slate-400">{item.v}</p>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {results.subdomains?.length > 0 && (
+        <div>
+          <p className="text-[9px] text-slate-600 font-mono uppercase mb-2">Subdomains ({results.subdomains.length} مكتشف)</p>
+          <div className="flex flex-wrap gap-1.5">
+            {visibleSubs?.map((s, i) => (
+              <span key={i} className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-[#1a1a2e] text-slate-400" style={{ background: "rgba(0,0,0,0.4)" }}>{s}</span>
+            ))}
+          </div>
+          {results.subdomains.length > 12 && (
+            <button onClick={() => setShowAllSubs(!showAllSubs)} className="mt-2 flex items-center gap-1 text-[9px] font-mono text-[#8b5cf6] hover:text-[#a78bfa]">
+              {showAllSubs ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              {showAllSubs ? "عرض أقل" : `عرض ${results.subdomains.length - 12} نطاق فرعي إضافي`}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HashResults({ data, color }: { data: OsintResult; color: string }) {
+  const results = data.results as { hash: string; hashType: string; detectionRatio: number; maliciousCount: number; totalEngines: number; fileInfo: { name?: string; type?: string; size?: number; firstSeen?: number } | null; vtData: { data?: { attributes?: { last_analysis_results?: Record<string, { category: string; engine_name: string; result?: string }> } } } | null };
+  const ratio = results.detectionRatio ?? 0;
+  const ratioColor = ratio > 50 ? "#e21227" : ratio > 15 ? "#f59e0b" : "#10b981";
+  const engines = Object.entries(results.vtData?.data?.attributes?.last_analysis_results ?? {})
+    .filter(([, v]) => v.category === "malicious" || v.category === "suspicious")
+    .slice(0, 20);
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <code className="text-[9px] font-mono px-2 py-0.5 rounded truncate max-w-[200px]" style={{ background: "rgba(6,182,212,0.1)", color }}>{results.hash}</code>
+        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-[#1a1a2e] text-slate-500">{results.hashType}</span>
+        <RiskBadge level={data.riskLevel} />
+      </div>
+      <div className="flex items-center gap-4 px-4 py-3 rounded-xl border border-[#1a1a2e] bg-black/30">
+        <div>
+          <p className="text-[9px] text-slate-600 font-mono mb-0.5">نسبة الكشف</p>
+          <p className="text-[28px] font-black" style={{ color: ratioColor }}>{ratio}%</p>
+        </div>
+        <div className="flex-1">
+          <div className="flex justify-between text-[9px] font-mono text-slate-600 mb-1">
+            <span>{results.maliciousCount} اكتشاف</span>
+            <span>{results.totalEngines} محرك</span>
+          </div>
+          <div className="w-full h-2.5 rounded-full bg-[#1a1a2e]">
+            <div className="h-full rounded-full" style={{ width: `${ratio}%`, background: ratioColor }} />
+          </div>
+        </div>
+      </div>
+      {results.fileInfo && (
+        <div className="grid grid-cols-2 gap-2 text-[9px] font-mono">
+          {results.fileInfo.name && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">الاسم: </span><span className="text-slate-300">{String(results.fileInfo.name).slice(0, 30)}</span></div>}
+          {results.fileInfo.type && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">النوع: </span><span className="text-slate-300">{results.fileInfo.type}</span></div>}
+          {results.fileInfo.size && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">الحجم: </span><span className="text-slate-300">{(results.fileInfo.size / 1024).toFixed(1)} KB</span></div>}
+          {results.fileInfo.firstSeen && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">أول ظهور: </span><span className="text-slate-300">{new Date(results.fileInfo.firstSeen * 1000).toLocaleDateString()}</span></div>}
+        </div>
+      )}
+      {engines.length > 0 && (
+        <div>
+          <p className="text-[9px] text-slate-600 font-mono uppercase mb-2">محركات الكشف الإيجابية ({engines.length})</p>
+          <div className="flex flex-wrap gap-1">
+            {engines.map(([k, v]) => (
+              <span key={k} className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-[#e21227]/20 bg-[#e21227]/10 text-red-300">
+                {v.engine_name}: {v.result ?? "malicious"}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UsernameResults({ data, color }: { data: OsintResult; color: string }) {
+  const results = data.results as { username: string; platformResults: { platform: string; url: string; found: boolean; status: number; error?: string }[]; foundCount: number; totalChecked: number };
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <code className="text-[11px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(139,92,246,0.1)", color }}>@{results.username}</code>
+        <span className="text-[10px] font-mono text-[#8b5cf6]">{results.foundCount}/{results.totalChecked} منصة</span>
+        <RiskBadge level={data.riskLevel} />
+      </div>
+      <div className="grid grid-cols-2 gap-1.5">
+        {results.platformResults?.map((p, i) => (
+          <a key={i} href={p.found ? p.url : undefined} target="_blank" rel="noopener noreferrer"
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${p.found ? "hover:border-opacity-60 cursor-pointer" : "opacity-50 cursor-default"}`}
+            style={{
+              borderColor: p.found ? `${color}40` : "#1a1a2e",
+              background: p.found ? `${color}08` : "rgba(0,0,0,0.2)",
+            }}>
+            {p.found ? <CheckCircle className="w-3.5 h-3.5 shrink-0" style={{ color }} /> : <XCircle className="w-3.5 h-3.5 shrink-0 text-slate-700" />}
+            <span className="text-[10px] font-semibold" style={{ color: p.found ? "white" : "#64748b" }}>{p.platform}</span>
+            {p.found && <ExternalLink className="w-2.5 h-2.5 ml-auto shrink-0" style={{ color }} />}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PhoneResults({ data, color }: { data: OsintResult; color: string }) {
+  const results = data.results as { phone: string; numverifyData: { valid?: boolean; number?: string; local_format?: string; international_format?: string; country_prefix?: string; country_code?: string; country_name?: string; location?: string; carrier?: string; line_type?: string } | null };
+  const nd = results.numverifyData;
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <code className="text-[11px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(245,158,11,0.1)", color }}>{results.phone}</code>
+        <RiskBadge level={data.riskLevel} />
+      </div>
+      {nd ? (
+        <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
+          {nd.valid !== undefined && <div className="col-span-2 flex items-center gap-2 px-3 py-2 rounded-lg border border-[#1a1a2e] bg-black/20">
+            {nd.valid ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <XCircle className="w-3.5 h-3.5 text-red-400" />}
+            <span className="text-slate-400">الرقم {nd.valid ? "صالح" : "غير صالح"}</span>
+          </div>}
+          {nd.country_name && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">الدولة: </span><span className="text-slate-300">{nd.country_name}</span></div>}
+          {nd.location && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">الموقع: </span><span className="text-slate-300">{nd.location}</span></div>}
+          {nd.carrier && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">الشبكة: </span><span className="text-slate-300">{nd.carrier}</span></div>}
+          {nd.line_type && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">نوع الخط: </span><span className="text-slate-300">{nd.line_type}</span></div>}
+          {nd.international_format && <div className="col-span-2 px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">الصيغة الدولية: </span><span className="text-slate-300">{nd.international_format}</span></div>}
+        </div>
+      ) : (
+        <div className="px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-[10px] text-amber-400/70">
+          تفعيل NUMVERIFY_API_KEY مطلوب لعرض بيانات الرقم. احصل عليه من numverify.com (مجاني: 100 طلب/شهر)
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
   const { toast } = useToast();
   const [tab, setTab] = useState<Tab>("tor");
@@ -94,6 +419,14 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
   const [targetInput, setTargetInput] = useState("");
   const [osintType, setOsintType] = useState(0);
   const [pulseRing, setPulseRing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState("");
+  const [osintResults, setOsintResults] = useState<Record<string, OsintResult>>({});
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const currentLookup = OSINT_LOOKUPS[osintType];
+  const currentResult = osintResults[currentLookup.id];
 
   function inject(text: string) {
     const final = text.replace(/{TARGET}/g, targetInput || "[ضع الهدف هنا]");
@@ -108,14 +441,85 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
     setTimeout(() => setCopiedId(null), 1800);
   }
 
-  function triggerScan() {
+  function exportJson() {
+    if (!currentResult) return;
+    const blob = new Blob([JSON.stringify(currentResult, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `osint-${currentLookup.id}-${targetInput}-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function injectResult() {
+    if (!currentResult) return;
+    const text = `OSINT Report — ${currentLookup.label}: ${targetInput}
+
+Risk Level: ${currentResult.riskLevel.toUpperCase()}
+
+${currentResult.analysis}
+
+Recommendations:
+${currentResult.recommendations.map(r => `• ${r}`).join("\n")}`;
+    onInjectToChat(text);
+    onClose();
+    toast({ description: "تم إرسال نتائج OSINT للمحادثة" });
+  }
+
+  function copyResult() {
+    if (!currentResult) return;
+    copyText(JSON.stringify(currentResult, null, 2), "result-copy");
+    toast({ description: "تم نسخ النتائج" });
+  }
+
+  const LOADING_MESSAGES: Record<OsintType, string> = {
+    email: "جارٍ الاستعلام من Have I Been Pwned و Hunter.io...",
+    ip: "جارٍ الاستعلام من AbuseIPDB و ipapi.co...",
+    domain: "جارٍ الاستعلام DNS و crt.sh و RDAP/WHOIS...",
+    hash: "جارٍ الاستعلام من VirusTotal...",
+    username: "جارٍ التحقق من المنصات المتعددة...",
+    phone: "جارٍ الاستعلام من Numverify...",
+  };
+
+  async function triggerScan() {
+    if (!targetInput.trim()) {
+      toast({ description: "أدخل الهدف أولاً" });
+      return;
+    }
     setPulseRing(true);
     setTimeout(() => setPulseRing(false), 2000);
-    const lookup = OSINT_LOOKUPS[osintType];
-    if (targetInput.trim()) {
-      inject(lookup.prompt(targetInput.trim()));
-    } else {
-      toast({ description: "أدخل الهدف أولاً" });
+    setLoading(true);
+    setLoadingMsg(LOADING_MESSAGES[currentLookup.id]);
+    setShowAnalysis(false);
+
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+
+    try {
+      const body: Record<string, string> = { language: "ar" };
+      if (currentLookup.id === "email") body.email = targetInput.trim();
+      else if (currentLookup.id === "ip") body.ip = targetInput.trim();
+      else if (currentLookup.id === "domain") body.domain = targetInput.trim();
+      else if (currentLookup.id === "hash") body.hash = targetInput.trim();
+      else if (currentLookup.id === "username") body.username = targetInput.trim();
+      else if (currentLookup.id === "phone") body.phone = targetInput.trim();
+
+      const res = await fetch(`/api/osint/${currentLookup.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: abortRef.current.signal,
+      });
+
+      const json = await res.json() as OsintResult;
+      setOsintResults(prev => ({ ...prev, [currentLookup.id]: json }));
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") {
+        toast({ description: "فشل الاستعلام. تحقق من الاتصال.", variant: "destructive" });
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -141,7 +545,6 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
             exit={{ scale: 0.92, opacity: 0, y: 24 }}
             transition={{ duration: 0.22 }}>
 
-            {/* Top accent */}
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#8b5cf6]/80 to-transparent" />
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-8 bg-[#8b5cf6]/10 blur-xl" />
 
@@ -186,7 +589,6 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
               {/* TOR TEMPLATES */}
               {tab === "tor" && (
                 <div className="flex h-full" style={{ minHeight: "400px" }}>
-                  {/* Category sidebar */}
                   <div className="w-40 border-r border-[#1a1a2e] p-2 space-y-1 shrink-0">
                     {TOR_CATEGORIES.map((cat, i) => {
                       const Icon = cat.icon;
@@ -201,7 +603,6 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
                         </button>
                       );
                     })}
-                    {/* Target input */}
                     <div className="pt-2 border-t border-[#1a1a2e] mt-2">
                       <p className="text-[9px] text-slate-600 mb-1 px-1">الهدف (اختياري)</p>
                       <input value={targetInput} onChange={(e) => setTargetInput(e.target.value)}
@@ -210,7 +611,6 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
                         dir="ltr" />
                     </div>
                   </div>
-                  {/* Templates */}
                   <div className="flex-1 p-3 space-y-2 overflow-y-auto">
                     {TOR_CATEGORIES[activeCategory].templates.map((tpl, i) => {
                       const cat = TOR_CATEGORIES[activeCategory];
@@ -244,20 +644,22 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
                 </div>
               )}
 
-              {/* OSINT */}
+              {/* OSINT — Real Intelligence System */}
               {tab === "osint" && (
-                <div className="p-4 space-y-4">
+                <div className="p-4 space-y-3">
                   {/* Type selector */}
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-1.5 flex-wrap">
                     {OSINT_LOOKUPS.map((l, i) => {
                       const Icon = l.icon;
+                      const hasResult = !!osintResults[l.id];
                       return (
-                        <button key={l.id} onClick={() => { setOsintType(i); setTargetInput(""); }}
-                          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold border transition-all ${
+                        <button key={l.id} onClick={() => { setOsintType(i); setShowAnalysis(false); }}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all relative ${
                             osintType === i ? "text-white" : "text-slate-500 border-[#1a1a2e] hover:text-slate-300 hover:border-slate-600"
                           }`}
                           style={osintType === i ? { background: l.color + "22", borderColor: l.color + "55", color: l.color } : {}}>
                           <Icon className="w-3.5 h-3.5" /> {l.label}
+                          {hasResult && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400" />}
                         </button>
                       );
                     })}
@@ -265,31 +667,114 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
 
                   {/* Input */}
                   <div className="relative">
-                    <div className="absolute inset-0 rounded-xl opacity-30 blur-sm" style={{ background: OSINT_LOOKUPS[osintType].color }} />
-                    <div className="relative rounded-xl border p-1" style={{ borderColor: OSINT_LOOKUPS[osintType].color + "40", background: "rgba(0,0,0,0.6)" }}>
+                    <div className="absolute inset-0 rounded-xl opacity-30 blur-sm" style={{ background: currentLookup.color }} />
+                    <div className="relative rounded-xl border p-1" style={{ borderColor: currentLookup.color + "40", background: "rgba(0,0,0,0.6)" }}>
                       <div className="flex items-center gap-3 px-3 py-2.5">
-                        {(() => { const Icon = OSINT_LOOKUPS[osintType].icon; return <Icon className="w-4 h-4 shrink-0" style={{ color: OSINT_LOOKUPS[osintType].color }} />; })()}
+                        {(() => { const Icon = currentLookup.icon; return <Icon className="w-4 h-4 shrink-0" style={{ color: currentLookup.color }} />; })()}
                         <input value={targetInput} onChange={(e) => setTargetInput(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === "Enter") triggerScan(); }}
-                          placeholder={OSINT_LOOKUPS[osintType].placeholder}
+                          onKeyDown={(e) => { if (e.key === "Enter" && !loading) triggerScan(); }}
+                          placeholder={currentLookup.placeholder}
                           className="flex-1 bg-transparent outline-none text-[14px] font-mono text-white placeholder:text-slate-700"
-                          dir="ltr" />
-                        <button onClick={triggerScan}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-bold text-white transition-all ${pulseRing ? "animate-pulse" : ""}`}
-                          style={{ background: OSINT_LOOKUPS[osintType].color }}>
-                          <Search className="w-4 h-4" /> ابدأ البحث
+                          dir="ltr" disabled={loading} />
+                        <button onClick={loading ? undefined : triggerScan} disabled={loading}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-bold text-white transition-all ${pulseRing ? "animate-pulse" : ""} ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+                          style={{ background: currentLookup.color }}>
+                          {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                          {loading ? "جارٍ..." : "ابدأ البحث"}
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  {/* Preview */}
-                  <div className="rounded-xl border border-[#1a1a2e] p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
-                    <p className="text-[10px] text-slate-600 mb-2 font-mono uppercase">معاينة الاستعلام</p>
-                    <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-6 font-mono whitespace-pre-line">
-                      {OSINT_LOOKUPS[osintType].prompt(targetInput || OSINT_LOOKUPS[osintType].placeholder)}
-                    </p>
-                  </div>
+                  {/* Loading state */}
+                  {loading && <LoadingPulse text={loadingMsg} />}
+
+                  {/* Results */}
+                  {!loading && currentResult && !currentResult.error && (
+                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+                      {/* Toolbar */}
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1.5">
+                          {Object.entries(currentResult.sources).map(([name, info]) => (
+                            <SourceTag key={name} name={name} info={info} />
+                          ))}
+                        </div>
+                        <div className="flex gap-1.5">
+                          <button onClick={copyResult} className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-mono border border-[#1a1a2e] text-slate-400 hover:text-white hover:border-slate-600 transition-colors">
+                            {copiedId === "result-copy" ? <CheckCheck className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />} نسخ
+                          </button>
+                          <button onClick={exportJson} className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-mono border border-[#1a1a2e] text-slate-400 hover:text-white hover:border-slate-600 transition-colors">
+                            <Download className="w-3 h-3" /> JSON
+                          </button>
+                          <button onClick={injectResult} className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-mono border border-[#8b5cf6]/30 text-[#8b5cf6] hover:bg-[#8b5cf6]/10 transition-colors">
+                            <MessageSquare className="w-3 h-3" /> حقن
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Type-specific results */}
+                      <div className="rounded-xl border border-[#1a1a2e] p-4 bg-black/30">
+                        {currentLookup.id === "email" && <EmailResults data={currentResult} color={currentLookup.color} />}
+                        {currentLookup.id === "ip" && <IpResults data={currentResult} color={currentLookup.color} />}
+                        {currentLookup.id === "domain" && <DomainResults data={currentResult} color={currentLookup.color} />}
+                        {currentLookup.id === "hash" && <HashResults data={currentResult} color={currentLookup.color} />}
+                        {currentLookup.id === "username" && <UsernameResults data={currentResult} color={currentLookup.color} />}
+                        {currentLookup.id === "phone" && <PhoneResults data={currentResult} color={currentLookup.color} />}
+                      </div>
+
+                      {/* AI Analysis */}
+                      {currentResult.analysis && (
+                        <div className="rounded-xl border border-[#8b5cf6]/20 overflow-hidden">
+                          <button onClick={() => setShowAnalysis(!showAnalysis)}
+                            className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#8b5cf6]/5 transition-colors">
+                            <div className="flex items-center gap-2">
+                              <Cpu className="w-3.5 h-3.5 text-[#8b5cf6]" />
+                              <span className="text-[11px] font-bold text-[#8b5cf6]">التحليل الذكي</span>
+                              <RiskBadge level={currentResult.riskLevel} />
+                            </div>
+                            {showAnalysis ? <ChevronUp className="w-3.5 h-3.5 text-[#8b5cf6]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#8b5cf6]" />}
+                          </button>
+                          {showAnalysis && (
+                            <div className="px-4 pb-4 space-y-3 border-t border-[#8b5cf6]/10" style={{ background: "rgba(139,92,246,0.04)" }}>
+                              <div className="pt-3">
+                                <MarkdownBlock content={currentResult.analysis} />
+                              </div>
+                              {currentResult.recommendations.length > 0 && (
+                                <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 space-y-1.5">
+                                  <p className="text-[10px] font-bold text-amber-400 flex items-center gap-1.5">
+                                    <AlertTriangle className="w-3 h-3" /> التوصيات
+                                  </p>
+                                  {currentResult.recommendations.map((r, i) => (
+                                    <p key={i} className="text-[10px] text-amber-400/70 flex gap-2">
+                                      <span className="shrink-0">▸</span>{r}
+                                    </p>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* Error state */}
+                  {!loading && currentResult?.error && (
+                    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-red-500/20 bg-red-500/5">
+                      <XCircle className="w-4 h-4 text-red-400 shrink-0" />
+                      <p className="text-[11px] text-red-400">{currentResult.error}</p>
+                    </div>
+                  )}
+
+                  {/* Empty state — show prompt preview */}
+                  {!loading && !currentResult && (
+                    <div className="rounded-xl border border-[#1a1a2e] p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
+                      <p className="text-[10px] text-slate-600 mb-2 font-mono uppercase">معاينة ما سيُفحص</p>
+                      <p className="text-[10px] text-slate-500 leading-relaxed font-mono whitespace-pre-line">
+                        {currentLookup.promptFallback(targetInput || currentLookup.placeholder)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
