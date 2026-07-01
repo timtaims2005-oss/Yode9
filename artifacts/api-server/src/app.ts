@@ -27,6 +27,7 @@ import threatIntelRouter from "./routes/threat-intel";
 import osintAdvancedRouter from "./routes/osint-advanced";
 import osintRouter from "./routes/osint";
 import aiToolsRouter from "./routes/ai-tools";
+import darkwebIntelligenceRouter from "./routes/darkweb-intelligence";
 
 // Validate environment at startup — exits if critical vars missing
 validateEnv();
@@ -266,6 +267,7 @@ app.use("/api", osintRouter);
 
 // ── AI Tools — security, cache, providers, validation ─────────────────────────
 app.use("/api/ai-tools", aiToolsRouter);
+app.use("/api/darkweb-intelligence", darkwebIntelligenceRouter);
 
 // ── All remaining API routes — protected by internalAuth ─────────────────────
 app.use("/api", internalAuth, cloudChatsRouter);
