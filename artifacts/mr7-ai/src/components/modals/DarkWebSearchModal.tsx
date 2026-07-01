@@ -54,10 +54,10 @@ const TOR_CATEGORIES = [
     id: "recon", label: "Recon & OSINT", color: "#3b82f6", glow: "rgba(59,130,246,0.2)",
     icon: Eye,
     templates: [
-      { title: "Email Breach Search", desc: "بحث عن تسريبات البريد الإلكتروني", prompt: "ابحث عن أي تسريبات أو بيانات مخترقة مرتبطة بالبريد الإلكتروني التالي عبر مصادر OSINT المتاحة ومحركات البحث في الويب المظلم: {TARGET}\n\nاستخدم المصادر: Have I Been Pwned, DeHashed, Leakbase, BreachDirectory, HaveIBeenSold\nقدم: تاريخ التسريب، نوع البيانات، مصدر قاعدة البيانات، توصيات الحماية" },
+      { title: "Email Breach Search", desc: "بحث عن تسريبات البريد الإلكتروني", prompt: "ابحث عن أي تسريبات أو بيانات مخترقة مرتبطة بالبريد الإلكتروني التالي عبر مصادر OSINT المتاحة: {TARGET}\n\nحلّل: سجلات DNS (SPF/DMARC/DKIM)، بيانات LeakCheck.io، حماية البريد الإلكتروني\nقدم: مستوى الخطر، توصيات الحماية الفورية، خطوات التصلب" },
       { title: "Username OSINT", desc: "تتبع اسم المستخدم عبر المنصات", prompt: "قم بعملية OSINT شاملة لاسم المستخدم: {TARGET}\n\nابحث في: GitHub, Twitter/X, Reddit, Telegram, Discord, OnionSearch, Keybase, LinkedIn\nاستخرج: الحسابات المرتبطة، أنماط النشاط، الاهتمامات، الشبكات الاجتماعية، أي معلومات تعريفية" },
       { title: "Domain Intelligence", desc: "تحليل استخباراتي شامل للدومين", prompt: "قم بتحليل استخباراتي شامل للدومين: {TARGET}\n\nاشمل: WHOIS history, DNS records, SSL certificates, subdomain enumeration, IP history, hosting providers, technologies used, related domains, dark web mentions, paste sites, threat feeds" },
-      { title: "IP Geolocation & Threat", desc: "تحليل IP وسمعته الأمنية", prompt: "حلل عنوان IP التالي بشكل شامل: {TARGET}\n\nاشمل: الموقع الجغرافي، ASN/ISP، السمعة في قوائم الحظر (blacklists)، سجل الهجمات، Shodan data، VirusTotal، AbuseIPDB، Tor exit node check، VPN/Proxy detection" },
+      { title: "IP Geolocation & Threat", desc: "تحليل IP وسمعته الأمنية", prompt: "حلل عنوان IP التالي بشكل شامل: {TARGET}\n\nاشمل: الموقع الجغرافي (ip-api.com, ipwho.is)، ASN/ISP، Reverse DNS، VPN/Proxy/Hosting detection\nقدم: تصنيف IP، مستوى التهديد، التوصيات الأمنية" },
     ]
   },
   {
@@ -76,7 +76,7 @@ const TOR_CATEGORIES = [
     templates: [
       { title: "Static Analysis Template", desc: "تحليل ثابت للبرامج الخبيثة", prompt: "قم بتحليل ثابت (Static Analysis) للعينة: {TARGET}\n\nاستخرج: file type, entropy analysis, strings extraction, imports/exports, PE headers, packers/protectors, embedded resources, suspicious APIs, hardcoded IOCs (IPs/domains/hashes)\nأدوات مقترحة: PEStudio, Ghidra, Radare2, YARA rules generation" },
       { title: "Behavioral Analysis", desc: "تحليل سلوكي ديناميكي", prompt: "صمم خطة تحليل سلوكي (Dynamic Analysis) للعينة: {TARGET}\n\nشمل: sandbox setup (Cuckoo/Any.run), network traffic capture, registry changes, file system activity, process tree, API calls monitoring, memory dumps, IOC extraction\nقدم: YARA rule مقترح، Sigma rule، MITRE ATT&CK mapping" },
-      { title: "IOC Extraction", desc: "استخراج مؤشرات الاختراق", prompt: "استخرج جميع IOCs (Indicators of Compromise) من: {TARGET}\n\nأنواع IOCs: IP addresses, domains, URLs, file hashes (MD5/SHA1/SHA256), registry keys, mutex names, file paths, email addresses, Bitcoin wallets\nتحقق من: VirusTotal, AlienVault OTX, Shodan, URLhaus, MalwareBazaar" },
+      { title: "IOC Extraction", desc: "استخراج مؤشرات الاختراق", prompt: "استخرج جميع IOCs (Indicators of Compromise) من: {TARGET}\n\nأنواع IOCs: IP addresses, domains, URLs, file hashes (MD5/SHA1/SHA256), registry keys, mutex names, file paths, email addresses, Bitcoin wallets\nتحقق من: MalwareBazaar, URLhaus, AlienVault OTX (مصادر مجانية)" },
       { title: "YARA Rule Generator", desc: "توليد قواعد YARA", prompt: "اكتب YARA rules احترافية لاكتشاف التهديد: {TARGET}\n\nالقاعدة يجب أن تشمل: string patterns, byte sequences, PE metadata, condition logic\nتحسين: false positive rate منخفض، high confidence detection، متوافقة مع YARA 4.x\nاشمل: main rule + supporting rules + meta section كاملة" },
     ]
   },
@@ -200,12 +200,14 @@ function InfoCard({ label, value, col2 }: { label: string; value?: string | numb
 // ── Email Results ──────────────────────────────────────────────────────────────
 function EmailResults({ data, color, onQuickAction }: { data: OsintResult; color: string; onQuickAction: (type: OsintType, val: string) => void }) {
   const results = data.results as {
-    email: string; domain: string; breaches: { Name: string; BreachDate: string; PwnCount: number; DataClasses: string[] }[];
-    breachCount: number; hunter: unknown; isDisposable: boolean;
+    email: string; domain: string;
+    leakData: { success?: boolean; found?: number; fields?: string[] } | null;
+    leakFound: number;
+    isDisposable: boolean;
     mxRecords: { exchange: string; priority: number }[];
     mxSecurity: { spf: string | null; dmarc: string | null; dkim: string[] };
   };
-  const breaches = results.breaches ?? [];
+  const leakFound = results.leakFound ?? 0;
   const mx = results.mxSecurity;
   return (
     <div className="space-y-3">
@@ -216,8 +218,8 @@ function EmailResults({ data, color, onQuickAction }: { data: OsintResult; color
         {results.isDisposable && <span className="text-[9px] px-1.5 py-0.5 rounded border border-amber-500/30 text-amber-400 bg-amber-500/10 font-mono">DISPOSABLE</span>}
       </div>
 
-      {/* Breach status */}
-      {breaches.length === 0 ? (
+      {/* Leak status */}
+      {leakFound === 0 ? (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
           <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
           <div>
@@ -226,22 +228,18 @@ function EmailResults({ data, color, onQuickAction }: { data: OsintResult; color
           </div>
         </div>
       ) : (
-        <div className="space-y-2">
-          <p className="text-[10px] font-mono text-slate-500">وُجد في <span className="text-[#e21227] font-bold">{breaches.length}</span> تسريب</p>
-          {breaches.map((b, i) => (
-            <div key={i} className="rounded-xl border border-[#e21227]/20 p-3 bg-[#e21227]/5">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <p className="text-[12px] font-bold text-white">{b.Name}</p>
-                <span className="text-[9px] font-mono px-2 py-0.5 rounded border border-[#e21227]/30 text-[#e21227] bg-[#e21227]/10 shrink-0">{b.BreachDate}</span>
-              </div>
-              <p className="text-[10px] text-slate-500 mb-2">{b.PwnCount ? `${b.PwnCount.toLocaleString()} حساب متأثر` : ""}</p>
-              <div className="flex flex-wrap gap-1">
-                {(b.DataClasses ?? []).map((dc: string) => (
-                  <span key={dc} className="text-[9px] px-1.5 py-0.5 rounded font-mono" style={{ background: "rgba(226,18,39,0.15)", color: "#fca5a5" }}>{dc}</span>
-                ))}
-              </div>
+        <div className="rounded-xl border border-[#e21227]/20 p-3 bg-[#e21227]/5">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle className="w-4 h-4 text-[#e21227] shrink-0" />
+            <p className="text-[12px] font-bold text-[#e21227]">وُجد في {leakFound} تسريب</p>
+          </div>
+          {results.leakData?.fields && results.leakData.fields.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {results.leakData.fields.map((f: string) => (
+                <span key={f} className="text-[9px] px-1.5 py-0.5 rounded font-mono" style={{ background: "rgba(226,18,39,0.15)", color: "#fca5a5" }}>{f}</span>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 
@@ -283,28 +281,27 @@ function EmailResults({ data, color, onQuickAction }: { data: OsintResult; color
 // ── IP Results ─────────────────────────────────────────────────────────────────
 function IpResults({ data, color, onQuickAction }: { data: OsintResult; color: string; onQuickAction: (type: OsintType, val: string) => void }) {
   const results = data.results as {
-    ip: string; abuseScore: number;
-    abuseData: { data?: { countryCode?: string; usageType?: string; isp?: string; totalReports?: number; domain?: string } } | null;
-    ipapiData: { city?: string; region?: string; country_name?: string; org?: string; latitude?: number; longitude?: number } | null;
+    ip: string;
     ipApiData: { city?: string; country?: string; countryCode?: string; regionName?: string; isp?: string; org?: string; as?: string; lat?: number; lon?: number; mobile?: boolean; proxy?: boolean; hosting?: boolean; timezone?: string } | null;
-    shodanData: { ports?: number[]; tags?: string[]; vulns?: string[]; hostnames?: string[]; cpes?: string[] } | null;
+    ipwhoData: { city?: string; country?: string; country_code?: string; region?: string; connection?: { isp?: string; org?: string; asn?: number } } | null;
+    ipapiData: { city?: string; region?: string; country_name?: string; org?: string; latitude?: number; longitude?: number } | null;
+    reverseDns: string[];
+    isProxy: boolean;
+    isHosting: boolean;
+    isMobile: boolean;
   };
-  const abuse = results.abuseData?.data;
-  const geo = results.ipapiData;
-  const geoAlt = results.ipApiData;
-  const shodan = results.shodanData;
-  const score = results.abuseScore ?? 0;
-  const cityDisplay = geo?.city ?? geoAlt?.city ?? "—";
-  const countryDisplay = geo?.country_name ?? geoAlt?.country ?? abuse?.countryCode ?? "—";
-  const orgDisplay = geo?.org ?? geoAlt?.isp ?? geoAlt?.org ?? abuse?.isp ?? "—";
-  const latDisplay = geo?.latitude ?? geoAlt?.lat;
-  const lonDisplay = geo?.longitude ?? geoAlt?.lon;
-  const asDisplay = geoAlt?.as ?? null;
-  const isProxy = geoAlt?.proxy ?? false;
-  const isHosting = geoAlt?.hosting ?? false;
-  const isMobile = geoAlt?.mobile ?? false;
-  const vulns = shodan?.vulns ?? [];
-  const ports = shodan?.ports ?? [];
+  const geo1 = results.ipApiData;
+  const geo2 = results.ipwhoData;
+  const geo3 = results.ipapiData;
+  const isProxy = results.isProxy ?? geo1?.proxy ?? false;
+  const isHosting = results.isHosting ?? geo1?.hosting ?? false;
+  const isMobile = results.isMobile ?? geo1?.mobile ?? false;
+  const cityDisplay = geo1?.city ?? geo2?.city ?? geo3?.city ?? "—";
+  const countryDisplay = geo1?.country ?? geo2?.country ?? geo3?.country_name ?? "—";
+  const orgDisplay = geo1?.isp ?? geo1?.org ?? geo2?.connection?.isp ?? geo3?.org ?? "—";
+  const latDisplay = geo1?.lat ?? geo3?.latitude;
+  const lonDisplay = geo1?.lon ?? geo3?.longitude;
+  const asDisplay = geo1?.as ?? (geo2?.connection?.asn ? `AS${geo2.connection.asn}` : null);
 
   return (
     <div className="space-y-3">
@@ -314,7 +311,6 @@ function IpResults({ data, color, onQuickAction }: { data: OsintResult; color: s
         {isProxy && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-amber-500/30 text-amber-400 bg-amber-500/10">PROXY</span>}
         {isHosting && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-blue-500/30 text-blue-400 bg-blue-500/10">HOSTING</span>}
         {isMobile && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 text-purple-400 bg-purple-500/10">MOBILE</span>}
-        {vulns.length > 0 && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-red-500/40 text-red-400 bg-red-500/10 animate-pulse">{vulns.length} CVE</span>}
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-xl border border-[#1a1a2e] p-3 bg-black/30">
@@ -325,66 +321,38 @@ function IpResults({ data, color, onQuickAction }: { data: OsintResult; color: s
           {asDisplay && <p className="text-[9px] text-slate-600 font-mono mt-0.5 truncate">{asDisplay}</p>}
         </div>
         <div className="rounded-xl border border-[#1a1a2e] p-3 bg-black/30">
-          <p className="text-[9px] text-slate-600 font-mono mb-2 uppercase">Abuse Score</p>
-          <p className="text-[22px] font-black" style={{ color: score > 50 ? "#e21227" : score > 10 ? "#f59e0b" : "#10b981" }}>{score}%</p>
-          <div className="w-full h-1.5 rounded-full bg-[#1a1a2e] mt-2">
-            <div className="h-full rounded-full transition-all" style={{ width: `${score}%`, background: score > 50 ? "#e21227" : score > 10 ? "#f59e0b" : "#10b981" }} />
+          <p className="text-[9px] text-slate-600 font-mono mb-2 uppercase">IP Classification</p>
+          <div className="space-y-1.5 mt-1">
+            <div className="flex items-center gap-2 text-[9px] font-mono">
+              {isProxy ? <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" /> : <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0" />}
+              <span className={isProxy ? "text-amber-400" : "text-emerald-400/70"}>Proxy: {isProxy ? "نعم" : "لا"}</span>
+            </div>
+            <div className="flex items-center gap-2 text-[9px] font-mono">
+              {isHosting ? <AlertCircle className="w-3 h-3 text-blue-400 shrink-0" /> : <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0" />}
+              <span className={isHosting ? "text-blue-400" : "text-emerald-400/70"}>Hosting: {isHosting ? "نعم" : "لا"}</span>
+            </div>
+            {geo1?.timezone && <p className="text-[9px] text-slate-600 font-mono truncate">{geo1.timezone}</p>}
           </div>
-          {abuse?.totalReports !== undefined && <p className="text-[9px] text-slate-600 mt-1">{abuse.totalReports} تقرير إساءة</p>}
         </div>
       </div>
 
-      {/* Shodan InternetDB */}
-      {shodan && (ports.length > 0 || vulns.length > 0 || (shodan.tags?.length ?? 0) > 0) && (
+      {/* Reverse DNS */}
+      {results.reverseDns?.length > 0 && (
         <div className="rounded-xl border border-[#1a1a2e] p-3 bg-black/30">
-          <p className="text-[9px] text-slate-600 font-mono uppercase mb-2 flex items-center gap-1.5">
-            <Database className="w-3 h-3" /> Shodan InternetDB
-          </p>
-          {ports.length > 0 && (
-            <div className="mb-2">
-              <p className="text-[8px] text-slate-700 font-mono mb-1">OPEN PORTS ({ports.length})</p>
-              <div className="flex flex-wrap gap-1">
-                {ports.map(p => (
-                  <span key={p} className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-[#3b82f6]/20 bg-[#3b82f6]/10 text-blue-300">{p}</span>
-                ))}
-              </div>
-            </div>
-          )}
-          {vulns.length > 0 && (
-            <div className="mb-2">
-              <p className="text-[8px] text-slate-700 font-mono mb-1">CVEs ({vulns.length})</p>
-              <div className="flex flex-wrap gap-1">
-                {vulns.slice(0, 10).map(v => (
-                  <a key={v} href={`https://nvd.nist.gov/vuln/detail/${v}`} target="_blank" rel="noopener noreferrer"
-                    className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-[#e21227]/30 bg-[#e21227]/10 text-red-300 hover:bg-[#e21227]/20 transition-colors">{v}</a>
-                ))}
-                {vulns.length > 10 && <span className="text-[8px] font-mono text-slate-600">+{vulns.length - 10}</span>}
-              </div>
-            </div>
-          )}
-          {(shodan.tags?.length ?? 0) > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {shodan.tags!.map(t => (
-                <span key={t} className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-[#8b5cf6]/20 bg-[#8b5cf6]/10 text-purple-300">{t}</span>
-              ))}
-            </div>
-          )}
+          <p className="text-[9px] text-slate-600 font-mono uppercase mb-2">Reverse DNS</p>
+          {results.reverseDns.map(h => (
+            <button key={h} onClick={() => onQuickAction("domain", h.replace(/\.$/, ""))}
+              className="flex items-center gap-1.5 text-[9px] font-mono text-[#10b981] hover:underline">
+              <ArrowRight className="w-3 h-3" /> {h}
+            </button>
+          ))}
         </div>
       )}
 
       <div className="grid grid-cols-2 gap-2 text-[9px] font-mono">
-        {abuse?.usageType && <InfoCard label="نوع الاستخدام" value={abuse.usageType} />}
-        {geoAlt?.timezone && <InfoCard label="المنطقة الزمنية" value={geoAlt.timezone} />}
-        {abuse?.domain && <InfoCard label="الدومين" value={abuse.domain} col2 />}
+        {geo1?.regionName && <InfoCard label="المنطقة" value={geo1.regionName} />}
+        {geo2?.connection?.org && <InfoCard label="المنظمة" value={geo2.connection.org} />}
       </div>
-
-      {/* Quick action */}
-      {shodan?.hostnames?.[0] && (
-        <button onClick={() => onQuickAction("domain", shodan.hostnames![0])}
-          className="flex items-center gap-1.5 text-[9px] font-mono px-2.5 py-1.5 rounded-lg border border-[#10b981]/30 text-[#10b981] bg-[#10b981]/5 hover:bg-[#10b981]/10 transition-colors">
-          <ArrowRight className="w-3 h-3" /> فحص دومين: {shodan.hostnames[0]}
-        </button>
-      )}
     </div>
   );
 }
@@ -397,12 +365,11 @@ function DomainResults({ data, color, onQuickAction }: { data: OsintResult; colo
     subdomains: string[];
     sslCount: number;
     mxSecurity: { spf: string | null; dmarc: string | null; dkim: string[] };
-    waybackData: { archived_snapshots?: { closest?: { url?: string; timestamp?: string; available?: boolean } } } | null;
     rdapData: unknown;
+    cfData: unknown;
   };
   const dns = results.dnsRecords ?? {};
   const mx = results.mxSecurity;
-  const wayback = results.waybackData?.archived_snapshots?.closest;
   const [showAllSubs, setShowAllSubs] = useState(false);
   const visibleSubs = showAllSubs ? results.subdomains : results.subdomains?.slice(0, 12);
 
@@ -444,22 +411,6 @@ function DomainResults({ data, color, onQuickAction }: { data: OsintResult; colo
           </div>
         </div>
       </div>
-
-      {/* Wayback Machine */}
-      {wayback?.available && (
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-[#1a1a2e] bg-black/30">
-          <Clock className="w-3.5 h-3.5 text-[#8b5cf6] shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[9px] font-mono text-slate-500">Wayback Machine — آخر أرشفة</p>
-            <p className="text-[9px] font-mono text-slate-300 truncate">{wayback.timestamp ? new Date(wayback.timestamp.replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1-$2-$3T$4:$5:$6')).toLocaleDateString("ar") : "—"}</p>
-          </div>
-          {wayback.url && (
-            <a href={wayback.url} target="_blank" rel="noopener noreferrer" className="shrink-0">
-              <ExternalLink className="w-3 h-3 text-[#8b5cf6] hover:text-[#a78bfa]" />
-            </a>
-          )}
-        </div>
-      )}
 
       {/* DNS Records */}
       <div className="space-y-1.5">
@@ -514,17 +465,14 @@ function DomainResults({ data, color, onQuickAction }: { data: OsintResult; colo
 // ── Hash Results ───────────────────────────────────────────────────────────────
 function HashResults({ data, color }: { data: OsintResult; color: string }) {
   const results = data.results as {
-    hash: string; hashType: string; detectionRatio: number; maliciousCount: number; totalEngines: number;
+    hash: string; hashType: string; isMalicious: boolean;
     fileInfo: { name?: string | null; type?: string | null; size?: number | null; firstSeen?: string | null; signature?: string | null; tags?: string[]; deliveryMethod?: string | null } | null;
-    vtData: { data?: { attributes?: { last_analysis_results?: Record<string, { category: string; engine_name: string; result?: string }> } } } | null;
-    mbData: { file_name?: string; file_type?: string; signature?: string; tags?: string[]; delivery_method?: string } | null;
+    mbData: { file_name?: string; file_type?: string; signature?: string; tags?: string[]; delivery_method?: string; first_seen?: string; file_size?: number } | null;
+    bazaarData: unknown;
   };
-  const ratio = results.detectionRatio ?? 0;
-  const ratioColor = ratio > 50 ? "#e21227" : ratio > 15 ? "#f59e0b" : "#10b981";
-  const engines = Object.entries(results.vtData?.data?.attributes?.last_analysis_results ?? {})
-    .filter(([, v]) => v.category === "malicious" || v.category === "suspicious")
-    .slice(0, 20);
+  const isMalicious = results.isMalicious ?? false;
   const fi = results.fileInfo;
+  const mb = results.mbData;
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 flex-wrap">
@@ -532,43 +480,45 @@ function HashResults({ data, color }: { data: OsintResult; color: string }) {
         <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-[#1a1a2e] text-slate-500">{results.hashType}</span>
         <RiskBadge level={data.riskLevel} />
       </div>
-      <div className="flex items-center gap-4 px-4 py-3 rounded-xl border border-[#1a1a2e] bg-black/30">
-        <div>
-          <p className="text-[9px] text-slate-600 font-mono mb-0.5">نسبة الكشف</p>
-          <p className="text-[28px] font-black" style={{ color: ratioColor }}>{ratio}%</p>
-          <p className="text-[8px] text-slate-600 font-mono">{results.maliciousCount}/{results.totalEngines} محرك</p>
-        </div>
-        <div className="flex-1">
-          <div className="w-full h-2.5 rounded-full bg-[#1a1a2e]">
-            <div className="h-full rounded-full" style={{ width: `${ratio}%`, background: ratioColor }} />
+
+      {/* Verdict */}
+      {isMalicious ? (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#e21227]/20 bg-[#e21227]/5">
+          <AlertTriangle className="w-5 h-5 text-[#e21227] shrink-0" />
+          <div>
+            <p className="text-[12px] font-bold text-[#e21227]">Hash مكتشف كبرمجية خبيثة</p>
+            <p className="text-[10px] text-[#e21227]/60">مُدرَج في قاعدة بيانات MalwareBazaar</p>
           </div>
-          {fi?.signature && <p className="text-[9px] text-[#e21227] font-mono mt-2 font-bold">{fi.signature}</p>}
-          {fi?.deliveryMethod && <p className="text-[8px] text-slate-600 font-mono mt-0.5">التوزيع: {fi.deliveryMethod}</p>}
         </div>
-      </div>
-      {fi && (fi.name || fi.type || fi.size || fi.firstSeen) && (
-        <div className="grid grid-cols-2 gap-2">
-          {fi.name && <InfoCard label="الاسم" value={String(fi.name).slice(0, 30)} />}
-          {fi.type && <InfoCard label="النوع" value={fi.type} />}
-          {fi.size && <InfoCard label="الحجم" value={`${((fi.size as number) / 1024).toFixed(1)} KB`} />}
-          {fi.firstSeen && <InfoCard label="أول ظهور" value={typeof fi.firstSeen === "number" ? new Date(fi.firstSeen * 1000).toLocaleDateString() : fi.firstSeen} />}
+      ) : (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+          <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+          <div>
+            <p className="text-[12px] font-bold text-emerald-400">Hash غير مكتشف في قواعد البيانات</p>
+            <p className="text-[10px] text-emerald-400/60">لا يوجد في MalwareBazaar — قد يكون نظيفاً أو غير موثق</p>
+          </div>
         </div>
       )}
-      {fi?.tags && fi.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {fi.tags.map(t => <span key={t} className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-[#8b5cf6]/20 bg-[#8b5cf6]/10 text-purple-300">{t}</span>)}
-        </div>
-      )}
-      {engines.length > 0 && (
-        <div>
-          <p className="text-[9px] text-slate-600 font-mono uppercase mb-2">محركات الكشف الإيجابية ({engines.length})</p>
-          <div className="flex flex-wrap gap-1">
-            {engines.map(([k, v]) => (
-              <span key={k} className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-[#e21227]/20 bg-[#e21227]/10 text-red-300">
-                {v.engine_name}: {v.result ?? "malicious"}
-              </span>
-            ))}
+
+      {/* MalwareBazaar info */}
+      {mb && (
+        <div className="rounded-xl border border-[#1a1a2e] bg-black/30 p-3">
+          <p className="text-[9px] text-slate-600 font-mono uppercase mb-2">MalwareBazaar</p>
+          <div className="grid grid-cols-2 gap-2">
+            {(fi?.name ?? mb.file_name) && <InfoCard label="الاسم" value={String(fi?.name ?? mb.file_name).slice(0, 30)} />}
+            {(fi?.type ?? mb.file_type) && <InfoCard label="النوع" value={fi?.type ?? mb.file_type!} />}
+            {(fi?.size ?? mb.file_size) && <InfoCard label="الحجم" value={`${(((fi?.size ?? mb.file_size) as number) / 1024).toFixed(1)} KB`} />}
+            {(fi?.firstSeen ?? mb.first_seen) && <InfoCard label="أول ظهور" value={String(fi?.firstSeen ?? mb.first_seen)} />}
+            {(fi?.signature ?? mb.signature) && <InfoCard label="التوقيع" value={fi?.signature ?? mb.signature!} col2 />}
+            {(fi?.deliveryMethod ?? mb.delivery_method) && <InfoCard label="التوزيع" value={fi?.deliveryMethod ?? mb.delivery_method!} />}
           </div>
+          {(fi?.tags ?? mb.tags ?? []).length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {(fi?.tags ?? mb.tags ?? []).map((t: string) => (
+                <span key={t} className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-[#8b5cf6]/20 bg-[#8b5cf6]/10 text-purple-300">{t}</span>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -623,49 +573,34 @@ function UsernameResults({ data, color }: { data: OsintResult; color: string }) 
 function PhoneResults({ data, color }: { data: OsintResult; color: string }) {
   const results = data.results as {
     phone: string;
-    numverifyData: { valid?: boolean; number?: string; local_format?: string; international_format?: string; country_prefix?: string; country_code?: string; country_name?: string; location?: string; carrier?: string; line_type?: string } | null;
+    phoneWithPlus?: string;
     detectedCountry: { name: string; region: string } | null;
+    countryCode?: string;
+    localNumber?: string;
   };
-  const nd = results.numverifyData;
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 flex-wrap">
-        <code className="text-[11px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(245,158,11,0.1)", color }}>{results.phone}</code>
+        <code className="text-[11px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(245,158,11,0.1)", color }}>{results.phoneWithPlus ?? results.phone}</code>
         <RiskBadge level={data.riskLevel} />
         {results.detectedCountry && (
           <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-[#1a1a2e] text-slate-400">{results.detectedCountry.name}</span>
         )}
       </div>
-      {nd ? (
-        <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
-          {nd.valid !== undefined && (
-            <div className="col-span-2 flex items-center gap-2 px-3 py-2 rounded-lg border border-[#1a1a2e] bg-black/20">
-              {nd.valid ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <XCircle className="w-3.5 h-3.5 text-red-400" />}
-              <span className="text-slate-400">الرقم {nd.valid ? "صالح" : "غير صالح"}</span>
-            </div>
-          )}
-          {nd.country_name && <InfoCard label="الدولة" value={nd.country_name} />}
-          {nd.location && <InfoCard label="الموقع" value={nd.location} />}
-          {nd.carrier && <InfoCard label="الشبكة" value={nd.carrier} />}
-          {nd.line_type && <InfoCard label="نوع الخط" value={nd.line_type} />}
-          {nd.international_format && <InfoCard label="الصيغة الدولية" value={nd.international_format} col2 />}
-        </div>
-      ) : results.detectedCountry ? (
-        <div className="space-y-2">
-          <div className="px-4 py-3 rounded-xl border border-[#1a1a2e] bg-black/30">
-            <p className="text-[9px] text-slate-500 font-mono mb-2">تحليل رمز الدولة (مجاني)</p>
-            <div className="grid grid-cols-2 gap-2">
-              <InfoCard label="الدولة" value={results.detectedCountry.name} />
-              <InfoCard label="المنطقة" value={results.detectedCountry.region} />
-            </div>
-          </div>
-          <div className="px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-[10px] text-amber-400/70">
-            تفعيل NUMVERIFY_API_KEY مطلوب للبيانات التفصيلية. احصل عليه من numverify.com (مجاني: 100 طلب/شهر)
+      {results.detectedCountry ? (
+        <div className="px-4 py-3 rounded-xl border border-[#1a1a2e] bg-black/30">
+          <p className="text-[9px] text-slate-500 font-mono mb-2">تحليل رمز الدولة</p>
+          <div className="grid grid-cols-2 gap-2">
+            <InfoCard label="الدولة" value={results.detectedCountry.name} />
+            <InfoCard label="المنطقة" value={results.detectedCountry.region} />
+            {results.countryCode && <InfoCard label="رمز الدولة" value={results.countryCode} />}
+            {results.localNumber && <InfoCard label="الرقم المحلي" value={results.localNumber} />}
           </div>
         </div>
       ) : (
-        <div className="px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-[10px] text-amber-400/70">
-          تفعيل NUMVERIFY_API_KEY مطلوب لعرض بيانات الرقم. احصل عليه من numverify.com (مجاني: 100 طلب/شهر)
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-700/30 bg-slate-800/20">
+          <AlertCircle className="w-4 h-4 text-slate-500 shrink-0" />
+          <p className="text-[10px] text-slate-500 font-mono">تعذّر التعرف على رمز الدولة — تأكد من إدخال الرقم بصيغة دولية (مثال: +966XXXXXXXXX)</p>
         </div>
       )}
     </div>
@@ -867,13 +802,13 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
   }
 
   const LOADING_MESSAGES: Record<OsintType, string> = {
-    email: "جارٍ الاستعلام من Have I Been Pwned و Hunter.io...",
-    ip: "جارٍ الاستعلام من AbuseIPDB و ipapi.co و Shodan InternetDB...",
-    domain: "جارٍ الاستعلام DNS و crt.sh و RDAP و Wayback Machine...",
-    hash: "جارٍ الاستعلام من VirusTotal و MalwareBazaar...",
+    email: "جارٍ الاستعلام من DNS · Cloudflare DoH · LeakCheck.io...",
+    ip: "جارٍ الاستعلام من ip-api.com · ipwho.is · ipapi.co · rDNS...",
+    domain: "جارٍ الاستعلام من DNS · crt.sh · RDAP · Cloudflare DoH...",
+    hash: "جارٍ الاستعلام من MalwareBazaar · Bazaar (abuse.ch)...",
     username: "جارٍ التحقق من 20 منصة...",
-    phone: "جارٍ تحليل رقم الهاتف...",
-    url: "جارٍ فحص URL من مصادر متعددة...",
+    phone: "جارٍ تحليل رمز الدولة وتحليل الرقم ذكياً...",
+    url: "جارٍ فحص URL · HTTP Fetch · URLScan.io · Security Headers...",
   };
 
   async function triggerScan() {
@@ -1171,7 +1106,6 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
                         <div className="flex items-center gap-2">
                           <Cpu className="w-3.5 h-3.5 text-[#8b5cf6]" />
                           <span className="text-[11px] font-bold text-white">التحليل الذكي</span>
-                          {!currentResult.analysis && <span className="text-[9px] font-mono text-slate-600">(يتطلب مفتاح نموذج AI)</span>}
                         </div>
                         {showAnalysis ? <ChevronUp className="w-3.5 h-3.5 text-slate-500" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-500" />}
                       </button>
@@ -1183,7 +1117,7 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
                             <MarkdownBlock content={currentResult.analysis} />
                           ) : (
                             <p className="text-[10px] text-slate-600 font-mono">
-                              لم يُولَّد تحليل — أضف مفتاح نموذج AI في الإعدادات لتفعيل هذه الميزة.
+                              لم يُولَّد تحليل لهذا الاستعلام.
                             </p>
                           )}
                           {currentResult.recommendations?.length > 0 && (
@@ -1219,13 +1153,13 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
                       {(() => { const Icon = currentLookup.icon; return <Icon className="w-10 h-10 opacity-20" style={{ color: currentLookup.color }} />; })()}
                       <p className="text-[12px] font-bold text-slate-500">أدخل {currentLookup.label} وابدأ الفحص</p>
                       <p className="text-[10px] text-slate-700 font-mono max-w-[240px]">
-                        {currentLookup.id === "email" && "HIBP · Hunter.io · DNS MX Security"}
-                        {currentLookup.id === "ip" && "AbuseIPDB · ipapi.co · ip-api.com · Shodan InternetDB"}
-                        {currentLookup.id === "domain" && "DNS · crt.sh · RDAP · Wayback Machine · MX Security"}
-                        {currentLookup.id === "hash" && "VirusTotal · MalwareBazaar"}
-                        {currentLookup.id === "username" && "20 منصة: GitHub, GitLab, npm, Docker, Reddit, HackerOne, Telegram, ..."}
-                        {currentLookup.id === "phone" && "Numverify · Country Code Parser"}
-                        {currentLookup.id === "url" && "HTTP Fetch · VirusTotal URL · URLScan.io · Security Headers"}
+                        {currentLookup.id === "email" && "DNS MX · Cloudflare DoH · LeakCheck.io"}
+                        {currentLookup.id === "ip" && "ip-api.com · ipwho.is · ipapi.co · Google rDNS"}
+                        {currentLookup.id === "domain" && "DNS · crt.sh · RDAP · Cloudflare DoH"}
+                        {currentLookup.id === "hash" && "MalwareBazaar · Bazaar (abuse.ch)"}
+                        {currentLookup.id === "username" && "20 منصة: GitHub, GitLab, Reddit, HackerOne, Telegram, Replit, ..."}
+                        {currentLookup.id === "phone" && "تحليل رمز الدولة (40+ دولة) + تحليل ذكي"}
+                        {currentLookup.id === "url" && "HTTP Fetch · URLScan.io · Security Headers"}
                       </p>
                     </div>
                   )}
