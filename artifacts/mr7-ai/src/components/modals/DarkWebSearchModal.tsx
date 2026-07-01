@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Search, Globe, Shield, Eye, AlertTriangle, Terminal, Copy, CheckCheck,
@@ -6,7 +6,8 @@ import {
   FileSearch, Hash, Mail, Smartphone, User, Server, Wifi, Key,
   ChevronRight, ExternalLink, Bug, Cpu, ArrowRight, Layers,
   Download, MessageSquare, RefreshCw, CheckCircle, XCircle, AlertCircle,
-  ChevronDown, ChevronUp,
+  ChevronDown, ChevronUp, Link, Clock, FileText, Boxes, ShieldCheck,
+  ShieldAlert, History, Trash2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,7 +18,7 @@ interface Props {
 }
 
 type Tab = "tor" | "osint" | "threats" | "shodan" | "darkweb";
-type OsintType = "email" | "ip" | "domain" | "hash" | "username" | "phone";
+type OsintType = "email" | "ip" | "domain" | "hash" | "username" | "phone" | "url";
 type RiskLevel = "low" | "medium" | "high" | "critical";
 
 interface OsintResult {
@@ -27,6 +28,25 @@ interface OsintResult {
   riskLevel: RiskLevel;
   recommendations: string[];
   error?: string;
+}
+
+interface HistoryEntry {
+  type: OsintType;
+  value: string;
+  ts: number;
+}
+
+const SESSION_HISTORY_KEY = "osint_search_history";
+
+function loadHistory(): HistoryEntry[] {
+  try { return JSON.parse(sessionStorage.getItem(SESSION_HISTORY_KEY) ?? "[]") as HistoryEntry[]; } catch { return []; }
+}
+function saveHistory(entries: HistoryEntry[]) {
+  try { sessionStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(entries.slice(0, 20))); } catch { /* noop */ }
+}
+function addToHistory(type: OsintType, value: string) {
+  const existing = loadHistory().filter(e => !(e.type === type && e.value === value));
+  saveHistory([{ type, value, ts: Date.now() }, ...existing]);
 }
 
 const TOR_CATEGORIES = [
@@ -73,12 +93,13 @@ const TOR_CATEGORIES = [
 ];
 
 const OSINT_LOOKUPS: { id: OsintType; label: string; icon: React.ElementType; color: string; placeholder: string; promptFallback: (v: string) => string }[] = [
-  { id: "email", label: "Email", icon: Mail, color: "#3b82f6", placeholder: "target@domain.com", promptFallback: (v) => `OSINT شامل للبريد الإلكتروني: ${v}\nالمصادر: Have I Been Pwned, Hunter.io, Breach databases` },
-  { id: "ip", label: "IP Address", icon: Network, color: "#e21227", placeholder: "8.8.8.8", promptFallback: (v) => `تحليل IP شامل: ${v}\nالمصادر: AbuseIPDB, ipapi.co, ip-api.com` },
-  { id: "domain", label: "Domain", icon: Globe, color: "#10b981", placeholder: "target.com", promptFallback: (v) => `تحليل استخباراتي للدومين: ${v}\nالمصادر: DNS, crt.sh, RDAP/WHOIS` },
-  { id: "username", label: "Username", icon: User, color: "#8b5cf6", placeholder: "h4ck3r_name", promptFallback: (v) => `OSINT لاسم المستخدم: ${v}\nالمنصات: GitHub, GitLab, Reddit, HackerOne, Bugcrowd, Keybase, Telegram, Medium, Dev.to, Pastebin` },
-  { id: "phone", label: "Phone Number", icon: Smartphone, color: "#f59e0b", placeholder: "+1234567890", promptFallback: (v) => `OSINT لرقم الهاتف: ${v}\nالمصادر: Numverify, carrier lookup` },
-  { id: "hash", label: "File Hash", icon: Hash, color: "#06b6d4", placeholder: "d41d8cd98f00b204e9800998ecf8427e", promptFallback: (v) => `تحليل hash الملف: ${v}\nالمصادر: VirusTotal (MD5/SHA1/SHA256)` },
+  { id: "email", label: "Email", icon: Mail, color: "#3b82f6", placeholder: "target@domain.com", promptFallback: (v) => `OSINT شامل للبريد الإلكتروني: ${v}` },
+  { id: "ip", label: "IP Address", icon: Network, color: "#e21227", placeholder: "8.8.8.8", promptFallback: (v) => `تحليل IP شامل: ${v}` },
+  { id: "domain", label: "Domain", icon: Globe, color: "#10b981", placeholder: "target.com", promptFallback: (v) => `تحليل دومين: ${v}` },
+  { id: "username", label: "Username", icon: User, color: "#8b5cf6", placeholder: "h4ck3r_name", promptFallback: (v) => `OSINT اسم المستخدم: ${v}` },
+  { id: "phone", label: "Phone", icon: Smartphone, color: "#f59e0b", placeholder: "+1234567890", promptFallback: (v) => `OSINT رقم هاتف: ${v}` },
+  { id: "hash", label: "Hash", icon: Hash, color: "#06b6d4", placeholder: "d41d8cd98f00b204e9800998ecf8427e", promptFallback: (v) => `تحليل hash: ${v}` },
+  { id: "url", label: "URL", icon: Link, color: "#f97316", placeholder: "https://suspicious-site.com", promptFallback: (v) => `تحليل URL: ${v}` },
 ];
 
 const THREAT_KEYWORDS = [
@@ -166,16 +187,36 @@ function MarkdownBlock({ content }: { content: string }) {
   );
 }
 
-function EmailResults({ data, color }: { data: OsintResult; color: string }) {
-  const results = data.results as { email: string; breaches: { Name: string; BreachDate: string; PwnCount: number; DataClasses: string[] }[]; breachCount: number; hunter: unknown };
+function InfoCard({ label, value, col2 }: { label: string; value?: string | number | null; col2?: boolean }) {
+  if (!value && value !== 0) return null;
+  return (
+    <div className={`px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20 text-[9px] font-mono${col2 ? " col-span-2" : ""}`}>
+      <span className="text-slate-600">{label}: </span>
+      <span className="text-slate-300">{String(value)}</span>
+    </div>
+  );
+}
+
+// ── Email Results ──────────────────────────────────────────────────────────────
+function EmailResults({ data, color, onQuickAction }: { data: OsintResult; color: string; onQuickAction: (type: OsintType, val: string) => void }) {
+  const results = data.results as {
+    email: string; domain: string; breaches: { Name: string; BreachDate: string; PwnCount: number; DataClasses: string[] }[];
+    breachCount: number; hunter: unknown; isDisposable: boolean;
+    mxRecords: { exchange: string; priority: number }[];
+    mxSecurity: { spf: string | null; dmarc: string | null; dkim: string[] };
+  };
   const breaches = results.breaches ?? [];
+  const mx = results.mxSecurity;
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[10px] font-mono text-slate-500">البريد المُفحوص:</span>
+        <span className="text-[10px] font-mono text-slate-500">البريد:</span>
         <code className="text-[10px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(59,130,246,0.1)", color }}>{results.email}</code>
         <RiskBadge level={data.riskLevel} />
+        {results.isDisposable && <span className="text-[9px] px-1.5 py-0.5 rounded border border-amber-500/30 text-amber-400 bg-amber-500/10 font-mono">DISPOSABLE</span>}
       </div>
+
+      {/* Breach status */}
       {breaches.length === 0 ? (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
           <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
@@ -193,9 +234,7 @@ function EmailResults({ data, color }: { data: OsintResult; color: string }) {
                 <p className="text-[12px] font-bold text-white">{b.Name}</p>
                 <span className="text-[9px] font-mono px-2 py-0.5 rounded border border-[#e21227]/30 text-[#e21227] bg-[#e21227]/10 shrink-0">{b.BreachDate}</span>
               </div>
-              <p className="text-[10px] text-slate-500 mb-2">
-                {b.PwnCount ? `${b.PwnCount.toLocaleString()} حساب متأثر` : ""}
-              </p>
+              <p className="text-[10px] text-slate-500 mb-2">{b.PwnCount ? `${b.PwnCount.toLocaleString()} حساب متأثر` : ""}</p>
               <div className="flex flex-wrap gap-1">
                 {(b.DataClasses ?? []).map((dc: string) => (
                   <span key={dc} className="text-[9px] px-1.5 py-0.5 rounded font-mono" style={{ background: "rgba(226,18,39,0.15)", color: "#fca5a5" }}>{dc}</span>
@@ -205,21 +244,55 @@ function EmailResults({ data, color }: { data: OsintResult; color: string }) {
           ))}
         </div>
       )}
+
+      {/* Email domain MX security */}
+      <div className="rounded-xl border border-[#1a1a2e] p-3 bg-black/30">
+        <p className="text-[9px] text-slate-600 font-mono uppercase mb-2 flex items-center gap-1.5">
+          <ShieldCheck className="w-3 h-3" /> Email Domain Security ({results.domain})
+        </p>
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 text-[9px] font-mono">
+            {mx?.spf ? <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0" /> : <XCircle className="w-3 h-3 text-red-400 shrink-0" />}
+            <span className="text-slate-500">SPF:</span>
+            <span className={`truncate max-w-[220px] ${mx?.spf ? "text-emerald-400/80" : "text-red-400/80"}`}>{mx?.spf ?? "غير مُعرَّف — الدومين عُرضة لانتحال الهوية"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-[9px] font-mono">
+            {mx?.dmarc ? <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0" /> : <XCircle className="w-3 h-3 text-red-400 shrink-0" />}
+            <span className="text-slate-500">DMARC:</span>
+            <span className={`truncate max-w-[220px] ${mx?.dmarc ? "text-emerald-400/80" : "text-red-400/80"}`}>{mx?.dmarc ?? "غير مُعرَّف — لا حماية ضد spoofing"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-[9px] font-mono">
+            {mx?.dkim?.length ? <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0" /> : <AlertCircle className="w-3 h-3 text-amber-400 shrink-0" />}
+            <span className="text-slate-500">DKIM:</span>
+            <span className={mx?.dkim?.length ? "text-emerald-400/80" : "text-amber-400/80"}>{mx?.dkim?.length ? `${mx.dkim.length} مفتاح مُكتشف` : "غير مُكتشف في DNS"}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick action */}
+      {results.domain && (
+        <button onClick={() => onQuickAction("domain", results.domain)}
+          className="flex items-center gap-1.5 text-[9px] font-mono px-2.5 py-1.5 rounded-lg border border-[#10b981]/30 text-[#10b981] bg-[#10b981]/5 hover:bg-[#10b981]/10 transition-colors">
+          <ArrowRight className="w-3 h-3" /> فحص دومين البريد: {results.domain}
+        </button>
+      )}
     </div>
   );
 }
 
-function IpResults({ data, color }: { data: OsintResult; color: string }) {
+// ── IP Results ─────────────────────────────────────────────────────────────────
+function IpResults({ data, color, onQuickAction }: { data: OsintResult; color: string; onQuickAction: (type: OsintType, val: string) => void }) {
   const results = data.results as {
-    ip: string;
-    abuseScore: number;
-    abuseData: { data?: { countryCode?: string; usageType?: string; isp?: string; totalReports?: number; domain?: string; hostnames?: string[] } } | null;
+    ip: string; abuseScore: number;
+    abuseData: { data?: { countryCode?: string; usageType?: string; isp?: string; totalReports?: number; domain?: string } } | null;
     ipapiData: { city?: string; region?: string; country_name?: string; org?: string; latitude?: number; longitude?: number } | null;
     ipApiData: { city?: string; country?: string; countryCode?: string; regionName?: string; isp?: string; org?: string; as?: string; lat?: number; lon?: number; mobile?: boolean; proxy?: boolean; hosting?: boolean; timezone?: string } | null;
+    shodanData: { ports?: number[]; tags?: string[]; vulns?: string[]; hostnames?: string[]; cpes?: string[] } | null;
   };
   const abuse = results.abuseData?.data;
   const geo = results.ipapiData;
   const geoAlt = results.ipApiData;
+  const shodan = results.shodanData;
   const score = results.abuseScore ?? 0;
   const cityDisplay = geo?.city ?? geoAlt?.city ?? "—";
   const countryDisplay = geo?.country_name ?? geoAlt?.country ?? abuse?.countryCode ?? "—";
@@ -230,6 +303,9 @@ function IpResults({ data, color }: { data: OsintResult; color: string }) {
   const isProxy = geoAlt?.proxy ?? false;
   const isHosting = geoAlt?.hosting ?? false;
   const isMobile = geoAlt?.mobile ?? false;
+  const vulns = shodan?.vulns ?? [];
+  const ports = shodan?.ports ?? [];
+
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 flex-wrap">
@@ -238,6 +314,7 @@ function IpResults({ data, color }: { data: OsintResult; color: string }) {
         {isProxy && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-amber-500/30 text-amber-400 bg-amber-500/10">PROXY</span>}
         {isHosting && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-blue-500/30 text-blue-400 bg-blue-500/10">HOSTING</span>}
         {isMobile && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-purple-500/30 text-purple-400 bg-purple-500/10">MOBILE</span>}
+        {vulns.length > 0 && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-red-500/40 text-red-400 bg-red-500/10 animate-pulse">{vulns.length} CVE</span>}
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-xl border border-[#1a1a2e] p-3 bg-black/30">
@@ -256,18 +333,76 @@ function IpResults({ data, color }: { data: OsintResult; color: string }) {
           {abuse?.totalReports !== undefined && <p className="text-[9px] text-slate-600 mt-1">{abuse.totalReports} تقرير إساءة</p>}
         </div>
       </div>
+
+      {/* Shodan InternetDB */}
+      {shodan && (ports.length > 0 || vulns.length > 0 || (shodan.tags?.length ?? 0) > 0) && (
+        <div className="rounded-xl border border-[#1a1a2e] p-3 bg-black/30">
+          <p className="text-[9px] text-slate-600 font-mono uppercase mb-2 flex items-center gap-1.5">
+            <Database className="w-3 h-3" /> Shodan InternetDB
+          </p>
+          {ports.length > 0 && (
+            <div className="mb-2">
+              <p className="text-[8px] text-slate-700 font-mono mb-1">OPEN PORTS ({ports.length})</p>
+              <div className="flex flex-wrap gap-1">
+                {ports.map(p => (
+                  <span key={p} className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-[#3b82f6]/20 bg-[#3b82f6]/10 text-blue-300">{p}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {vulns.length > 0 && (
+            <div className="mb-2">
+              <p className="text-[8px] text-slate-700 font-mono mb-1">CVEs ({vulns.length})</p>
+              <div className="flex flex-wrap gap-1">
+                {vulns.slice(0, 10).map(v => (
+                  <a key={v} href={`https://nvd.nist.gov/vuln/detail/${v}`} target="_blank" rel="noopener noreferrer"
+                    className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-[#e21227]/30 bg-[#e21227]/10 text-red-300 hover:bg-[#e21227]/20 transition-colors">{v}</a>
+                ))}
+                {vulns.length > 10 && <span className="text-[8px] font-mono text-slate-600">+{vulns.length - 10}</span>}
+              </div>
+            </div>
+          )}
+          {(shodan.tags?.length ?? 0) > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {shodan.tags!.map(t => (
+                <span key={t} className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-[#8b5cf6]/20 bg-[#8b5cf6]/10 text-purple-300">{t}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-2 text-[9px] font-mono">
-        {abuse?.usageType && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">نوع الاستخدام: </span><span className="text-slate-300">{abuse.usageType}</span></div>}
-        {geoAlt?.timezone && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">المنطقة الزمنية: </span><span className="text-slate-300">{geoAlt.timezone}</span></div>}
-        {abuse?.domain && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20 col-span-2"><span className="text-slate-600">الدومين: </span><span className="text-slate-300">{abuse.domain}</span></div>}
+        {abuse?.usageType && <InfoCard label="نوع الاستخدام" value={abuse.usageType} />}
+        {geoAlt?.timezone && <InfoCard label="المنطقة الزمنية" value={geoAlt.timezone} />}
+        {abuse?.domain && <InfoCard label="الدومين" value={abuse.domain} col2 />}
       </div>
+
+      {/* Quick action */}
+      {shodan?.hostnames?.[0] && (
+        <button onClick={() => onQuickAction("domain", shodan.hostnames![0])}
+          className="flex items-center gap-1.5 text-[9px] font-mono px-2.5 py-1.5 rounded-lg border border-[#10b981]/30 text-[#10b981] bg-[#10b981]/5 hover:bg-[#10b981]/10 transition-colors">
+          <ArrowRight className="w-3 h-3" /> فحص دومين: {shodan.hostnames[0]}
+        </button>
+      )}
     </div>
   );
 }
 
-function DomainResults({ data, color }: { data: OsintResult; color: string }) {
-  const results = data.results as { domain: string; dnsRecords: { a: string[]; aaaa: string[]; mx: { exchange: string; priority: number }[]; txt: string[][]; ns: string[]; soa: { nsname?: string } | null }; subdomains: string[]; sslCount: number };
+// ── Domain Results ─────────────────────────────────────────────────────────────
+function DomainResults({ data, color, onQuickAction }: { data: OsintResult; color: string; onQuickAction: (type: OsintType, val: string) => void }) {
+  const results = data.results as {
+    domain: string;
+    dnsRecords: { a: string[]; aaaa: string[]; mx: { exchange: string; priority: number }[]; txt: string[][]; ns: string[]; soa: { nsname?: string } | null; caa: { critical: number; issue: string }[] };
+    subdomains: string[];
+    sslCount: number;
+    mxSecurity: { spf: string | null; dmarc: string | null; dkim: string[] };
+    waybackData: { archived_snapshots?: { closest?: { url?: string; timestamp?: string; available?: boolean } } } | null;
+    rdapData: unknown;
+  };
   const dns = results.dnsRecords ?? {};
+  const mx = results.mxSecurity;
+  const wayback = results.waybackData?.archived_snapshots?.closest;
   const [showAllSubs, setShowAllSubs] = useState(false);
   const visibleSubs = showAllSubs ? results.subdomains : results.subdomains?.slice(0, 12);
 
@@ -277,6 +412,7 @@ function DomainResults({ data, color }: { data: OsintResult; color: string }) {
     { key: "mx", label: "MX", color: "#10b981", items: dns.mx?.map(r => ({ v: `${r.exchange} (priority: ${r.priority})` })) ?? [] },
     { key: "ns", label: "NS", color: "#f59e0b", items: dns.ns?.map(v => ({ v })) ?? [] },
     { key: "txt", label: "TXT", color: "#06b6d4", items: dns.txt?.map(r => ({ v: r.join(" ").slice(0, 80) })) ?? [] },
+    { key: "caa", label: "CAA", color: "#ec4899", items: dns.caa?.map(r => ({ v: r.issue })) ?? [] },
   ];
 
   return (
@@ -284,29 +420,75 @@ function DomainResults({ data, color }: { data: OsintResult; color: string }) {
       <div className="flex items-center gap-2 flex-wrap">
         <code className="text-[11px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(16,185,129,0.1)", color }}>{results.domain}</code>
         <RiskBadge level={data.riskLevel} />
-        <span className="text-[9px] font-mono text-slate-600">{results.sslCount} شهادة SSL تاريخية</span>
+        <span className="text-[9px] font-mono text-slate-600">{results.sslCount} شهادة SSL</span>
       </div>
+
+      {/* MX Security */}
+      <div className="rounded-xl border border-[#1a1a2e] p-3 bg-black/30">
+        <p className="text-[9px] text-slate-600 font-mono uppercase mb-2 flex items-center gap-1.5">
+          <ShieldCheck className="w-3 h-3" /> Email Security (SPF / DMARC / DKIM)
+        </p>
+        <div className="space-y-1.5">
+          <div className="flex items-start gap-2 text-[9px] font-mono">
+            {mx?.spf ? <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" /> : <XCircle className="w-3 h-3 text-red-400 shrink-0 mt-0.5" />}
+            <div><span className="text-slate-500">SPF: </span><span className={`break-all ${mx?.spf ? "text-emerald-400/80" : "text-red-400/80"}`}>{mx?.spf ? mx.spf.slice(0, 80) : "غير مُعرَّف"}</span></div>
+          </div>
+          <div className="flex items-start gap-2 text-[9px] font-mono">
+            {mx?.dmarc ? <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" /> : <XCircle className="w-3 h-3 text-red-400 shrink-0 mt-0.5" />}
+            <div><span className="text-slate-500">DMARC: </span><span className={`break-all ${mx?.dmarc ? "text-emerald-400/80" : "text-red-400/80"}`}>{mx?.dmarc ? mx.dmarc.slice(0, 80) : "غير مُعرَّف"}</span></div>
+          </div>
+          <div className="flex items-center gap-2 text-[9px] font-mono">
+            {mx?.dkim?.length ? <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0" /> : <AlertCircle className="w-3 h-3 text-amber-400 shrink-0" />}
+            <span className="text-slate-500">DKIM: </span>
+            <span className={mx?.dkim?.length ? "text-emerald-400/80" : "text-amber-400/80"}>{mx?.dkim?.length ? `${mx.dkim.length} مفتاح مكتشف` : "غير مكتشف"}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Wayback Machine */}
+      {wayback?.available && (
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-[#1a1a2e] bg-black/30">
+          <Clock className="w-3.5 h-3.5 text-[#8b5cf6] shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[9px] font-mono text-slate-500">Wayback Machine — آخر أرشفة</p>
+            <p className="text-[9px] font-mono text-slate-300 truncate">{wayback.timestamp ? new Date(wayback.timestamp.replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1-$2-$3T$4:$5:$6')).toLocaleDateString("ar") : "—"}</p>
+          </div>
+          {wayback.url && (
+            <a href={wayback.url} target="_blank" rel="noopener noreferrer" className="shrink-0">
+              <ExternalLink className="w-3 h-3 text-[#8b5cf6] hover:text-[#a78bfa]" />
+            </a>
+          )}
+        </div>
+      )}
+
+      {/* DNS Records */}
       <div className="space-y-1.5">
         <p className="text-[9px] text-slate-600 font-mono uppercase">DNS Records</p>
         {DNS_TYPES.filter(t => t.items.length > 0).map(t => (
           <div key={t.key} className="rounded-lg border border-[#1a1a2e] overflow-hidden">
             <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: `${t.color}11` }}>
               <span className="text-[9px] font-black font-mono px-1.5 py-0.5 rounded" style={{ background: `${t.color}22`, color: t.color }}>{t.label}</span>
+              <span className="text-[8px] text-slate-600 font-mono">{t.items.length} سجل</span>
             </div>
             <div className="px-3 py-2 space-y-0.5">
-              {t.items.map((item, i) => (
-                <p key={i} className="text-[9px] font-mono text-slate-400">{item.v}</p>
+              {t.items.slice(0, 5).map((item, i) => (
+                <p key={i} className="text-[9px] font-mono text-slate-400 truncate">{item.v}</p>
               ))}
+              {t.items.length > 5 && <p className="text-[8px] text-slate-600 font-mono">+{t.items.length - 5} أخرى</p>}
             </div>
           </div>
         ))}
       </div>
+
+      {/* Subdomains */}
       {results.subdomains?.length > 0 && (
         <div>
           <p className="text-[9px] text-slate-600 font-mono uppercase mb-2">Subdomains ({results.subdomains.length} مكتشف)</p>
           <div className="flex flex-wrap gap-1.5">
             {visibleSubs?.map((s, i) => (
-              <span key={i} className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-[#1a1a2e] text-slate-400" style={{ background: "rgba(0,0,0,0.4)" }}>{s}</span>
+              <button key={i} onClick={() => onQuickAction("domain", s)}
+                className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-[#1a1a2e] text-slate-400 hover:border-[#10b981]/30 hover:text-[#10b981] transition-colors"
+                style={{ background: "rgba(0,0,0,0.4)" }}>{s}</button>
             ))}
           </div>
           {results.subdomains.length > 12 && (
@@ -317,17 +499,32 @@ function DomainResults({ data, color }: { data: OsintResult; color: string }) {
           )}
         </div>
       )}
+
+      {/* Quick actions */}
+      {dns.a?.[0] && (
+        <button onClick={() => onQuickAction("ip", dns.a[0])}
+          className="flex items-center gap-1.5 text-[9px] font-mono px-2.5 py-1.5 rounded-lg border border-[#e21227]/30 text-[#e21227] bg-[#e21227]/5 hover:bg-[#e21227]/10 transition-colors">
+          <ArrowRight className="w-3 h-3" /> فحص IP: {dns.a[0]}
+        </button>
+      )}
     </div>
   );
 }
 
+// ── Hash Results ───────────────────────────────────────────────────────────────
 function HashResults({ data, color }: { data: OsintResult; color: string }) {
-  const results = data.results as { hash: string; hashType: string; detectionRatio: number; maliciousCount: number; totalEngines: number; fileInfo: { name?: string; type?: string; size?: number; firstSeen?: number } | null; vtData: { data?: { attributes?: { last_analysis_results?: Record<string, { category: string; engine_name: string; result?: string }> } } } | null };
+  const results = data.results as {
+    hash: string; hashType: string; detectionRatio: number; maliciousCount: number; totalEngines: number;
+    fileInfo: { name?: string | null; type?: string | null; size?: number | null; firstSeen?: string | null; signature?: string | null; tags?: string[]; deliveryMethod?: string | null } | null;
+    vtData: { data?: { attributes?: { last_analysis_results?: Record<string, { category: string; engine_name: string; result?: string }> } } } | null;
+    mbData: { file_name?: string; file_type?: string; signature?: string; tags?: string[]; delivery_method?: string } | null;
+  };
   const ratio = results.detectionRatio ?? 0;
   const ratioColor = ratio > 50 ? "#e21227" : ratio > 15 ? "#f59e0b" : "#10b981";
   const engines = Object.entries(results.vtData?.data?.attributes?.last_analysis_results ?? {})
     .filter(([, v]) => v.category === "malicious" || v.category === "suspicious")
     .slice(0, 20);
+  const fi = results.fileInfo;
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 flex-wrap">
@@ -339,23 +536,27 @@ function HashResults({ data, color }: { data: OsintResult; color: string }) {
         <div>
           <p className="text-[9px] text-slate-600 font-mono mb-0.5">نسبة الكشف</p>
           <p className="text-[28px] font-black" style={{ color: ratioColor }}>{ratio}%</p>
+          <p className="text-[8px] text-slate-600 font-mono">{results.maliciousCount}/{results.totalEngines} محرك</p>
         </div>
         <div className="flex-1">
-          <div className="flex justify-between text-[9px] font-mono text-slate-600 mb-1">
-            <span>{results.maliciousCount} اكتشاف</span>
-            <span>{results.totalEngines} محرك</span>
-          </div>
           <div className="w-full h-2.5 rounded-full bg-[#1a1a2e]">
             <div className="h-full rounded-full" style={{ width: `${ratio}%`, background: ratioColor }} />
           </div>
+          {fi?.signature && <p className="text-[9px] text-[#e21227] font-mono mt-2 font-bold">{fi.signature}</p>}
+          {fi?.deliveryMethod && <p className="text-[8px] text-slate-600 font-mono mt-0.5">التوزيع: {fi.deliveryMethod}</p>}
         </div>
       </div>
-      {results.fileInfo && (
-        <div className="grid grid-cols-2 gap-2 text-[9px] font-mono">
-          {results.fileInfo.name && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">الاسم: </span><span className="text-slate-300">{String(results.fileInfo.name).slice(0, 30)}</span></div>}
-          {results.fileInfo.type && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">النوع: </span><span className="text-slate-300">{results.fileInfo.type}</span></div>}
-          {results.fileInfo.size && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">الحجم: </span><span className="text-slate-300">{(results.fileInfo.size / 1024).toFixed(1)} KB</span></div>}
-          {results.fileInfo.firstSeen && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">أول ظهور: </span><span className="text-slate-300">{new Date(results.fileInfo.firstSeen * 1000).toLocaleDateString()}</span></div>}
+      {fi && (fi.name || fi.type || fi.size || fi.firstSeen) && (
+        <div className="grid grid-cols-2 gap-2">
+          {fi.name && <InfoCard label="الاسم" value={String(fi.name).slice(0, 30)} />}
+          {fi.type && <InfoCard label="النوع" value={fi.type} />}
+          {fi.size && <InfoCard label="الحجم" value={`${((fi.size as number) / 1024).toFixed(1)} KB`} />}
+          {fi.firstSeen && <InfoCard label="أول ظهور" value={typeof fi.firstSeen === "number" ? new Date(fi.firstSeen * 1000).toLocaleDateString() : fi.firstSeen} />}
+        </div>
+      )}
+      {fi?.tags && fi.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {fi.tags.map(t => <span key={t} className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-[#8b5cf6]/20 bg-[#8b5cf6]/10 text-purple-300">{t}</span>)}
         </div>
       )}
       {engines.length > 0 && (
@@ -374,8 +575,21 @@ function HashResults({ data, color }: { data: OsintResult; color: string }) {
   );
 }
 
+// ── Username Results ────────────────────────────────────────────────────────────
 function UsernameResults({ data, color }: { data: OsintResult; color: string }) {
-  const results = data.results as { username: string; platformResults: { platform: string; url: string; found: boolean; status: number; error?: string }[]; foundCount: number; totalChecked: number };
+  const results = data.results as {
+    username: string;
+    platformResults: { platform: string; url: string; category: string; found: boolean; status: number; error?: string }[];
+    foundCount: number; totalChecked: number;
+  };
+  const CATEGORY_LABELS: Record<string, string> = { dev: "Dev", social: "Social", security: "Security", blog: "Blog", paste: "Paste", work: "Work" };
+  const byCategory = (results.platformResults ?? []).reduce<Record<string, typeof results.platformResults>>((acc, p) => {
+    const cat = p.category ?? "other";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(p);
+    return acc;
+  }, {});
+
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 flex-wrap">
@@ -383,44 +597,71 @@ function UsernameResults({ data, color }: { data: OsintResult; color: string }) 
         <span className="text-[10px] font-mono text-[#8b5cf6]">{results.foundCount}/{results.totalChecked} منصة</span>
         <RiskBadge level={data.riskLevel} />
       </div>
-      <div className="grid grid-cols-2 gap-1.5">
-        {results.platformResults?.map((p, i) => (
-          <a key={i} href={p.found ? p.url : undefined} target="_blank" rel="noopener noreferrer"
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${p.found ? "hover:border-opacity-60 cursor-pointer" : "opacity-50 cursor-default"}`}
-            style={{
-              borderColor: p.found ? `${color}40` : "#1a1a2e",
-              background: p.found ? `${color}08` : "rgba(0,0,0,0.2)",
-            }}>
-            {p.found ? <CheckCircle className="w-3.5 h-3.5 shrink-0" style={{ color }} /> : <XCircle className="w-3.5 h-3.5 shrink-0 text-slate-700" />}
-            <span className="text-[10px] font-semibold" style={{ color: p.found ? "white" : "#64748b" }}>{p.platform}</span>
-            {p.found && <ExternalLink className="w-2.5 h-2.5 ml-auto shrink-0" style={{ color }} />}
-          </a>
-        ))}
-      </div>
+      {Object.entries(byCategory).map(([cat, platforms]) => (
+        <div key={cat}>
+          <p className="text-[8px] font-mono text-slate-600 uppercase mb-1.5">{CATEGORY_LABELS[cat] ?? cat}</p>
+          <div className="grid grid-cols-2 gap-1.5">
+            {platforms.map((p, i) => (
+              <a key={i} href={p.found ? p.url : undefined} target="_blank" rel="noopener noreferrer"
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${p.found ? "hover:border-opacity-60 cursor-pointer" : "opacity-40 cursor-default"}`}
+                style={{ borderColor: p.found ? `${color}40` : "#1a1a2e", background: p.found ? `${color}08` : "rgba(0,0,0,0.2)" }}>
+                {p.found
+                  ? <CheckCircle className="w-3.5 h-3.5 shrink-0" style={{ color }} />
+                  : <XCircle className="w-3.5 h-3.5 shrink-0 text-slate-700" />}
+                <span className="text-[10px] font-semibold truncate" style={{ color: p.found ? "white" : "#64748b" }}>{p.platform}</span>
+                {p.found && <ExternalLink className="w-2.5 h-2.5 ml-auto shrink-0" style={{ color }} />}
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
+// ── Phone Results ──────────────────────────────────────────────────────────────
 function PhoneResults({ data, color }: { data: OsintResult; color: string }) {
-  const results = data.results as { phone: string; numverifyData: { valid?: boolean; number?: string; local_format?: string; international_format?: string; country_prefix?: string; country_code?: string; country_name?: string; location?: string; carrier?: string; line_type?: string } | null };
+  const results = data.results as {
+    phone: string;
+    numverifyData: { valid?: boolean; number?: string; local_format?: string; international_format?: string; country_prefix?: string; country_code?: string; country_name?: string; location?: string; carrier?: string; line_type?: string } | null;
+    detectedCountry: { name: string; region: string } | null;
+  };
   const nd = results.numverifyData;
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 flex-wrap">
         <code className="text-[11px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(245,158,11,0.1)", color }}>{results.phone}</code>
         <RiskBadge level={data.riskLevel} />
+        {results.detectedCountry && (
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border border-[#1a1a2e] text-slate-400">{results.detectedCountry.name}</span>
+        )}
       </div>
       {nd ? (
         <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
-          {nd.valid !== undefined && <div className="col-span-2 flex items-center gap-2 px-3 py-2 rounded-lg border border-[#1a1a2e] bg-black/20">
-            {nd.valid ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <XCircle className="w-3.5 h-3.5 text-red-400" />}
-            <span className="text-slate-400">الرقم {nd.valid ? "صالح" : "غير صالح"}</span>
-          </div>}
-          {nd.country_name && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">الدولة: </span><span className="text-slate-300">{nd.country_name}</span></div>}
-          {nd.location && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">الموقع: </span><span className="text-slate-300">{nd.location}</span></div>}
-          {nd.carrier && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">الشبكة: </span><span className="text-slate-300">{nd.carrier}</span></div>}
-          {nd.line_type && <div className="px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">نوع الخط: </span><span className="text-slate-300">{nd.line_type}</span></div>}
-          {nd.international_format && <div className="col-span-2 px-2 py-1.5 rounded-lg border border-[#1a1a2e] bg-black/20"><span className="text-slate-600">الصيغة الدولية: </span><span className="text-slate-300">{nd.international_format}</span></div>}
+          {nd.valid !== undefined && (
+            <div className="col-span-2 flex items-center gap-2 px-3 py-2 rounded-lg border border-[#1a1a2e] bg-black/20">
+              {nd.valid ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <XCircle className="w-3.5 h-3.5 text-red-400" />}
+              <span className="text-slate-400">الرقم {nd.valid ? "صالح" : "غير صالح"}</span>
+            </div>
+          )}
+          {nd.country_name && <InfoCard label="الدولة" value={nd.country_name} />}
+          {nd.location && <InfoCard label="الموقع" value={nd.location} />}
+          {nd.carrier && <InfoCard label="الشبكة" value={nd.carrier} />}
+          {nd.line_type && <InfoCard label="نوع الخط" value={nd.line_type} />}
+          {nd.international_format && <InfoCard label="الصيغة الدولية" value={nd.international_format} col2 />}
+        </div>
+      ) : results.detectedCountry ? (
+        <div className="space-y-2">
+          <div className="px-4 py-3 rounded-xl border border-[#1a1a2e] bg-black/30">
+            <p className="text-[9px] text-slate-500 font-mono mb-2">تحليل رمز الدولة (مجاني)</p>
+            <div className="grid grid-cols-2 gap-2">
+              <InfoCard label="الدولة" value={results.detectedCountry.name} />
+              <InfoCard label="المنطقة" value={results.detectedCountry.region} />
+            </div>
+          </div>
+          <div className="px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-[10px] text-amber-400/70">
+            تفعيل NUMVERIFY_API_KEY مطلوب للبيانات التفصيلية. احصل عليه من numverify.com (مجاني: 100 طلب/شهر)
+          </div>
         </div>
       ) : (
         <div className="px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-[10px] text-amber-400/70">
@@ -431,6 +672,90 @@ function PhoneResults({ data, color }: { data: OsintResult; color: string }) {
   );
 }
 
+// ── URL Results ────────────────────────────────────────────────────────────────
+function UrlResults({ data, color }: { data: OsintResult; color: string }) {
+  const results = data.results as {
+    url: string; title: string; status: number;
+    iocs: Record<string, string[]>;
+    securityHeaders: Record<string, string | null>;
+    missingSecHeaders: string[];
+    serverHeader: string | null; poweredBy: string | null;
+    contentLength: number;
+    vtUrlData: unknown; urlscanData: unknown;
+  };
+  const [showIocs, setShowIocs] = useState(false);
+  const iocTypes = Object.entries(results.iocs ?? {}).filter(([, v]) => v.length > 0);
+  const statusOk = results.status >= 200 && results.status < 400;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <code className="text-[9px] font-mono px-2 py-0.5 rounded truncate max-w-[200px]" style={{ background: "rgba(249,115,22,0.1)", color }}>{results.url}</code>
+        <RiskBadge level={data.riskLevel} />
+        <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${statusOk ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : "border-red-500/30 text-red-400 bg-red-500/10"}`}>HTTP {results.status}</span>
+      </div>
+
+      {results.title && results.title !== results.url && (
+        <div className="px-3 py-2 rounded-lg border border-[#1a1a2e] bg-black/30 text-[10px] font-mono text-slate-300 truncate">
+          <span className="text-slate-600">Title: </span>{results.title}
+        </div>
+      )}
+
+      {/* Tech fingerprint */}
+      {(results.serverHeader || results.poweredBy) && (
+        <div className="grid grid-cols-2 gap-2">
+          {results.serverHeader && <InfoCard label="Server" value={results.serverHeader} />}
+          {results.poweredBy && <InfoCard label="X-Powered-By" value={results.poweredBy} />}
+          <InfoCard label="Content Size" value={`${(results.contentLength / 1024).toFixed(1)} KB`} />
+        </div>
+      )}
+
+      {/* Security headers */}
+      <div className="rounded-xl border border-[#1a1a2e] p-3 bg-black/30">
+        <p className="text-[9px] text-slate-600 font-mono uppercase mb-2 flex items-center gap-1.5">
+          <ShieldAlert className="w-3 h-3" /> Security Headers
+        </p>
+        <div className="space-y-1">
+          {Object.entries(results.securityHeaders ?? {}).map(([k, v]) => (
+            <div key={k} className="flex items-center gap-2 text-[9px] font-mono">
+              {v ? <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0" /> : <XCircle className="w-3 h-3 text-red-400 shrink-0" />}
+              <span className="text-slate-500 uppercase w-14 shrink-0">{k}</span>
+              <span className={`truncate ${v ? "text-emerald-400/70" : "text-red-400/70"}`}>{v ? v.slice(0, 50) : "مفقود"}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* IOCs */}
+      {iocTypes.length > 0 && (
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 overflow-hidden">
+          <button onClick={() => setShowIocs(!showIocs)}
+            className="w-full flex items-center justify-between px-3 py-2 text-[9px] font-mono text-amber-400">
+            <span className="flex items-center gap-1.5"><AlertCircle className="w-3 h-3" /> IOCs مكتشفة ({iocTypes.reduce((s, [, v]) => s + v.length, 0)})</span>
+            {showIocs ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+          {showIocs && (
+            <div className="px-3 pb-3 space-y-2">
+              {iocTypes.map(([type, vals]) => (
+                <div key={type}>
+                  <p className="text-[8px] font-mono text-slate-600 uppercase mb-1">{type} ({vals.length})</p>
+                  <div className="flex flex-wrap gap-1">
+                    {vals.slice(0, 8).map((v, i) => (
+                      <span key={i} className="text-[8px] font-mono px-1.5 py-0.5 rounded border border-amber-500/20 bg-amber-500/10 text-amber-300 truncate max-w-[140px]">{v}</span>
+                    ))}
+                    {vals.length > 8 && <span className="text-[8px] font-mono text-slate-600">+{vals.length - 8}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main Modal ─────────────────────────────────────────────────────────────────
 export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
   const { toast } = useToast();
   const [tab, setTab] = useState<Tab>("tor");
@@ -443,10 +768,16 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
   const [loadingMsg, setLoadingMsg] = useState("");
   const [osintResults, setOsintResults] = useState<Record<string, OsintResult>>({});
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const abortRef = useRef<AbortController | null>(null);
 
   const currentLookup = OSINT_LOOKUPS[osintType];
   const currentResult = osintResults[currentLookup.id];
+
+  useEffect(() => {
+    if (open) setHistory(loadHistory());
+  }, [open]);
 
   function inject(text: string) {
     const final = text.replace(/{TARGET}/g, targetInput || "[ضع الهدف هنا]");
@@ -470,18 +801,41 @@ export function DarkWebSearchModal({ open, onClose, onInjectToChat }: Props) {
     a.download = `osint-${currentLookup.id}-${targetInput}-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    toast({ description: "تم تصدير نتيجة JSON" });
+  }
+
+  function exportReport() {
+    if (!currentResult) return;
+    const lines = [
+      `# OSINT Intelligence Report`,
+      `## Target: ${targetInput} (${currentLookup.label})`,
+      `## Risk Level: ${currentResult.riskLevel.toUpperCase()}`,
+      `## Generated: ${new Date().toLocaleString("ar")}`,
+      ``,
+      `## Sources`,
+      ...Object.entries(currentResult.sources).map(([k, v]) =>
+        `- ${k}: ${v.disabled ? "⚪ disabled" : v.success ? "✅ success" : "❌ failed"}`
+      ),
+      ``,
+      `## AI Analysis`,
+      currentResult.analysis || "(No AI analysis — model key not configured)",
+      ``,
+      `## Recommendations`,
+      ...(currentResult.recommendations ?? []).map(r => `• ${r}`),
+    ];
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `osint-report-${currentLookup.id}-${targetInput}-${Date.now()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ description: "تم تصدير التقرير كـ Markdown" });
   }
 
   function injectResult() {
     if (!currentResult) return;
-    const text = `OSINT Report — ${currentLookup.label}: ${targetInput}
-
-Risk Level: ${currentResult.riskLevel.toUpperCase()}
-
-${currentResult.analysis}
-
-Recommendations:
-${currentResult.recommendations.map(r => `• ${r}`).join("\n")}`;
+    const text = `OSINT Report — ${currentLookup.label}: ${targetInput}\n\nRisk Level: ${currentResult.riskLevel.toUpperCase()}\n\n${currentResult.analysis}\n\nRecommendations:\n${currentResult.recommendations.map(r => `• ${r}`).join("\n")}`;
     onInjectToChat(text);
     onClose();
     toast({ description: "تم إرسال نتائج OSINT للمحادثة" });
@@ -493,13 +847,33 @@ ${currentResult.recommendations.map(r => `• ${r}`).join("\n")}`;
     toast({ description: "تم نسخ النتائج" });
   }
 
+  function clearHistory() {
+    saveHistory([]);
+    setHistory([]);
+  }
+
+  function loadFromHistory(entry: HistoryEntry) {
+    const idx = OSINT_LOOKUPS.findIndex(l => l.id === entry.type);
+    if (idx >= 0) setOsintType(idx);
+    setTargetInput(entry.value);
+    setShowHistory(false);
+  }
+
+  function handleQuickAction(type: OsintType, value: string) {
+    const idx = OSINT_LOOKUPS.findIndex(l => l.id === type);
+    if (idx >= 0) setOsintType(idx);
+    setTargetInput(value);
+    setShowAnalysis(false);
+  }
+
   const LOADING_MESSAGES: Record<OsintType, string> = {
     email: "جارٍ الاستعلام من Have I Been Pwned و Hunter.io...",
-    ip: "جارٍ الاستعلام من AbuseIPDB و ipapi.co...",
-    domain: "جارٍ الاستعلام DNS و crt.sh و RDAP/WHOIS...",
-    hash: "جارٍ الاستعلام من VirusTotal...",
-    username: "جارٍ التحقق من المنصات المتعددة...",
-    phone: "جارٍ الاستعلام من Numverify...",
+    ip: "جارٍ الاستعلام من AbuseIPDB و ipapi.co و Shodan InternetDB...",
+    domain: "جارٍ الاستعلام DNS و crt.sh و RDAP و Wayback Machine...",
+    hash: "جارٍ الاستعلام من VirusTotal و MalwareBazaar...",
+    username: "جارٍ التحقق من 20 منصة...",
+    phone: "جارٍ تحليل رقم الهاتف...",
+    url: "جارٍ فحص URL من مصادر متعددة...",
   };
 
   async function triggerScan() {
@@ -524,6 +898,7 @@ ${currentResult.recommendations.map(r => `• ${r}`).join("\n")}`;
       else if (currentLookup.id === "hash") body.hash = targetInput.trim();
       else if (currentLookup.id === "username") body.username = targetInput.trim();
       else if (currentLookup.id === "phone") body.phone = targetInput.trim();
+      else if (currentLookup.id === "url") body.url = targetInput.trim();
 
       const res = await fetch(`/api/osint/${currentLookup.id}`, {
         method: "POST",
@@ -534,6 +909,8 @@ ${currentResult.recommendations.map(r => `• ${r}`).join("\n")}`;
 
       const json = await res.json() as OsintResult;
       setOsintResults(prev => ({ ...prev, [currentLookup.id]: json }));
+      addToHistory(currentLookup.id, targetInput.trim());
+      setHistory(loadHistory());
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
         toast({ description: "فشل الاستعلام. تحقق من الاتصال.", variant: "destructive" });
@@ -692,232 +1069,260 @@ ${currentResult.recommendations.map(r => `• ${r}`).join("\n")}`;
                       <div className="flex items-center gap-3 px-3 py-2.5">
                         {(() => { const Icon = currentLookup.icon; return <Icon className="w-4 h-4 shrink-0" style={{ color: currentLookup.color }} />; })()}
                         <input value={targetInput} onChange={(e) => setTargetInput(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === "Enter" && !loading) triggerScan(); }}
+                          onKeyDown={(e) => e.key === "Enter" && void triggerScan()}
                           placeholder={currentLookup.placeholder}
-                          className="flex-1 bg-transparent outline-none text-[14px] font-mono text-white placeholder:text-slate-700"
-                          dir="ltr" disabled={loading} />
-                        <button onClick={loading ? undefined : triggerScan} disabled={loading}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-bold text-white transition-all ${pulseRing ? "animate-pulse" : ""} ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
-                          style={{ background: currentLookup.color }}>
-                          {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                          {loading ? "جارٍ..." : "ابدأ البحث"}
+                          dir="ltr"
+                          className="flex-1 bg-transparent text-[12px] font-mono text-white outline-none placeholder:text-slate-600" />
+                        <button onClick={() => setShowHistory(!showHistory)}
+                          className={`p-1 rounded-lg transition-colors ${showHistory ? "text-[#8b5cf6] bg-[#8b5cf6]/10" : "text-slate-600 hover:text-slate-400"}`}
+                          title="سجل البحث">
+                          <History className="w-3.5 h-3.5" />
                         </button>
+                        {pulseRing && <div className="w-2 h-2 rounded-full animate-ping" style={{ background: currentLookup.color }} />}
                       </div>
                     </div>
                   </div>
 
-                  {/* Loading state */}
+                  {/* Search history dropdown */}
+                  {showHistory && history.length > 0 && (
+                    <div className="rounded-xl border border-[#1a1a2e] bg-[#080012] overflow-hidden">
+                      <div className="flex items-center justify-between px-3 py-2 border-b border-[#1a1a2e]">
+                        <p className="text-[9px] font-mono text-slate-600 uppercase flex items-center gap-1"><History className="w-2.5 h-2.5" /> سجل البحث</p>
+                        <button onClick={clearHistory} className="text-[8px] font-mono text-slate-700 hover:text-red-400 flex items-center gap-1 transition-colors">
+                          <Trash2 className="w-2.5 h-2.5" /> مسح
+                        </button>
+                      </div>
+                      <div className="max-h-40 overflow-y-auto">
+                        {history.slice(0, 15).map((entry, i) => {
+                          const lookup = OSINT_LOOKUPS.find(l => l.id === entry.type);
+                          if (!lookup) return null;
+                          const Icon = lookup.icon;
+                          return (
+                            <button key={i} onClick={() => loadFromHistory(entry)}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-white/5 transition-colors text-left border-b border-[#1a1a2e]/50 last:border-0">
+                              <Icon className="w-3 h-3 shrink-0" style={{ color: lookup.color }} />
+                              <span className="text-[10px] font-mono text-slate-400 flex-1 truncate" dir="ltr">{entry.value}</span>
+                              <span className="text-[8px] font-mono px-1 py-0.5 rounded" style={{ background: lookup.color + "20", color: lookup.color }}>{lookup.label}</span>
+                              <span className="text-[8px] font-mono text-slate-700 shrink-0">{new Date(entry.ts).toLocaleTimeString("ar")}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {showHistory && history.length === 0 && (
+                    <p className="text-[10px] font-mono text-slate-600 text-center py-2">لا يوجد سجل بحث بعد</p>
+                  )}
+
+                  {/* Scan button */}
+                  <button onClick={() => void triggerScan()} disabled={loading}
+                    className="w-full py-2.5 rounded-xl text-[12px] font-black text-white transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                    style={{ background: loading ? "rgba(139,92,246,0.2)" : `linear-gradient(135deg, ${currentLookup.color}, ${currentLookup.color}99)`, boxShadow: loading ? "none" : `0 0 20px ${currentLookup.color}40` }}>
+                    {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                    {loading ? "جارٍ الفحص..." : `فحص ${currentLookup.label}`}
+                  </button>
+
+                  {/* Loading */}
                   {loading && <LoadingPulse text={loadingMsg} />}
 
                   {/* Results */}
                   {!loading && currentResult && !currentResult.error && (
-                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+                    <div className="space-y-3">
                       {/* Toolbar */}
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <div className="flex flex-wrap gap-1.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-1 flex-wrap flex-1">
                           {Object.entries(currentResult.sources).map(([name, info]) => (
                             <SourceTag key={name} name={name} info={info} />
                           ))}
                         </div>
-                        <div className="flex gap-1.5">
-                          <button onClick={copyResult} className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-mono border border-[#1a1a2e] text-slate-400 hover:text-white hover:border-slate-600 transition-colors">
-                            {copiedId === "result-copy" ? <CheckCheck className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />} نسخ
+                        <div className="flex gap-1.5 shrink-0">
+                          <button onClick={copyResult} title="نسخ JSON"
+                            className="w-7 h-7 flex items-center justify-center rounded-lg border border-[#1a1a2e] bg-black/30 text-slate-500 hover:text-white hover:border-slate-600 transition-colors">
+                            {copiedId === "result-copy" ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                           </button>
-                          <button onClick={exportJson} className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-mono border border-[#1a1a2e] text-slate-400 hover:text-white hover:border-slate-600 transition-colors">
-                            <Download className="w-3 h-3" /> JSON
+                          <button onClick={exportJson} title="تصدير JSON"
+                            className="w-7 h-7 flex items-center justify-center rounded-lg border border-[#1a1a2e] bg-black/30 text-slate-500 hover:text-white hover:border-slate-600 transition-colors">
+                            <Download className="w-3.5 h-3.5" />
                           </button>
-                          <button onClick={injectResult} className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-mono border border-[#8b5cf6]/30 text-[#8b5cf6] hover:bg-[#8b5cf6]/10 transition-colors">
-                            <MessageSquare className="w-3 h-3" /> حقن
+                          <button onClick={exportReport} title="تصدير تقرير Markdown"
+                            className="w-7 h-7 flex items-center justify-center rounded-lg border border-[#1a1a2e] bg-black/30 text-slate-500 hover:text-white hover:border-slate-600 transition-colors">
+                            <FileText className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={injectResult} title="إرسال للمحادثة"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold text-white transition-colors"
+                            style={{ background: currentLookup.color + "99" }}>
+                            <MessageSquare className="w-3 h-3" /> إرسال
                           </button>
                         </div>
                       </div>
 
-                      {/* Type-specific results */}
-                      <div className="rounded-xl border border-[#1a1a2e] p-4 bg-black/30">
-                        {currentLookup.id === "email" && <EmailResults data={currentResult} color={currentLookup.color} />}
-                        {currentLookup.id === "ip" && <IpResults data={currentResult} color={currentLookup.color} />}
-                        {currentLookup.id === "domain" && <DomainResults data={currentResult} color={currentLookup.color} />}
-                        {currentLookup.id === "hash" && <HashResults data={currentResult} color={currentLookup.color} />}
-                        {currentLookup.id === "username" && <UsernameResults data={currentResult} color={currentLookup.color} />}
-                        {currentLookup.id === "phone" && <PhoneResults data={currentResult} color={currentLookup.color} />}
-                      </div>
+                      {/* Result cards */}
+                      {currentLookup.id === "email" && <EmailResults data={currentResult} color={currentLookup.color} onQuickAction={handleQuickAction} />}
+                      {currentLookup.id === "ip" && <IpResults data={currentResult} color={currentLookup.color} onQuickAction={handleQuickAction} />}
+                      {currentLookup.id === "domain" && <DomainResults data={currentResult} color={currentLookup.color} onQuickAction={handleQuickAction} />}
+                      {currentLookup.id === "hash" && <HashResults data={currentResult} color={currentLookup.color} />}
+                      {currentLookup.id === "username" && <UsernameResults data={currentResult} color={currentLookup.color} />}
+                      {currentLookup.id === "phone" && <PhoneResults data={currentResult} color={currentLookup.color} />}
+                      {currentLookup.id === "url" && <UrlResults data={currentResult} color={currentLookup.color} />}
 
-                      {/* AI Analysis */}
-                      {currentResult.analysis && (
-                        <div className="rounded-xl border border-[#8b5cf6]/20 overflow-hidden">
-                          <button onClick={() => setShowAnalysis(!showAnalysis)}
-                            className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#8b5cf6]/5 transition-colors">
-                            <div className="flex items-center gap-2">
-                              <Cpu className="w-3.5 h-3.5 text-[#8b5cf6]" />
-                              <span className="text-[11px] font-bold text-[#8b5cf6]">التحليل الذكي</span>
-                              <RiskBadge level={currentResult.riskLevel} />
-                            </div>
-                            {showAnalysis ? <ChevronUp className="w-3.5 h-3.5 text-[#8b5cf6]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#8b5cf6]" />}
-                          </button>
-                          {showAnalysis && (
-                            <div className="px-4 pb-4 space-y-3 border-t border-[#8b5cf6]/10" style={{ background: "rgba(139,92,246,0.04)" }}>
-                              <div className="pt-3">
-                                <MarkdownBlock content={currentResult.analysis} />
-                              </div>
-                              {currentResult.recommendations.length > 0 && (
-                                <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 space-y-1.5">
-                                  <p className="text-[10px] font-bold text-amber-400 flex items-center gap-1.5">
-                                    <AlertTriangle className="w-3 h-3" /> التوصيات
-                                  </p>
-                                  {currentResult.recommendations.map((r, i) => (
-                                    <p key={i} className="text-[10px] text-amber-400/70 flex gap-2">
-                                      <span className="shrink-0">▸</span>{r}
-                                    </p>
-                                  ))}
+                      {/* AI Analysis toggle */}
+                      <button onClick={() => setShowAnalysis(!showAnalysis)}
+                        className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-[#1a1a2e] bg-black/40 hover:bg-black/60 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <Cpu className="w-3.5 h-3.5 text-[#8b5cf6]" />
+                          <span className="text-[11px] font-bold text-white">التحليل الذكي</span>
+                          {!currentResult.analysis && <span className="text-[9px] font-mono text-slate-600">(يتطلب مفتاح نموذج AI)</span>}
+                        </div>
+                        {showAnalysis ? <ChevronUp className="w-3.5 h-3.5 text-slate-500" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-500" />}
+                      </button>
+
+                      {showAnalysis && (
+                        <div className="rounded-xl border border-[#8b5cf6]/20 bg-[#8b5cf6]/5 p-4 space-y-3">
+                          <RiskBadge level={currentResult.riskLevel} />
+                          {currentResult.analysis ? (
+                            <MarkdownBlock content={currentResult.analysis} />
+                          ) : (
+                            <p className="text-[10px] text-slate-600 font-mono">
+                              لم يُولَّد تحليل — أضف مفتاح نموذج AI في الإعدادات لتفعيل هذه الميزة.
+                            </p>
+                          )}
+                          {currentResult.recommendations?.length > 0 && (
+                            <div className="border-t border-[#1a1a2e] pt-3">
+                              <p className="text-[10px] font-bold text-slate-300 mb-2">التوصيات</p>
+                              {currentResult.recommendations.map((r, i) => (
+                                <div key={i} className="flex gap-2 text-[10px] text-slate-400 mb-1">
+                                  <span className="text-[#8b5cf6] shrink-0">▸</span>
+                                  <span>{r}</span>
                                 </div>
-                              )}
+                              ))}
                             </div>
                           )}
                         </div>
                       )}
-                    </motion.div>
+                    </div>
                   )}
 
                   {/* Error state */}
                   {!loading && currentResult?.error && (
                     <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-red-500/20 bg-red-500/5">
-                      <XCircle className="w-4 h-4 text-red-400 shrink-0" />
-                      <p className="text-[11px] text-red-400">{currentResult.error}</p>
+                      <XCircle className="w-5 h-5 text-red-400 shrink-0" />
+                      <div>
+                        <p className="text-[11px] font-bold text-red-400">فشل الاستعلام</p>
+                        <p className="text-[10px] text-red-400/60">{currentResult.error}</p>
+                      </div>
                     </div>
                   )}
 
-                  {/* Empty state — show prompt preview */}
+                  {/* Empty state */}
                   {!loading && !currentResult && (
-                    <div className="rounded-xl border border-[#1a1a2e] p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
-                      <p className="text-[10px] text-slate-600 mb-2 font-mono uppercase">معاينة ما سيُفحص</p>
-                      <p className="text-[10px] text-slate-500 leading-relaxed font-mono whitespace-pre-line">
-                        {currentLookup.promptFallback(targetInput || currentLookup.placeholder)}
+                    <div className="flex flex-col items-center gap-3 py-8 text-center">
+                      {(() => { const Icon = currentLookup.icon; return <Icon className="w-10 h-10 opacity-20" style={{ color: currentLookup.color }} />; })()}
+                      <p className="text-[12px] font-bold text-slate-500">أدخل {currentLookup.label} وابدأ الفحص</p>
+                      <p className="text-[10px] text-slate-700 font-mono max-w-[240px]">
+                        {currentLookup.id === "email" && "HIBP · Hunter.io · DNS MX Security"}
+                        {currentLookup.id === "ip" && "AbuseIPDB · ipapi.co · ip-api.com · Shodan InternetDB"}
+                        {currentLookup.id === "domain" && "DNS · crt.sh · RDAP · Wayback Machine · MX Security"}
+                        {currentLookup.id === "hash" && "VirusTotal · MalwareBazaar"}
+                        {currentLookup.id === "username" && "20 منصة: GitHub, GitLab, npm, Docker, Reddit, HackerOne, Telegram, ..."}
+                        {currentLookup.id === "phone" && "Numverify · Country Code Parser"}
+                        {currentLookup.id === "url" && "HTTP Fetch · VirusTotal URL · URLScan.io · Security Headers"}
                       </p>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* THREATS */}
+              {/* THREAT MONITOR */}
               {tab === "threats" && (
-                <div className="p-4 space-y-2.5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Radio className="w-4 h-4 text-[#8b5cf6]" />
-                    <p className="text-[13px] font-black text-white">رصد التهديدات الأمنية</p>
-                    <span className="text-[9px] font-mono text-[#8b5cf6] bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 px-2 py-0.5 rounded-full">LIVE INTEL</span>
-                  </div>
-                  {THREAT_KEYWORDS.map((t, i) => (
-                    <div key={i} className="flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all group cursor-pointer hover:border-opacity-40"
-                      style={{ borderColor: t.color + "22", background: "rgba(0,0,0,0.3)" }}
-                      onClick={() => inject(t.prompt)}>
-                      <div className="w-2.5 h-2.5 rounded-full shrink-0 animate-pulse" style={{ background: t.color }} />
-                      <div className="flex-1">
-                        <p className="text-[12px] font-bold text-white">{t.label}</p>
-                        <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">{t.prompt.split("\n")[0]}</p>
-                      </div>
-                      <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={(e) => { e.stopPropagation(); copyText(t.prompt, `threat-${i}`); }}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 text-slate-500 hover:text-white">
-                          {copiedId === `threat-${i}` ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                        </button>
-                        <ArrowRight className="w-4 h-4 self-center" style={{ color: t.color }} />
-                      </div>
-                    </div>
+                <div className="p-4 space-y-2">
+                  <p className="text-[11px] font-bold text-slate-400 mb-3 flex items-center gap-2">
+                    <Radio className="w-3.5 h-3.5 text-[#e21227] animate-pulse" />
+                    استخبارات التهديدات السيبرانية الحديثة
+                  </p>
+                  {THREAT_KEYWORDS.map((kw, i) => (
+                    <button key={i} onClick={() => inject(kw.prompt)}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all hover:border-opacity-50 hover:bg-white/5 group"
+                      style={{ borderColor: kw.color + "22" }}>
+                      <div className="w-2 h-2 rounded-full shrink-0 group-hover:animate-pulse" style={{ background: kw.color }} />
+                      <span className="flex-1 text-[12px] font-bold text-white group-hover:text-slate-100">{kw.label}</span>
+                      <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-white transition-colors" />
+                    </button>
                   ))}
                 </div>
               )}
 
-              {/* SHODAN */}
+              {/* SHODAN SCANNER */}
               {tab === "shodan" && (
                 <div className="p-4 space-y-3">
                   <div className="flex items-center gap-2 mb-3">
-                    <Network className="w-4 h-4 text-[#06b6d4]" />
-                    <p className="text-[13px] font-black text-white">Shodan Intelligence Scanner</p>
-                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-full border" style={{ color: "#06b6d4", borderColor: "rgba(6,182,212,0.3)", background: "rgba(6,182,212,0.08)" }}>INTERNET-WIDE SCAN</span>
+                    <div className="w-2 h-2 rounded-full bg-[#e21227] animate-pulse" />
+                    <p className="text-[11px] font-bold text-slate-400">قوالب Shodan لكشف الأصول المكشوفة</p>
                   </div>
-                  <div className="grid gap-2.5">
-                    {SHODAN_TEMPLATES.map((s, i) => (
-                      <div key={i} className="rounded-xl border p-3.5 group transition-all"
-                        style={{ borderColor: s.color + "22", background: "rgba(0,0,0,0.3)" }}>
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                          <div>
-                            <p className="text-[12px] font-bold text-white">{s.title}</p>
-                            <code className="text-[9px] font-mono px-2 py-0.5 rounded mt-1 inline-block" style={{ background: "rgba(0,0,0,0.5)", color: s.color }}>
-                              {s.query}
-                            </code>
-                          </div>
-                          <div className="flex gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => copyText(s.query, `shodan-q-${i}`)}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
-                              {copiedId === `shodan-q-${i}` ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
-                            <button onClick={() => inject(s.prompt)}
-                              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold text-white"
-                              style={{ background: s.color }}>
-                              <Zap className="w-3 h-3" /> تحليل
-                            </button>
-                          </div>
+                  {SHODAN_TEMPLATES.map((tpl, i) => (
+                    <div key={i} className="rounded-xl border p-3.5 transition-all group hover:border-opacity-40"
+                      style={{ borderColor: tpl.color + "22", background: "rgba(0,0,0,0.3)" }}>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-bold text-white">{tpl.title}</p>
+                          <code className="text-[8px] font-mono text-slate-600 truncate block mt-1">{tpl.query}</code>
                         </div>
-                        <p className="text-[10px] text-slate-500 line-clamp-2">{s.prompt.split("\n\n")[0]}</p>
+                        <div className="flex gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => copyText(tpl.query, `sq-${i}`)}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors">
+                            {copiedId === `sq-${i}` ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                          <button onClick={() => inject(tpl.prompt)}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold text-white transition-colors"
+                            style={{ background: tpl.color }}>
+                            <ArrowRight className="w-3 h-3" /> تحليل
+                          </button>
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="text-[9px] font-mono rounded-lg px-3 py-2 line-clamp-2" style={{ background: "rgba(0,0,0,0.4)", color: "rgba(255,255,255,0.3)" }}>
+                        {tpl.prompt.substring(0, 100)}...
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
               {/* DARK WEB INTEL */}
               {tab === "darkweb" && (
                 <div className="p-4 space-y-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Lock className="w-4 h-4 text-[#8b5cf6]" />
-                    <p className="text-[13px] font-black text-white">Dark Web Intelligence</p>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#8b5cf6]/20 bg-[#8b5cf6]/5 mb-3">
+                    <Lock className="w-3.5 h-3.5 text-[#8b5cf6]" />
+                    <p className="text-[10px] text-[#8b5cf6]/80 font-mono">نماذج استخباراتية لتحليل الويب المظلم</p>
                   </div>
-                  {TOR_CATEGORIES.find(c => c.id === "darkweb")?.templates.map((tpl, i) => (
-                    <div key={i} className="rounded-xl border p-4 group transition-all"
-                      style={{ borderColor: "#8b5cf6" + "22", background: "rgba(0,0,0,0.3)" }}>
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div>
-                          <p className="text-[13px] font-bold text-white">{tpl.title}</p>
-                          <p className="text-[10px] text-slate-500 mt-0.5">{tpl.desc}</p>
-                        </div>
-                        <div className="flex gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => copyText(tpl.prompt, `dw-${i}`)}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 text-slate-500 hover:text-white">
-                            {copiedId === `dw-${i}` ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                          </button>
-                          <button onClick={() => inject(tpl.prompt)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-white"
-                            style={{ background: "#8b5cf6" }}>
-                            <ArrowRight className="w-3.5 h-3.5" /> إرسال
-                          </button>
-                        </div>
-                      </div>
-                      <div className="text-[10px] font-mono rounded-lg px-3 py-2 leading-relaxed line-clamp-3"
-                        style={{ background: "rgba(0,0,0,0.5)", color: "rgba(139,92,246,0.7)" }}>
-                        {tpl.prompt.substring(0, 180)}...
-                      </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    <div className="pt-2 border-t border-[#1a1a2e]">
+                      <p className="text-[9px] text-slate-600 mb-1 px-1">الهدف</p>
+                      <input value={targetInput} onChange={(e) => setTargetInput(e.target.value)}
+                        placeholder="اسم شركة / نطاق / جهة تهديد"
+                        className="w-full bg-[#0a0015] border border-[#1a1a2e] rounded-lg px-3 py-2 text-[11px] font-mono text-slate-300 outline-none focus:border-[#8b5cf6]/50 placeholder:text-slate-700 mb-3" />
                     </div>
-                  ))}
-                  <div className="flex items-start gap-3 bg-amber-500/5 border border-amber-500/20 rounded-xl p-3.5 mt-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <p className="text-[10px] text-amber-400/70 leading-relaxed">
-                      هذه القوالب لأغراض بحثية وأمنية مشروعة فقط. الاستخدام للبحث في التهديدات وتحسين الدفاع.
-                    </p>
+                    {TOR_CATEGORIES.find(c => c.id === "darkweb")?.templates.map((tpl, i) => (
+                      <div key={i} className="rounded-xl border border-[#8b5cf6]/20 p-3.5 bg-[#8b5cf6]/5 group hover:border-[#8b5cf6]/40 transition-all">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-[12px] font-bold text-white">{tpl.title}</p>
+                            <p className="text-[10px] mt-0.5 text-[#8b5cf6]/60">{tpl.desc}</p>
+                          </div>
+                          <div className="flex gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => copyText(tpl.prompt, `dw-${i}`)}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 text-slate-500 hover:text-white">
+                              {copiedId === `dw-${i}` ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            </button>
+                            <button onClick={() => inject(tpl.prompt)}
+                              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold text-white bg-[#8b5cf6]">
+                              <ArrowRight className="w-3 h-3" /> إرسال
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
-
-            </div>
-
-            {/* Footer */}
-            <div className="px-4 pt-3 pb-[10px] border-t border-[#1a1a2e] flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2 text-[9px] font-mono" style={{ color: "rgba(139,92,246,0.5)" }}>
-                <div className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] animate-pulse" />
-                DARK WEB INTELLIGENCE MODULE · RESEARCH ONLY · KALIGPT
-              </div>
-              <button onClick={onClose} className="px-4 py-1.5 rounded-xl text-[12px] font-bold border border-[#1a1a2e] text-slate-400 hover:text-white hover:border-slate-600 transition-colors">
-                إغلاق
-              </button>
             </div>
           </motion.div>
         </motion.div>
