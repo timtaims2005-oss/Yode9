@@ -13,8 +13,6 @@ class AppErrorBoundary extends Component<{ children: React.ReactNode; fallback?:
   }
 }
 import { BootScreen } from "./components/BootScreen";
-import { PerfMonitor } from "./components/PerfMonitor";
-import { GlobalStatusBar } from "./components/GlobalStatusBar";
 import { Quantum4DWidget } from "./components/Quantum4DWidget";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -49,7 +47,21 @@ import { SystemHealthBar } from "./components/SystemHealthBar";
 import { PerformanceHUD } from "./components/PerformanceHUD";
 import { PerformanceBooster } from "./components/PerformanceBooster";
 import { OfflineQueueBanner } from "./components/OfflineQueueBanner";
+import { PerfMonitor } from "./components/PerfMonitor";
+import { GlobalStatusBar } from "./components/GlobalStatusBar";
 import { PerformanceCommandCenter } from "./components/PerformanceCommandCenter";
+import { AIController } from "./lib/AIController";
+import { AIControllerHUD } from "./components/AIControllerHUD";
+import { NexusExecutorHUD, registerNexusDispatchers } from "./components/NexusExecutor";
+import { NexusPanel } from "./components/NexusPanel";
+import { registerOmnixDispatchers } from "./lib/OmnixExecutor";
+import { OmnixHUDPanel, OmnixFloatingBadge } from "./components/OmnixHUD";
+import { OmnixVoice } from "./components/OmnixVoice";
+import { OmnixSelfEvolution } from "./components/OmnixSelfEvolution";
+import { OmnixCommandPalette } from "./components/OmnixCommandPalette";
+import { OmnixSovereign } from "./lib/OmnixSovereign";
+import { OmnixAbsoluteDashboard } from "./components/OmnixAbsoluteDashboard";
+import { OmnixAbsoluteCore, OmnixSovereign as OmnixAbsoluteSovereign, registerBuiltinCommands } from "./lib/OmnixAbsolute";
 import { frameScheduler } from "./lib/frame-scheduler";
 import { memoryPressure } from "./lib/memory-pressure";
 import { thermalGuard } from "./lib/thermal-guard";
@@ -106,6 +118,7 @@ const LocalModelModal       = lazy(() => import("./components/modals/LocalModelM
 const LocalEngineHubModal   = lazy(() => import("./components/modals/LocalEngineHubModal").then(m=>({default:m.LocalEngineHubModal})));
 const ProviderSettingsModal = lazy(() => import("./components/modals/ProviderSettingsModal").then(m=>({default:m.ProviderSettingsModal})));
 const OsintDashboard        = lazy(() => import("./components/modals/OsintDashboard").then(m=>({default:m.OsintDashboard})));
+const OsintHubModal         = lazy(() => import("./components/modals/OsintHubModal").then(m=>({default:m.OsintHubModal})));
 const AdminPanel            = lazy(() => import("./components/modals/AdminPanel").then(m=>({default:m.AdminPanel})));
 const ActivateModal         = lazy(() => import("./components/modals/ActivateModal").then(m=>({default:m.ActivateModal})));
 const AgentModal            = lazy(() => import("./components/modals/AgentModal").then(m=>({default:m.AgentModal})));
@@ -180,6 +193,7 @@ const GemmaLibModal         = lazy(() => import("./components/modals/GemmaLibMod
 const RogueMasterModal      = lazy(() => import("./components/modals/RogueMasterModal").then(m=>({default:m.RogueMasterModal})));
 const PasswordAttackModal   = lazy(() => import("./components/modals/PasswordAttackModal").then(m=>({default:m.PasswordAttackModal})));
 const AIHackingSkillsModal  = lazy(() => import("./components/modals/AIHackingSkillsModal").then(m=>({default:m.AIHackingSkillsModal})));
+const AccountHackeToolsModal = lazy(() => import("./components/modals/AccountHackeToolsModal").then(m=>({default:m.AccountHackeToolsModal})));
 const AITerminalModal       = lazy(() => import("./components/modals/AITerminalModal").then(m=>({default:m.AITerminalModal})));
 const MarkXXXIXModal        = lazy(() => import("./components/modals/MarkXXXIXModal").then(m=>({default:m.MarkXXXIXModal})));
 const MarkXXXIXORModal      = lazy(() => import("./components/modals/MarkXXXIXORModal").then(m=>({default:m.MarkXXXIXORModal})));
@@ -254,6 +268,7 @@ const FinetuneModal         = lazy(() => import("./components/modals/FinetuneMod
 const OsintPlatformModal    = lazy(() => import("./components/modals/OsintPlatformModal").then(m=>({default:m.OsintPlatformModal})));
 const PluginMarketplaceModal = lazy(() => import("./components/modals/PluginMarketplaceModal").then(m=>({default:m.PluginMarketplaceModal})));
 const NotificationCenter    = lazy(() => import("./components/NotificationCenter").then(m=>({default:m.NotificationCenter})));
+const MobileSecurityModal   = lazy(() => import("./components/modals/MobileSecurityModal").then(m=>({default:m.MobileSecurityModal})));
 
 // ── NEW PAGES (opened as modals via WindowChrome) ─────────────────────────────
 const AccountSettingsPage   = lazy(() => import("./pages/AccountSettingsPage").then(m=>({default:m.AccountSettingsPage})));
@@ -275,6 +290,8 @@ const SecurityCompliancePage3D = lazy(() => import("./pages/SecurityCompliancePa
 const AdminDashboardPage    = lazy(() => import("./pages/AdminDashboard").then(m=>({default:m.AdminDashboard})));
 const OrganizationsPage     = lazy(() => import("./pages/OrganizationsPage").then(m=>({default:m.OrganizationsPage})));
 const PentestLabPage        = lazy(() => import("./pages/PentestLabPage").then(m=>({default:m.PentestLabPage})));
+const SocialMediaArsenalPage = lazy(() => import("./pages/SocialMediaArsenalPage").then(m=>({default:m.SocialMediaArsenalPage})));
+const APTIntelPage          = lazy(() => import("./pages/APTIntelPage").then(m=>({default:m.APTIntelPage})));
 const MarketplacePage       = lazy(() => import("./pages/MarketplacePage").then(m=>({default:m.MarketplacePage})));
 const PaymentGatewayPage    = lazy(() => import("./pages/PaymentGatewayPage").then(m=>({default:m.PaymentGatewayPage})));
 const FinetunePage          = lazy(() => import("./pages/FinetunePage").then(m=>({default:m.FinetunePage})));
@@ -298,7 +315,7 @@ const MODAL_IDS = [
   'aiFactory','gemmaChat','codeGraph','ohMyPi','awesomeOpenCode','openRepLove','dyad',
   'ghostwriter','agentScope','insForge','malwareArsenal','threatIntel','wormGPT',
   'antigravityMgr','axonHub','bigAGI','hackingTool','godMod3','geminiResearch',
-  'openAntigravity','paseo','gemmaLib','rogueMaster','passwordAttack','aiHackingSkills',
+  'openAntigravity','paseo','gemmaLib','rogueMaster','passwordAttack','aiHackingSkills','accountHackeTools',
   'aiTerminal','markXXXIX','markXXXIXOR','freeLLMAPI','nineRouter','feynman','governor',
   'headroom','tokenOptimizer','claudeMemory','qrSync','modelCompare','securityKanban',
   'networkMonitor','defensiveAI','openSkynet','neuralMatrix','shellGenerator','analytics',
@@ -363,6 +380,12 @@ const MODAL_IDS = [
   'rateLimitPage',
   'systemsHub3D',
   'infraMap3D',
+  'socialMediaArsenal',
+  'aptIntel',
+  'nexusPanel',
+  'omnixAbsolute',
+  'osintHub',
+  'mobileSecurity',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -423,6 +446,7 @@ const ARSENAL_MAP: Partial<Record<string, ModalId>> = {
   "swarmEvolution": "swarmEvolution",
   "agentProjectGenerator": "agentProjectGenerator",
   "agentEvolutionDashboard": "agentEvolutionDashboard",
+  "mobilesecurity": "mobileSecurity",
 };
 
 const queryClient = new QueryClient();
@@ -444,6 +468,22 @@ function AppContent() {
   const close  = useCallback((id: ModalId) => mDispatch({ type: 'CLOSE',  id }), []);
   const toggle = useCallback((id: ModalId) => mDispatch({ type: 'TOGGLE', id }), []);
 
+  // ── AI CONTROLLER REGISTRATION ────────────────────────────────────────────
+  const [controllerEnabled, setControllerEnabled] = useState(true);
+  useEffect(() => {
+    const dispatchers = {
+      openModal:  (id: string) => mDispatch({ type: 'OPEN',   id: id as ModalId }),
+      closeModal: (id: string) => mDispatch({ type: 'CLOSE',  id: id as ModalId }),
+      toggleModal:(id: string) => mDispatch({ type: 'TOGGLE', id: id as ModalId }),
+      dispatch:   (action: Parameters<typeof dispatch>[0]) => dispatch(action),
+      getState:   () => state as unknown as Record<string, unknown>,
+      getModals:  () => modals as unknown as Record<string, boolean>,
+      toast:      (msg: string) => toast({ description: msg }),
+    };
+    AIController.register(dispatchers);
+    registerNexusDispatchers(dispatchers);
+  }, [dispatch, modals, state, toast]);
+
   // ── NON-BOOLEAN STATE ─────────────────────────────────────────────────────
   const [arsenalPage, setArsenalPage] = useState<ArsenalModuleId | "ai-terminal" | null>(null);
   const [utility, setUtility]         = useState<UtilityTool | null>(null);
@@ -457,6 +497,11 @@ function AppContent() {
   const [pipelineKeyRef] = useState(() => ({ n: 0 }));
   const [hudsVisible, setHudsVisible] = useState(true);
   const [perfCCOpen, setPerfCCOpen] = useState(false);
+  const [showSysHealth, setShowSysHealth] = useState(false);
+  const [showPerfHud, setShowPerfHud] = useState(false);
+  const [showPerfMon, setShowPerfMon] = useState(false);
+  const [showGlobalStatus, setShowGlobalStatus] = useState(false);
+  const [showOfflineQueue, setShowOfflineQueue] = useState(false);
   const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
   void addCostEntry; void shellGeneratorInject;
 
@@ -656,16 +701,21 @@ function AppContent() {
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "x") { e.preventDefault(); toggle('exploitChain'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "a" && !e.altKey) { e.preventDefault(); window.dispatchEvent(new CustomEvent("kali:trigger-auto-setup")); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "o") { e.preventDefault(); toggle('osintDash'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "h") { e.preventDefault(); toggle('osintHub'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "l") { e.preventDefault(); toggle('changelog'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "u") { e.preventDefault(); toggle('collab'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "i") { e.preventDefault(); toggle('intelligenceCore'); }
       if (!inField && (e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "h") { e.preventDefault(); toggle('widgetsDock'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "g") { e.preventDefault(); toggle('omegaAgent'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "n") { e.preventDefault(); toggle('nexusPanel'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "Z") { e.preventDefault(); setOmnixPaletteOpen((v) => !v); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "V") { e.preventDefault(); setOmnixVoiceOpen((v) => !v); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "j") { e.preventDefault(); toggle('finetune'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "d") { e.preventDefault(); toggle('debate'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "p") { e.preventDefault(); toggle('providerSettings'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "y") { e.preventDefault(); toggle('chainOfThought'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F2") { e.preventDefault(); setPerfCCOpen(v => !v); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F1") { e.preventDefault(); toggle('omnixAbsolute'); }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -717,13 +767,16 @@ function AppContent() {
       dispatch({ type: "NEW_CHAT" });
       if (title) setTimeout(() => dispatch({ type: "RENAME_CHAT", id: "", title }), 50);
     }
+    function onNexusOpenPanel() { open('nexusPanel'); }
     window.addEventListener("kali:open-module", onOpenModule);
     window.addEventListener("kali:open-arsenal", onOpenArsenal);
     window.addEventListener("kali:new-chat", onNewChat);
+    window.addEventListener("nexus:open-panel", onNexusOpenPanel);
     return () => {
       window.removeEventListener("kali:open-module", onOpenModule);
       window.removeEventListener("kali:open-arsenal", onOpenArsenal);
       window.removeEventListener("kali:new-chat", onNewChat);
+      window.removeEventListener("nexus:open-panel", onNexusOpenPanel);
     };
   }, [open, dispatch]);
 
@@ -738,13 +791,131 @@ function AppContent() {
     });
   }
 
+  // NEXUS dispatchers object for HUD (memo-stable reference passed as prop)
+  const nexusDispatchers = {
+    openModal:  (id: string) => mDispatch({ type: 'OPEN',   id: id as ModalId }),
+    closeModal: (id: string) => mDispatch({ type: 'CLOSE',  id: id as ModalId }),
+    toggleModal:(id: string) => mDispatch({ type: 'TOGGLE', id: id as ModalId }),
+    dispatch:   (action: Parameters<typeof dispatch>[0]) => dispatch(action),
+    getState:   () => state as unknown as Record<string, unknown>,
+    getModals:  () => modals as unknown as Record<string, boolean>,
+    toast:      (msg: string) => toast({ description: msg }),
+  };
+
+  // ── OMNIX panel state ──────────────────────────────────────────────────────
+  const [omnixPanelOpen, setOmnixPanelOpen] = useState(false);
+  const [omnixVoiceOpen, setOmnixVoiceOpen] = useState(false);
+  const [omnixEvoOpen, setOmnixEvoOpen] = useState(false);
+  const [omnixPaletteOpen, setOmnixPaletteOpen] = useState(false);
+
+  // Register OMNIX dispatchers so executor can call them
+  useEffect(() => {
+    registerNexusDispatchers(nexusDispatchers);
+    registerOmnixDispatchers(nexusDispatchers);
+    // ── Initialize OMNIX ABSOLUTE core with all built-in commands ──────────
+    registerBuiltinCommands();
+    OmnixAbsoluteCore.getInstance().initialize();
+    // ── تسجيل المكونات الرئيسية في الخريطة الحية OMNIX ABSOLUTE ─────────────
+    const _sv = OmnixAbsoluteSovereign.getInstance();
+    _sv.registerComponent("app",         "ui",      null, { name: "App",             nameAr: "التطبيق الرئيسي",         description: "Main app shell, router, modal manager" });
+    _sv.registerComponent("sidebar",     "ui",      null, { name: "Sidebar",          nameAr: "الشريط الجانبي",         description: "Navigation sidebar with all tools" });
+    _sv.registerComponent("topbar",      "ui",      null, { name: "TopBar",           nameAr: "شريط التنقل العلوي",     description: "Model selector, mode switcher, provider" });
+    _sv.registerComponent("arsenal-hub", "tool",    null, { name: "Arsenal Hub",      nameAr: "مركز الترسانة",          description: "18-module launcher with chain builder" });
+    _sv.registerComponent("council",     "feature", null, { name: "Council / Fusion", nameAr: "المجلس والدمج",          description: "105-brain council + fusion synthesis" });
+    _sv.registerComponent("godmode",     "feature", null, { name: "Godmode",          nameAr: "وضع الإله",              description: "14-mode godmode tournament" });
+    _sv.registerComponent("voice-chat",  "feature", null, { name: "Voice Chat",       nameAr: "المحادثة الصوتية",       description: "Full-duplex Web Speech API voice chat" });
+    _sv.registerComponent("vision",      "feature", null, { name: "Vision Capture",   nameAr: "التقاط الرؤية",          description: "Screen share or webcam + OCR + AI" });
+    _sv.registerComponent("dark-web",    "security",null, { name: "Dark Web Search",  nameAr: "البحث في الويب المظلم",  description: "Dark web OSINT and threat intel" });
+    _sv.registerComponent("shell-gen",   "security",null, { name: "Shell Generator",  nameAr: "مولّد الشيل",            description: "Reverse/bind shell payload generator" });
+    _sv.registerComponent("rag",         "tool",    null, { name: "RAGFlow",          nameAr: "RAGFlow — الذاكرة الوثائقية", description: "Upload docs, chat with documents" });
+    _sv.registerComponent("agent-ide",   "tool",    null, { name: "Agent IDE",        nameAr: "بيئة التطوير الوكيلة",  description: "OpenGravity agentic code editor" });
+    _sv.registerComponent("omnix-hud",   "ui",      null, { name: "OMNIX HUD",        nameAr: "واجهة HUD الإلهية",     description: "OMNIX sovereign HUD panel" });
+    _sv.registerComponent("omnix-voice", "feature", null, { name: "OMNIX Voice",      nameAr: "الأوامر الصوتية",       description: "Natural language voice command system" });
+    _sv.registerComponent("omnix-evo",   "feature", null, { name: "OMNIX Evolution",  nameAr: "التطور الذاتي",         description: "Self-evolving AI pattern analysis" });
+    _sv.registerComponent("omnix-palette","feature",null, { name: "OMNIX Palette",    nameAr: "لوحة الأوامر",          description: "Command palette for all OMNIX actions" });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── OMNIX Sovereign event listeners — omnix:toggle-* from OmnixAbsoluteRegistry ──
+  useEffect(() => {
+    const onToggleHUD   = () => setOmnixPanelOpen((v) => !v);
+    const onToggleVoice = () => setOmnixVoiceOpen((v) => !v);
+    const onToggleEvo   = () => setOmnixEvoOpen((v) => !v);
+    const onTogglePal   = () => setOmnixPaletteOpen((v) => !v);
+    // ── OMNIX ABSOLUTE event routing ─────────────────────────────────────
+    const onOmnixOpenModal  = (e: Event) => { const id = (e as CustomEvent).detail?.id; if (id && MODAL_IDS.includes(id as ModalId)) open(id as ModalId); };
+    const onOmnixCloseModal = (e: Event) => { const id = (e as CustomEvent).detail?.id; if (id && MODAL_IDS.includes(id as ModalId)) close(id as ModalId); };
+    const onOmnixSetTheme   = (e: Event) => { const accent = (e as CustomEvent).detail?.accent; if (accent) dispatch({ type: "SET_ACCENT", payload: accent }); };
+    const onOmnixOpenDash   = () => open('omnixAbsolute');
+    window.addEventListener("omnix:open-modal",    onOmnixOpenModal);
+    window.addEventListener("omnix:close-modal",   onOmnixCloseModal);
+    window.addEventListener("omnix:set-theme",     onOmnixSetTheme);
+    window.addEventListener("omnix:open-absolute", onOmnixOpenDash);
+    window.addEventListener("omnix:toggle-hud",       onToggleHUD);
+    window.addEventListener("omnix:toggle-voice",     onToggleVoice);
+    window.addEventListener("omnix:toggle-evolution", onToggleEvo);
+    window.addEventListener("omnix:toggle-palette",   onTogglePal);
+    // Keep Sovereign UI open-panels in sync
+    const onSovereignSync = () => {
+      const openPanels: string[] = [];
+      if (omnixPanelOpen)   openPanels.push("omnix-hud");
+      if (omnixVoiceOpen)   openPanels.push("omnix-voice");
+      if (omnixEvoOpen)     openPanels.push("omnix-evolution");
+      if (omnixPaletteOpen) openPanels.push("omnix-palette");
+      OmnixSovereign.setOpenPanels(openPanels);
+    };
+    window.addEventListener("omnix:sovereign-change", onSovereignSync);
+    return () => {
+      window.removeEventListener("omnix:toggle-hud",       onToggleHUD);
+      window.removeEventListener("omnix:toggle-voice",     onToggleVoice);
+      window.removeEventListener("omnix:toggle-evolution", onToggleEvo);
+      window.removeEventListener("omnix:toggle-palette",   onTogglePal);
+      window.removeEventListener("omnix:sovereign-change", onSovereignSync);
+      window.removeEventListener("omnix:open-modal",    onOmnixOpenModal);
+      window.removeEventListener("omnix:close-modal",   onOmnixCloseModal);
+      window.removeEventListener("omnix:set-theme",     onOmnixSetTheme);
+      window.removeEventListener("omnix:open-absolute", onOmnixOpenDash);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [omnixPanelOpen, omnixVoiceOpen, omnixEvoOpen, omnixPaletteOpen]);
+
   return (
     <>
     {!bootDone && <BootScreen onDone={() => setBootDone(true)} />}
-    <OfflineQueueBanner />
+    <NexusExecutorHUD dispatchers={nexusDispatchers} />
+    {/* ── OMNIX ABSOLUTE SYSTEM ─────────────────────────────────────────── */}
+    {/* ── OMNIX ABSOLUTE DASHBOARD — لوحة التحكم الإلهية الكاملة ──── */}
+    <OmnixAbsoluteDashboard
+      open={modals.omnixAbsolute}
+      onClose={() => close('omnixAbsolute')}
+    />
+    <OmnixHUDPanel
+      dispatchers={nexusDispatchers}
+      open={omnixPanelOpen}
+      onClose={() => setOmnixPanelOpen(false)}
+    />
+    <OmnixVoice
+      dispatchers={nexusDispatchers}
+      open={omnixVoiceOpen}
+      onClose={() => setOmnixVoiceOpen(false)}
+    />
+    <OmnixSelfEvolution
+      dispatchers={nexusDispatchers}
+      open={omnixEvoOpen}
+      onClose={() => setOmnixEvoOpen(false)}
+    />
+    <OmnixCommandPalette
+      dispatchers={nexusDispatchers}
+      open={omnixPaletteOpen}
+      onClose={() => setOmnixPaletteOpen(false)}
+    />
+    <OmnixFloatingBadge
+      onOpenPanel={() => setOmnixPanelOpen(true)}
+      onOpenVoice={() => setOmnixVoiceOpen(true)}
+      onOpenEvolution={() => setOmnixEvoOpen(true)}
+      onOpenPalette={() => setOmnixPaletteOpen(true)}
+    />
     <PerformanceCommandCenter open={perfCCOpen} onClose={() => setPerfCCOpen(false)} />
-    <SystemHealthBar />
-    <PerformanceHUD />
     <PerformanceBooster />
     <div className="flex h-[100dvh] w-full overflow-hidden text-foreground selection:bg-primary/30 dark relative" style={{ zIndex: 1 }}>
       <Sidebar
@@ -766,6 +937,7 @@ function AppContent() {
         onOpenQRSync={() => open('qrSync')}
         onOpenChangelog={() => open('changelog')}
         onOpenOsint={() => open('osintDash')}
+        onOpenOsintHub={() => open('osintHub')}
         onOpenUseCaseLib={() => open('useCaseLib')}
         onOpenOmegaAgent={() => open('omegaAgent')}
         onOpenLocalEngineHub={() => open('localEngineHub')}
@@ -797,6 +969,11 @@ function AppContent() {
         onOpenLogin={() => open('authModal')}
         onOpenMultiModelRace={() => open('multiModelRace')}
         onOpenLocalBenchmark={() => open('localBenchmark')}
+        onOpenKgSocialArsenal={() => open('socialMediaArsenal')}
+        onOpenAptIntel={() => open('aptIntel')}
+        onOpenNexusPanel={() => open('nexusPanel')}
+        onOpenAccountHackeTools={() => open('accountHackeTools')}
+        onOpenOmnixAbsolute={() => open('omnixAbsolute')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
@@ -813,6 +990,7 @@ function AppContent() {
           onOpenAgent={() => open('agent')}
           onOpenNexus={() => open('nexus')}
           onOpenArsenal={() => open('arsenal')}
+          onOpenPentestLab={() => open('pentestLabPro')}
           onOpenProviderSettings={() => open('providerSettings')}
           onOpenModelCompare={() => open('modelCompare')}
           onOpenNeuralMatrix={() => open('neuralMatrix')}
@@ -859,8 +1037,13 @@ function AppContent() {
           onOpenFinetune={() => open('finetune')}
           onOpenSwarmEvolution={() => open('swarmEvolution')}
           onOpenPerfCC={() => setPerfCCOpen(v => !v)}
+          onToggleSysHealth={() => setShowSysHealth(v => !v)}
+          onTogglePerfHud={() => setShowPerfHud(v => !v)}
+          onTogglePerfMon={() => setShowPerfMon(v => !v)}
+          onToggleGlobalStatus={() => setShowGlobalStatus(v => !v)}
+          onToggleOfflineQueue={() => setShowOfflineQueue(v => !v)}
         />
-        <ChatView onOpenOsintDash={() => open('osintDash')} />
+        <ChatView onOpenOsintDash={() => open('osintDash')} controllerEnabled={controllerEnabled} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
       </main>
 
@@ -933,6 +1116,14 @@ function AppContent() {
         <WindowChrome open={modals.osintDash} color="#22c55e" title="OSINT DASHBOARD" onClose={() => close('osintDash')}>
           <OsintDashboard open={modals.osintDash} onOpenChange={(v) => mDispatch({type:'SET',id:'osintDash',value:v})} />
         </WindowChrome>
+        <WindowChrome open={modals.osintHub} color="#0ea5e9" title="OSINT HUB — مركز الاستخبارات المفتوحة" onClose={() => close('osintHub')}>
+          <Suspense fallback={<div className="flex items-center justify-center h-full text-sky-400 text-sm">تحميل OSINT Hub...</div>}>
+            <OsintHubModal onClose={() => close('osintHub')} />
+          </Suspense>
+        </WindowChrome>
+        <Suspense fallback={null}>
+          <MobileSecurityModal isOpen={modals.mobileSecurity} onClose={() => close('mobileSecurity')} />
+        </Suspense>
         <WindowChrome open={modals.changelog} color="#e21227" title="CHANGELOG" onClose={() => close('changelog')}>
           <ChangelogModal open={modals.changelog} onOpenChange={(v) => mDispatch({type:'SET',id:'changelog',value:v})} />
         </WindowChrome>
@@ -952,6 +1143,11 @@ function AppContent() {
         <WindowChrome open={modals.nexus} color="#fbbf24" title="NEXUS AGENT" onClose={() => close('nexus')}>
           <NexusModal open={modals.nexus} onOpenChange={(v) => mDispatch({type:'SET',id:'nexus',value:v})} />
         </WindowChrome>
+        <NexusPanel
+          open={modals.nexusPanel}
+          onClose={() => close('nexusPanel')}
+          dispatchers={nexusDispatchers}
+        />
         <WindowChrome open={modals.arsenal} color="#00e5ff" title="ARSENAL HUB" onClose={() => close('arsenal')}>
           <ArsenalHubModal open={modals.arsenal} onOpenChange={(v) => mDispatch({type:'SET',id:'arsenal',value:v})} onLaunch={handleArsenalLaunch} />
         </WindowChrome>
@@ -1161,20 +1357,18 @@ function AppContent() {
       {/* ── Cyber Intelligence Layer — accessible via NET circular button in DockButton ── */}
       <CyberIntelCenter open={modals.cyberIntel} onClose={() => close('cyberIntel')} />
 
-      {/* Always-on ambient layers — lazy loaded via AmbientLayer component */}
-      <Suspense fallback={null}>
-        <AmbientLayer />
-      </Suspense>
-
-      {/* Ultra HUD overlay — performance stats + threat indicator + radar */}
-      <Suspense fallback={null}>
-        <UltraHUD />
-      </Suspense>
 
       {/* CyberWidgetsDock — accessible via TopBar "HUD" button */}
       <AnimatePresence>
         {modals.widgetsDock && <CyberHUDOverlay key="widgets-dock" onClose={() => close('widgetsDock')} />}
       </AnimatePresence>
+
+      {/* HUD overlays — toggled via TopBar buttons */}
+      {showSysHealth    && <SystemHealthBar />}
+      {showPerfHud      && <PerformanceHUD />}
+      {showPerfMon      && <PerfMonitor />}
+      {showGlobalStatus && <GlobalStatusBar />}
+      {showOfflineQueue && <OfflineQueueBanner />}
 
       <div className="hidden md:block">
         <PipelineHUD
@@ -1216,8 +1410,6 @@ function AppContent() {
       {/* CISA KEV Global Alert Toaster — always-on 3D popup notifications */}
       <CisaKevAlertToaster />
 
-      {/* ── 144fps Performance Monitor ── */}
-      <PerfMonitor />
 
       {/* CVE Timeline 3D */}
       <CveTimeline3DModal open={modals.cveTimeline} onOpenChange={(v) => mDispatch({type:'SET',id:'cveTimeline',value:v})} />
@@ -1270,20 +1462,6 @@ function AppContent() {
       {/* ── LOCAL AI MODEL NEXUS — Full-screen modal ── */}
       <LocalAIModelNexus open={modals.localAINexus} onClose={() => close('localAINexus')} />
 
-      {/* ── IntelligenceHUDOverlay — always-on cyber intel layer ── */}
-      <Suspense fallback={null}>
-        <IntelligenceHUDOverlay onOpenCommandCenter={() => open('cyberIntel')} />
-      </Suspense>
-
-      {/* ── SystemStatusWidget — always-on system health widget ── */}
-      <Suspense fallback={null}>
-        <SystemStatusWidget />
-      </Suspense>
-
-      {/* ── NotificationCenter — always-on notification hub ── */}
-      <Suspense fallback={null}>
-        <NotificationCenter />
-      </Suspense>
 
       {/* ── NEW MODALS FROM UPLOADED PROJECT ── */}
       <Suspense fallback={null}>
@@ -1464,6 +1642,13 @@ function AppContent() {
         )}
       </Suspense>
       <Suspense fallback={null}>
+        {modals.socialMediaArsenal && (
+          <WindowChrome open={true} title="◈ مركز هجوم وسائل التواصل الاجتماعي" color="#e21227" onClose={() => close('socialMediaArsenal')}>
+            <SocialMediaArsenalPage onClose={() => close('socialMediaArsenal')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
         {modals.marketplace && (
           <WindowChrome open={true} title="السوق" onClose={() => close('marketplace')}>
             <MarketplacePage onClose={() => close('marketplace')} />
@@ -1528,15 +1713,23 @@ function AppContent() {
           </WindowChrome>
         )}
       </Suspense>
+      <Suspense fallback={null}>
+        {modals.aptIntel && (
+          <WindowChrome open={true} title="◈ مركز استخبارات APT النخبة" color="#a855f7" onClose={() => close('aptIntel')}>
+            <APTIntelPage onClose={() => close('aptIntel')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.accountHackeTools && (
+          <AccountHackeToolsModal open={true} onOpenChange={(v) => { if (!v) close('accountHackeTools'); }} />
+        )}
+      </Suspense>
 
       {/* Global Window Tray — minimized windows only */}
       <WindowTray />
 
-      {/* Always-on bottom status bar — FPS, memory, net, uptime */}
-      <GlobalStatusBar />
 
-      {/* 4D Quantum Floating Widgets */}
-      <Quantum4DWidget />
     </div>
     </>
   );

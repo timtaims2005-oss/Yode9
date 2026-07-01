@@ -1248,7 +1248,6 @@ function AppContent() {
         <RogueMasterModal open={modals.rogueMaster} onOpenChange={(v) => mDispatch({type:'SET',id:'rogueMaster',value:v})} />
         <PasswordAttackModal open={modals.passwordAttack} onOpenChange={(v) => mDispatch({type:'SET',id:'passwordAttack',value:v})} />
         <AIHackingSkillsModal open={modals.aiHackingSkills} onOpenChange={(v) => mDispatch({type:'SET',id:'aiHackingSkills',value:v})} />
-        <AccountHackeToolsModal open={modals.accountHackeTools} onOpenChange={(v) => mDispatch({type:'SET',id:'accountHackeTools',value:v})} />
         <AITerminalModal open={modals.aiTerminal} onOpenChange={(v) => mDispatch({type:'SET',id:'aiTerminal',value:v})} />
         <MarkXXXIXModal open={modals.markXXXIX} onOpenChange={(v) => mDispatch({type:'SET',id:'markXXXIX',value:v})} />
         <MarkXXXIXORModal open={modals.markXXXIXOR} onOpenChange={(v) => mDispatch({type:'SET',id:'markXXXIXOR',value:v})} />
@@ -1719,6 +1718,11 @@ function AppContent() {
           <WindowChrome open={true} title="◈ مركز استخبارات APT النخبة" color="#a855f7" onClose={() => close('aptIntel')}>
             <APTIntelPage onClose={() => close('aptIntel')} />
           </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.accountHackeTools && (
+          <AccountHackeToolsModal open={true} onOpenChange={(v) => { if (!v) close('accountHackeTools'); }} />
         )}
       </Suspense>
 
