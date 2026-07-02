@@ -29,5 +29,5 @@ CREATE INDEX IF NOT EXISTS users_role_idx   ON users(role);
 CREATE INDEX IF NOT EXISTS users_status_idx ON users(status);
 
 -- Record migration
-INSERT INTO schema_migrations (version, name) VALUES (4, '004_add_missing_user_columns')
+INSERT INTO schema_migrations (version) VALUES ('004_add_missing_user_columns')
   ON CONFLICT (version) DO NOTHING;
