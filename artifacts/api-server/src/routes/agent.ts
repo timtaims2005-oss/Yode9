@@ -204,6 +204,97 @@ const AGENT_TOOLS = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "browse_web",
+      description: "Fetch full text content from any URL — news articles, documentation, GitHub repos, CVE advisories, blog posts, pastebin. Extracts clean readable text from any web page.",
+      parameters: {
+        type: "object",
+        properties: {
+          url: { type: "string", description: "Full URL to browse (must start with http:// or https://)" },
+          extract: { type: "string", enum: ["text", "links", "meta", "all"], description: "What to extract: text (default), links, meta tags, or all" },
+        },
+        required: ["url"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "search_structured",
+      description: "Web search returning structured results (title, URL, snippet). More detailed than web_search. Use for research, finding specific pages, or when you need URLs to then browse.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Search query" },
+          limit: { type: "number", description: "Number of results to return (1-10, default: 5)" },
+        },
+        required: ["query"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "extract_page_data",
+      description: "Extract structured data from a web page: headings outline, code blocks, email addresses. Use after browse_web when you need specific structured data types.",
+      parameters: {
+        type: "object",
+        properties: {
+          url: { type: "string", description: "URL to extract from" },
+          type: { type: "string", enum: ["headings", "code", "emails", "article"], description: "Type of data to extract" },
+        },
+        required: ["url", "type"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "generate_image",
+      description: "Generate an AI image from a text description using DALL-E. Use for diagrams, visual representations, security topology diagrams, or any visual content.",
+      parameters: {
+        type: "object",
+        properties: {
+          prompt: { type: "string", description: "Detailed description of the image to generate" },
+          size: { type: "string", enum: ["1024x1024", "1792x1024", "1024x1792"], description: "Image dimensions (default: 1024x1024)" },
+        },
+        required: ["prompt"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "save_memory",
+      description: "Save important findings, facts, IOCs, or discoveries to long-term agent memory for future reference. Use to persist key intelligence across sessions.",
+      parameters: {
+        type: "object",
+        properties: {
+          content: { type: "string", description: "Content to save to memory" },
+          title: { type: "string", description: "Short title for this memory entry" },
+          tags: { type: "string", description: "Comma-separated tags (e.g. 'CVE,malware,IOC')" },
+        },
+        required: ["content", "title"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "recall_memory",
+      description: "Search long-term agent memory for previously saved findings, IOCs, threat data, or research. Use to retrieve relevant past intelligence before starting a new investigation.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Search query to find relevant memories" },
+          limit: { type: "number", description: "Max results to return (default: 5)" },
+        },
+        required: ["query"],
+      },
+    },
+  },
 ];
 
 async function execWebSearch(query: string): Promise<string> {
@@ -476,6 +567,122 @@ async function execAnalyzeCode(code: string, language: string, task: string): Pr
   }
 }
 
+// ─── Browse Web ──────────────────────────────────────────────────────────────
+async function execBrowseWeb(url: string, extract = "text"): Promise<string> {
+  try {
+    const res = await fetch("http://localhost:8080/api/browser/fetch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, extract }),
+      signal: AbortSignal.timeout(20000),
+    });
+    const data = await res.json() as { ok: boolean; title?: string; text?: string; links?: { href: string; text: string }[]; meta?: Record<string, string>; error?: string };
+    if (!data.ok) return `Browse failed: ${data.error ?? "Unknown error"}`;
+    const parts: string[] = [];
+    if (data.title) parts.push(`Title: ${data.title}`);
+    if (data.text) parts.push(data.text.slice(0, 5000));
+    if (data.links) parts.push(`Links:\n${data.links.slice(0, 20).map(l => `• [${l.text}](${l.href})`).join("\n")}`);
+    if (data.meta) parts.push(`Meta: ${JSON.stringify(data.meta).slice(0, 500)}`);
+    return parts.join("\n\n") || "(empty page)";
+  } catch (e) {
+    return `Browse failed for ${url}: ${e instanceof Error ? e.message : "network error"}`;
+  }
+}
+
+// ─── Structured Web Search ────────────────────────────────────────────────────
+async function execSearchStructured(query: string, limit = 5): Promise<string> {
+  try {
+    const res = await fetch("http://localhost:8080/api/browser/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, limit: Math.min(limit, 10) }),
+      signal: AbortSignal.timeout(12000),
+    });
+    const data = await res.json() as { ok: boolean; results?: { title: string; url: string; snippet: string }[]; error?: string };
+    if (!data.ok || !data.results?.length) return `No structured results for "${query}". Try web_search as fallback.`;
+    return data.results.map((r, i) => `${i + 1}. **${r.title}**\n   URL: ${r.url}\n   ${r.snippet}`).join("\n\n");
+  } catch {
+    return `Structured search failed. Use web_search instead.`;
+  }
+}
+
+// ─── Extract Page Data ────────────────────────────────────────────────────────
+async function execExtractPageData(url: string, type: string): Promise<string> {
+  try {
+    const res = await fetch("http://localhost:8080/api/browser/extract", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, selector_type: type }),
+      signal: AbortSignal.timeout(15000),
+    });
+    const data = await res.json() as { ok: boolean; data?: unknown; error?: string };
+    if (!data.ok) return `Extract failed: ${data.error ?? "Unknown error"}`;
+    return JSON.stringify(data.data, null, 2).slice(0, 4000);
+  } catch {
+    return `Extract failed for ${url}. Try browse_web instead.`;
+  }
+}
+
+// ─── Generate Image ───────────────────────────────────────────────────────────
+async function execGenerateImage(prompt: string, size = "1024x1024"): Promise<string> {
+  try {
+    const res = await fetch("http://localhost:8080/api/image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, size }),
+      signal: AbortSignal.timeout(60000),
+    });
+    const data = await res.json() as { ok?: boolean; url?: string; b64?: string; error?: string };
+    if (data.error) return `Image generation failed: ${data.error}`;
+    if (data.url) return `Image generated: ${data.url}`;
+    if (data.b64) return `Image generated as base64 (${data.b64.length} chars). Prompt: "${prompt}"`;
+    return `Image generated for prompt: "${prompt}"`;
+  } catch {
+    return `Image generation unavailable. Describe the image textually instead.`;
+  }
+}
+
+// ─── Save Memory ─────────────────────────────────────────────────────────────
+async function execSaveMemory(content: string, title: string, tags = ""): Promise<string> {
+  try {
+    const res = await fetch("http://localhost:8080/api/agent-memory", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content: content.slice(0, 4000),
+        summary: title,
+        context: tags ? tags.split(",").map(t => t.trim()).join(", ") : "agent-tool",
+        importance: 0.8,
+        session_id: "agent-session",
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (res.ok) return `Memory saved: "${title}" (${content.length} chars)`;
+    return `Memory save failed (HTTP ${res.status})`;
+  } catch {
+    return `Memory service unavailable. Key information: "${title}: ${content.slice(0, 200)}"`;
+  }
+}
+
+// ─── Recall Memory ────────────────────────────────────────────────────────────
+async function execRecallMemory(query: string, limit = 5): Promise<string> {
+  try {
+    const res = await fetch("http://localhost:8080/api/agent-memory/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, limit: Math.min(limit, 10), session_id: "agent-session" }),
+      signal: AbortSignal.timeout(8000),
+    });
+    const data = await res.json() as { memories?: { summary: string; content: string; created_at: string }[]; error?: string };
+    if (!data.memories?.length) return `No relevant memories found for "${query}".`;
+    return data.memories.map((m, i) =>
+      `${i + 1}. **${m.summary}** (${new Date(m.created_at).toLocaleDateString()})\n${m.content.slice(0, 500)}`
+    ).join("\n\n");
+  } catch {
+    return `Memory recall service unavailable.`;
+  }
+}
+
 async function execRunCode(code: string, language = "python"): Promise<string> {
   try {
     const res = await fetch("http://localhost:8080/api/execute", {
@@ -544,26 +751,43 @@ async function executeTool(name: string, args: Record<string, string>): Promise<
     case "run_code": return execRunCode(args.code ?? "", args.language);
     case "translate": return execTranslate(args.text ?? "", args.target_language ?? "English", args.source_language);
     case "summarize": return execSummarize(args.text ?? "", args.style, args.max_points ? Number(args.max_points) : 8);
+    case "browse_web": return execBrowseWeb(args.url ?? "", args.extract);
+    case "search_structured": return execSearchStructured(args.query ?? "", args.limit ? Number(args.limit) : 5);
+    case "extract_page_data": return execExtractPageData(args.url ?? "", args.type ?? "article");
+    case "generate_image": return execGenerateImage(args.prompt ?? "", args.size);
+    case "save_memory": return execSaveMemory(args.content ?? "", args.title ?? "Agent note", args.tags);
+    case "recall_memory": return execRecallMemory(args.query ?? "", args.limit ? Number(args.limit) : 5);
     default: return `Unknown tool: ${name}`;
   }
 }
 
-const AGENT_SYSTEM = `You are an autonomous AI security research agent — CHAT-GPT Agent. You have access to live tools for intelligence gathering, OSINT, vulnerability research, and technical analysis.
+const AGENT_SYSTEM = `You are an autonomous AI assistant agent — CHAT-GPT Agent. You have access to 20 live tools covering intelligence gathering, OSINT, web browsing, code execution, image generation, memory, and analysis.
+
+AVAILABLE TOOL CATEGORIES:
+1. WEB & BROWSER: web_search, fetch_url, browse_web, search_structured, extract_page_data
+2. SECURITY & OSINT: dns_lookup, whois_lookup, extract_iocs, port_scan, exploit_search, network_recon
+3. CODE & COMPUTATION: run_code, calculate, analyze_code, generate_pentest_script
+4. AI CAPABILITIES: translate, summarize, generate_image
+5. MEMORY: save_memory, recall_memory
 
 OPERATING PROTOCOL:
-1. Decompose the user's task into sub-questions
-2. Use tools to gather real data — never fabricate facts you can verify
-3. Chain tool calls: web_search → fetch_url for details → extract_iocs for analysis
-4. For domain/IP targets: always run dns_lookup AND whois_lookup
-5. After gathering data, synthesize a structured, actionable report
+1. For any research task → recall_memory first (check if you already know), then search_structured + browse_web
+2. For domain/IP targets → network_recon (one call handles DNS+WHOIS+ports)
+3. For long documents/URLs → browse_web then summarize
+4. For foreign-language content → translate before analyzing
+5. For code tasks → analyze_code or run_code to verify
+6. Save important findings → save_memory (persists across sessions)
+7. After gathering data → synthesize with clear headers, tables, and citations
 
 TOOL SELECTION RULES:
-- CVE / vulnerability info → web_search first, then fetch_url on NVD/MITRE
-- Domain/IP recon → dns_lookup + whois_lookup + web_search
-- Log/text files → extract_iocs immediately
-- Math/subnet/entropy → calculate
-- Code review → analyze_code
-- Unknown URLs → fetch_url
+- Quick fact → web_search (fast, low-cost)
+- Full article/page → browse_web (extracts clean text)
+- Structured results needed → search_structured (returns title+URL+snippet)
+- Code blocks / headings from page → extract_page_data
+- CVE lookup → exploit_search
+- IOC extraction → extract_iocs on any text
+- Math/subnet/crypto → calculate
+- Visual output → generate_image
 
 Be thorough. Cite your sources. Format output with markdown headers and tables.`;
 
@@ -683,25 +907,39 @@ router.post("/agent", async (req, res) => {
           tool_calls: msg.tool_calls,
         } as ChatMessage);
 
-        for (const tc of msg.tool_calls) {
-          if (aborted) break;
+        // ── PARALLEL TOOL EXECUTION ────────────────────────────────────────────
+        // Announce all tool calls immediately
+        const toolCallList = msg.tool_calls.map(tc => {
           const fn = (tc as unknown as { function: { name: string; arguments: string } }).function;
-          const toolName = fn.name;
-          let toolArgs: Record<string, string> = {};
-          try { toolArgs = JSON.parse(fn.arguments ?? "{}"); } catch { /* keep empty */ }
+          let args: Record<string, string> = {};
+          try { args = JSON.parse(fn.arguments ?? "{}"); } catch { /* keep */ }
+          return { tc, name: fn.name, args };
+        });
 
-          sse(res, { type: "tool_call", step, name: toolName, args: toolArgs });
+        for (const { name, args } of toolCallList) {
+          sse(res, { type: "tool_call", step, name, args });
+        }
 
-          const result = await executeTool(toolName, toolArgs);
-          const ok = !result.startsWith("Failed") && !result.startsWith("No results");
+        // Execute all tool calls in parallel
+        const toolResults = await Promise.all(
+          toolCallList.map(async ({ tc, name, args }) => {
+            if (aborted) return { tc, name, result: "[Aborted]" };
+            const result = await executeTool(name, args);
+            const ok = !result.startsWith("Failed") && !result.startsWith("No results") && !result.startsWith("[Error") && !result.startsWith("Unknown tool");
+            if (!aborted) {
+              sse(res, { type: "tool_result", step, name, result: result.slice(0, 2000), ok });
+            }
+            return { tc, name, result };
+          })
+        );
 
-          sse(res, { type: "tool_result", step, name: toolName, result: result.slice(0, 2000), ok });
-
+        // Push all results to loop in order
+        for (const { tc, name, result } of toolResults) {
           loop.push({
             role: "tool",
             content: result.slice(0, 6000),
             tool_call_id: tc.id,
-            name: toolName,
+            name,
           });
         }
         continue;
@@ -718,6 +956,24 @@ router.post("/agent", async (req, res) => {
     const message = err instanceof Error ? err.message : "Agent error";
     try { res.write(`data: ${JSON.stringify({ type: "error", error: message })}\n\n`); res.end(); } catch { /* closed */ }
   }
+});
+
+// ── GET /api/agent/tools — List all available agent tools ─────────────────────
+router.get("/agent/tools", (_req, res) => {
+  res.json({
+    count: AGENT_TOOLS.length,
+    categories: {
+      "Web & Browser": ["web_search", "fetch_url", "browse_web", "search_structured", "extract_page_data"],
+      "Security & OSINT": ["dns_lookup", "whois_lookup", "extract_iocs", "port_scan", "exploit_search", "network_recon"],
+      "Code & Computation": ["run_code", "calculate", "analyze_code", "generate_pentest_script"],
+      "AI Capabilities": ["translate", "summarize", "generate_image"],
+      "Memory": ["save_memory", "recall_memory"],
+    },
+    tools: AGENT_TOOLS.map(t => ({
+      name: (t as unknown as { function: { name: string; description: string } }).function.name,
+      description: (t as unknown as { function: { name: string; description: string } }).function.description,
+    })),
+  });
 });
 
 export default router;
