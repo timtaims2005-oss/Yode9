@@ -176,6 +176,10 @@ interface SidebarProps {
   onOpenAccountHackeTools?: () => void;
   onOpenOmnixAbsolute?: () => void;
   onOpenDarkWebIntelFull?: () => void;
+  onOpenCodeInterpreter?: () => void;
+  onOpenCustomGpts?: () => void;
+  onOpenScheduledTasks?: () => void;
+  onOpenOrchestratorHub?: () => void;
 }
 
 const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: string }[] = [
@@ -307,7 +311,7 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: DbIcon, label: "Kali SQLi Guide", color: "text-blue-400" },
 ];
 
-export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution, onOpenKgProjectGenerator, onOpenKgAgentMemory, onOpenKgAutonomousSwarm, onOpenKgSocialArsenal, onOpenAptIntel, onOpenNexusPanel, onOpenAccountHackeTools, onOpenOmnixAbsolute, onOpenDarkWebIntelFull }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution, onOpenKgProjectGenerator, onOpenKgAgentMemory, onOpenKgAutonomousSwarm, onOpenKgSocialArsenal, onOpenAptIntel, onOpenNexusPanel, onOpenAccountHackeTools, onOpenOmnixAbsolute, onOpenDarkWebIntelFull, onOpenCodeInterpreter, onOpenCustomGpts, onOpenScheduledTasks, onOpenOrchestratorHub }: SidebarProps) {
   const { toast } = useToast();
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -1261,6 +1265,30 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                   <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-purple-500 border border-black animate-pulse" />
                   <Eye className="w-3.5 h-3.5 text-purple-400/70 group-hover:text-purple-400" />
                   <span className="text-[8px] text-gray-500 group-hover:text-gray-300">DWI</span>
+                </button>
+              )}
+              {onOpenCodeInterpreter && (
+                <button onClick={onOpenCodeInterpreter} title="مفسّر الكود — Python & JavaScript Sandbox" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-green-950/30 hover:bg-green-900/40 border border-green-500/25 hover:border-green-500/60 transition-all group relative">
+                  <Terminal className="w-3.5 h-3.5 text-green-400/70 group-hover:text-green-400" />
+                  <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Code</span>
+                </button>
+              )}
+              {onOpenCustomGpts && (
+                <button onClick={onOpenCustomGpts} title="ذكاء اصطناعي مخصص — Custom GPTs" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-blue-950/30 hover:bg-blue-900/40 border border-blue-500/25 hover:border-blue-500/60 transition-all group relative">
+                  <Bot className="w-3.5 h-3.5 text-blue-400/70 group-hover:text-blue-400" />
+                  <span className="text-[8px] text-gray-500 group-hover:text-gray-300">GPTs</span>
+                </button>
+              )}
+              {onOpenScheduledTasks && (
+                <button onClick={onOpenScheduledTasks} title="المهام المجدولة — Scheduled Tasks" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-amber-950/30 hover:bg-amber-900/40 border border-amber-500/25 hover:border-amber-500/60 transition-all group relative">
+                  <Clock className="w-3.5 h-3.5 text-amber-400/70 group-hover:text-amber-400" />
+                  <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Cron</span>
+                </button>
+              )}
+              {onOpenOrchestratorHub && (
+                <button onClick={onOpenOrchestratorHub} title="منسّق متعدد الوكلاء — Multi-Agent Orchestrator" className="flex flex-col items-center gap-0.5 w-7 h-7 flex items-center justify-center rounded-lg bg-rose-950/30 hover:bg-rose-900/40 border border-rose-500/25 hover:border-rose-500/60 transition-all group relative">
+                  <Users className="w-3.5 h-3.5 text-rose-400/70 group-hover:text-rose-400" />
+                  <span className="text-[8px] text-gray-500 group-hover:text-gray-300">Orch</span>
                 </button>
               )}
               {onOpenKgSecurity && (

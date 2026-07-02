@@ -271,6 +271,12 @@ const NotificationCenter    = lazy(() => import("./components/NotificationCenter
 const MobileSecurityModal   = lazy(() => import("./components/modals/MobileSecurityModal").then(m=>({default:m.MobileSecurityModal})));
 const DarkWebIntelligenceFullModal = lazy(() => import("./components/modals/DarkWebIntelligenceFullModal").then(m=>({default:m.DarkWebIntelligenceFullModal})));
 
+// ── Blueprint New Features ─────────────────────────────────────────────────────
+const CodeInterpreterModal  = lazy(() => import("./components/modals/CodeInterpreterModal").then(m=>({default:m.CodeInterpreterModal})));
+const CustomGPTsModal       = lazy(() => import("./components/modals/CustomGPTsModal").then(m=>({default:m.CustomGPTsModal})));
+const ScheduledTasksModal   = lazy(() => import("./components/modals/ScheduledTasksModal").then(m=>({default:m.ScheduledTasksModal})));
+const OrchestratorHubModal  = lazy(() => import("./components/modals/OrchestratorHubModal").then(m=>({default:m.OrchestratorHubModal})));
+
 // ── NEW PAGES (opened as modals via WindowChrome) ─────────────────────────────
 const AccountSettingsPage   = lazy(() => import("./pages/AccountSettingsPage").then(m=>({default:m.AccountSettingsPage})));
 const AnalyticsDashboardPage= lazy(() => import("./pages/AnalyticsDashboardPage").then(m=>({default:m.AnalyticsDashboardPage})));
@@ -388,6 +394,11 @@ const MODAL_IDS = [
   'osintHub',
   'mobileSecurity',
   'darkWebIntelFull',
+  // ── Blueprint New Features ──────────────────────────────────────────────────
+  'codeInterpreter',
+  'customGpts',
+  'scheduledTasks',
+  'orchestratorHub',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -719,6 +730,10 @@ function AppContent() {
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F2") { e.preventDefault(); setPerfCCOpen(v => !v); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F1") { e.preventDefault(); toggle('omnixAbsolute'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F3") { e.preventDefault(); toggle('darkWebIntelFull'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F4") { e.preventDefault(); toggle('codeInterpreter'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F5") { e.preventDefault(); toggle('customGpts'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F6") { e.preventDefault(); toggle('scheduledTasks'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F7") { e.preventDefault(); toggle('orchestratorHub'); }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -978,6 +993,10 @@ function AppContent() {
         onOpenAccountHackeTools={() => open('accountHackeTools')}
         onOpenOmnixAbsolute={() => open('omnixAbsolute')}
         onOpenDarkWebIntelFull={() => open('darkWebIntelFull')}
+        onOpenCodeInterpreter={() => open('codeInterpreter')}
+        onOpenCustomGpts={() => open('customGpts')}
+        onOpenScheduledTasks={() => open('scheduledTasks')}
+        onOpenOrchestratorHub={() => open('orchestratorHub')}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
@@ -1734,6 +1753,28 @@ function AppContent() {
       <Suspense fallback={null}>
         {modals.darkWebIntelFull && (
           <DarkWebIntelligenceFullModal open={modals.darkWebIntelFull} onClose={() => close('darkWebIntelFull')} />
+        )}
+      </Suspense>
+
+      {/* ── BLUEPRINT NEW FEATURES ─────────────────────────────────────────── */}
+      <Suspense fallback={null}>
+        {modals.codeInterpreter && (
+          <CodeInterpreterModal open={true} onClose={() => close('codeInterpreter')} />
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.customGpts && (
+          <CustomGPTsModal open={true} onClose={() => close('customGpts')} />
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.scheduledTasks && (
+          <ScheduledTasksModal open={true} onClose={() => close('scheduledTasks')} />
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.orchestratorHub && (
+          <OrchestratorHubModal open={true} onClose={() => close('orchestratorHub')} />
         )}
       </Suspense>
 

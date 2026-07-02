@@ -62,6 +62,14 @@ import webhooksMgmtRouter from "./webhooks-mgmt";
 import featuresRouter from "./features";
 import backupRouter from "./backup";
 
+// ── New Blueprint Features ─────────────────────────────────────────────────────
+import executeRouter      from "./execute";
+import ttsRouter          from "./tts";
+import customGptsRouter   from "./custom-gpts";
+import scheduledRouter    from "./scheduled";
+import orchestratorRouter from "./orchestrator";
+import browserRouter      from "./browser";
+
 const router: IRouter = Router();
 
 router.use(["/chat", "/council", "/godmode", "/image", "/vision", "/agent", "/agent4", "/rag", "/finetune", "/training"], tierRateLimit);
@@ -127,5 +135,13 @@ router.use(vectorRouter);
 router.use(webhooksMgmtRouter);
 router.use(featuresRouter);
 router.use(backupRouter);
+
+// ── New Blueprint Features ─────────────────────────────────────────────────────
+router.use(executeRouter);
+router.use(ttsRouter);
+router.use(customGptsRouter);
+router.use(scheduledRouter);
+router.use(orchestratorRouter);
+router.use(browserRouter);
 
 export default router;

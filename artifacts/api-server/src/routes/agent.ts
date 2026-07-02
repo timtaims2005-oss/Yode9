@@ -157,6 +157,53 @@ const AGENT_TOOLS = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "run_code",
+      description: "Execute a Python or JavaScript code snippet and return stdout/stderr. Use for data processing, calculations, file parsing, crypto operations, or any task that benefits from real code execution.",
+      parameters: {
+        type: "object",
+        properties: {
+          code: { type: "string", description: "Code to execute" },
+          language: { type: "string", enum: ["python", "javascript"], description: "Language (default: python)" },
+        },
+        required: ["code"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "translate",
+      description: "Translate text between any two languages. Useful for analyzing foreign-language threat intel, malware strings, dark web content, or OSINT from non-English sources.",
+      parameters: {
+        type: "object",
+        properties: {
+          text: { type: "string", description: "Text to translate" },
+          target_language: { type: "string", description: "Target language (e.g. English, Arabic, Russian, Chinese)" },
+          source_language: { type: "string", description: "Source language (optional — auto-detected if omitted)" },
+        },
+        required: ["text", "target_language"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "summarize",
+      description: "Summarize a long document, report, or paste of text into key points. Ideal for threat reports, CVE advisories, research papers, or large pastes.",
+      parameters: {
+        type: "object",
+        properties: {
+          text: { type: "string", description: "Text to summarize" },
+          style: { type: "string", enum: ["bullets", "executive", "technical", "tldr"], description: "Summary style (default: bullets)" },
+          max_points: { type: "number", description: "Maximum number of bullet points (default: 8)" },
+        },
+        required: ["text"],
+      },
+    },
+  },
 ];
 
 async function execWebSearch(query: string): Promise<string> {
@@ -429,6 +476,58 @@ async function execAnalyzeCode(code: string, language: string, task: string): Pr
   }
 }
 
+async function execRunCode(code: string, language = "python"): Promise<string> {
+  try {
+    const res = await fetch("http://localhost:8080/api/execute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, language }),
+      signal: AbortSignal.timeout(20000),
+    });
+    const data = await res.json() as { stdout?: string; stderr?: string; error?: string };
+    if (data.error) return `Execution error: ${data.error}`;
+    const parts: string[] = [];
+    if (data.stdout) parts.push(`stdout:\n${data.stdout.slice(0, 3000)}`);
+    if (data.stderr) parts.push(`stderr:\n${data.stderr.slice(0, 1000)}`);
+    return parts.length > 0 ? parts.join("\n") : "(no output)";
+  } catch {
+    return "Code execution service unavailable. Try calculate or analyze_code instead.";
+  }
+}
+
+async function execTranslate(text: string, targetLanguage: string, sourceLanguage?: string): Promise<string> {
+  try {
+    const sysPrompt = sourceLanguage
+      ? `You are a professional translator. Translate the following text from ${sourceLanguage} to ${targetLanguage}. Return ONLY the translated text, no explanations.`
+      : `You are a professional translator. Translate the following text to ${targetLanguage}. Return ONLY the translated text, no explanations.`;
+    const result = await callOnce([
+      { role: "system", content: sysPrompt },
+      { role: "user", content: text.slice(0, 4000) },
+    ], 2000);
+    return result || "Translation failed.";
+  } catch {
+    return "Translation service unavailable.";
+  }
+}
+
+async function execSummarize(text: string, style = "bullets", maxPoints = 8): Promise<string> {
+  const prompts: Record<string, string> = {
+    bullets: `Summarize the following in ${maxPoints} concise bullet points. Focus on key facts, indicators, and actionable information.`,
+    executive: `Write a 2-3 paragraph executive summary of the following. Lead with the most critical findings.`,
+    technical: `Write a technical summary with sections: Overview, Key Findings, Technical Details, Recommendations.`,
+    tldr: `Write a TL;DR (1-2 sentences) followed by 3-4 key bullet points.`,
+  };
+  try {
+    const result = await callOnce([
+      { role: "system", content: prompts[style] ?? prompts.bullets },
+      { role: "user", content: text.slice(0, 6000) },
+    ], 1500);
+    return result || "Summarization failed.";
+  } catch {
+    return "Summarization service unavailable.";
+  }
+}
+
 async function executeTool(name: string, args: Record<string, string>): Promise<string> {
   switch (name) {
     case "web_search": return execWebSearch(args.query ?? "");
@@ -442,6 +541,9 @@ async function executeTool(name: string, args: Record<string, string>): Promise<
     case "exploit_search": return execExploitSearch(args.query ?? "", args.severity);
     case "generate_pentest_script": return execGeneratePentestScript(args.task ?? "", args.language, args.target_context);
     case "network_recon": return execNetworkRecon(args.target ?? "");
+    case "run_code": return execRunCode(args.code ?? "", args.language);
+    case "translate": return execTranslate(args.text ?? "", args.target_language ?? "English", args.source_language);
+    case "summarize": return execSummarize(args.text ?? "", args.style, args.max_points ? Number(args.max_points) : 8);
     default: return `Unknown tool: ${name}`;
   }
 }
