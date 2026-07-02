@@ -8,7 +8,7 @@ import {
   Plus, Trash2, Settings2, Database, BookOpen, Filter, ArrowRight, Terminal,
   Sparkles, Code2, Infinity, Crosshair, Dna, Save, RotateCcw, Sliders,
   CheckCircle2, CircleDot, ChevronDown, BarChart3, Gauge, Cpu as CpuIcon,
-  Network, Layers3, ListFilter, HeartPulse,
+  Network, Layers3, ListFilter, HeartPulse, Cloud,
 } from "lucide-react";
 import { ProviderHealthDashboard3D } from "../ProviderHealthDashboard3D";
 import { motion, AnimatePresence } from "framer-motion";
@@ -192,6 +192,11 @@ const PROVIDERS: ProviderDef[] = [
     id: "personal", name: "Personal API", color: "#e21227", glow: "rgba(226,18,39,0.15)",
     icon: User, envKey: "", baseURL: "https://api.openai.com/v1",
     desc: "مفتاحك الشخصي + Base URL — يعمل دائماً", docsURL: "", badge: "دائم", requiresKey: false,
+  },
+  {
+    id: "cloudflare", name: "Cloudflare Workers AI", color: "#f38020", glow: "rgba(243,128,32,0.15)",
+    icon: Cloud, envKey: "CLOUDFLARE_API_TOKEN", baseURL: "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1",
+    desc: "Llama 3.1/3.2 · Mistral 7B · Gemma 7B — استنتاج حافّة مجاني", docsURL: "https://developers.cloudflare.com/workers-ai/", badge: "مجاني", requiresKey: true,
   },
 ];
 

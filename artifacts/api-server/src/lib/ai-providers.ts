@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 
-export type ProviderName = "openai" | "anthropic" | "groq" | "gemini" | "openrouter" | "custom" | "personal" | "zhipu" | "glm";
+export type ProviderName = "openai" | "anthropic" | "groq" | "gemini" | "openrouter" | "custom" | "personal" | "zhipu" | "glm" | "cloudflare";
 
 export type ProviderInfo = {
   id: ProviderName;
@@ -122,7 +122,24 @@ const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
     models: ["glm-5.2", "glm-5.1", "glm-5", "glm-4-plus", "glm-4", "glm-4-flash", "glm-zero-preview"],
     requiresKey: true,
   },
+  cloudflare: {
+    name: "Cloudflare Workers AI",
+    envKey: "CLOUDFLARE_API_TOKEN",
+    baseURL: "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1",
+    models: [
+      "@cf/meta/llama-3.1-8b-instruct",
+      "@cf/meta/llama-3.2-3b-instruct",
+      "@cf/mistral/mistral-7b-instruct-v0.1",
+      "@cf/google/gemma-7b-it",
+    ],
+    requiresKey: true,
+  },
 };
+
+function getCloudflareBaseURL(): string {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim() || "";
+  return `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1`;
+}
 
 function getPersonalBase(): string {
   return process.env.PERSONAL_API_BASE_URL?.trim() || "";
@@ -142,7 +159,8 @@ export function hasAnyApiKey(): boolean {
     process.env.CUSTOM_API_KEY?.trim() ||
     process.env.OPENAI_API_KEY?.trim() ||
     process.env.ZHIPU_API_KEY?.trim() ||
-    process.env.ZAI_API_KEY?.trim()
+    process.env.ZAI_API_KEY?.trim() ||
+    process.env.CLOUDFLARE_API_TOKEN?.trim()
   );
 }
 
@@ -158,10 +176,12 @@ export function listProviders(): ProviderInfo[] {
         available = !!(process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY);
       } else if (id === "anthropic") {
         available = !!(process.env.ANTHROPIC_API_KEY || process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY);
+      } else if (id === "cloudflare") {
+        available = !!(process.env.CLOUDFLARE_API_TOKEN?.trim() && process.env.CLOUDFLARE_ACCOUNT_ID?.trim());
       } else {
         available = !!process.env[cfg.envKey];
       }
-      const baseURL = id === "personal" ? getPersonalBase() : cfg.baseURL;
+      const baseURL = id === "personal" ? getPersonalBase() : id === "cloudflare" ? getCloudflareBaseURL() : cfg.baseURL;
       return { id, name: cfg.name, available, models: cfg.models, baseURL };
     }
   );
@@ -340,6 +360,67 @@ export async function* streamCompletion(
         return;
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Anthropic API error";
+        yield { error: msg };
+        return;
+      }
+    }
+
+    // ── Path 2.5: Cloudflare Workers AI (server-side key, raw fetch — different endpoint shape) ──
+    if (provider === "cloudflare") {
+      const apiToken = process.env.CLOUDFLARE_API_TOKEN?.trim();
+      const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim();
+      if (!apiToken || !accountId) {
+        yield {
+          error: "لم يتم ضبط CLOUDFLARE_API_TOKEN أو CLOUDFLARE_ACCOUNT_ID. أضفهما في Secrets.",
+        };
+        return;
+      }
+      const resolvedModel = model || "@cf/meta/llama-3.1-8b-instruct";
+      const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${resolvedModel}`;
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ messages, temperature, stream: true }),
+          signal: controller.signal,
+        });
+
+        if (!res.ok || !res.body) {
+          const text = await res.text().catch(() => "");
+          yield { error: `Cloudflare Workers AI error (${res.status}): ${text || res.statusText}` };
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const payload = trimmed.slice(5).trim();
+            if (payload === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(payload);
+              const content = parsed?.response ?? parsed?.result?.response ?? "";
+              if (content) yield { content };
+            } catch {
+              // ignore malformed SSE chunk
+            }
+          }
+        }
+        yield { done: true };
+        return;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Cloudflare Workers AI error";
         yield { error: msg };
         return;
       }
