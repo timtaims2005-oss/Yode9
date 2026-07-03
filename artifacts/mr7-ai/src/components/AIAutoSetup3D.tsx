@@ -454,9 +454,9 @@ function ModelBenchmarkPanel() {
                 const val=(t.scores as Record<string,number>)[m]||0;
                 return (
                   <div key={m} className="flex flex-col items-center gap-0.5" style={{flex:1}}>
-                    <motion.div style={{background:`linear-gradient(180deg,${colors[m]},${colors[m]}66)`,borderRadius:"2px 2px 0 0",width:"100%",originY:1}}
+                    <motion.div style={{background:`linear-gradient(180deg,${colors[m]},${colors[m]}66)`,borderRadius:"2px 2px 0 0",width:"100%",originY:1,height:`${(val/100)*24}px`}}
                       initial={{scaleY:0}} animate={{scaleY:1}} transition={{delay:i*0.08,duration:0.6}}
-                      className="flex items-end justify-center" style={{height:`${(val/100)*24}px`}}>
+                      className="flex items-end justify-center">
                     </motion.div>
                     <span className="text-[5.5px] font-mono font-bold" style={{color:colors[m]}}>{val}</span>
                   </div>

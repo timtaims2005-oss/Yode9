@@ -20,6 +20,14 @@ author = "agent"
 task = "workflow.run"
 args = "Start application"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "mr7-ai API Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "mr7-ai Frontend"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -31,6 +39,30 @@ outputType = "webview"
 task = "shell.exec"
 args = "python main.py"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "mr7-ai API Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export PATH=\"/home/runner/workspace/.config/npm/node_global/bin:$PATH\" && cd artifacts/api-server && pnpm run dev"
+waitForPort = 8080
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "mr7-ai Frontend"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export PATH=\"/home/runner/workspace/.config/npm/node_global/bin:$PATH\" && cd artifacts/mr7-ai && BASE_PATH=/ PORT=5173 pnpm run dev"
+waitForPort = 5173
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [userenv]
 

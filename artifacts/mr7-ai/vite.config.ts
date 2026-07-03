@@ -72,7 +72,6 @@ export default defineConfig({
           "vendor-ui":       ["@radix-ui/react-dialog", "@radix-ui/react-tooltip", "@radix-ui/react-popover"],
           "vendor-tanstack": ["@tanstack/react-query"],
           "vendor-lucide":   ["lucide-react"],
-          "vendor-monaco":   ["@monaco-editor/react"],
         },
       },
     },

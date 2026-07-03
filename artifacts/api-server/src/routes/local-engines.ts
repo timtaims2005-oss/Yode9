@@ -299,20 +299,36 @@ router.post("/local-engines/install/:id", (req, res): void => {
   if (!fs.existsSync(BIN_DIR)) fs.mkdirSync(BIN_DIR, { recursive: true });
 
   if (id === "ollama") {
-    send({ type: "log", message: "Downloading Ollama v0.30.10..." });
-    const dlUrl = "https://github.com/ollama/ollama/releases/download/v0.30.10/ollama-linux-amd64.tgz";
+    send({ type: "log", message: "Downloading Ollama v0.30.10...", pct: 0 });
+    const dlUrl   = "https://github.com/ollama/ollama/releases/download/v0.30.10/ollama-linux-amd64.tgz";
     const tgzPath = "/tmp/ollama.tgz";
     const outDir  = path.join(WORKSPACE, ".ollama-bin");
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
-    execAsync(`curl -L --max-time 300 -o ${tgzPath} "${dlUrl}" 2>&1`)
-      .then(() => {
-        send({ type: "log", message: "Extracting..." });
-        return execAsync(`tar -xzf ${tgzPath} -C ${outDir} 2>&1`);
-      })
-      .then(() => execAsync(`chmod +x ${path.join(outDir, "ollama")}`))
-      .then(() => { send({ type: "success", message: "Ollama installed ✓" }); res.end(); })
-      .catch(e => { send({ type: "error", message: String(e) }); res.end(); });
+    const proc = spawn("bash", ["-c",
+      `curl -L --max-time 300 -# -o ${tgzPath} "${dlUrl}" 2>&1`
+    ], { stdio: ["ignore", "pipe", "pipe"] });
+
+    let buf = "";
+    const onData = (chunk: Buffer) => {
+      buf += chunk.toString();
+      const matches = buf.match(/(\d+\.\d+)/g);
+      if (matches) {
+        const pct = Math.min(Math.round(parseFloat(matches[matches.length - 1])), 99);
+        send({ type: "progress", message: `Downloading... ${pct}%`, pct });
+        buf = "";
+      }
+    };
+    proc.stdout?.on("data", onData);
+    proc.stderr?.on("data", onData);
+
+    proc.on("close", (code) => {
+      if (code !== 0) { send({ type: "error", message: `Download failed (exit ${code})` }); res.end(); return; }
+      send({ type: "log", message: "Extracting tarball...", pct: 99 });
+      execAsync(`tar -xzf ${tgzPath} -C ${outDir} && chmod +x ${path.join(outDir, "ollama")}`)
+        .then(() => { send({ type: "success", message: "Ollama installed ✓", pct: 100 }); res.end(); })
+        .catch(e => { send({ type: "error", message: String(e) }); res.end(); });
+    });
     return;
   }
 
@@ -398,7 +414,7 @@ router.post("/local-engines/pull-model", async (req, res): Promise<void> => {
           const pct = obj.total && obj.total > 0
             ? Math.round(((obj.completed ?? 0) / obj.total) * 100)
             : null;
-          send({ type: "progress", status: obj.status, total: obj.total, completed: obj.completed, pct: pct ?? 0 });
+          send({ type: "progress", status: obj.status, total: obj.total, completed: obj.completed, pct });
         } catch { /* skip malformed line */ }
       }
     }
@@ -407,6 +423,93 @@ router.post("/local-engines/pull-model", async (req, res): Promise<void> => {
     res.end();
   } catch (err: unknown) {
     send({ type: "error", message: String(err) });
+    res.end();
+  }
+});
+
+router.delete("/local-engines/model/:model", async (req, res): Promise<void> => {
+  const model = decodeURIComponent(req.params.model);
+  if (!model) { res.status(400).json({ error: "model required" }); return; }
+  try {
+    const r = await fetch("http://localhost:11434/api/delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: model }),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (r.ok) {
+      res.json({ success: true, message: `تم حذف ${model}` });
+    } else {
+      const txt = await r.text().catch(() => "Unknown error");
+      res.status(r.status).json({ error: txt });
+    }
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+router.post("/local-engines/benchmark", async (req, res): Promise<void> => {
+  const { model, prompt } = req.body as { model?: string; prompt?: string };
+  if (!model) { res.status(400).json({ error: "model required" }); return; }
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  const send = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
+  const testPrompt = prompt ?? "Write a one-paragraph explanation of quantum computing.";
+
+  try {
+    const check = await fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(3000) });
+    if (!check.ok) { send({ type: "error", message: "Ollama غير مشغّل" }); res.end(); return; }
+
+    send({ type: "start", message: `Benchmarking ${model}...` });
+    const t0 = Date.now();
+    let tokens = 0;
+
+    const genRes = await fetch("http://localhost:11434/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model, prompt: testPrompt, stream: true }),
+      signal: AbortSignal.timeout(120000),
+    });
+
+    if (!genRes.ok || !genRes.body) {
+      send({ type: "error", message: `فشل: ${genRes.status}` });
+      res.end(); return;
+    }
+
+    const reader  = genRes.body.getReader();
+    const decoder = new TextDecoder();
+    let   carry   = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = (carry + chunk).split("\n");
+      carry = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const obj = JSON.parse(line) as { response?: string; done?: boolean; eval_count?: number; eval_duration?: number };
+          if (obj.response) {
+            tokens++;
+            const elapsed = (Date.now() - t0) / 1000;
+            const tps = elapsed > 0 ? Math.round(tokens / elapsed) : 0;
+            send({ type: "token", token: obj.response, tokens, tps, elapsed: Math.round(elapsed * 10) / 10 });
+          }
+          if (obj.done) {
+            const totalMs   = Date.now() - t0;
+            const finalTps  = obj.eval_duration ? Math.round(((obj.eval_count ?? tokens) / obj.eval_duration) * 1e9) : Math.round(tokens / (totalMs / 1000));
+            send({ type: "done", tokens: obj.eval_count ?? tokens, totalMs, tps: finalTps });
+          }
+        } catch { /* skip */ }
+      }
+    }
+    res.end();
+  } catch (e) {
+    send({ type: "error", message: String(e) });
     res.end();
   }
 });

@@ -146,13 +146,23 @@ export function LocalAIWindow({
   const [tpsTarget,  setTpsTarget]  = useState(0);
   const [tpsHistory, setTpsHistory] = useState<number[]>(Array(40).fill(0));
   const [launching,        setLaunching]        = useState<string | null>(null);
+  const [launchLog,        setLaunchLog]        = useState<Record<string, string>>({});
+  const [launchStatus,     setLaunchStatus]     = useState<Record<string, "ok"|"err"|"info"|null>>({});
   const [installing,       setInstalling]       = useState<string | null>(null);
   const [installLog,       setInstallLog]       = useState<Record<string, string>>({});
   const [installPct,       setInstallPct]       = useState<Record<string, number | null>>({});
+  const [pullPct,          setPullPct]          = useState<number | null>(null);
   const [showOllamaPull,   setShowOllamaPull]   = useState(false);
   const [pullModel,        setPullModel]        = useState("");
   const [pulling,          setPulling]          = useState(false);
   const [pullLog,          setPullLog]          = useState("");
+  const [deletingModel,    setDeletingModel]    = useState<string | null>(null);
+  const [deleteError,      setDeleteError]      = useState<string | null>(null);
+  const [benchModel,       setBenchModel]       = useState("");
+  const [benching,         setBenching]         = useState(false);
+  const [benchLog,         setBenchLog]         = useState("");
+  const [benchTps,         setBenchTps]         = useState<number | null>(null);
+  const [benchTokens,      setBenchTokens]      = useState<number | null>(null);
 
   // ── DUEL tab state ────────────────────────────────────────────────────────
   const [duelModel1,   setDuelModel1]   = useState("");
@@ -573,31 +583,114 @@ export function LocalAIWindow({
     setTimeout(fetchStatus, 1500);
   };
 
-  // ── Launch engine via SSE ───────────────────────────────────────────────────
+  // ── Launch engine via SSE — shows live log to user ─────────────────────────
   const launchEngine = async (id: string) => {
     setLaunching(id);
+    setLaunchLog(prev => ({ ...prev, [id]: "جارٍ التشغيل..." }));
+    setLaunchStatus(prev => ({ ...prev, [id]: null }));
     try {
       const r = await fetch(`/api/local-engines/launch/${id}`, { method: "POST" });
       if (r.body) {
         const reader = r.body.getReader();
         const dec    = new TextDecoder();
+        let   carry  = "";
         for (;;) {
-          const { done } = await reader.read();
+          const { done, value } = await reader.read();
           if (done) break;
-          void dec; // consumed
+          const chunk = dec.decode(value, { stream: true });
+          const lines = (carry + chunk).split("\n");
+          carry = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            try {
+              const ev = JSON.parse(line.slice(5)) as { type: string; message?: string };
+              const msg = ev.message ?? "";
+              if (msg) setLaunchLog(prev => ({ ...prev, [id]: msg }));
+              if (ev.type === "success") setLaunchStatus(prev => ({ ...prev, [id]: "ok" }));
+              else if (ev.type === "error") setLaunchStatus(prev => ({ ...prev, [id]: "err" }));
+              else if (ev.type === "info")  setLaunchStatus(prev => ({ ...prev, [id]: "info" }));
+            } catch { /* skip malformed */ }
+          }
         }
       }
-    } catch { /* ignore */ }
+    } catch (e) {
+      setLaunchLog(prev => ({ ...prev, [id]: `خطأ: ${String(e)}` }));
+      setLaunchStatus(prev => ({ ...prev, [id]: "err" }));
+    }
     setLaunching(null);
     setTimeout(fetchStatus, 2000);
   };
 
-  // ── Pull Ollama model ───────────────────────────────────────────────────────
+  // ── Delete Ollama model ─────────────────────────────────────────────────────
+  const deleteOllamaModel = async (model: string) => {
+    setDeletingModel(model);
+    setDeleteError(null);
+    try {
+      const r = await fetch(`/api/local-engines/model/${encodeURIComponent(model)}`, { method: "DELETE" });
+      const data = await r.json() as { success?: boolean; error?: string };
+      if (!data.success) setDeleteError(data.error ?? "فشل الحذف");
+      else setTimeout(fetchStatus, 1000);
+    } catch (e) { setDeleteError(String(e)); }
+    setDeletingModel(null);
+  };
+
+  // ── Quick Benchmark ──────────────────────────────────────────────────────────
+  const runBenchmark = async (model?: string) => {
+    const m = model ?? benchModel;
+    if (!m) return;
+    setBenchModel(m);
+    setBenching(true);
+    setBenchLog(`بدء الاختبار مع ${m}...`);
+    setBenchTps(null);
+    setBenchTokens(null);
+    try {
+      const r = await fetch("/api/local-engines/benchmark", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: m }),
+      });
+      if (r.body) {
+        const reader = r.body.getReader();
+        const dec    = new TextDecoder();
+        let   carry  = "";
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = dec.decode(value, { stream: true });
+          const lines = (carry + chunk).split("\n");
+          carry = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            try {
+              const ev = JSON.parse(line.slice(5)) as { type: string; tps?: number; tokens?: number; totalMs?: number; message?: string };
+              if (ev.type === "token") {
+                setBenchTps(ev.tps ?? null);
+                setBenchTokens(ev.tokens ?? null);
+                setBenchLog(`${ev.tokens} توكن · ${ev.tps} tok/s`);
+              } else if (ev.type === "done") {
+                setBenchTps(ev.tps ?? null);
+                setBenchTokens(ev.tokens ?? null);
+                setBenchLog(`✓ ${ev.tokens} توكن · ${ev.tps} tok/s · ${ev.totalMs}ms`);
+                setTpsTarget(ev.tps ?? 0);
+              } else if (ev.type === "error") {
+                setBenchLog(`خطأ: ${ev.message ?? ""}`);
+              }
+            } catch { /* skip */ }
+          }
+        }
+      }
+    } catch (e) { setBenchLog(`خطأ: ${String(e)}`); }
+    setBenching(false);
+  };
+
+  // ── Pull Ollama model — with real streaming % ─────────────────────────────
   const pullOllamaModel = async (overrideModel?: string) => {
     const modelName = (overrideModel ?? pullModel).trim();
     if (!modelName) return;
     if (overrideModel) setPullModel(overrideModel);
-    setPulling(true); setPullLog("بدء التحميل...");
+    setPulling(true);
+    setPullLog("بدء التحميل...");
+    setPullPct(null);
     try {
       const r = await fetch("/api/local-engines/pull-model", {
         method: "POST",
@@ -607,28 +700,39 @@ export function LocalAIWindow({
       if (r.body) {
         const reader = r.body.getReader();
         const dec    = new TextDecoder();
+        let   carry  = "";
         for (;;) {
           const { done, value } = await reader.read();
           if (done) break;
-          const text = dec.decode(value);
-          for (const line of text.split("\n")) {
+          const chunk = dec.decode(value, { stream: true });
+          const lines = (carry + chunk).split("\n");
+          carry = lines.pop() ?? "";
+          for (const line of lines) {
             if (!line.startsWith("data:")) continue;
             try {
               const ev = JSON.parse(line.slice(5)) as {
                 type: string; status?: string; pct?: number; message?: string;
               };
               if (ev.type === "progress") {
-                setPullLog(`${ev.status ?? "..."} ${ev.pct != null ? ev.pct + "%" : ""}`);
+                const label = ev.status ?? "...";
+                const p = ev.pct ?? null;
+                setPullLog(label);
+                if (p != null) setPullPct(p);
               } else if (ev.type === "success") {
                 setPullLog("✓ تم التحميل بنجاح");
+                setPullPct(100);
               } else if (ev.type === "error") {
                 setPullLog(`خطأ: ${ev.message ?? ""}`);
+                setPullPct(null);
               }
             } catch { /* skip */ }
           }
         }
       }
-    } catch (e) { setPullLog(`خطأ: ${String(e)}`); }
+    } catch (e) {
+      setPullLog(`خطأ: ${String(e)}`);
+      setPullPct(null);
+    }
     setPulling(false);
     setTimeout(fetchStatus, 1500);
   };
@@ -1048,6 +1152,25 @@ export function LocalAIWindow({
                         <div className="px-3 pb-2 text-[7.5px] font-mono" style={{ color: iLog.startsWith("خطأ") ? R : G }}>{iLog}</div>
                       )}
 
+                      {/* ── Launch log — shows SSE messages from server ── */}
+                      {(() => {
+                        const lLog = launchLog[eng.id];
+                        const lSt  = launchStatus[eng.id];
+                        if (!lLog) return null;
+                        const logCol = lSt === "ok" ? G : lSt === "err" ? R : lSt === "info" ? A : C;
+                        return (
+                          <div className="px-3 pb-2 flex items-center gap-1.5" style={{ borderTop: "1px solid rgba(255,255,255,0.03)" }}>
+                            <motion.div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                              style={{ background: logCol }}
+                              animate={isLaunch ? { scale:[0.6,1.2,0.6], opacity:[0.5,1,0.5] } : {}}
+                              transition={{ duration: 0.8, repeat: Infinity }}
+                            />
+                            <span className="text-[7.5px] font-mono truncate" style={{ color: logCol + "dd" }}>{lLog}</span>
+                            {lSt === "ok" && <CheckCircle size={9} style={{ color: G, flexShrink: 0 }} />}
+                          </div>
+                        );
+                      })()}
+
                       {/* ── Manual-install guide steps (lmstudio/jan/textgenwebui/gpt4all) — always visible ── */}
                       {!eng.canInstall && DL_STEPS[eng.id] && (
                         <div className="px-3 pb-2.5 space-y-0.5" style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 6 }}>
@@ -1101,32 +1224,47 @@ export function LocalAIWindow({
                                   {pulling ? "جارٍ..." : "تحميل"}
                                 </button>
                               </div>
+                              {/* Offline warning */}
+                              {!eng.online && !pulling && (
+                                <div className="text-[7.5px] font-mono px-1 py-1 rounded"
+                                  style={{ background: A + "10", border: `1px solid ${A}25`, color: A + "cc" }}>
+                                  Ollama غير مشغّل — اضغط "تشغيل" أولاً ثم حمّل النموذج
+                                </div>
+                              )}
                               {/* Streaming progress */}
-                              {pulling && (() => {
-                                const pctM = pullLog.match(/(\d+)%/);
-                                const pct  = pctM ? parseInt(pctM[1]) : null;
-                                return (
-                                  <div className="space-y-1.5">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-[7.5px] font-mono truncate flex-1" style={{ color: ec + "99" }}>{pullLog}</span>
-                                      {pct != null && <span className="text-[9px] font-black font-mono ml-2" style={{ color: ec }}>{pct}%</span>}
-                                    </div>
+                              {(pulling || pullLog) && (
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[7.5px] font-mono truncate flex-1"
+                                      style={{ color: pullLog.startsWith("خطأ") ? R : pulling ? ec + "99" : pullPct === 100 ? G : ec + "99" }}>
+                                      {pullLog || "جارٍ التحميل..."}
+                                    </span>
+                                    {pullPct != null && (
+                                      <span className="text-[9px] font-black font-mono ml-2"
+                                        style={{ color: pullPct === 100 ? G : ec }}>
+                                        {pullPct}%
+                                      </span>
+                                    )}
+                                  </div>
+                                  {(pulling || (pullPct != null && pullPct < 100)) && (
                                     <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                                      {pct != null ? (
+                                      {pullPct != null ? (
                                         <motion.div className="h-full rounded-full"
                                           style={{ background: `linear-gradient(90deg,${ec},${G})`, boxShadow: `0 0 8px ${ec}` }}
-                                          animate={{ width: `${pct}%` }} transition={{ duration: 0.3 }} />
+                                          animate={{ width: `${pullPct}%` }} transition={{ duration: 0.3 }} />
                                       ) : (
                                         <motion.div className="h-full rounded-full"
                                           style={{ background: `linear-gradient(90deg,${ec},${G})`, boxShadow: `0 0 8px ${ec}` }}
                                           animate={{ width: ["5%","65%","5%"] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }} />
                                       )}
                                     </div>
-                                  </div>
-                                );
-                              })()}
-                              {!pulling && pullLog && (
-                                <div className="text-[7.5px] font-mono" style={{ color: pullLog.startsWith("خطأ") ? R : G }}>{pullLog}</div>
+                                  )}
+                                  {!pulling && pullPct === 100 && (
+                                    <div className="flex items-center gap-1 text-[7.5px] font-mono" style={{ color: G }}>
+                                      <CheckCircle size={9} /> تم التحميل بنجاح
+                                    </div>
+                                  )}
+                                </div>
                               )}
                             </div>
                           )}
@@ -1202,22 +1340,28 @@ export function LocalAIWindow({
                   </button>
                 </div>
 
-                {/* Streaming progress bar */}
-                {pulling && (() => {
-                  const pctMatch = pullLog.match(/(\d+)%/);
-                  const pct = pctMatch ? parseInt(pctMatch[1]) : null;
-                  return (
-                    <div className="mt-2 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[8px] font-mono" style={{ color: C + "88" }}>{pullLog}</span>
-                        {pct !== null && <span className="text-[9px] font-black font-mono" style={{ color: C }}>{pct}%</span>}
-                      </div>
+                {/* Streaming progress bar — uses pullPct state (no regex) */}
+                {(pulling || pullLog) && (
+                  <div className="mt-2 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[8px] font-mono truncate flex-1"
+                        style={{ color: pullLog.startsWith("خطأ") ? R : pulling ? C + "88" : pullPct === 100 ? G : C + "88" }}>
+                        {pullLog || "جارٍ التحميل..."}
+                      </span>
+                      {pullPct != null && (
+                        <span className="text-[9px] font-black font-mono ml-2"
+                          style={{ color: pullPct === 100 ? G : C }}>
+                          {pullPct}%
+                        </span>
+                      )}
+                    </div>
+                    {(pulling || (pullPct != null && pullPct < 100)) && (
                       <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                        {pct !== null ? (
+                        {pullPct != null ? (
                           <motion.div
                             className="h-full rounded-full"
                             style={{ background: `linear-gradient(90deg,${C},${G})`, boxShadow: `0 0 8px ${C}` }}
-                            animate={{ width: `${pct}%` }}
+                            animate={{ width: `${pullPct}%` }}
                             transition={{ duration: 0.3 }}
                           />
                         ) : (
@@ -1229,13 +1373,12 @@ export function LocalAIWindow({
                           />
                         )}
                       </div>
-                    </div>
-                  );
-                })()}
-
-                {!pulling && pullLog && (
-                  <div className="text-[8px] font-mono mt-1.5 px-0.5" style={{ color: pullLog.startsWith("خطأ") ? R : G }}>
-                    {pullLog}
+                    )}
+                    {!pulling && pullPct === 100 && (
+                      <div className="flex items-center gap-1 text-[8px] font-mono" style={{ color: G }}>
+                        <CheckCircle size={9} /> تم التحميل بنجاح — النموذج جاهز للاستخدام
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1287,9 +1430,30 @@ export function LocalAIWindow({
                         >
                           {isActive ? "مُفعَّل" : "تفعيل"}
                         </button>
+                        <button
+                          onClick={() => runBenchmark(model)}
+                          disabled={benching}
+                          title="اختبار سرعة هذا النموذج"
+                          className="px-1.5 py-0.5 rounded-lg text-[7.5px] font-black flex-shrink-0 transition-all disabled:opacity-40"
+                          style={{ background: A + "10", border: `1px solid ${A}25`, color: A }}
+                        >
+                          {benching && benchModel === model ? "..." : "⚡"}
+                        </button>
+                        <button
+                          onClick={() => deleteOllamaModel(model)}
+                          disabled={!!deletingModel}
+                          title="حذف هذا النموذج"
+                          className="px-1.5 py-0.5 rounded-lg text-[7.5px] font-black flex-shrink-0 transition-all disabled:opacity-40"
+                          style={{ background: R + "10", border: `1px solid ${R}25`, color: R }}
+                        >
+                          {deletingModel === model ? "..." : "✕"}
+                        </button>
                       </div>
                     );
                   })}
+                  {deleteError && (
+                    <div className="text-[7.5px] font-mono px-1" style={{ color: R }}>{deleteError}</div>
+                  )}
 
                   {/* Models from other online engines */}
                   {engines.filter(e => e.id !== "ollama" && e.online && e.models.length > 0).map(eng => {
@@ -1568,6 +1732,62 @@ export function LocalAIWindow({
                   </div>
                 )}
               </div>
+
+              {/* Quick Benchmark */}
+              {(() => {
+                const ollamaModels = (engines.find(e => e.id === "ollama")?.models ?? []);
+                if (ollamaModels.length === 0) return null;
+                return (
+                  <div className="rounded-xl p-2.5 space-y-2" style={{ background: A + "06", border: `1px solid ${A}18` }}>
+                    <div className="flex items-center justify-between">
+                      <div className="text-[6.5px] font-black tracking-widest uppercase" style={{ color: A + "66" }}>
+                        QUICK BENCHMARK
+                      </div>
+                      {benchTps != null && !benching && (
+                        <span className="text-[9px] font-black font-mono" style={{ color: A }}>
+                          {benchTps} tok/s
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-1.5">
+                      <select
+                        value={benchModel}
+                        onChange={e => setBenchModel(e.target.value)}
+                        className="flex-1 px-2 py-1 rounded-lg text-[8.5px] font-mono outline-none"
+                        style={{ background: "rgba(0,0,0,0.4)", border: `1px solid ${A}22`, color: "rgba(255,255,255,0.7)" }}
+                      >
+                        <option value="">اختر نموذجاً</option>
+                        {ollamaModels.map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                      <button
+                        onClick={() => runBenchmark()}
+                        disabled={benching || !benchModel}
+                        className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all disabled:opacity-40"
+                        style={{ background: benching ? A + "15" : A + "22", border: `1px solid ${A}33`, color: A }}
+                      >
+                        <motion.div animate={benching ? { rotate: 360 } : {}} transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }}>
+                          <Zap size={8} />
+                        </motion.div>
+                        {benching ? "جارٍ..." : "ابدأ"}
+                      </button>
+                    </div>
+                    {benchLog && (
+                      <div className="text-[7.5px] font-mono" style={{ color: benching ? A + "88" : benchLog.startsWith("خطأ") ? R : G }}>
+                        {benchLog}
+                      </div>
+                    )}
+                    {benching && benchTokens != null && (
+                      <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                        <motion.div className="h-full rounded-full"
+                          style={{ background: `linear-gradient(90deg,${A},${G})`, boxShadow: `0 0 6px ${A}` }}
+                          animate={{ width: ["5%","80%","5%"] }}
+                          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>
