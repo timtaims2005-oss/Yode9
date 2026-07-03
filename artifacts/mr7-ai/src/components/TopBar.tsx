@@ -102,6 +102,9 @@ export type TopBarProps = {
   onMenuClick: () => void;
   sidebarCollapsed: boolean;
   onToggleSidebar: () => void;
+  onOpenHardware?: () => void;
+  onToggleProviderHealth3D?: () => void;
+  onTogglePersonaSwitcher3D?: () => void;
   onOpenPricing: () => void;
   onOpenToolsHub: () => void;
   onOpenHelp: () => void;
@@ -270,6 +273,7 @@ export type TopBarProps = {
 export function TopBar(props: TopBarProps) {
   const { state, dispatch } = useStore();
   const [modelQuery, setModelQuery] = useState("");
+  const [hardwareDashOpen, setHardwareDashOpen] = useState(false);
 
   const filteredModels = modelQuery.trim()
     ? AI_MODELS.filter((m) => m.id.toLowerCase().includes(modelQuery.toLowerCase()))
@@ -345,6 +349,9 @@ export function TopBar(props: TopBarProps) {
     { label: "Global Status", icon: Globe2, onClick: props.onToggleGlobalStatus },
     { label: "Offline Queue", icon: WifiOff, onClick: props.onToggleOfflineQueue },
     { label: "Performance Command Center", icon: Cog, onClick: props.onOpenPerfCC },
+    { label: "Provider Health 3D", icon: HeartPulse, onClick: () => props.onToggleProviderHealth3D?.() },
+    { label: "Persona Switcher 3D", icon: UserCircle2, onClick: () => props.onTogglePersonaSwitcher3D?.() },
+    { label: "Hardware Dashboard", icon: HardDrive, onClick: () => setHardwareDashOpen(true) },
   ];
 
 
@@ -453,6 +460,7 @@ export function TopBar(props: TopBarProps) {
   ];
 
   return (
+    <>
     <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card/60 backdrop-blur-sm shrink-0 overflow-x-auto">
       <button
         onClick={props.onMenuClick}
@@ -521,6 +529,8 @@ export function TopBar(props: TopBarProps) {
         ))}
       </div>
 
+      <TopBarHardwareButton onOpenHardware={() => setHardwareDashOpen(true)} />
+
       <button
         onClick={props.onOpenHelp}
         className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground"
@@ -545,5 +555,8 @@ export function TopBar(props: TopBarProps) {
         <span className="hidden sm:inline">Upgrade</span>
       </motion.button>
     </div>
+
+    <HardwareDashboardModal isOpen={hardwareDashOpen} onClose={() => setHardwareDashOpen(false)} />
+    </>
   );
 }

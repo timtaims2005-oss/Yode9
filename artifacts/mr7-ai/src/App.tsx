@@ -359,6 +359,8 @@ const WebGLParticleField      = lazy(() => import("./components/WebGLParticleFie
 const SysMonitorOrb           = lazy(() => import("./components/FloatingChatPanels").then(m=>({default:m.SysMonitorOrb})));
 const IdleTrackerOrb          = lazy(() => import("./components/FloatingChatPanels").then(m=>({default:m.IdleTrackerOrb})));
 const StreamTPSBadge          = lazy(() => import("./components/StreamTPSBadge").then(m=>({default:m.StreamTPSBadge})));
+const ProviderHealthBadge3D   = lazy(() => import("./components/ProviderHealthBadge3D").then(m=>({default:m.ProviderHealthBadge3D})));
+const PersonaSwitcher3D       = lazy(() => import("./components/PersonaSwitcher3D").then(m=>({default:m.PersonaSwitcher3D})));
 const DataIntelModal          = lazy(() => import("./components/modals/DataIntelModal").then(m=>({default:m.DataIntelModal})));
 const DeepfakeDetectorModal   = lazy(() => import("./components/modals/DeepfakeDetectorModal").then(m=>({default:m.DeepfakeDetectorModal})));
 const DeepPacketModal         = lazy(() => import("./components/modals/DeepPacketModal").then(m=>({default:m.DeepPacketModal})));
@@ -633,6 +635,8 @@ function AppContent() {
   const [showSysMonitorOrb, setShowSysMonitorOrb] = useState(false);
   const [showIdleTrackerOrb, setShowIdleTrackerOrb] = useState(false);
   const [showStreamTPS, setShowStreamTPS] = useState(false);
+  const [showProviderHealth3D, setShowProviderHealth3D] = useState(false);
+  const [showPersonaSwitcher3D, setShowPersonaSwitcher3D] = useState(false);
   const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
   void addCostEntry; void shellGeneratorInject;
 
@@ -1284,6 +1288,8 @@ function AppContent() {
           onOpenVulnDiscovery={() => open('vulnDiscovery')}
           onOpenWhatsNew={() => open('whatsNew')}
           onOpenZeroBoundary={() => open('zeroBoundary')}
+          onToggleProviderHealth3D={() => setShowProviderHealth3D(v => !v)}
+          onTogglePersonaSwitcher3D={() => setShowPersonaSwitcher3D(v => !v)}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} controllerEnabled={controllerEnabled} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
@@ -1739,6 +1745,8 @@ function AppContent() {
         {showSysMonitorOrb && <SysMonitorOrb />}
         {showIdleTrackerOrb && <IdleTrackerOrb />}
         {showStreamTPS && <StreamTPSBadge sessionId={state.activeChatId} visible={showStreamTPS} />}
+        {showProviderHealth3D && <ProviderHealthBadge3D />}
+        {showPersonaSwitcher3D && <PersonaSwitcher3D onOpenPersonaEditor={() => open('personaEditor')} onOpenPersonaManager={() => open('personaManager')} />}
       </Suspense>
 
       <div className="hidden md:block">
