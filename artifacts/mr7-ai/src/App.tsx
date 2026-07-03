@@ -1159,7 +1159,6 @@ function AppContent() {
           onOpenAgent={() => open('agent')}
           onOpenNexus={() => open('nexus')}
           onOpenArsenal={() => open('arsenal')}
-          onOpenPentestLab={() => open('pentestLabPro')}
           onOpenProviderSettings={() => open('providerSettings')}
           onOpenModelCompare={() => open('modelCompare')}
           onOpenNeuralMatrix={() => open('neuralMatrix')}
@@ -1211,125 +1210,6 @@ function AppContent() {
           onTogglePerfMon={() => setShowPerfMon(v => !v)}
           onToggleGlobalStatus={() => setShowGlobalStatus(v => !v)}
           onToggleOfflineQueue={() => setShowOfflineQueue(v => !v)}
-          onToggleCyberHeatmap={() => setShowCyberHeatmap(v => !v)}
-          onToggleCyber3DGrid={() => setShowCyber3DGrid(v => !v)}
-          onToggleQuantumCommand={() => setShowQuantumCommand(v => !v)}
-          onToggleAIQuickSetup={() => setShowAIQuickSetup(v => !v)}
-          onToggleFloatingNetwork={() => setShowFloatingNetwork(v => !v)}
-          onToggleQuantumMemGraph={() => setShowQuantumMemGraph(v => !v)}
-          onToggleQuantumPersona3D={() => setShowQuantumPersona3D(v => !v)}
-          onToggleQuantumStatusBar={() => setShowQuantumStatusBar(v => !v)}
-          onToggleWebGLParticles={() => setShowWebGLParticles(v => !v)}
-          onToggleSysMonitorOrb={() => setShowSysMonitorOrb(v => !v)}
-          onToggleIdleTrackerOrb={() => setShowIdleTrackerOrb(v => !v)}
-          onToggleStreamTPS={() => setShowStreamTPS(v => !v)}
-          onOpenRealTimeMonitor={() => open('realTimeMonitor')}
-          onOpenBlockchainTracker={() => open('blockchainTracker')}
-          onOpenContextWindowPage={() => open('contextWindowPage')}
-          onOpenSecurityAuditPage={() => open('securityAuditPage')}
-          onOpenMonitoringPagePlain={() => open('monitoringPagePlain')}
-          onOpenSecurityCompliancePagePlain={() => open('securityCompliancePagePlain')}
-          onOpenAdaV2={() => open('adaV2')}
-          onOpenAgent4DesignCanvas={() => open('agent4DesignCanvas')}
-          onOpenAgent4GitDashboard={() => open('agent4GitDashboard')}
-          onOpenAgent4Integrations={() => open('agent4Integrations')}
-          onOpenAgent4Slides={() => open('agent4Slides')}
-          onOpenAgent4WebSearch={() => open('agent4WebSearch')}
-          onOpenAgentFour={() => open('agentFour')}
-          onOpenAgentSwarm={() => open('agentSwarm')}
-          onOpenAgentV2={() => open('agentV2')}
-          onOpenAiAtlas={() => open('aiAtlas')}
-          onOpenAiInfra={() => open('aiInfra')}
-          onOpenAiSafety={() => open('aiSafety')}
-          onOpenAnomalyCS={() => open('anomalyCS')}
-          onOpenArchEngine={() => open('archEngine')}
-          onOpenAttackSurface={() => open('attackSurface')}
-          onOpenAutonomousOversight={() => open('autonomousOversight')}
-          onOpenAutonomousSOC={() => open('autonomousSOC')}
-          onOpenBehavioralDNA={() => open('behavioralDNA')}
-          onOpenBinaryCore={() => open('binaryCore')}
-          onOpenBuildYourOwnX={() => open('buildYourOwnX')}
-          onOpenCausalReasoning={() => open('causalReasoning')}
-          onOpenClaudeCode={() => open('claudeCode')}
-          onOpenClaudeSkills={() => open('claudeSkills')}
-          onOpenCrossDomainRisk={() => open('crossDomainRisk')}
-          onOpenCyberConsciousness={() => open('cyberConsciousness')}
-          onOpenCyberEvolution={() => open('cyberEvolution')}
-          onOpenCyberIntelBrain={() => open('cyberIntelBrain')}
-          onOpenCyberPhysical={() => open('cyberPhysical')}
-          onOpenCyberWarfare={() => open('cyberWarfare')}
-          onOpenDarkWebSearch={() => open('darkWebSearch')}
-          onOpenDataIntel={() => open('dataIntel')}
-          onOpenDeepfakeDetector={() => open('deepfakeDetector')}
-          onOpenDeepPacket={() => open('deepPacket')}
-          onOpenDigitalTwin={() => open('digitalTwin')}
-          onOpenExploitAbs={() => open('exploitAbs')}
-          onOpenExploitResist={() => open('exploitResist')}
-          onOpenForensicRecon={() => open('forensicRecon')}
-          onOpenFridayAI={() => open('fridayAI')}
-          onOpenFullSpectrumAI={() => open('fullSpectrumAI')}
-          onOpenGlobalIntelSync={() => open('globalIntelSync')}
-          onOpenHyperAdaptive={() => open('hyperAdaptive')}
-          onOpenHyperFusion={() => open('hyperFusion')}
-          onOpenIdentityGraph={() => open('identityGraph')}
-          onOpenIncidentResponse={() => open('incidentResponse')}
-          onOpenInfraIntel={() => open('infraIntel')}
-          onOpenInstagramCLI={() => open('instagramCLI')}
-          onOpenIntelligenceFabric={() => open('intelligenceFabric')}
-          onOpenJarvisHologram={() => open('jarvisHologram')}
-          onOpenLargeScaleAnomaly={() => open('largeScaleAnomaly')}
-          onOpenMalwareAnalysis={() => open('malwareAnalysis')}
-          onOpenMalwareCog={() => open('malwareCog')}
-          onOpenMalwareTools={() => open('malwareTools')}
-          onOpenMisinfoDetector={() => open('misinfoDetector')}
-          onOpenMultiReality={() => open('multiReality')}
-          onOpenOdysseusCompare={() => open('odysseusCompare')}
-          onOpenOdysseusDeepResearch={() => open('odysseusDeepResearch')}
-          onOpenOdysseusDocEditor={() => open('odysseusDocEditor')}
-          onOpenOdysseusEmailAI={() => open('odysseusEmailAI')}
-          onOpenOdysseusModelCookbook={() => open('odysseusModelCookbook')}
-          onOpenOdysseusTaskCalendar={() => open('odysseusTaskCalendar')}
-          onOpenOdysseusWorkspace={() => open('odysseusWorkspace')}
-          onOpenOmniBot={() => open('omniBot')}
-          onOpenOnboardingTour={() => open('onboardingTour')}
-          onOpenPayment={() => open('payment')}
-          onOpenPocketAI={() => open('pocketAI')}
-          onOpenPrivacyRisk={() => open('privacyRisk')}
-          onOpenProviderStatus={() => open('providerStatus')}
-          onOpenSelfHealing={() => open('selfHealing')}
-          onOpenSelfImproving={() => open('selfImproving')}
-          onOpenShare={() => open('share')}
-          onOpenSovereignAI={() => open('sovereignAI')}
-          onOpenSysCognition={() => open('sysCognition')}
-          onOpenSysEvolution={() => open('sysEvolution')}
-          onOpenSysObs={() => open('sysObs')}
-          onOpenTemporalThreat={() => open('temporalThreat')}
-          onOpenThreatCog={() => open('threatCog')}
-          onOpenThreatDetection={() => open('threatDetection')}
-          onOpenThreatPredict={() => open('threatPredict')}
-          onOpenVisionCapture={() => open('visionCapture')}
-          onOpenVoiceChat={() => open('voiceChat')}
-          onOpenVulnDiscovery={() => open('vulnDiscovery')}
-          onOpenWhatsNew={() => open('whatsNew')}
-          onOpenZeroBoundary={() => open('zeroBoundary')}
-          onToggleProviderHealth3D={() => setShowProviderHealth3D(v => !v)}
-          onTogglePersonaSwitcher3D={() => setShowPersonaSwitcher3D(v => !v)}
-          onToggleIntelligenceHUD={() => setShowIntelligenceHUD(v => !v)}
-          onToggleNotificationCenter={() => setShowNotificationCenter(v => !v)}
-          onToggleQuickDock3D={() => setShowQuickDock3D(v => !v)}
-          onToggleUltraHUD={() => setShowUltraHUD(v => !v)}
-          onToggleSystemStatus={() => setShowSystemStatus(v => !v)}
-          onToggleAmbientLayer={() => setShowAmbientLayer(v => !v)}
-          onToggleFuturisticBg={() => setShowFuturisticBg(v => !v)}
-          showProviderHealth3D={showProviderHealth3D}
-          showPersonaSwitcher3D={showPersonaSwitcher3D}
-          showIntelligenceHUD={showIntelligenceHUD}
-          showNotificationCenter={showNotificationCenter}
-          showQuickDock3D={showQuickDock3D}
-          showUltraHUD={showUltraHUD}
-          showSystemStatus={showSystemStatus}
-          showAmbientLayer={showAmbientLayer}
-          showFuturisticBg={showFuturisticBg}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} controllerEnabled={controllerEnabled} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
