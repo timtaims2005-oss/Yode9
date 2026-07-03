@@ -63,7 +63,7 @@ LOCAL_UPLOAD_DIR = "./uploads"
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["bash", "-c", "cd artifacts/api-server && PORT=8080 node --enable-source-maps ./dist/index.mjs & cd artifacts/mr7-ai && PORT=5000 BASE_PATH=/ pnpm run serve"]
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
 build = ["bash", "-c", "cd artifacts/api-server && pnpm run build && cd ../mr7-ai && pnpm run build"]
 
 [[ports]]
