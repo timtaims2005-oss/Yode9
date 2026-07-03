@@ -75,8 +75,8 @@ import { keyboardEngine } from "./lib/keyboard-engine";
 import { eventBus } from "./lib/event-bus";
 import { storageQuota } from "./lib/storage-quota";
 
-// ── LAZY-LOADED AMBIENT 3D LAYERS (improves initial bundle) ──────────────────
-const AmbientLayer = lazy(() => import("./components/layout/AmbientLayer").then(m => ({ default: m.AmbientLayer })));
+// ── LAZY-LOADED AMBIENT LAYERS (improves initial bundle) ──────────────────
+const SimpleAmbientBackground = lazy(() => import("./components/layout/SimpleAmbientBackground").then(m => ({ default: m.SimpleAmbientBackground })));
 const UltraHUD     = lazy(() => import("./components/3d/UltraHUD").then(m => ({ default: m.UltraHUD })));
 const CyberHUDOverlay = lazy(() => import("./components/CyberWidgetsDock").then(m => ({ default: m.CyberHUDOverlay })));
 const IntelligenceHUDOverlay = lazy(() => import("./components/IntelligenceHUDOverlay").then(m => ({ default: m.IntelligenceHUDOverlay })));
@@ -362,7 +362,6 @@ const StreamTPSBadge          = lazy(() => import("./components/StreamTPSBadge")
 const ProviderHealthBadge3D   = lazy(() => import("./components/ProviderHealthBadge3D").then(m=>({default:m.ProviderHealthBadge3D})));
 const PersonaSwitcher3D       = lazy(() => import("./components/PersonaSwitcher3D").then(m=>({default:m.PersonaSwitcher3D})));
 const QuickDock3D             = lazy(() => import("./components/QuickDock3D").then(m=>({default:m.QuickDock3D})));
-const FuturisticBackground3D  = lazy(() => import("./components/FuturisticBackground3D").then(m=>({default:m.FuturisticBackground3D})));
 const HoloNotificationProvider = lazy(() => import("./components/HoloNotification").then(m=>({default:m.HoloNotificationProvider})));
 const DataIntelModal          = lazy(() => import("./components/modals/DataIntelModal").then(m=>({default:m.DataIntelModal})));
 const DeepfakeDetectorModal   = lazy(() => import("./components/modals/DeepfakeDetectorModal").then(m=>({default:m.DeepfakeDetectorModal})));
@@ -646,7 +645,6 @@ function AppContent() {
   const [showUltraHUD, setShowUltraHUD] = useState(false);
   const [showSystemStatus, setShowSystemStatus] = useState(true);
   const [showAmbientLayer, setShowAmbientLayer] = useState(true);
-  const [showFuturisticBg, setShowFuturisticBg] = useState(true);
   const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
   void addCostEntry; void shellGeneratorInject;
 
@@ -1037,10 +1035,9 @@ function AppContent() {
     <Suspense fallback={null}>
       <HoloNotificationProvider />
     </Suspense>
-    {/* ── Ambient 5D Background Layer ──────────────────────────────────── */}
+    {/* ── Ambient Background Layer (simple, clean, no heavy 3D orbs) ────── */}
     <Suspense fallback={null}>
-      {showAmbientLayer && <AmbientLayer />}
-      {showFuturisticBg && <FuturisticBackground3D opacity={0.35} />}
+      {showAmbientLayer && <SimpleAmbientBackground />}
     </Suspense>
     {/* ── Ultra HUD Overlay + System Status Widget ──────────────────────── */}
     <Suspense fallback={null}>
