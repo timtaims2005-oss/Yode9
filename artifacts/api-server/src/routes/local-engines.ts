@@ -15,6 +15,10 @@ const ENGINES = [
   { id: "gpt4all",       label: "GPT4All",         port: 4891,  base: "http://localhost:4891",  apiPath: "/v1/models",   modelsKey: "data",   idKey: "id",    canInstall: false },
   { id: "llamafile",     label: "Llamafile",       port: 8081,  base: "http://localhost:8081",  apiPath: "/v1/models",   modelsKey: "data",   idKey: "id",    canInstall: true  },
   { id: "kobold",        label: "KoboldCPP",       port: 5001,  base: "http://localhost:5001",  apiPath: "/api/v1/model",modelsKey: null,     idKey: "result",canInstall: true  },
+  // ── New engines added July 2026 ──────────────────────────────────────────────
+  { id: "llamacpp",      label: "llama.cpp",       port: 8082,  base: "http://localhost:8082",  apiPath: "/v1/models",   modelsKey: "data",   idKey: "id",    canInstall: true  },
+  { id: "nitro",         label: "Nitro",           port: 3928,  base: "http://localhost:3928",  apiPath: "/v1/models",   modelsKey: "data",   idKey: "id",    canInstall: true  },
+  { id: "localai",       label: "LocalAI",         port: 8083,  base: "http://localhost:8083",  apiPath: "/v1/models",   modelsKey: "data",   idKey: "id",    canInstall: true  },
 ] as const;
 
 type EngineId = typeof ENGINES[number]["id"];
@@ -31,8 +35,9 @@ interface EngineStatus {
   installAvailable: boolean;
 }
 
-const WORKSPACE = process.cwd();
-const BIN_DIR   = path.join(WORKSPACE, ".local-engines");
+const WORKSPACE    = process.cwd();
+const BIN_DIR      = path.join(WORKSPACE, ".local-engines");
+const HOME_BIN_DIR = "/home/runner/.local-engines";
 
 async function pingEngine(eng: typeof ENGINES[number]): Promise<EngineStatus> {
   const t0 = Date.now();
@@ -87,11 +92,24 @@ function checkInstallAvailable(id: EngineId): boolean {
     return candidates.some(p => fs.existsSync(p));
   }
   if (id === "llamafile") {
-    return fs.existsSync(path.join(BIN_DIR, "llamafile"));
+    return fs.existsSync(path.join(HOME_BIN_DIR, "llamafile")) ||
+           fs.existsSync(path.join(BIN_DIR, "llamafile"));
   }
   if (id === "kobold") {
     return fs.existsSync(path.join(BIN_DIR, "koboldcpp", "koboldcpp.py")) ||
            fs.existsSync(path.join(BIN_DIR, "koboldcpp"));
+  }
+  if (id === "llamacpp") {
+    return fs.existsSync(path.join(HOME_BIN_DIR, "llama-server")) ||
+           fs.existsSync(path.join(BIN_DIR, "llama-server"));
+  }
+  if (id === "nitro") {
+    return fs.existsSync(path.join(HOME_BIN_DIR, "nitro")) ||
+           fs.existsSync(path.join(BIN_DIR, "nitro"));
+  }
+  if (id === "localai") {
+    return fs.existsSync(path.join(HOME_BIN_DIR, "local-ai")) ||
+           fs.existsSync(path.join(BIN_DIR, "local-ai"));
   }
   return false;
 }
@@ -165,20 +183,122 @@ router.post("/local-engines/launch/:id", (req, res): void => {
   }
 
   if (id === "llamafile") {
-    const llamaBin = path.join(BIN_DIR, "llamafile");
+    const llamaBin = fs.existsSync(path.join(HOME_BIN_DIR, "llamafile"))
+      ? path.join(HOME_BIN_DIR, "llamafile")
+      : path.join(BIN_DIR, "llamafile");
     if (!fs.existsSync(llamaBin)) {
       send({ type: "error", message: "Llamafile binary not found. Use install first." });
       res.end();
       return;
     }
     try {
-      execAsync(`chmod +x ${llamaBin}`);
-      spawn(llamaBin, ["--server", "--port", "8081", "--host", "0.0.0.0"], {
+      try { fs.chmodSync(llamaBin, 0o755); } catch { /* ignore */ }
+      const modelPath = path.join(HOME_BIN_DIR, "phi3.llamafile");
+      const args = fs.existsSync(modelPath)
+        ? ["--model", modelPath, "--port", "8081", "--host", "0.0.0.0", "--nobrowser"]
+        : ["--server", "--port", "8081", "--host", "0.0.0.0"];
+      spawn(llamaBin, args, {
         detached: true, stdio: "ignore",
         env: { ...process.env as Record<string,string> }
       }).unref();
       send({ type: "log", message: "Llamafile server starting on port 8081..." });
       setTimeout(() => { send({ type: "success", message: "Llamafile launched ✓" }); res.end(); }, 3000);
+    } catch (e) {
+      send({ type: "error", message: String(e) });
+      res.end();
+    }
+    return;
+  }
+
+  if (id === "llamacpp") {
+    const bin = fs.existsSync(path.join(HOME_BIN_DIR, "llama-server"))
+      ? path.join(HOME_BIN_DIR, "llama-server")
+      : path.join(BIN_DIR, "llama-server");
+    if (!fs.existsSync(bin)) {
+      send({ type: "error", message: "llama-server binary not found. Use install first." });
+      res.end();
+      return;
+    }
+    try {
+      try { fs.chmodSync(bin, 0o755); } catch { /* ignore */ }
+      spawn(bin, ["--port", "8082", "--host", "0.0.0.0"], {
+        detached: true, stdio: "ignore",
+        env: { ...process.env as Record<string,string> }
+      }).unref();
+      send({ type: "log", message: "llama.cpp server starting on port 8082..." });
+      let tries = 0;
+      const check = setInterval(async () => {
+        tries++;
+        try {
+          const r = await fetch("http://localhost:8082/v1/models", { signal: AbortSignal.timeout(2000) });
+          if (r.ok) { clearInterval(check); send({ type: "success", message: "llama.cpp is online ✓" }); res.end(); }
+        } catch { /* waiting */ }
+        if (tries >= 15) { clearInterval(check); send({ type: "success", message: "llama.cpp launched ✓ (no model loaded yet)" }); res.end(); }
+      }, 1000);
+    } catch (e) {
+      send({ type: "error", message: String(e) });
+      res.end();
+    }
+    return;
+  }
+
+  if (id === "nitro") {
+    const bin = fs.existsSync(path.join(HOME_BIN_DIR, "nitro"))
+      ? path.join(HOME_BIN_DIR, "nitro")
+      : path.join(BIN_DIR, "nitro");
+    if (!fs.existsSync(bin)) {
+      send({ type: "error", message: "Nitro binary not found. Use install first." });
+      res.end();
+      return;
+    }
+    try {
+      try { fs.chmodSync(bin, 0o755); } catch { /* ignore */ }
+      spawn(bin, [], {
+        detached: true, stdio: "ignore",
+        env: { ...process.env as Record<string,string>, PORT: "3928", HOST: "0.0.0.0" }
+      }).unref();
+      send({ type: "log", message: "Nitro starting on port 3928..." });
+      let tries = 0;
+      const check = setInterval(async () => {
+        tries++;
+        try {
+          const r = await fetch("http://localhost:3928/v1/models", { signal: AbortSignal.timeout(2000) });
+          if (r.ok) { clearInterval(check); send({ type: "success", message: "Nitro is online ✓" }); res.end(); }
+        } catch { /* waiting */ }
+        if (tries >= 15) { clearInterval(check); send({ type: "success", message: "Nitro launched ✓" }); res.end(); }
+      }, 1000);
+    } catch (e) {
+      send({ type: "error", message: String(e) });
+      res.end();
+    }
+    return;
+  }
+
+  if (id === "localai") {
+    const bin = fs.existsSync(path.join(HOME_BIN_DIR, "local-ai"))
+      ? path.join(HOME_BIN_DIR, "local-ai")
+      : path.join(BIN_DIR, "local-ai");
+    if (!fs.existsSync(bin)) {
+      send({ type: "error", message: "LocalAI binary not found. Use install first." });
+      res.end();
+      return;
+    }
+    try {
+      try { fs.chmodSync(bin, 0o755); } catch { /* ignore */ }
+      spawn(bin, ["--address", "0.0.0.0:8083"], {
+        detached: true, stdio: "ignore",
+        env: { ...process.env as Record<string,string> }
+      }).unref();
+      send({ type: "log", message: "LocalAI starting on port 8083..." });
+      let tries = 0;
+      const check = setInterval(async () => {
+        tries++;
+        try {
+          const r = await fetch("http://localhost:8083/v1/models", { signal: AbortSignal.timeout(2000) });
+          if (r.ok) { clearInterval(check); send({ type: "success", message: "LocalAI is online ✓" }); res.end(); }
+        } catch { /* waiting */ }
+        if (tries >= 20) { clearInterval(check); send({ type: "success", message: "LocalAI launched ✓" }); res.end(); }
+      }, 1000);
     } catch (e) {
       send({ type: "error", message: String(e) });
       res.end();
@@ -333,12 +453,102 @@ router.post("/local-engines/install/:id", (req, res): void => {
   }
 
   if (id === "llamafile") {
-    send({ type: "log", message: "Downloading Llamafile binary..." });
+    send({ type: "log", message: "Downloading Llamafile 0.9.2 binary...", pct: 0 });
     const dlUrl   = "https://github.com/Mozilla-Ocho/llamafile/releases/download/0.9.2/llamafile-0.9.2";
-    const outPath = path.join(BIN_DIR, "llamafile");
-    execAsync(`curl -L --max-time 300 -o "${outPath}" "${dlUrl}" && chmod +x "${outPath}" 2>&1`)
-      .then(() => { send({ type: "success", message: "Llamafile installed ✓" }); res.end(); })
-      .catch(e => { send({ type: "error", message: String(e) }); res.end(); });
+    const outPath = path.join(HOME_BIN_DIR, "llamafile");
+    if (!fs.existsSync(HOME_BIN_DIR)) fs.mkdirSync(HOME_BIN_DIR, { recursive: true });
+    const proc = spawn("bash", ["-c", `curl -L --max-time 300 -# -o "${outPath}" "${dlUrl}" 2>&1`], { stdio: ["ignore","pipe","pipe"] });
+    let buf = "";
+    const onData = (chunk: Buffer) => {
+      buf += chunk.toString();
+      const matches = buf.match(/(\d+\.\d+)/g);
+      if (matches) { const pct = Math.min(Math.round(parseFloat(matches[matches.length-1])),99); send({ type: "progress", message: `Downloading... ${pct}%`, pct }); buf = ""; }
+    };
+    proc.stdout?.on("data", onData); proc.stderr?.on("data", onData);
+    proc.on("close", (code) => {
+      if (code !== 0) { send({ type: "error", message: `Download failed (exit ${code})` }); res.end(); return; }
+      try { fs.chmodSync(outPath, 0o755); } catch { /* ignore */ }
+      send({ type: "success", message: "Llamafile installed ✓", pct: 100 }); res.end();
+    });
+    return;
+  }
+
+  if (id === "llamacpp") {
+    send({ type: "log", message: "Downloading llama.cpp server (pre-built)...", pct: 0 });
+    const dlUrl   = "https://github.com/ggml-org/llama.cpp/releases/download/b9870/llama-b9870-bin-ubuntu-x64.tar.gz";
+    const tmpTar  = "/tmp/llama-cpp-dl.tar.gz";
+    if (!fs.existsSync(HOME_BIN_DIR)) fs.mkdirSync(HOME_BIN_DIR, { recursive: true });
+    const proc = spawn("bash", ["-c", `curl -L --max-time 300 -# -o "${tmpTar}" "${dlUrl}" 2>&1`], { stdio: ["ignore","pipe","pipe"] });
+    let buf = "";
+    const onData = (chunk: Buffer) => {
+      buf += chunk.toString();
+      const matches = buf.match(/(\d+\.\d+)/g);
+      if (matches) { const pct = Math.min(Math.round(parseFloat(matches[matches.length-1])), 99); send({ type: "progress", message: `Downloading... ${pct}%`, pct }); buf = ""; }
+    };
+    proc.stdout?.on("data", onData); proc.stderr?.on("data", onData);
+    proc.on("close", async (code) => {
+      if (code !== 0) { send({ type: "error", message: `Download failed (exit ${code})` }); res.end(); return; }
+      send({ type: "log", message: "Extracting...", pct: 99 });
+      try {
+        await execAsync(`tar -xzf "${tmpTar}" -C /tmp/ 2>&1`);
+        const found = await execAsync(`find /tmp -name "llama-server" -type f 2>/dev/null | head -1`);
+        const src = found.stdout.trim();
+        if (!src) { send({ type: "error", message: "llama-server not found in archive" }); res.end(); return; }
+        fs.copyFileSync(src, path.join(HOME_BIN_DIR, "llama-server"));
+        fs.chmodSync(path.join(HOME_BIN_DIR, "llama-server"), 0o755);
+        send({ type: "success", message: "llama.cpp server installed ✓", pct: 100 }); res.end();
+      } catch (e) { send({ type: "error", message: String(e) }); res.end(); }
+    });
+    return;
+  }
+
+  if (id === "nitro") {
+    send({ type: "log", message: "Downloading Nitro (cortex.cpp v0.3.3)...", pct: 0 });
+    const dlUrl  = "https://github.com/janhq/cortex.cpp/releases/download/v0.3.3/nitro-0.3.3-linux-amd64.tar.gz";
+    const tmpTar = "/tmp/nitro-dl.tar.gz";
+    if (!fs.existsSync(HOME_BIN_DIR)) fs.mkdirSync(HOME_BIN_DIR, { recursive: true });
+    const proc = spawn("bash", ["-c", `curl -L --max-time 300 -# -o "${tmpTar}" "${dlUrl}" 2>&1`], { stdio: ["ignore","pipe","pipe"] });
+    let buf = "";
+    const onData = (chunk: Buffer) => {
+      buf += chunk.toString();
+      const matches = buf.match(/(\d+\.\d+)/g);
+      if (matches) { const pct = Math.min(Math.round(parseFloat(matches[matches.length-1])), 99); send({ type: "progress", message: `Downloading... ${pct}%`, pct }); buf = ""; }
+    };
+    proc.stdout?.on("data", onData); proc.stderr?.on("data", onData);
+    proc.on("close", async (code) => {
+      if (code !== 0) { send({ type: "error", message: `Download failed (exit ${code})` }); res.end(); return; }
+      send({ type: "log", message: "Extracting...", pct: 99 });
+      try {
+        await execAsync(`mkdir -p /tmp/nitro-extracted && tar -xzf "${tmpTar}" -C /tmp/nitro-extracted/ 2>&1`);
+        const found = await execAsync(`find /tmp/nitro-extracted -name "nitro" -type f 2>/dev/null | head -1`);
+        const src = found.stdout.trim();
+        if (!src) { send({ type: "error", message: "nitro binary not found in archive" }); res.end(); return; }
+        fs.copyFileSync(src, path.join(HOME_BIN_DIR, "nitro"));
+        fs.chmodSync(path.join(HOME_BIN_DIR, "nitro"), 0o755);
+        send({ type: "success", message: "Nitro installed ✓", pct: 100 }); res.end();
+      } catch (e) { send({ type: "error", message: String(e) }); res.end(); }
+    });
+    return;
+  }
+
+  if (id === "localai") {
+    send({ type: "log", message: "Downloading LocalAI v2.21.1...", pct: 0 });
+    const dlUrl   = "https://github.com/mudler/LocalAI/releases/download/v2.21.1/local-ai-Linux-x86_64";
+    const outPath = path.join(HOME_BIN_DIR, "local-ai");
+    if (!fs.existsSync(HOME_BIN_DIR)) fs.mkdirSync(HOME_BIN_DIR, { recursive: true });
+    const proc = spawn("bash", ["-c", `curl -L --max-time 300 -# -o "${outPath}" "${dlUrl}" 2>&1`], { stdio: ["ignore","pipe","pipe"] });
+    let buf = "";
+    const onData = (chunk: Buffer) => {
+      buf += chunk.toString();
+      const matches = buf.match(/(\d+\.\d+)/g);
+      if (matches) { const pct = Math.min(Math.round(parseFloat(matches[matches.length-1])), 99); send({ type: "progress", message: `Downloading... ${pct}%`, pct }); buf = ""; }
+    };
+    proc.stdout?.on("data", onData); proc.stderr?.on("data", onData);
+    proc.on("close", (code) => {
+      if (code !== 0) { send({ type: "error", message: `Download failed (exit ${code})` }); res.end(); return; }
+      try { fs.chmodSync(outPath, 0o755); } catch { /* ignore */ }
+      send({ type: "success", message: "LocalAI installed ✓", pct: 100 }); res.end();
+    });
     return;
   }
 
@@ -522,8 +732,11 @@ router.get("/local-engines/guide/:id", (_req, res) => {
     jan:        { url: "https://jan.ai", steps: ["Download from jan.ai", "Install & open Jan", "Download a model in Hub", "Go to Local API Server → Start (port 1337)"] },
     gpt4all:    { url: "https://gpt4all.io", steps: ["Download from gpt4all.io", "Install & open GPT4All", "Download a model", "Enable API server in Settings → API (port 4891)"] },
     openwebui:  { url: "https://openwebui.com", steps: ["Click Install above (pip install)", "Click Launch above", "Open WebUI starts on port 3000"] },
-    llamafile:  { url: "https://github.com/Mozilla-Ocho/llamafile", steps: ["Click Install above", "Click Launch above to start server on port 8080", "Load a .gguf model via --model flag"] },
+    llamafile:  { url: "https://github.com/Mozilla-Ocho/llamafile", steps: ["Click Install above (downloads binary to ~/.local-engines/)", "Click Launch above to start server on port 8081", "Load a .gguf model or use Phi-3 model"] },
     kobold:     { url: "https://github.com/LostRuins/koboldcpp", steps: ["Click Install above (git clone)", "Click Launch above", "KoboldCPP starts on port 5001"] },
+    llamacpp:   { url: "https://github.com/ggml-org/llama.cpp", steps: ["Click Install above (downloads pre-built binary)", "Click Launch above", "llama.cpp server starts on port 8082", "Load models via API"] },
+    nitro:      { url: "https://github.com/janhq/cortex.cpp", steps: ["Click Install above (downloads nitro binary)", "Click Launch above", "Nitro starts on port 3928", "Compatible with OpenAI API"] },
+    localai:    { url: "https://localai.io", steps: ["Click Install above (downloads 1.3GB binary)", "Click Launch above", "LocalAI starts on port 8083", "Supports many model formats"] },
   };
   const guide = GUIDES[id];
   if (!guide) return res.status(404).json({ error: "Not found" });

@@ -14,18 +14,22 @@ interface EngineStatus {
   canInstall: boolean; installAvailable: boolean;
 }
 
-const C  = "#00e5ff";
-const G  = "#22c55e";
-const R  = "#ef4444";
-const V  = "#a78bfa";
-const A  = "#fbbf24";
-const OR = "#f97316";
-const PK = "#ec4899";
-const IN = "#6366f1";
+const C   = "#00e5ff";
+const G   = "#22c55e";
+const R   = "#ef4444";
+const V   = "#a78bfa";
+const A   = "#fbbf24";
+const OR  = "#f97316";
+const PK  = "#ec4899";
+const IN  = "#6366f1";
+const LM  = "#84cc16";  // lime — llama.cpp
+const NT  = "#06b6d4";  // cyan — Nitro
+const LA  = "#8b5cf6";  // violet — LocalAI
 
 const ENG_COLOR: Record<string, string> = {
   ollama: C, lmstudio: V, jan: G,
   textgenwebui: OR, gpt4all: A, llamafile: PK, kobold: IN,
+  llamacpp: LM, nitro: NT, localai: LA,
 };
 
 type Tab = "engines" | "models" | "perf" | "duel";
@@ -740,9 +744,15 @@ export function LocalAIWindow({
   // ── Activate model ──────────────────────────────────────────────────────────
   const activateModel = (model: string, engineId: string) => {
     const endpoints: Record<string, string> = {
-      ollama: "http://localhost:11434/v1", lmstudio: "http://localhost:1234/v1",
-      jan: "http://localhost:1337/v1", gpt4all: "http://localhost:4891/v1",
-      llamafile: "http://localhost:8081/v1", kobold: "http://localhost:5001/v1",
+      ollama:      "http://localhost:11434/v1",
+      lmstudio:    "http://localhost:1234/v1",
+      jan:         "http://localhost:1337/v1",
+      gpt4all:     "http://localhost:4891/v1",
+      llamafile:   "http://localhost:8081/v1",
+      kobold:      "http://localhost:5001/v1",
+      llamacpp:    "http://localhost:8082/v1",
+      nitro:       "http://localhost:3928/v1",
+      localai:     "http://localhost:8083/v1",
     };
     dispatch({ type: "SET_SETTINGS", patch: {
       useLocalModel: true, localModel: model,
@@ -825,16 +835,16 @@ export function LocalAIWindow({
 
   if (!open) return null;
 
-  const placeholder7 = Array.from({ length: 7 }, (_, i) => ({
-    id:    ["ollama","lmstudio","jan","textgenwebui","gpt4all","llamafile","kobold"][i],
-    label: ["Ollama","LM Studio","Jan","text-gen-webui","GPT4All","Llamafile","KoboldCPP"][i],
-    port:  [11434,1234,1337,5000,4891,8081,5001][i],
+  const placeholder10 = Array.from({ length: 10 }, (_, i) => ({
+    id:    ["ollama","lmstudio","jan","textgenwebui","gpt4all","llamafile","kobold","llamacpp","nitro","localai"][i],
+    label: ["Ollama","LM Studio","Jan","text-gen-webui","GPT4All","Llamafile","KoboldCPP","llama.cpp","Nitro","LocalAI"][i],
+    port:  [11434,1234,1337,5000,4891,8081,5001,8082,3928,8083][i],
     online: false, latencyMs: null, models: [], version: null,
-    canInstall: [true,false,false,false,false,true,true][i],
-    installAvailable: false,
+    canInstall: [true,false,false,false,false,true,true,true,true,true][i],
+    installAvailable: [false,false,false,false,false,true,false,true,true,true][i],
   }));
 
-  const displayEngines = engines.length ? engines : placeholder7;
+  const displayEngines = engines.length ? engines : placeholder10;
 
   return createPortal(
     <AnimatePresence>
