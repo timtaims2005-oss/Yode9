@@ -167,6 +167,11 @@ export function LocalAIWindow({
   const [benchLog,         setBenchLog]         = useState("");
   const [benchTps,         setBenchTps]         = useState<number | null>(null);
   const [benchTokens,      setBenchTokens]      = useState<number | null>(null);
+  const [modelInputs,      setModelInputs]      = useState<Record<string, string>>({});
+  const [phi3Pct,          setPhi3Pct]          = useState<number | null>(null);
+  const [phi3Status,       setPhi3Status]       = useState<"idle" | "downloading" | "done">("idle");
+  const [downloadingPhi3,  setDownloadingPhi3]  = useState(false);
+  const [bootSeconds,      setBootSeconds]      = useState(0);
 
   // ── DUEL tab state ────────────────────────────────────────────────────────
   const [duelModel1,   setDuelModel1]   = useState("");
@@ -189,6 +194,7 @@ export function LocalAIWindow({
   const displayTpsRef = useRef(0);
   const pollRef       = useRef<ReturnType<typeof setInterval> | null>(null);
   const tpsTimerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fastPollRef   = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const onlineCount  = engines.filter(e => e.online).length;
   const ollamaEng    = engines.find(e => e.id === "ollama");
@@ -208,12 +214,44 @@ export function LocalAIWindow({
     setRefreshing(false);
   }, []);
 
+  // ── Fast initial poll (2s for 30s) then slow poll (8s) — #4 ─────────────────
   useEffect(() => {
     if (!open) return;
+    setBootSeconds(0);
     fetchStatus();
-    pollRef.current = setInterval(fetchStatus, 8000);
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+    let elapsed = 0;
+    fastPollRef.current = setInterval(() => {
+      elapsed += 2;
+      setBootSeconds(Math.min(elapsed, 30));
+      fetchStatus();
+      if (elapsed >= 30) {
+        if (fastPollRef.current) { clearInterval(fastPollRef.current); fastPollRef.current = null; }
+        pollRef.current = setInterval(fetchStatus, 8000);
+      }
+    }, 2000);
+    return () => {
+      if (fastPollRef.current) { clearInterval(fastPollRef.current); fastPollRef.current = null; }
+      if (pollRef.current)     { clearInterval(pollRef.current);     pollRef.current     = null; }
+    };
   }, [open, fetchStatus]);
+
+  // ── Phi-3 model status poll — #2 ──────────────────────────────────────────
+  useEffect(() => {
+    if (!open) return;
+    const checkPhi3 = async () => {
+      try {
+        const r = await fetch("/api/local-engines/phi3-status");
+        if (r.ok) {
+          const d = await r.json() as { status: string; pct: number | null };
+          setPhi3Status(d.status as "idle" | "downloading" | "done");
+          setPhi3Pct(d.pct);
+        }
+      } catch { /* ignore */ }
+    };
+    checkPhi3();
+    const t = setInterval(checkPhi3, 3000);
+    return () => clearInterval(t);
+  }, [open]);
 
   // ── TPS simulation ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -625,6 +663,38 @@ export function LocalAIWindow({
     setTimeout(fetchStatus, 2000);
   };
 
+  // ── Download Phi-3 model for Llamafile — #2 ───────────────────────────────
+  const downloadPhi3 = async () => {
+    setDownloadingPhi3(true);
+    setPhi3Status("downloading");
+    setPhi3Pct(0);
+    try {
+      const r = await fetch("/api/local-engines/llamafile-model", { method: "POST" });
+      if (r.body) {
+        const reader = r.body.getReader();
+        const dec    = new TextDecoder();
+        let   carry  = "";
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = dec.decode(value, { stream: true });
+          const lines = (carry + chunk).split("\n");
+          carry = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            try {
+              const ev = JSON.parse(line.slice(5)) as { type: string; pct?: number; message?: string };
+              if (ev.pct != null) setPhi3Pct(ev.pct);
+              if (ev.type === "success") { setPhi3Status("done"); setPhi3Pct(100); }
+              else if (ev.type === "error") { setPhi3Status("idle"); setPhi3Pct(null); }
+            } catch { /* skip */ }
+          }
+        }
+      }
+    } catch { setPhi3Status("idle"); setPhi3Pct(null); }
+    setDownloadingPhi3(false);
+  };
+
   // ── Delete Ollama model ─────────────────────────────────────────────────────
   const deleteOllamaModel = async (model: string) => {
     setDeletingModel(model);
@@ -1015,6 +1085,29 @@ export function LocalAIWindow({
             const PULL_SUGGESTIONS = ["llama3.2:3b","mistral:7b","codellama:7b","phi3:mini","gemma2:2b"];
             return (
               <div className="p-2.5 flex flex-col gap-2">
+                {/* Boot status banner — visible for 30s, shows startup progress — #4 */}
+                {bootSeconds < 30 && engines.length > 0 && engines.some(e => e.installAvailable && !e.online) && (
+                  <div className="rounded-xl px-3 py-2 flex items-center gap-2.5"
+                    style={{ background: C + "07", border: `1px solid ${C}18` }}>
+                    <motion.div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: C }}
+                      animate={{ scale: [0.7, 1.25, 0.7], opacity: [0.45, 1, 0.45] }}
+                      transition={{ duration: 0.9, repeat: Infinity }} />
+                    <span className="text-[7.5px] font-mono flex-1" style={{ color: C + "cc" }}>
+                      المحركات المحلية تبدأ... ({30 - bootSeconds}s)
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {engines.filter(e => e.installAvailable).map(e => (
+                        <motion.div key={e.id} className="w-1.5 h-1.5 rounded-full"
+                          style={{ background: e.online ? (ENG_COLOR[e.id] ?? C) : "rgba(255,255,255,0.12)" }}
+                          animate={e.online ? {} : { opacity: [0.2, 0.6, 0.2] }}
+                          transition={{ duration: 1.2, repeat: Infinity }} />
+                      ))}
+                    </div>
+                    <span className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.2)" }}>
+                      {engines.filter(e => e.online).length}/{engines.length}
+                    </span>
+                  </div>
+                )}
                 {displayEngines.map(eng => {
                   const ec       = ENG_COLOR[eng.id] ?? C;
                   const isLaunch = launching === eng.id;
@@ -1070,13 +1163,29 @@ export function LocalAIWindow({
 
                         {/* ── Action buttons ── */}
                         <div className="flex items-center gap-1 flex-shrink-0 flex-wrap justify-end">
-                          {/* Activate button (online + models) */}
-                          {eng.online && eng.models.length > 0 && (
-                            <button onClick={() => activateModel(eng.models[0], eng.id)}
-                              className="px-2 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
-                              style={{ background: ec + "15", border: `1px solid ${ec}28`, color: ec }}>
-                              <Zap size={8} /> تفعيل
-                            </button>
+                          {/* Activate button — #3: works for all online engines */}
+                          {eng.online && (
+                            <>
+                              {eng.models.length === 0 && (
+                                <input
+                                  value={modelInputs[eng.id] ?? ""}
+                                  onChange={e => setModelInputs(p => ({ ...p, [eng.id]: e.target.value }))}
+                                  placeholder="اسم النموذج..."
+                                  className="px-2 py-0.5 rounded-lg text-[8px] font-mono outline-none w-20"
+                                  style={{ background: "rgba(0,0,0,0.45)", border: `1px solid ${ec}28`, color: ec }}
+                                />
+                              )}
+                              <button
+                                onClick={() => activateModel(modelInputs[eng.id]?.trim() || eng.models[0] || "", eng.id)}
+                                disabled={!eng.models.length && !(modelInputs[eng.id]?.trim())}
+                                className="px-2 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                                style={{
+                                  background: ec + "15", border: `1px solid ${ec}28`, color: ec,
+                                  opacity: (!eng.models.length && !(modelInputs[eng.id]?.trim())) ? 0.35 : 1,
+                                }}>
+                                <Zap size={8} /> تفعيل
+                              </button>
+                            </>
                           )}
 
                           {/* canInstall engines (ollama/llamafile/kobold): Launch + Install — always visible */}
@@ -1180,6 +1289,43 @@ export function LocalAIWindow({
                           </div>
                         );
                       })()}
+
+                      {/* ── Phi-3 model download section — Llamafile only — #2 ── */}
+                      {eng.id === "llamafile" && (
+                        <div className="px-3 pb-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 6 }}>
+                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <span className="text-[7.5px] font-mono" style={{ color: PK + "99" }}>Phi-3 Mini Model</span>
+                            {phi3Status === "done" ? (
+                              <span className="text-[7px] font-mono px-1.5 py-0.5 rounded flex items-center gap-1" style={{ background: G + "18", color: G }}>
+                                <CheckCircle size={7} /> مثبّت ✓
+                              </span>
+                            ) : phi3Status === "downloading" || downloadingPhi3 ? (
+                              <span className="text-[7px] font-mono px-1.5 py-0.5 rounded" style={{ background: A + "18", color: A }}>
+                                يُحمَّل {phi3Pct != null ? `${phi3Pct}%` : "..."}
+                              </span>
+                            ) : (
+                              <button onClick={downloadPhi3} disabled={downloadingPhi3}
+                                className="text-[7px] font-black px-2 py-0.5 rounded flex items-center gap-1 transition-all hover:opacity-80"
+                                style={{ background: PK + "18", border: `1px solid ${PK}30`, color: PK }}>
+                                <Download size={7} /> تحميل Phi-3 (2.4GB)
+                              </button>
+                            )}
+                          </div>
+                          {(phi3Status === "downloading" || downloadingPhi3) && (
+                            <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                              {phi3Pct != null ? (
+                                <motion.div className="h-full rounded-full"
+                                  style={{ background: `linear-gradient(90deg,${PK},${V})`, boxShadow: `0 0 5px ${PK}60` }}
+                                  animate={{ width: `${phi3Pct}%` }} transition={{ duration: 0.5 }} />
+                              ) : (
+                                <motion.div className="h-full rounded-full"
+                                  style={{ background: `linear-gradient(90deg,${PK},${V})` }}
+                                  animate={{ width: ["5%","70%","5%"] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }} />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* ── Manual-install guide steps (lmstudio/jan/textgenwebui/gpt4all) — always visible ── */}
                       {!eng.canInstall && DL_STEPS[eng.id] && (

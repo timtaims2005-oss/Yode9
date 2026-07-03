@@ -114,6 +114,107 @@ function checkInstallAvailable(id: EngineId): boolean {
   return false;
 }
 
+// ── Phi-3 model download status (checks file size vs expected) ────────────────
+router.get("/local-engines/phi3-status", (_req, res) => {
+  const modelPath   = path.join(HOME_BIN_DIR, "phi3.llamafile");
+  const EXPECTED_SZ = 2_600_000_000; // ~2.4 GB
+  if (!fs.existsSync(modelPath)) {
+    return res.json({ status: "idle", pct: null, sizeBytes: 0 });
+  }
+  const { size } = fs.statSync(modelPath);
+  if (size >= EXPECTED_SZ * 0.98) {
+    return res.json({ status: "done", pct: 100, sizeBytes: size });
+  }
+  const pct = Math.round((size / EXPECTED_SZ) * 100);
+  return res.json({ status: "downloading", pct, sizeBytes: size });
+});
+
+// ── Download Phi-3 model for Llamafile (single-flight guard) ─────────────────
+let phi3DownloadActive = false;
+
+router.post("/local-engines/llamafile-model", (_req, res): void => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  const send = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+  if (!fs.existsSync(HOME_BIN_DIR)) fs.mkdirSync(HOME_BIN_DIR, { recursive: true });
+  const outPath   = path.join(HOME_BIN_DIR, "phi3.llamafile");
+  const tmpPath   = path.join(HOME_BIN_DIR, "phi3.llamafile.tmp");
+  const dlUrl     = "https://huggingface.co/Mozilla/Phi-3-mini-4k-instruct-llamafile/resolve/main/Phi-3-mini-4k-instruct.Q4_K_M.llamafile";
+  const EXPECTED  = 2_600_000_000;
+
+  // Already complete
+  if (fs.existsSync(outPath) && fs.statSync(outPath).size >= EXPECTED * 0.98) {
+    send({ type: "success", message: "Phi-3 already installed ✓", pct: 100 });
+    res.end(); return;
+  }
+
+  // Single-flight guard — return live progress to concurrent callers
+  if (phi3DownloadActive) {
+    send({ type: "start", message: "تحميل Phi-3 جارٍ بالفعل — انتظر...", pct: 0 });
+    const poll = setInterval(() => {
+      const path_ = fs.existsSync(tmpPath) ? tmpPath : outPath;
+      if (fs.existsSync(path_)) {
+        const { size } = fs.statSync(path_);
+        const pct = Math.min(Math.round((size / EXPECTED) * 100), 99);
+        send({ type: "progress", message: `جارٍ التحميل... ${Math.round(size/1e6)}MB`, pct });
+        if (!phi3DownloadActive) {
+          clearInterval(poll);
+          const done = fs.existsSync(outPath) && fs.statSync(outPath).size >= EXPECTED * 0.98;
+          send(done ? { type: "success", message: "Phi-3 مثبّت ✓", pct: 100 } : { type: "error", message: "فشل التحميل" });
+          res.end();
+        }
+      }
+    }, 3000);
+    return;
+  }
+
+  phi3DownloadActive = true;
+  send({ type: "start", message: "جارٍ تحميل Phi-3-mini-4k (2.4GB)...", pct: 0 });
+
+  // Download to tmp file then rename for atomicity
+  const proc = spawn("bash", ["-c",
+    `curl -L --max-time 3600 -C - -o "${tmpPath}" "${dlUrl}" 2>&1`
+  ], { stdio: ["ignore", "pipe", "pipe"] });
+
+  const progressInterval = setInterval(() => {
+    if (fs.existsSync(tmpPath)) {
+      const { size } = fs.statSync(tmpPath);
+      const pct = Math.min(Math.round((size / EXPECTED) * 100), 99);
+      send({ type: "progress", message: `جارٍ التحميل... ${Math.round(size/1e6)}MB / ~2400MB`, pct });
+    }
+  }, 3000);
+
+  proc.on("close", (code) => {
+    clearInterval(progressInterval);
+    phi3DownloadActive = false;
+    if (code !== 0 && code !== null) {
+      send({ type: "error", message: `فشل التحميل (exit ${code})` });
+      res.end(); return;
+    }
+    if (fs.existsSync(tmpPath)) {
+      const { size } = fs.statSync(tmpPath);
+      if (size >= EXPECTED * 0.98) {
+        fs.renameSync(tmpPath, outPath); // atomic rename
+        send({ type: "success", message: "Phi-3-mini مثبّت ✓", pct: 100 });
+      } else {
+        send({ type: "error", message: `تحميل غير مكتمل (${Math.round(size/1e6)}MB)` });
+      }
+    } else {
+      send({ type: "error", message: "الملف غير موجود بعد التحميل" });
+    }
+    res.end();
+  });
+
+  proc.on("error", (err) => {
+    clearInterval(progressInterval);
+    phi3DownloadActive = false;
+    send({ type: "error", message: String(err) });
+    res.end();
+  });
+});
+
 router.get("/local-engines/status", async (_req, res) => {
   const results = await Promise.all(ENGINES.map(pingEngine));
   return res.json({ engines: results, ts: Date.now() });
