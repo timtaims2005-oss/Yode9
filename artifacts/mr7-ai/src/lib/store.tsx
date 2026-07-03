@@ -198,6 +198,10 @@ export type Settings = {
   providerFallbackChain: Array<{ provider: string; model: string }>;
   // Multi-key pool: additional API keys to rotate through on failure
   apiKeyPool: Array<{ key: string; label: string; active: boolean }>;
+  // Ambient background style (admin-selectable)
+  backgroundStyle: "checkerboard" | "grid" | "particles";
+  // Colorful cybersecurity-style syntax highlighting inside chat bubbles
+  colorfulChatText: boolean;
 };
 
 export type { ThemeId };
@@ -365,6 +369,8 @@ const initial: AppState = {
     aiSystemTemplate: "",
     providerFallbackChain: [],
     apiKeyPool: [],
+    backgroundStyle: "checkerboard",
+    colorfulChatText: true,
   },
   themeAccent: "crimson",
   activeGlobeTheme: DEFAULT_THEME_ID,

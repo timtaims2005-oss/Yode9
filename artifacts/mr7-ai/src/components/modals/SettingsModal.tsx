@@ -195,6 +195,59 @@ export function SettingsModal({ open, onOpenChange }: { open: boolean; onOpenCha
           </div>
         </section>
 
+        {/* Ambient Background Style */}
+        <section className="space-y-2 mt-4">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5">
+            <Globe className="w-3 h-3" /> نمط الخلفية
+          </div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {([
+              { id: "checkerboard", label: "كاروهات", preview: "repeating-conic-gradient(#0c0c0c 0% 25%, #e21227 0% 50%)" },
+              { id: "grid", label: "شبكة", preview: "linear-gradient(#e21227 1px, transparent 1px), linear-gradient(90deg, #e21227 1px, transparent 1px)" },
+              { id: "particles", label: "جسيمات", preview: "radial-gradient(#e21227 1.5px, transparent 1.5px)" },
+            ] as const).map((b) => {
+              const active = (state.settings.backgroundStyle ?? "checkerboard") === b.id;
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => dispatch({ type: "SET_SETTINGS", patch: { backgroundStyle: b.id } })}
+                  className={`relative flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${active ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 bg-background/60 hover:bg-accent"}`}
+                >
+                  <div
+                    className="w-full h-10 rounded-md overflow-hidden"
+                    style={{
+                      background: "#0a0a0a",
+                      backgroundImage: b.preview,
+                      backgroundSize: "10px 10px",
+                      opacity: 0.85,
+                    }}
+                  />
+                  <span className={`text-[10px] font-bold ${active ? "text-primary" : "text-muted-foreground"}`}>{b.label}</span>
+                  {active && (
+                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-white" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Colorful cybersecurity-style chat text */}
+        <section className="mt-4">
+          <div className="flex items-start justify-between gap-4 py-3 border-t border-border">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold">تلوين نصوص الشات</div>
+              <div className="text-[12px] text-muted-foreground">تلوين كلماتك وردود الذكاء الاصطناعي بألوان أمن سيبراني (أوامر، IP، كلمات مفتاحية، روابط...)</div>
+            </div>
+            <Switch
+              checked={state.settings.colorfulChatText ?? true}
+              onCheckedChange={(v) => dispatch({ type: "SET_SETTINGS", patch: { colorfulChatText: v } })}
+            />
+          </div>
+        </section>
+
         {/* AI engines */}
         <section className="mt-4">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5 mb-1">

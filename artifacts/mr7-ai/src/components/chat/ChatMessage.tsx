@@ -64,9 +64,12 @@ export function ChatMessage({
         : <ThinkingIndicator agentMode={agentOn} />;
     }
     const displayContent = getDisplayContent();
+    const colorful = state.settings.colorfulChatText ?? true;
     return renderMessageContent(displayContent).map((p, i) =>
       p.type === "code" ? (
         <CodeBlock key={i} code={p.value} lang={p.lang ?? "text"} />
+      ) : colorful ? (
+        <RichTextBlock key={i} text={p.value} />
       ) : (
         <p key={i} className="whitespace-pre-wrap break-words">{p.value}</p>
       ),
@@ -295,9 +298,12 @@ export function ChatMessage({
                 const displayContent = hasThinking
                   ? raw.replace(/<thinking>[\s\S]*?(<\/thinking>|$)/, "").trim()
                   : raw;
+                const colorfulClassic = state.settings.colorfulChatText ?? true;
                 return renderMessageContent(displayContent).map((p, i) =>
                   p.type === "code" ? (
                     <CodeBlock key={i} code={p.value} lang={p.lang ?? "text"} />
+                  ) : colorfulClassic ? (
+                    <RichTextBlock key={i} text={p.value} />
                   ) : (
                     <p key={i} className="whitespace-pre-wrap break-words">{p.value}</p>
                   ),

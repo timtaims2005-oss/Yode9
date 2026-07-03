@@ -1037,7 +1037,7 @@ function AppContent() {
     </Suspense>
     {/* ── Ambient Background Layer (simple, clean, no heavy 3D orbs) ────── */}
     <Suspense fallback={null}>
-      {showAmbientLayer && <SimpleAmbientBackground />}
+      {showAmbientLayer && <SimpleAmbientBackground styleId={state.settings.backgroundStyle ?? "checkerboard"} />}
     </Suspense>
     {/* ── Ultra HUD Overlay + System Status Widget ──────────────────────── */}
     <Suspense fallback={null}>
