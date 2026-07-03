@@ -869,14 +869,34 @@ export function LocalAIWindow({
             const DL_URLS: Record<string, string> = {
               lmstudio:    "https://lmstudio.ai",
               jan:         "https://jan.ai",
-              textgenwebui:"https://github.com/oobabooga/text-generation-webui/releases",
+              textgenwebui:"https://github.com/oobabooga/text-generation-webui",
               gpt4all:     "https://gpt4all.io",
             };
-            const DL_STEPS: Record<string, string> = {
-              lmstudio:    "حمّله من lmstudio.ai ← Local Server ← Start (port 1234)",
-              jan:         "حمّله من jan.ai ← Hub ← نموذج ← Local API Server ← Start (port 1337)",
-              textgenwebui:"GitHub ← start_linux.sh ← يعمل على port 5000",
-              gpt4all:     "gpt4all.io ← Settings ← API Server ← Enable (port 4891)",
+            const DL_STEPS: Record<string, string[]> = {
+              lmstudio:    [
+                "① حمّل التطبيق من lmstudio.ai",
+                "② ثبّته وافتحه",
+                "③ حمّل نموذجاً من تبويب Discover",
+                "④ اذهب إلى Local Server ← Start Server (port 1234)",
+              ],
+              jan:         [
+                "① حمّل Jan من jan.ai",
+                "② ثبّته وافتحه",
+                "③ حمّل نموذجاً من Hub",
+                "④ اذهب إلى Local API Server ← Start (port 1337)",
+              ],
+              textgenwebui:[
+                "① افتح github.com/oobabooga/text-generation-webui",
+                "② حمّل المستودع وشغّل start_linux.sh",
+                "③ حمّل نموذجاً من تبويب Model",
+                "④ فعّل OpenAI API من Extensions (port 5000)",
+              ],
+              gpt4all:     [
+                "① حمّل GPT4All من gpt4all.io",
+                "② ثبّته وافتحه",
+                "③ حمّل نموذجاً من Models",
+                "④ Settings ← API Server ← Enable Server (port 4891)",
+              ],
             };
             const PULL_SUGGESTIONS = ["llama3.2:3b","mistral:7b","codellama:7b","phi3:mini","gemma2:2b"];
             return (
@@ -935,7 +955,7 @@ export function LocalAIWindow({
                         </div>
 
                         {/* ── Action buttons ── */}
-                        <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className="flex items-center gap-1 flex-shrink-0 flex-wrap justify-end">
                           {/* Activate button (online + models) */}
                           {eng.online && eng.models.length > 0 && (
                             <button onClick={() => activateModel(eng.models[0], eng.id)}
@@ -945,50 +965,59 @@ export function LocalAIWindow({
                             </button>
                           )}
 
-                          {/* canInstall engines (ollama/llamafile/kobold): Launch + Install */}
-                          {!eng.online && eng.canInstall && (
+                          {/* canInstall engines (ollama/llamafile/kobold): Launch + Install — always visible */}
+                          {eng.canInstall && (
                             <>
                               <button onClick={() => launchEngine(eng.id)}
                                 disabled={!!launching || !!installing}
                                 className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
-                                style={{ background: ec + "18", border: `1px solid ${ec}30`, color: ec, opacity: !!launching && !isLaunch ? 0.45 : 1 }}>
+                                style={{ background: ec + "18", border: `1px solid ${ec}30`, color: ec, opacity: (!!launching && !isLaunch) ? 0.45 : 1 }}>
                                 <motion.div animate={isLaunch ? { rotate: 360 } : {}} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}>
                                   {isLaunch ? <RefreshCw size={8} /> : <Play size={8} />}
                                 </motion.div>
-                                {isLaunch ? "..." : "تشغيل"}
+                                {isLaunch ? "جارٍ..." : "تشغيل"}
                               </button>
                               <button onClick={() => installEngine(eng.id)}
                                 disabled={!!installing || !!launching}
                                 className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
-                                style={{ background: G + "12", border: `1px solid ${G}28`, color: G, opacity: !!installing && !isInst ? 0.45 : 1 }}>
+                                style={{ background: G + "12", border: `1px solid ${G}28`, color: G, opacity: (!!installing && !isInst) ? 0.45 : 1 }}>
                                 <motion.div animate={isInst ? { rotate: 360 } : {}} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}>
                                   {isInst ? <RefreshCw size={8} /> : <Download size={8} />}
                                 </motion.div>
-                                {isInst ? "..." : "تثبيت"}
+                                {isInst ? "جارٍ..." : "تثبيت"}
                               </button>
                             </>
                           )}
 
-                          {/* manual-install engines (lmstudio/jan/textgenwebui/gpt4all): external link */}
-                          {!eng.online && !eng.canInstall && DL_URLS[eng.id] && (
+                          {/* lmstudio/jan: Launch (try to open if installed) + external download — always visible */}
+                          {(eng.id === "lmstudio" || eng.id === "jan") && (
+                            <>
+                              <button onClick={() => launchEngine(eng.id)}
+                                disabled={!!launching}
+                                className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                                style={{ background: ec + "12", border: `1px solid ${ec}22`, color: ec, opacity: (!!launching && !isLaunch) ? 0.45 : 1 }}>
+                                <motion.div animate={isLaunch ? { rotate: 360 } : {}} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}>
+                                  {isLaunch ? <RefreshCw size={8} /> : <Play size={8} />}
+                                </motion.div>
+                                {isLaunch ? "جارٍ..." : "فتح التطبيق"}
+                              </button>
+                              {DL_URLS[eng.id] && (
+                                <a href={DL_URLS[eng.id]} target="_blank" rel="noopener noreferrer"
+                                  className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                                  style={{ background: ec + "15", border: `1px solid ${ec}28`, color: ec }}>
+                                  <ExternalLink size={8} /> تحميل ↗
+                                </a>
+                              )}
+                            </>
+                          )}
+
+                          {/* textgenwebui / gpt4all: external link only — always visible */}
+                          {(eng.id === "textgenwebui" || eng.id === "gpt4all") && DL_URLS[eng.id] && (
                             <a href={DL_URLS[eng.id]} target="_blank" rel="noopener noreferrer"
                               className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
                               style={{ background: ec + "15", border: `1px solid ${ec}28`, color: ec }}>
                               <ExternalLink size={8} /> تحميل ↗
                             </a>
-                          )}
-
-                          {/* Launch button for lmstudio/jan too when offline */}
-                          {!eng.online && !eng.canInstall && (eng.id === "lmstudio" || eng.id === "jan") && (
-                            <button onClick={() => launchEngine(eng.id)}
-                              disabled={!!launching}
-                              className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
-                              style={{ background: ec + "12", border: `1px solid ${ec}22`, color: ec, opacity: !!launching && !isLaunch ? 0.45 : 1 }}>
-                              <motion.div animate={isLaunch ? { rotate: 360 } : {}} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}>
-                                {isLaunch ? <RefreshCw size={8} /> : <Play size={8} />}
-                              </motion.div>
-                              {isLaunch ? "..." : "فتح"}
-                            </button>
                           )}
                         </div>
                       </div>
@@ -1019,15 +1048,19 @@ export function LocalAIWindow({
                         <div className="px-3 pb-2 text-[7.5px] font-mono" style={{ color: iLog.startsWith("خطأ") ? R : G }}>{iLog}</div>
                       )}
 
-                      {/* ── Manual-install guide hint ── */}
-                      {!eng.online && !eng.canInstall && DL_STEPS[eng.id] && (
-                        <div className="px-3 pb-2.5 text-[7.5px] font-mono leading-relaxed" style={{ color: "rgba(255,255,255,0.25)", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 6 }}>
-                          {DL_STEPS[eng.id]}
+                      {/* ── Manual-install guide steps (lmstudio/jan/textgenwebui/gpt4all) — always visible ── */}
+                      {!eng.canInstall && DL_STEPS[eng.id] && (
+                        <div className="px-3 pb-2.5 space-y-0.5" style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 6 }}>
+                          {(DL_STEPS[eng.id] as string[]).map((step, si) => (
+                            <div key={si} className="text-[7.5px] font-mono" style={{ color: si === 3 ? ec + "cc" : "rgba(255,255,255,0.28)" }}>
+                              {step}
+                            </div>
+                          ))}
                         </div>
                       )}
 
-                      {/* ── Ollama: Pull Model section ── */}
-                      {isOllama && eng.online && (
+                      {/* ── Ollama: Pull Model section — always visible ── */}
+                      {isOllama && (
                         <div style={{ borderTop: `1px solid ${ec}18` }}>
                           <button onClick={() => setShowOllamaPull(p => !p)}
                             className="w-full flex items-center gap-1.5 px-3 py-1.5 text-[7px] font-black tracking-widest uppercase transition-all"

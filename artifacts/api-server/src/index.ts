@@ -48,6 +48,7 @@ async function autoLaunchOllama(): Promise<void> {
 
   spawn(bin, ["serve"], { detached: true, stdio: "ignore", env }).unref();
   logger.info({ bin }, "Ollama auto-launched on startup");
+  console.log("Ollama auto-started");
 }
 
 const rawPort = process.env["PORT"] ?? "8080";
