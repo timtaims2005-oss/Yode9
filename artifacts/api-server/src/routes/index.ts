@@ -49,6 +49,7 @@ import aiEngineRouter from "./ai-engine";
 import autonomousAgentRouter from "./autonomous-agent";
 import swarmAgentRouter from "./swarm-agent";
 import agentMemoryRouter from "./agent-memory";
+import referralsRouter from "./referrals";
 
 import swaggerRouter from "./swagger";
 import subscriptionsRouter from "./subscriptions";
@@ -123,6 +124,7 @@ router.use(aiEngineRouter);
 router.use(autonomousAgentRouter);
 router.use(swarmAgentRouter);
 router.use(agentMemoryRouter);
+router.use(referralsRouter);
 
 router.use(swaggerRouter);
 router.use(subscriptionsRouter);

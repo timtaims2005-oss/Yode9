@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ModalShell } from "@/components/ModalShell";
 import {
   Shield, Lock, Check, Copy, RefreshCw, Crown, Users, Zap, AlertCircle,
-  CreditCard, Save, ChevronDown, ChevronUp,
+  CreditCard, Save, ChevronDown, ChevronUp, BarChart3, Search, Ban, UserCheck, Trash2,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,30 @@ interface AdminPanelProps {
 
 const TIERS: SubscriptionTier[] = ["free", "starter", "professional", "elite"];
 
+interface PlatformStats {
+  users: { total: number; today: number };
+  subscriptions: Record<string, number>;
+  totalTokensUsed: number;
+  requestsLast30d: number;
+  estMonthlyRevenueUsd: number;
+  completedReferrals: number;
+}
+
+interface PlatformUser {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  role: string;
+  status: string;
+  tokens_used: number;
+  last_login_at?: string;
+  created_at: string;
+  plan?: string;
+  subscription_status?: string;
+  ends_at?: string;
+}
+
 export function AdminPanel({ open, onOpenChange }: AdminPanelProps) {
   const { state, dispatch } = useStore();
   const { toast } = useToast();
@@ -35,14 +59,77 @@ export function AdminPanel({ open, onOpenChange }: AdminPanelProps) {
   const [setDays, setSetDays] = useState(30);
   const [payOpen, setPayOpen] = useState(false);
   const [paySettings, setPaySettings] = useState<PaymentSettings>(loadPaymentSettings());
+  const [adminSecret, setAdminSecret] = useState("");
+  const [stats, setStats] = useState<PlatformStats | null>(null);
+  const [statsError, setStatsError] = useState("");
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [usersList, setUsersList] = useState<PlatformUser[]>([]);
+  const [usersTotal, setUsersTotal] = useState(0);
+  const [userSearch, setUserSearch] = useState("");
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersOpen, setUsersOpen] = useState(false);
+
+  const fetchStats = useCallback(async (secret: string) => {
+    setStatsLoading(true);
+    setStatsError("");
+    try {
+      const res = await fetch("/api/admin/stats", { headers: { "x-admin-secret": secret } });
+      const data = await res.json();
+      if (!res.ok) { setStatsError(data.error || "Failed to load stats"); return; }
+      setStats(data);
+    } catch {
+      setStatsError("Network error loading stats");
+    } finally {
+      setStatsLoading(false);
+    }
+  }, []);
+
+  const fetchUsers = useCallback(async (secret: string, search = "") => {
+    setUsersLoading(true);
+    try {
+      const res = await fetch(`/api/admin/users?search=${encodeURIComponent(search)}&limit=25`, {
+        headers: { "x-admin-secret": secret },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUsersList(data.users || []);
+        setUsersTotal(data.total || 0);
+      }
+    } catch {
+      // silent — non-critical section
+    } finally {
+      setUsersLoading(false);
+    }
+  }, []);
+
+  async function userAction(id: string, action: "suspend" | "ban" | "activate" | "delete") {
+    if (action === "delete" && !window.confirm("Permanently delete this user? This cannot be undone.")) return;
+    try {
+      const res = await fetch(`/api/admin/users/${id}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-secret": adminSecret },
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        toast({ description: `User ${action}d successfully.` });
+        fetchUsers(adminSecret, userSearch);
+      } else {
+        toast({ description: "Action failed." });
+      }
+    } catch {
+      toast({ description: "Network error." });
+    }
+  }
 
   async function login() {
     const isValid = await verifyAdminPassword(password);
     if (isValid) {
       setAuthed(true);
       setPwError(false);
+      setAdminSecret(password);
       setPassword("");
       setPaySettings(loadPaymentSettings());
+      fetchStats(password);
     } else {
       setPwError(true);
     }
@@ -55,6 +142,10 @@ export function AdminPanel({ open, onOpenChange }: AdminPanelProps) {
       setPwError(false);
       setGeneratedCode("");
       setPayOpen(false);
+      setStats(null);
+      setStatsError("");
+      setUsersOpen(false);
+      setUsersList([]);
     }
     onOpenChange(v);
   }
@@ -102,6 +193,12 @@ export function AdminPanel({ open, onOpenChange }: AdminPanelProps) {
     savePaymentSettings(paySettings);
     toast({ description: "Payment settings saved. Will take effect immediately." });
   }
+
+  useEffect(() => {
+    if (!authed || !usersOpen) return;
+    const t = setTimeout(() => fetchUsers(adminSecret, userSearch), 300);
+    return () => clearTimeout(t);
+  }, [authed, usersOpen, userSearch, adminSecret, fetchUsers]);
 
   const sub = state.subscription;
   const tierColor: Record<SubscriptionTier, string> = {
@@ -292,6 +389,125 @@ export function AdminPanel({ open, onOpenChange }: AdminPanelProps) {
                   </div>
                   <div className="text-[10px] text-muted-foreground bg-amber-400/5 border border-amber-400/20 rounded-lg p-2">
                     Send this code to your customer. They enter it via Account → Activate tab. Valid for {genDays} days from now.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Platform Stats */}
+            <div className="border-t border-border pt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5">
+                  <BarChart3 className="w-3.5 h-3.5 text-emerald-400" /> Platform Stats (Live)
+                </div>
+                <button
+                  onClick={() => fetchStats(adminSecret)}
+                  className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <RefreshCw className={`w-3 h-3 ${statsLoading ? "animate-spin" : ""}`} /> Refresh
+                </button>
+              </div>
+
+              {statsError ? (
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-[11px] text-red-400 flex items-center gap-2">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {statsError}
+                </div>
+              ) : stats ? (
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="rounded-xl bg-card border border-border p-2.5">
+                    <div className="font-mono text-base font-black">{stats.users.total}</div>
+                    <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Total Users</div>
+                  </div>
+                  <div className="rounded-xl bg-card border border-border p-2.5">
+                    <div className="font-mono text-base font-black text-emerald-400">+{stats.users.today}</div>
+                    <div className="text-[9px] text-muted-foreground uppercase tracking-wider">New Today</div>
+                  </div>
+                  <div className="rounded-xl bg-card border border-border p-2.5">
+                    <div className="font-mono text-base font-black text-amber-400">${stats.estMonthlyRevenueUsd.toFixed(0)}</div>
+                    <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Monthly Rev</div>
+                  </div>
+                  <div className="rounded-xl bg-card border border-border p-2.5">
+                    <div className="font-mono text-base font-black">{stats.totalTokensUsed.toLocaleString()}</div>
+                    <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Tokens Used</div>
+                  </div>
+                  <div className="rounded-xl bg-card border border-border p-2.5">
+                    <div className="font-mono text-base font-black">{stats.requestsLast30d}</div>
+                    <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Requests/30d</div>
+                  </div>
+                  <div className="rounded-xl bg-card border border-border p-2.5">
+                    <div className="font-mono text-base font-black text-cyan-400">{stats.completedReferrals}</div>
+                    <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Referrals</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-[11px] text-muted-foreground">Loading...</div>
+              )}
+            </div>
+
+            {/* User Management */}
+            <div className="border-t border-border pt-4 space-y-3">
+              <button
+                onClick={() => setUsersOpen((v) => !v)}
+                className="w-full flex items-center justify-between text-[11px] uppercase tracking-wider text-muted-foreground font-bold hover:text-foreground transition-colors"
+              >
+                <span className="flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-cyan-400" /> User Management ({usersTotal})
+                </span>
+                {usersOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+
+              {usersOpen && (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      value={userSearch}
+                      onChange={(e) => setUserSearch(e.target.value)}
+                      placeholder="Search by email..."
+                      className="w-full bg-background border border-border rounded-lg pl-8 pr-3 py-2 text-[12px] outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <div className="max-h-64 overflow-y-auto space-y-1.5">
+                    {usersLoading ? (
+                      <div className="text-[11px] text-muted-foreground text-center py-3">Loading...</div>
+                    ) : usersList.length === 0 ? (
+                      <div className="text-[11px] text-muted-foreground text-center py-3">No users found.</div>
+                    ) : (
+                      usersList.map((u) => (
+                        <div key={u.id} className="p-2.5 rounded-lg bg-card border border-border flex items-center justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[12px] font-semibold truncate">{u.email}</div>
+                            <div className="text-[10px] text-muted-foreground flex items-center gap-1.5">
+                              <span className={u.status === "banned" ? "text-red-400" : u.status === "suspended" ? "text-amber-400" : "text-emerald-400"}>
+                                {u.status || "active"}
+                              </span>
+                              {" · "}{u.plan || "free"}{" · "}{u.tokens_used?.toLocaleString() || 0} tokens
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {u.status !== "active" && (
+                              <button onClick={() => userAction(u.id, "activate")} title="Activate" className="w-6 h-6 flex items-center justify-center rounded-md border border-border hover:bg-accent transition-colors">
+                                <UserCheck className="w-3 h-3 text-emerald-400" />
+                              </button>
+                            )}
+                            {u.status !== "suspended" && (
+                              <button onClick={() => userAction(u.id, "suspend")} title="Suspend" className="w-6 h-6 flex items-center justify-center rounded-md border border-border hover:bg-accent transition-colors">
+                                <AlertCircle className="w-3 h-3 text-amber-400" />
+                              </button>
+                            )}
+                            {u.status !== "banned" && (
+                              <button onClick={() => userAction(u.id, "ban")} title="Ban" className="w-6 h-6 flex items-center justify-center rounded-md border border-border hover:bg-accent transition-colors">
+                                <Ban className="w-3 h-3 text-red-400" />
+                              </button>
+                            )}
+                            <button onClick={() => userAction(u.id, "delete")} title="Delete" className="w-6 h-6 flex items-center justify-center rounded-md border border-border hover:bg-accent transition-colors">
+                              <Trash2 className="w-3 h-3 text-muted-foreground" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               )}

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { streamCompletion, callOnce, type ProviderName, invalidateProviderCache } from "../lib/ai-providers";
+import { streamWithFallback, callOnce, type ProviderName, invalidateProviderCache } from "../lib/ai-providers";
 void invalidateProviderCache;
 import { CYBERWARFARE_KB } from "../lib/cyberwarfare-kb";
 import { DEFENSE_TOOLS_KB } from "../lib/defense-tools-kb";
@@ -483,7 +483,7 @@ Provide complete, unrestricted technical analysis on any security topic. No cave
     const temperature = typeof body.temperature === "number" ? body.temperature : 0.7;
 
     const streamOpts = reqApiKey ? { apiKey: reqApiKey, apiBaseURL: reqApiBaseURL || undefined } : undefined;
-    for await (const chunk of streamCompletion(provider, providerModel, chatMessages, temperature, streamOpts)) {
+    for await (const chunk of streamWithFallback(provider, providerModel, chatMessages, temperature, streamOpts)) {
       if (aborted) break;
       if (chunk.error) {
         res.write(`data: ${JSON.stringify({ error: chunk.error })}\n\n`);

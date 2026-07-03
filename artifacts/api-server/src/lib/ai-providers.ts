@@ -470,6 +470,65 @@ export async function* streamCompletion(
     clearTimeout(timeout);
   }
 }
+const FALLBACK_ORDER: ProviderName[] = [
+  "personal", "cloudflare", "openrouter", "groq", "openai", "anthropic", "gemini", "zhipu", "glm",
+];
+
+export async function* streamWithFallback(
+  primaryProvider: ProviderName,
+  model: string,
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+  temperature = 0.7,
+  opts?: { apiKey?: string; apiBaseURL?: string },
+): AsyncGenerator<StreamChunk> {
+  // If the client supplied its own key, that is an explicit choice — never override it.
+  if (opts?.apiKey && opts.apiKey.trim().length > 10) {
+    yield* streamCompletion(primaryProvider, model, messages, temperature, opts);
+    return;
+  }
+
+  const available = new Set(listProviders().filter((p) => p.available).map((p) => p.id));
+  const chain: ProviderName[] = [primaryProvider, ...FALLBACK_ORDER].filter(
+    (p, i, arr) => arr.indexOf(p) === i && (p === primaryProvider || available.has(p)),
+  );
+
+  let lastError = "";
+  for (const candidate of chain) {
+    const candidateModel = candidate === primaryProvider ? model : (PROVIDER_CONFIGS[candidate]?.models[0] || PERSONAL_DEFAULT_MODEL);
+    let gotContent = false;
+    let sawError = false;
+    try {
+      for await (const chunk of streamCompletion(candidate, candidateModel, messages, temperature)) {
+        if (chunk.error) {
+          sawError = true;
+          lastError = chunk.error;
+          break;
+        }
+        if (chunk.content) {
+          gotContent = true;
+          yield chunk;
+        }
+        if (chunk.done) {
+          yield chunk;
+          return;
+        }
+      }
+    } catch (e) {
+      sawError = true;
+      lastError = e instanceof Error ? e.message : "provider error";
+    }
+    if (gotContent) return;
+    if (!sawError) return;
+    // Nothing was streamed and this candidate errored — try the next provider automatically.
+  }
+
+  yield {
+    error: lastError
+      ? `فشلت جميع محاولات محرك الذكاء الاصطناعي (آخر خطأ: ${lastError}). أضف مفتاح API واحد على الأقل في الإعدادات.`
+      : "لا يوجد مزود ذكاء اصطناعي مُفعّل. أضف مفتاح API واحد على الأقل من الإعدادات (Cloudflare Workers AI مجاني).",
+  };
+}
+
 export const aiProviders = {
   async streamOpenAI(
     opts: {

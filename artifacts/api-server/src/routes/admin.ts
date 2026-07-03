@@ -58,11 +58,13 @@ router.post("/admin/gen-code", async (req: Request, res: Response): Promise<void
 router.get("/admin/stats", async (req: Request, res: Response): Promise<void> => {
   if (!verifyAdmin(req, res)) return;
   try {
-    const [users, subs, tokens, scans] = await Promise.all([
+    const [users, subs, tokens, requests, revenue, referrals] = await Promise.all([
       pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '24h') as today FROM users"),
-      pool.query("SELECT subscription, COUNT(*) as cnt FROM users GROUP BY subscription"),
-      pool.query("SELECT SUM(tokens_used) as total_tokens FROM users"),
-      pool.query("SELECT COUNT(*) as total FROM scan_results"),
+      pool.query("SELECT plan, COUNT(*) as cnt FROM user_subscriptions WHERE status = 'active' GROUP BY plan"),
+      pool.query("SELECT COALESCE(SUM(tokens_used), 0) as total_tokens FROM users"),
+      pool.query("SELECT COUNT(*) as total FROM usage_stats WHERE created_at > NOW() - INTERVAL '30 days'"),
+      pool.query("SELECT COALESCE(SUM(price_usd), 0) as total FROM user_subscriptions WHERE status = 'active'"),
+      pool.query("SELECT COUNT(*) as total FROM referrals WHERE status = 'rewarded'").catch(() => ({ rows: [{ total: 0 }] })),
     ]);
 
     res.json({
@@ -70,12 +72,14 @@ router.get("/admin/stats", async (req: Request, res: Response): Promise<void> =>
         total: parseInt(users.rows[0].total),
         today: parseInt(users.rows[0].today),
       },
-      subscriptions: subs.rows.reduce((acc, r) => ({ ...acc, [r.subscription]: parseInt(r.cnt) }), {}),
+      subscriptions: subs.rows.reduce((acc, r) => ({ ...acc, [r.plan]: parseInt(r.cnt) }), { free: 0 }),
       totalTokensUsed: parseInt(tokens.rows[0].total_tokens) || 0,
-      totalScans: parseInt(scans.rows[0].total),
+      requestsLast30d: parseInt(requests.rows[0].total) || 0,
+      estMonthlyRevenueUsd: parseFloat(revenue.rows[0].total) || 0,
+      completedReferrals: parseInt(referrals.rows[0]?.total ?? "0") || 0,
     });
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch stats" });
+    res.status(500).json({ error: "Failed to fetch stats", detail: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -89,12 +93,16 @@ router.get("/admin/users", async (req: Request, res: Response): Promise<void> =>
     const search = req.query["search"] as string || "";
 
     const { rows } = await pool.query(
-      `SELECT id, email, first_name, last_name, role, subscription,
-              subscription_expires_at, tokens_used, tokens_limit,
-              last_login_at, created_at
-       FROM users
-       WHERE ($1 = '' OR email ILIKE $1)
-       ORDER BY created_at DESC
+      `SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.status,
+              u.tokens_used, u.last_login_at, u.created_at,
+              sub.plan, sub.status as subscription_status, sub.ends_at
+       FROM users u
+       LEFT JOIN LATERAL (
+         SELECT plan, status, ends_at FROM user_subscriptions
+         WHERE user_id = u.id ORDER BY created_at DESC LIMIT 1
+       ) sub ON true
+       WHERE ($1 = '' OR u.email ILIKE $1)
+       ORDER BY u.created_at DESC
        LIMIT $2 OFFSET $3`,
       [search ? `%${search}%` : "", limit, offset],
     );
@@ -105,7 +113,7 @@ router.get("/admin/users", async (req: Request, res: Response): Promise<void> =>
 
     res.json({ users: rows, total: parseInt(cnt[0].total), page, limit });
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch users" });
+    res.status(500).json({ error: "Failed to fetch users", detail: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -122,28 +130,26 @@ router.post("/admin/activate-user", async (req: Request, res: Response): Promise
       res.status(400).json({ error: "userId and subscription required" });
       return;
     }
-    const tokenLimits: Record<string, number> = {
-      free: 50_000, pro: 500_000, enterprise: 5_000_000,
-    };
     const expiresAt = new Date(Date.now() + durationDays * 86400 * 1000);
+
     await pool.query(
-      `UPDATE users
-       SET subscription = $1,
-           subscription_expires_at = $2,
-           tokens_limit = $3,
-           updated_at = NOW()
-       WHERE id = $4`,
-      [subscription, expiresAt, tokenLimits[subscription] ?? 50_000, userId],
+      `UPDATE user_subscriptions SET status = 'canceled', canceled_at = NOW()
+       WHERE user_id = $1 AND status = 'active'`,
+      [userId],
     );
-    // Send notification
+    await pool.query(
+      `INSERT INTO user_subscriptions (user_id, plan, status, started_at, ends_at, price_usd)
+       VALUES ($1, $2, 'active', NOW(), $3, 0)`,
+      [userId, subscription, expiresAt],
+    );
     await pool.query(
       `INSERT INTO notifications (user_id, type, title, body)
-       VALUES ($1, 'subscription', '🎉 تم تفعيل اشتراكك!', $2)`,
+       VALUES ($1, 'subscription', 'تم تفعيل اشتراكك', $2)`,
       [userId, `اشتراك ${subscription} نشط حتى ${expiresAt.toLocaleDateString("ar")}`],
     );
     res.json({ ok: true, expiresAt });
   } catch (err) {
-    res.status(500).json({ error: "Failed to activate subscription" });
+    res.status(500).json({ error: "Failed to activate subscription", detail: err instanceof Error ? err.message : String(err) });
   }
 });
 

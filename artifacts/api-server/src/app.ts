@@ -19,7 +19,7 @@ import { internalAuth } from "./middlewares/internalAuth";
 import { sanitizeInputs } from "./middlewares/sanitize";
 import { attackDetector } from "./middlewares/attack-detector";
 import { ensureCsrfToken, getCsrfToken } from "./middlewares/csrf";
-import { pool, ensureAuthTables } from "./db";
+import { pool, ensureAuthTables, ensureReferralTables } from "./db";
 import { setupReplitAuth } from "./routes/auth";
 import { startBackupScheduler } from "./lib/backup";
 import { seedDefaultFlags } from "./lib/feature-flags";
@@ -239,6 +239,7 @@ app.use("/api", subscriptionsRouter);
 (async () => {
   try {
     await ensureAuthTables();
+    await ensureReferralTables();
     if (process.env.REPL_ID) {
       await setupReplitAuth(app);
     }

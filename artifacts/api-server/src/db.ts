@@ -522,3 +522,21 @@ export async function getUserSessions(userId: string) {
   );
   return rows;
 }
+
+export async function ensureReferralTables() {
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code VARCHAR UNIQUE`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by VARCHAR REFERENCES users(id) ON DELETE SET NULL`).catch(() => {});
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS referrals (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      referrer_user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      referred_user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      status VARCHAR NOT NULL DEFAULT 'rewarded',
+      reward_tokens INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      rewarded_at TIMESTAMP WITH TIME ZONE
+    )
+  `).catch((err) => logger.warn({ err }, "referrals table may already exist"));
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals (referrer_user_id)`).catch(() => {});
+  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_referrals_referred ON referrals (referred_user_id)`).catch(() => {});
+}

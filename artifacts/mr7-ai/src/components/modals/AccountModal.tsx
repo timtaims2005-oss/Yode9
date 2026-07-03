@@ -1,7 +1,7 @@
 import { FullPageOverlay } from "@/components/FullPageOverlay";
 import {
   Crown, MessageSquare, Brain, Bookmark, Zap, Key, Check, AlertCircle,
-  Lock, Unlock, ChevronRight, User, BarChart3, Star, Shield, X,
+  Lock, Unlock, ChevronRight, User, BarChart3, Star, Shield, X, Gift, Copy, Users2,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { TIER_LABELS, TIER_TOKENS, TIER_PRICES, tierAtLeast, verifyActivationCodeServer } from "@/lib/subscription";
@@ -9,6 +9,16 @@ import type { SubscriptionTier } from "@/lib/subscription";
 import { getDeviceId } from "@/lib/cloud-sync";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { authFetch, getCachedUser } from "@/lib/auth";
+
+interface ReferralInfo {
+  code: string;
+  referralLink: string;
+  totalReferred: number;
+  totalTokensEarned: number;
+  rewardPerReferral: number;
+  referred: { id: string; status: string; reward_tokens: number; created_at: string; email: string; first_name?: string }[];
+}
 
 const PROFILE_KEY = "mr7-profile";
 const AVATAR_COLORS = [
@@ -82,7 +92,7 @@ const tierGlow: Record<SubscriptionTier, string> = {
   elite: "shadow-[0_0_20px_rgba(245,158,11,0.15)]",
 };
 
-type Tab = "profile" | "features" | "activate";
+type Tab = "profile" | "features" | "activate" | "referral";
 
 export function AccountModal({
   open,
@@ -102,10 +112,62 @@ export function AccountModal({
   const [codeInput, setCodeInput] = useState("");
   const [codeError, setCodeError] = useState("");
   const [codeSuccess, setCodeSuccess] = useState(false);
+  const [referral, setReferral] = useState<ReferralInfo | null>(null);
+  const [referralLoading, setReferralLoading] = useState(false);
+  const [referralError, setReferralError] = useState("");
+  const [redeemInput, setRedeemInput] = useState("");
+  const [redeemError, setRedeemError] = useState("");
+  const [redeemSuccess, setRedeemSuccess] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const loggedIn = !!getCachedUser();
 
   useEffect(() => {
     if (open) setProfile(loadProfile());
   }, [open]);
+
+  useEffect(() => {
+    if (open && tab === "referral" && loggedIn && !referral) {
+      setReferralLoading(true);
+      setReferralError("");
+      authFetch("/api/referrals/me")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.error) setReferralError(data.error);
+          else setReferral(data);
+        })
+        .catch(() => setReferralError("تعذر تحميل بيانات الإحالة"))
+        .finally(() => setReferralLoading(false));
+    }
+  }, [open, tab, loggedIn, referral]);
+
+  async function redeemReferral() {
+    if (!redeemInput.trim()) return;
+    setRedeemError("");
+    try {
+      const res = await authFetch("/api/referrals/redeem", {
+        method: "POST",
+        body: JSON.stringify({ code: redeemInput.trim().toUpperCase() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRedeemError(data.error || "فشل استخدام الكود");
+        return;
+      }
+      setRedeemSuccess(true);
+      setRedeemInput("");
+      toast({ description: `تم تفعيل مكافأة الإحالة: ${data.rewardTokens.toLocaleString()} توكن إضافي` });
+    } catch {
+      setRedeemError("خطأ في الشبكة");
+    }
+  }
+
+  function copyReferralLink() {
+    if (!referral) return;
+    navigator.clipboard.writeText(referral.referralLink).then(() => {
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    });
+  }
 
   const sub = state.subscription;
   const tokenLimit = TIER_TOKENS[sub.tier];
@@ -258,6 +320,7 @@ export function AccountModal({
             { id: "profile" as Tab, icon: User, label: "Stats" },
             { id: "features" as Tab, icon: Star, label: "Features" },
             { id: "activate" as Tab, icon: Key, label: "Activate" },
+            { id: "referral" as Tab, icon: Gift, label: "Referral" },
           ] as const).map(({ id, icon: Icon, label }) => (
             <button
               key={id}
@@ -418,6 +481,85 @@ export function AccountModal({
                   After payment, you'll receive an activation code via Telegram or email.
                 </div>
               </div>
+            </div>
+          )}
+
+          {tab === "referral" && (
+            <div className="space-y-3">
+              {!loggedIn ? (
+                <div className="p-4 rounded-xl bg-card border border-border text-[12px] text-muted-foreground text-center">
+                  سجّل الدخول لحسابك لتفعيل نظام الإحالة والحصول على مكافآت مجانية.
+                </div>
+              ) : referralLoading ? (
+                <div className="p-4 text-center text-[12px] text-muted-foreground">جارٍ التحميل...</div>
+              ) : referralError ? (
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-[12px] text-red-400 flex items-center gap-2">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {referralError}
+                </div>
+              ) : referral ? (
+                <>
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/30 space-y-3">
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5">
+                      <Gift className="w-3.5 h-3.5 text-primary" /> ادعُ أصدقاءك واكسب {referral.rewardPerReferral.toLocaleString()} توكن لكل إحالة
+                    </div>
+                    <div className="flex items-center gap-2 p-3 bg-background border border-border rounded-xl">
+                      <code className="flex-1 text-[13px] font-mono font-bold text-primary tracking-widest">{referral.code}</code>
+                      <button
+                        onClick={copyReferralLink}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border hover:bg-accent transition-colors text-[11px] font-semibold shrink-0"
+                      >
+                        {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiedLink ? "تم النسخ" : "نسخ الرابط"}
+                      </button>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground break-all font-mono">{referral.referralLink}</div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-xl bg-card border border-border p-3">
+                      <Users2 className="w-4 h-4 mb-1.5 text-cyan-400" />
+                      <div className="font-mono text-lg font-black leading-tight">{referral.totalReferred}</div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">أصدقاء انضموا</div>
+                    </div>
+                    <div className="rounded-xl bg-card border border-border p-3">
+                      <Zap className="w-4 h-4 mb-1.5 text-emerald-400" />
+                      <div className="font-mono text-lg font-black leading-tight">{referral.totalTokensEarned.toLocaleString()}</div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">توكن مكتسب</div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-border pt-3 space-y-2">
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">لديك كود إحالة من صديق؟</div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={redeemInput}
+                        onChange={(e) => { setRedeemInput(e.target.value.toUpperCase()); setRedeemError(""); setRedeemSuccess(false); }}
+                        onKeyDown={(e) => e.key === "Enter" && redeemReferral()}
+                        placeholder="أدخل الكود هنا"
+                        className={`flex-1 bg-background border ${redeemError ? "border-red-500/60" : "border-border"} focus:border-primary rounded-xl px-3 py-2.5 text-[12px] outline-none font-mono tracking-wider`}
+                      />
+                      <button
+                        onClick={redeemReferral}
+                        disabled={!redeemInput.trim()}
+                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-white text-[12px] font-bold hover:opacity-90 disabled:opacity-40 transition-opacity"
+                      >
+                        <Gift className="w-3.5 h-3.5" /> تفعيل
+                      </button>
+                    </div>
+                    {redeemError && (
+                      <div className="flex items-center gap-1.5 text-red-400 text-[11px]">
+                        <AlertCircle className="w-3.5 h-3.5" /> {redeemError}
+                      </div>
+                    )}
+                    {redeemSuccess && (
+                      <div className="flex items-center gap-1.5 text-emerald-400 text-[11px]">
+                        <Check className="w-3.5 h-3.5" /> تم تفعيل المكافأة بنجاح!
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : null}
             </div>
           )}
         </div>
