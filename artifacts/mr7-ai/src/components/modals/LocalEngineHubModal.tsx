@@ -631,9 +631,13 @@ export function LocalEngineHubModal({ open, onOpenChange }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [logs,       setLogs]       = useState<string[]>([]);
   const [activeTab,  setActiveTab]  = useState<"hub" | "engines" | "logs">("hub");
+  const [pullModel,  setPullModel]  = useState("");
+  const [pulling,    setPulling]    = useState(false);
+  const [pullLog,    setPullLog]    = useState("");
+  const [pullPct,    setPullPct]    = useState<number | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const addLog = (msg: string) => setLogs(prev => [...prev.slice(-100), `[${new Date().toLocaleTimeString()}] ${msg}`]);
+  const addLog = useCallback((msg: string) => setLogs(prev => [...prev.slice(-100), `[${new Date().toLocaleTimeString()}] ${msg}`]), []);
 
   const fetchStatus = useCallback(async (showScan = false) => {
     if (showScan) setScanning(true);
@@ -703,6 +707,58 @@ export function LocalEngineHubModal({ open, onOpenChange }: Props) {
 
   const handleLaunch  = (id: string) => { streamAction(`/api/local-engines/launch/${id}`, `Launch ${id}`, () => fetchOne(id)); if (activeTab !== "logs") setActiveTab("logs"); };
   const handleInstall = (id: string) => { streamAction(`/api/local-engines/install/${id}`, `Install ${id}`, () => fetchOne(id)); if (activeTab !== "logs") setActiveTab("logs"); };
+
+  const pullOllamaModel = useCallback(async (overrideModel?: string) => {
+    const modelName = (overrideModel ?? pullModel).trim();
+    if (!modelName || pulling) return;
+    if (overrideModel) setPullModel(overrideModel);
+    setPulling(true); setPullLog("جارٍ بدء التحميل..."); setPullPct(null);
+    addLog(`→ Pulling ${modelName}...`);
+    try {
+      const r = await fetch("/api/local-engines/pull-model", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: modelName }),
+      });
+      if (!r.body) throw new Error("No body");
+      const reader = r.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const parts = buf.split("\n");
+        buf = parts.pop() ?? "";
+        for (const part of parts) {
+          const line = part.trim();
+          if (!line.startsWith("data:")) continue;
+          try {
+            const ev = JSON.parse(line.slice(5)) as { type: string; status?: string; pct?: number; message?: string };
+            if (ev.type === "progress") {
+              const pct = ev.pct ?? null;
+              setPullLog(`${ev.status ?? "..."} ${pct !== null ? pct + "%" : ""}`);
+              setPullPct(pct);
+            } else if (ev.type === "success") {
+              setPullLog("✓ تم التحميل بنجاح");
+              setPullPct(100);
+              addLog(`[OK] ${modelName} downloaded`);
+              toast({ title: "تم التحميل", description: `${modelName} جاهز للاستخدام` });
+              fetchStatus();
+            } else if (ev.type === "error") {
+              setPullLog(`خطأ: ${ev.message ?? ""}`);
+              addLog(`[ERROR] ${ev.message}`);
+            }
+          } catch { /* skip malformed */ }
+        }
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setPullLog(`خطأ: ${msg}`);
+      addLog(`[ERROR] pull failed: ${msg}`);
+    }
+    setPulling(false);
+  }, [pullModel, pulling, addLog, toast, fetchStatus]);
 
   const onlineCount = statuses.filter(s => s.online).length;
 
@@ -969,6 +1025,101 @@ export function LocalEngineHubModal({ open, onOpenChange }: Props) {
                     <RefreshCw size={10} className={scanning ? "animate-spin" : ""} />
                     Refresh
                   </button>
+                </div>
+
+                {/* ── Pull Ollama Model section ── */}
+                <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(0,229,255,0.15)", background: "rgba(0,229,255,0.03)" }}>
+                  {/* Quick-start llama3.2:3b */}
+                  <div className="flex items-center gap-3 px-3 py-2.5" style={{ borderBottom: "1px solid rgba(0,229,255,0.08)", background: "linear-gradient(90deg,rgba(34,197,94,0.08),rgba(0,229,255,0.04))" }}>
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-base">🚀</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[11px] font-bold text-green-400">ابدأ بـ llama3.2:3b</div>
+                      <div className="text-[9px] text-white/30 mt-0.5">نموذج صغير وسريع · 2GB · مثالي لـ Replit CPU</div>
+                    </div>
+                    <button
+                      onClick={() => pullOllamaModel("llama3.2:3b")}
+                      disabled={pulling}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
+                      style={{ background: "rgba(34,197,94,0.2)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.4)" }}
+                    >
+                      {pulling && pullModel === "llama3.2:3b"
+                        ? <Loader2 size={11} className="animate-spin" />
+                        : <Download size={11} />}
+                      {pulling && pullModel === "llama3.2:3b" ? "جارٍ..." : "تحميل تلقائي"}
+                    </button>
+                  </div>
+
+                  {/* Custom pull input */}
+                  <div className="p-3 space-y-2">
+                    <div className="text-[9px] text-white/30 font-mono uppercase tracking-wider">تحميل نموذج مخصص</div>
+                    <div className="flex gap-2">
+                      <input
+                        value={pullModel}
+                        onChange={e => setPullModel(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && !pulling && pullOllamaModel()}
+                        placeholder="مثال: qwen2.5:1.5b أو gemma2:2b"
+                        className="flex-1 px-3 py-2 rounded-lg text-[11px] font-mono outline-none"
+                        style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(0,229,255,0.2)", color: "rgba(255,255,255,0.8)", caretColor: "#00e5ff" }}
+                      />
+                      <button
+                        onClick={() => pullOllamaModel()}
+                        disabled={pulling || !pullModel.trim()}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all disabled:opacity-40"
+                        style={{ background: "rgba(0,229,255,0.15)", color: "#00e5ff", border: "1px solid rgba(0,229,255,0.35)" }}
+                      >
+                        {pulling ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+                        Pull
+                      </button>
+                    </div>
+
+                    {/* Streaming progress */}
+                    {pulling && (
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-mono text-cyan-300/70">{pullLog}</span>
+                          {pullPct !== null && (
+                            <span className="text-[11px] font-bold font-mono text-cyan-400">{pullPct}%</span>
+                          )}
+                        </div>
+                        <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{ background: "linear-gradient(90deg,#00e5ff,#22c55e)", boxShadow: "0 0 10px #00e5ff66" }}
+                            animate={pullPct !== null
+                              ? { width: `${pullPct}%` }
+                              : { width: ["5%", "60%", "5%"] }
+                            }
+                            transition={pullPct !== null
+                              ? { duration: 0.4, ease: "easeOut" }
+                              : { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {!pulling && pullLog && (
+                      <div
+                        className="text-[10px] font-mono"
+                        style={{ color: pullLog.startsWith("خطأ") ? "#ef4444" : "#22c55e" }}
+                      >
+                        {pullLog}
+                      </div>
+                    )}
+
+                    {/* Recommended models */}
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {["qwen2.5:0.5b","tinyllama","llama3.2:1b","gemma2:2b","deepseek-r1:1.5b"].map(m => (
+                        <button
+                          key={m}
+                          onClick={() => { setPullModel(m); }}
+                          className="text-[9px] px-2 py-0.5 rounded font-mono transition-all hover:bg-white/10"
+                          style={{ background: "rgba(0,229,255,0.06)", border: "1px solid rgba(0,229,255,0.15)", color: "rgba(0,229,255,0.7)" }}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Engine panels */}

@@ -38,7 +38,7 @@ async function pingEngine(eng: typeof ENGINES[number]): Promise<EngineStatus> {
   const t0 = Date.now();
   try {
     const ctrl = new AbortController();
-    const tid  = setTimeout(() => ctrl.abort(), 4000);
+    const tid  = setTimeout(() => ctrl.abort(), 3000);
     const resp = await fetch(`${eng.base}${eng.apiPath}`, { signal: ctrl.signal });
     clearTimeout(tid);
     const latencyMs = Date.now() - t0;
@@ -82,8 +82,12 @@ function base(eng: typeof ENGINES[number], online: boolean, latencyMs: number | 
 
 function checkInstallAvailable(id: EngineId): boolean {
   if (id === "ollama") {
-    const bin = path.join(WORKSPACE, ".ollama-bin", "ollama");
-    return fs.existsSync(bin);
+    const candidates = [
+      path.join(WORKSPACE, ".ollama-bin", "ollama"),
+      path.join(WORKSPACE, "..", "..", ".ollama-bin", "ollama"),
+      "/home/runner/workspace/.ollama-bin/ollama",
+    ];
+    return candidates.some(p => fs.existsSync(p));
   }
   if (id === "llamafile") {
     return fs.existsSync(path.join(BIN_DIR, "llamafile"));
@@ -118,12 +122,16 @@ router.post("/local-engines/launch/:id", (req, res): void => {
   send({ type: "start", message: `Launching ${id}...` });
 
   if (id === "ollama") {
-    const binWS  = path.join(WORKSPACE, ".ollama-bin", "ollama");
-    const binH   = "/home/runner/.ollama-bin/ollama";
-    const bin    = fs.existsSync(binWS) ? binWS : binH;
-    const libDir = path.join(WORKSPACE, ".ollama-bin", "lib", "ollama");
+    const candidates = [
+      path.join(WORKSPACE, ".ollama-bin", "ollama"),
+      path.join(WORKSPACE, "..", "..", ".ollama-bin", "ollama"),
+      "/home/runner/workspace/.ollama-bin/ollama",
+      "/home/runner/.ollama-bin/ollama",
+    ];
+    const bin    = candidates.find(p => fs.existsSync(p)) ?? null;
+    const libDir = bin ? path.join(path.dirname(bin), "lib", "ollama") : "";
 
-    if (!fs.existsSync(bin)) {
+    if (!bin) {
       send({ type: "error", message: "Ollama binary not found. Please install first." });
       res.end();
       return;

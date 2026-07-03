@@ -44,6 +44,7 @@ ALLOWED_ORIGINS = "https://${REPLIT_DEV_DOMAIN}"
 APP_VERSION = "1.0.0"
 STORAGE_PROVIDER = "local"
 LOCAL_UPLOAD_DIR = "./uploads"
+AUTO_LAUNCH_OLLAMA = "true"
 
 [deployment]
 deploymentTarget = "autoscale"

@@ -1,11 +1,54 @@
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
+import { spawn } from "child_process";
+import path from "path";
+import fs from "fs";
 import app from "./app";
 import { logger } from "./lib/logger";
 import { handleTerminalSocket } from "./routes/shell";
 import { registerCisaWsClient } from "./routes/cisa";
 import { handleCollabSocket } from "./routes/collab";
 import { handleMuxSocket } from "./routes/mux";
+
+// ── Auto-launch Ollama on startup ─────────────────────────────────────────────
+async function autoLaunchOllama(): Promise<void> {
+  if (process.env["AUTO_LAUNCH_OLLAMA"] === "false") return;
+
+  // Try multiple possible locations — api-server cwd vs workspace root
+  const WORKSPACE = process.cwd();
+  const candidates = [
+    path.join(WORKSPACE, ".ollama-bin", "ollama"),
+    path.join(WORKSPACE, "..", "..", ".ollama-bin", "ollama"),
+    "/home/runner/workspace/.ollama-bin/ollama",
+    "/home/runner/.ollama-bin/ollama",
+  ];
+  const binWS  = candidates[0];
+  const binH   = "/home/runner/workspace/.ollama-bin/ollama";
+  const bin    = candidates.find(p => fs.existsSync(p)) ?? null;
+
+  if (!bin) {
+    logger.info("Ollama binary not found — skipping auto-launch");
+    return;
+  }
+
+  // Check if already running
+  try {
+    const chk = await fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(2000) });
+    if (chk.ok) { logger.info("Ollama already running — skip auto-launch"); return; }
+  } catch { /* not running */ }
+
+  const libDir = path.join(WORKSPACE, ".ollama-bin", "lib", "ollama");
+  const env: Record<string, string> = {
+    ...(process.env as Record<string, string>),
+    HOME: "/home/runner",
+    OLLAMA_MODELS: "/home/runner/.ollama/models",
+    OLLAMA_ORIGINS: "*",
+  };
+  if (fs.existsSync(libDir)) env["OLLAMA_LIBRARY_PATH"] = libDir;
+
+  spawn(bin, ["serve"], { detached: true, stdio: "ignore", env }).unref();
+  logger.info({ bin }, "Ollama auto-launched on startup");
+}
 
 const rawPort = process.env["PORT"] ?? "8080";
 
@@ -59,4 +102,6 @@ server.on("upgrade", (req, socket, head) => {
 server.listen(port, (err?: Error) => {
   if (err) { logger.error({ err }, "Error listening on port"); process.exit(1); }
   logger.info({ port }, "Server listening");
+  // Auto-launch Ollama in background (non-blocking)
+  autoLaunchOllama().catch(e => logger.warn({ err: e }, "autoLaunchOllama error"));
 });

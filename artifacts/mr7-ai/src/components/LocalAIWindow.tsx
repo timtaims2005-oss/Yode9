@@ -543,14 +543,16 @@ export function LocalAIWindow({
   };
 
   // ── Pull Ollama model ───────────────────────────────────────────────────────
-  const pullOllamaModel = async () => {
-    if (!pullModel.trim()) return;
+  const pullOllamaModel = async (overrideModel?: string) => {
+    const modelName = (overrideModel ?? pullModel).trim();
+    if (!modelName) return;
+    if (overrideModel) setPullModel(overrideModel);
     setPulling(true); setPullLog("بدء التحميل...");
     try {
       const r = await fetch("/api/local-engines/pull-model", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: pullModel.trim() }),
+        body: JSON.stringify({ model: modelName }),
       });
       if (r.body) {
         const reader = r.body.getReader();
@@ -568,7 +570,7 @@ export function LocalAIWindow({
               if (ev.type === "progress") {
                 setPullLog(`${ev.status ?? "..."} ${ev.pct != null ? ev.pct + "%" : ""}`);
               } else if (ev.type === "success") {
-                setPullLog("تم التحميل بنجاح");
+                setPullLog("✓ تم التحميل بنجاح");
               } else if (ev.type === "error") {
                 setPullLog(`خطأ: ${ev.message ?? ""}`);
               }
@@ -892,6 +894,29 @@ export function LocalAIWindow({
           {/* MODELS TAB */}
           {tab === "models" && (
             <div className="p-2.5 flex flex-col gap-2.5">
+              {/* Quick-start: llama3.2:3b */}
+              <div
+                className="rounded-xl p-2.5 flex items-center gap-2.5 cursor-pointer transition-all"
+                style={{ background: `linear-gradient(135deg,${G}0a,${C}06)`, border: `1px solid ${G}30` }}
+              >
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: G + "22", border: `1px solid ${G}44` }}>
+                  <Zap size={13} style={{ color: G }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[9px] font-black" style={{ color: G }}>ابدأ بـ llama3.2:3b</div>
+                  <div className="text-[7.5px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>نموذج صغير وسريع · 2GB · مثالي لـ Replit CPU</div>
+                </div>
+                <button
+                  onClick={() => pullOllamaModel("llama3.2:3b")}
+                  disabled={pulling}
+                  className="px-2.5 py-1.5 rounded-lg text-[9px] font-black flex items-center gap-1 flex-shrink-0 transition-all"
+                  style={{ background: G + "22", border: `1px solid ${G}44`, color: G, opacity: pulling ? 0.5 : 1 }}
+                >
+                  <Download size={9} />
+                  تحميل تلقائي
+                </button>
+              </div>
+
               {/* Pull model */}
               <div className="rounded-xl p-2.5" style={{ background: C + "06", border: `1px solid ${C}18` }}>
                 <div className="text-[7px] font-black tracking-widest uppercase mb-2" style={{ color: C + "55" }}>
@@ -902,7 +927,7 @@ export function LocalAIWindow({
                     value={pullModel}
                     onChange={e => setPullModel(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && !pulling && pullOllamaModel()}
-                    placeholder="مثال: llama3.2:3b"
+                    placeholder="مثال: llama3.2:3b أو qwen2.5:1.5b"
                     className="flex-1 px-2.5 py-1.5 rounded-lg text-[10px] font-mono outline-none"
                     style={{
                       background: "rgba(0,0,0,0.4)", border: `1px solid ${C}22`,
@@ -910,7 +935,7 @@ export function LocalAIWindow({
                     }}
                   />
                   <button
-                    onClick={pullOllamaModel}
+                    onClick={() => pullOllamaModel()}
                     disabled={pulling || !pullModel.trim()}
                     className="px-2.5 py-1 rounded-lg text-[9px] font-black flex items-center gap-1 transition-all"
                     style={{
@@ -925,10 +950,42 @@ export function LocalAIWindow({
                     >
                       {pulling ? <RefreshCw size={9} /> : <Download size={9} />}
                     </motion.div>
-                    {pulling ? "..." : "تحميل"}
+                    {pulling ? "جارٍ..." : "تحميل"}
                   </button>
                 </div>
-                {pullLog && (
+
+                {/* Streaming progress bar */}
+                {pulling && (() => {
+                  const pctMatch = pullLog.match(/(\d+)%/);
+                  const pct = pctMatch ? parseInt(pctMatch[1]) : null;
+                  return (
+                    <div className="mt-2 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[8px] font-mono" style={{ color: C + "88" }}>{pullLog}</span>
+                        {pct !== null && <span className="text-[9px] font-black font-mono" style={{ color: C }}>{pct}%</span>}
+                      </div>
+                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                        {pct !== null ? (
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{ background: `linear-gradient(90deg,${C},${G})`, boxShadow: `0 0 8px ${C}` }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        ) : (
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{ background: `linear-gradient(90deg,${C},${G})`, boxShadow: `0 0 8px ${C}` }}
+                            animate={{ width: ["5%","65%","5%"] }}
+                            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {!pulling && pullLog && (
                   <div className="text-[8px] font-mono mt-1.5 px-0.5" style={{ color: pullLog.startsWith("خطأ") ? R : G }}>
                     {pullLog}
                   </div>

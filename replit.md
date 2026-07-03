@@ -1,5 +1,45 @@
 # mr7.ai / KaliGPT
 
+## Local AI Engine Suite (July 2026)
+
+كامل نظام المحركات المحلية الـ 7 مُفعَّل ويعمل:
+
+### Auto-Launch Ollama
+- `artifacts/api-server/src/index.ts`: يشغّل Ollama تلقائياً عند بدء الخادم (يبحث في مسارات متعددة)
+- `AUTO_LAUNCH_OLLAMA=true` في Replit Secrets
+- إيقاف التشغيل التلقائي: `AUTO_LAUNCH_OLLAMA=false`
+
+### Local Engines API (`artifacts/api-server/src/routes/local-engines.ts`)
+- `GET /api/local-engines/status` — يفحص الـ 7 محركات بالتوازي (timeout 3s لكل محرك)
+- `POST /api/local-engines/launch/:id` — تشغيل Ollama / Llamafile / KoboldCPP بـ SSE
+- `POST /api/local-engines/install/:id` — تثبيت المحركات بـ SSE
+- `POST /api/local-engines/pull-model` — تحميل نماذج Ollama بـ streaming حقيقي مع نسبة التقدم
+- Ollama binary path: `.ollama-bin/ollama` (يبحث في 4 مسارات تلقائياً)
+
+### Frontend Components
+- `artifacts/mr7-ai/src/components/LocalAIWindow.tsx`:
+  - زر "ابدأ بـ llama3.2:3b" — تحميل تلقائي بنقرة واحدة
+  - شريط تقدم حقيقي مع streaming أثناء التحميل
+  - مؤشر أخضر/أحمر لكل محرك
+  - أزرار Launch/Install/تفعيل لكل محرك
+- `artifacts/mr7-ai/src/components/modals/LocalEngineHubModal.tsx`:
+  - قسم Pull Model كامل مع streaming progress bar
+  - زر "ابدأ بـ llama3.2:3b" سريع
+  - قائمة نماذج مقترحة سريعة الاختيار
+
+### Engines Registry (port → engine)
+| Engine | Port | Launch | Install |
+|--------|------|--------|---------|
+| Ollama | 11434 | ✅ Auto | ✅ Download |
+| LM Studio | 1234 | - | - |
+| Jan | 1337 | - | - |
+| text-gen-webui | 5000 | - | - |
+| GPT4All | 4891 | - | - |
+| Llamafile | 8081 | ✅ | ✅ Download |
+| KoboldCPP | 5001 | ✅ | ✅ Clone |
+
+
+
 Dark cybersecurity AI chat (KaliGPT branding). Pixel-perfect to user screenshots, Arabic communication, no emojis. Real LLM brain via Replit AI Integrations proxy.
 
 ## Commercial SaaS System (May 2026)
