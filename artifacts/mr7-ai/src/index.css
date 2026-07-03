@@ -3,11 +3,16 @@
 
 /* ── Global box model safety ── */
 *, *::before, *::after { box-sizing: border-box; }
+html, body {
+  height: auto;
+  min-height: 100%;
+}
 body {
   overflow-x: hidden;
+  overflow-y: auto;
   /* Smooth scrolling at 144fps */
   scroll-behavior: smooth;
-  overscroll-behavior: none;
+  overscroll-behavior-x: none;
   /* Eliminate subpixel rendering overhead */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -29,8 +34,6 @@ canvas {
   backface-visibility: hidden;
   image-rendering: auto;
   will-change: contents;
-  /* Prevent canvas from blocking main thread compositing */
-  contain: strict;
 }
 
 /* ── Compositor layers only on intentional animated elements ── */
@@ -1563,8 +1566,10 @@ button, [role="button"], a, input, textarea, select,
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── 3D Perspective container ── */
-.dark body, .dark #root {
+/* ── 3D Perspective container (scoped, not on body/#root to avoid breaking
+   position:fixed containment for the whole document, which blocks page
+   scroll/navigation) ── */
+.dark .perspective-scope {
   perspective: 2000px;
   perspective-origin: 50% 50%;
 }

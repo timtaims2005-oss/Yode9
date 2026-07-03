@@ -599,6 +599,13 @@ export default function LandingPage() {
 
   useEffect(()=>{ const id=setInterval(()=>setActIdx(i=>(i+1)%LIVE_ACTIVITY.length),2000); return()=>clearInterval(id); },[]);
 
+  useEffect(()=>{
+    if (!window.location.hash) return;
+    const id = window.location.hash.slice(1);
+    const t = setTimeout(()=>{ document.getElementById(id)?.scrollIntoView({behavior:"smooth"}); }, 80);
+    return ()=>clearTimeout(t);
+  },[]);
+
   const CATS=["ALL","OFFENSIVE","RECON","INTEL","NETWORK","AI","EXPLOIT","FORENSIC","GODMODE","DEFENSE","WIRELESS","ICS","CLOUD","SIGINT"];
   const filtered=toolCat==="ALL"?TOOLS:TOOLS.filter(t=>t.cat===toolCat);
 
@@ -1124,7 +1131,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CHANGELOG ── */}
-      <section id="changelog" style={{padding:"100px 24px",position:"relative",zIndex:10,borderTop:"1px solid rgba(255,255,255,0.04)",background:"rgba(0,0,0,0.3)"}}>
+      <section id="changelog-timeline" style={{padding:"100px 24px",position:"relative",zIndex:10,borderTop:"1px solid rgba(255,255,255,0.04)",background:"rgba(0,0,0,0.3)"}}>
         <div style={{maxWidth:900,margin:"0 auto"}}>
           <div style={{textAlign:"center",marginBottom:52}}>
             <SectionLabel text="CHANGELOG"/>
