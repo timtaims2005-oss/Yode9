@@ -170,21 +170,26 @@ createRoot(document.getElementById("root")!).render(
 );
 
 // ── Performance & resilience systems ─────────────────────────────────────────
+// Only real, functionally-used systems are initialised (drive OfflineQueueBanner /
+// PerformanceCommandCenter UI). The rest of the "performance theater" modules
+// (jank-detector RAF loop, boot-orchestrator's 14-module cascade, 16ms schedulers,
+// mousemove/click speculative-prefetch listeners, IndexedDB pattern-learning caches)
+// were pure overhead with no functional benefit — they ran continuously on the main
+// thread and were disabled to eliminate lag/jank and improve responsiveness.
 // renderBudget is self-initialising (no init() — use renderBudget.track() per component)
 void renderBudget; // imported for side-effect bundling
 networkResilience.init();
 smartCache.init();
-jankDetector.init();
-bootOrchestrator.start();
-schedulerCoordinator.init();
-paintSynchronizer.init();
-networkMultiplexer.connect();
-cognitiveCache.init();
-
-// ── Advanced performance systems ──────────────────────────────────────────────
-zeroCopyBuffer.init();
 circuitBreaker.init();
-turboGC.init();
-quantumScheduler.init();
-speculativeExecution.init();
-neuralPrefetch.init();
+
+void jankDetector;
+void bootOrchestrator;
+void schedulerCoordinator;
+void paintSynchronizer;
+void networkMultiplexer;
+void cognitiveCache;
+void zeroCopyBuffer;
+void turboGC;
+void quantumScheduler;
+void speculativeExecution;
+void neuralPrefetch;

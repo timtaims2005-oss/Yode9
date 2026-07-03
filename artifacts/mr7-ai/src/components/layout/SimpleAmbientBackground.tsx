@@ -14,22 +14,32 @@ export function SimpleAmbientBackground({ styleId = "checkerboard" }: { styleId?
         zIndex: 0,
         pointerEvents: "none",
         overflow: "hidden",
-        background: "#080808",
+        background: "#0a0202",
       }}
     >
       {styleId === "checkerboard" && (
         <>
-          {/* رقعة الكاروهات الحمراء/السوداء */}
+          {/* رقعة كاروهات حمراء غالبة ممزوجة بحواف ناعمة مع الأسود (بدون filter/blur لتفادي أي تقطيع في الأداء) */}
           <div
             className="ambient-checker"
             style={{
               position: "absolute",
               inset: 0,
-              opacity: 0.55,
-              backgroundImage: "repeating-conic-gradient(#0c0c0c 0% 25%, #1a0608 0% 50%)",
+              opacity: 0.85,
+              backgroundImage: "repeating-conic-gradient(#4a0209 0% 25%, #0a0202 0% 50%)",
               backgroundSize: "64px 64px",
               maskImage: "radial-gradient(ellipse 95% 80% at 50% 25%, #000 35%, transparent 100%)",
               WebkitMaskImage: "radial-gradient(ellipse 95% 80% at 50% 25%, #000 35%, transparent 100%)",
+            }}
+          />
+
+          {/* طبقة حمراء إضافية لزيادة هيمنة اللون الأحمر مع مزج ناعم للحواف */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              opacity: 0.5,
+              background: "radial-gradient(ellipse 90% 70% at 50% 35%, rgba(226,18,39,0.32), transparent 78%)",
             }}
           />
 
@@ -38,10 +48,10 @@ export function SimpleAmbientBackground({ styleId = "checkerboard" }: { styleId?
             style={{
               position: "absolute",
               inset: 0,
-              opacity: 0.35,
+              opacity: 0.4,
               backgroundImage:
-                "linear-gradient(rgba(226,18,39,0.12) 1px, transparent 1px)," +
-                "linear-gradient(90deg, rgba(226,18,39,0.12) 1px, transparent 1px)",
+                "linear-gradient(rgba(226,18,39,0.18) 1px, transparent 1px)," +
+                "linear-gradient(90deg, rgba(226,18,39,0.18) 1px, transparent 1px)",
               backgroundSize: "64px 64px",
               maskImage: "radial-gradient(ellipse 90% 70% at 50% 30%, #000 40%, transparent 100%)",
               WebkitMaskImage: "radial-gradient(ellipse 90% 70% at 50% 30%, #000 40%, transparent 100%)",
@@ -53,7 +63,7 @@ export function SimpleAmbientBackground({ styleId = "checkerboard" }: { styleId?
             style={{
               position: "absolute",
               inset: 0,
-              background: "radial-gradient(ellipse 60% 40% at 50% 40%, rgba(226,18,39,0.08), transparent 70%)",
+              background: "radial-gradient(ellipse 60% 40% at 50% 40%, rgba(226,18,39,0.14), transparent 70%)",
               animation: "ambientPulse 6s ease-in-out infinite",
             }}
           />
