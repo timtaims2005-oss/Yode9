@@ -311,7 +311,7 @@ const ADDITIONAL_TOOLS: { icon: React.ElementType; label: UtilityTool; color?: s
   { icon: DbIcon, label: "Kali SQLi Guide", color: "text-blue-400" },
 ];
 
-export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution, onOpenKgProjectGenerator, onOpenKgAgentMemory, onOpenKgAutonomousSwarm, onOpenKgSocialArsenal, onOpenAptIntel, onOpenNexusPanel, onOpenAccountHackeTools, onOpenOmnixAbsolute, onOpenDarkWebIntelFull, onOpenCodeInterpreter, onOpenCustomGpts, onOpenScheduledTasks, onOpenOrchestratorHub }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenPricing, onOpenApi, onOpenTool, onOpenSettings, onOpenAccount, onOpenLogin, onOpenUtility, onOpenToolsHub, onOpenMemory, onOpenBookmarks, onOpenSearch, onOpenCompare, onOpenQRSync, onOpenChangelog, onOpenOsint, onOpenOsintHub, onOpenUseCaseLib, onOpenOmegaAgent, onOpenLocalEngineHub, onOpenMultiModelRace, onOpenLocalBenchmark, onOpenKgAdmin, onOpenKgPayment, onOpenKgRAG, onOpenKgMemory, onOpenKgNotifications, onOpenKgMultiAgent, onOpenKgOrganizations, onOpenKgMarketplace, onOpenKgAnalytics, onOpenKgFinetune, onOpenKgAPIKeys, onOpenKgMonitoring, onOpenKgSemanticSearch, onOpenKgCollaboration, onOpenKgContext, onOpenKgPentestLab, onOpenKgSecurity, onOpenKgHelpCenter, onOpenKgReports, onOpenKgRateLimit, onOpenKgSystemsHub, onOpenKgSwarmEvolution, onOpenKgProjectGenerator, onOpenKgAgentMemory, onOpenKgAutonomousSwarm, onOpenKgSocialArsenal, onOpenAptIntel, onOpenNexusPanel, onOpenAccountHackeTools, onOpenOmnixAbsolute, onOpenDarkWebIntelFull, onOpenCodeInterpreter, onOpenCustomGpts, onOpenScheduledTasks, onOpenOrchestratorHub }: SidebarProps) {
   const { toast } = useToast();
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -1425,6 +1425,33 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
                 className="p-1.5 rounded text-[#555] hover:text-[#aaa] hover:bg-[#1a1a1a] transition-colors"
               >
                 <QrCode className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {onOpenChangelog && (
+              <button
+                onClick={onOpenChangelog}
+                title="Changelog — ما الجديد؟"
+                className="p-1.5 rounded text-[#22c55e88] hover:text-[#22c55e] hover:bg-[#22c55e12] transition-colors"
+              >
+                <FileText className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {onOpenOsint && (
+              <button
+                onClick={onOpenOsint}
+                title="OSINT Dashboard"
+                className="p-1.5 rounded text-[#00e5ff88] hover:text-[#00e5ff] hover:bg-[#00e5ff12] transition-colors"
+              >
+                <AtSign className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {onOpenOsintHub && (
+              <button
+                onClick={onOpenOsintHub}
+                title="OSINT Hub — مركز الاستخبارات المفتوحة"
+                className="p-1.5 rounded text-[#a78bfa88] hover:text-[#a78bfa] hover:bg-[#a78bfa12] transition-colors"
+              >
+                <Globe className="w-3.5 h-3.5" />
               </button>
             )}
             <UserMenu trigger="dots" onAccount={onOpenAccount} onSettings={onOpenSettings} onTheme={onOpenSettings} onLogin={onOpenLogin} />

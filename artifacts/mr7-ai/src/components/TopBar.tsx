@@ -139,12 +139,20 @@ export type TopBarProps = {
   onToggleIntelligenceHUD?: () => void;
   onToggleNotificationCenter?: () => void;
   onToggleQuickDock3D?: () => void;
+  onToggleUltraHUD?: () => void;
+  onToggleSystemStatus?: () => void;
+  onToggleAmbientLayer?: () => void;
+  onToggleFuturisticBg?: () => void;
   // Active state indicators
   showProviderHealth3D?: boolean;
   showPersonaSwitcher3D?: boolean;
   showIntelligenceHUD?: boolean;
   showNotificationCenter?: boolean;
   showQuickDock3D?: boolean;
+  showUltraHUD?: boolean;
+  showSystemStatus?: boolean;
+  showAmbientLayer?: boolean;
+  showFuturisticBg?: boolean;
   // Standard props
   onOpenPricing: () => void;
   onOpenToolsHub: () => void;
@@ -395,6 +403,10 @@ export function TopBar(props: TopBarProps) {
     { label: "Intelligence HUD", icon: Eye, onClick: () => props.onToggleIntelligenceHUD?.(), active: props.showIntelligenceHUD },
     { label: "Notification Center", icon: Bell, onClick: () => props.onToggleNotificationCenter?.(), active: props.showNotificationCenter },
     { label: "Quick Dock 3D", icon: Box, onClick: () => props.onToggleQuickDock3D?.(), active: props.showQuickDock3D },
+    { label: "Ultra HUD", icon: Activity, onClick: () => props.onToggleUltraHUD?.(), active: props.showUltraHUD },
+    { label: "System Status Widget", icon: MonitorCog, onClick: () => props.onToggleSystemStatus?.(), active: props.showSystemStatus },
+    { label: "Ambient 5D Layer", icon: Sparkles, onClick: () => props.onToggleAmbientLayer?.(), active: props.showAmbientLayer },
+    { label: "Futuristic Background 3D", icon: Sparkles, onClick: () => props.onToggleFuturisticBg?.(), active: props.showFuturisticBg },
     { label: "Hardware Dashboard", icon: HardDrive, onClick: () => setHardwareDashOpen(true) },
   ];
 
@@ -506,6 +518,7 @@ export function TopBar(props: TopBarProps) {
   const activeHudCount = [
     props.showProviderHealth3D, props.showPersonaSwitcher3D,
     props.showIntelligenceHUD, props.showNotificationCenter, props.showQuickDock3D,
+    props.showUltraHUD, props.showSystemStatus, props.showAmbientLayer, props.showFuturisticBg,
     props.hudsVisible,
   ].filter(Boolean).length;
 

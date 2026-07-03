@@ -362,6 +362,8 @@ const StreamTPSBadge          = lazy(() => import("./components/StreamTPSBadge")
 const ProviderHealthBadge3D   = lazy(() => import("./components/ProviderHealthBadge3D").then(m=>({default:m.ProviderHealthBadge3D})));
 const PersonaSwitcher3D       = lazy(() => import("./components/PersonaSwitcher3D").then(m=>({default:m.PersonaSwitcher3D})));
 const QuickDock3D             = lazy(() => import("./components/QuickDock3D").then(m=>({default:m.QuickDock3D})));
+const FuturisticBackground3D  = lazy(() => import("./components/FuturisticBackground3D").then(m=>({default:m.FuturisticBackground3D})));
+const HoloNotificationProvider = lazy(() => import("./components/HoloNotification").then(m=>({default:m.HoloNotificationProvider})));
 const DataIntelModal          = lazy(() => import("./components/modals/DataIntelModal").then(m=>({default:m.DataIntelModal})));
 const DeepfakeDetectorModal   = lazy(() => import("./components/modals/DeepfakeDetectorModal").then(m=>({default:m.DeepfakeDetectorModal})));
 const DeepPacketModal         = lazy(() => import("./components/modals/DeepPacketModal").then(m=>({default:m.DeepPacketModal})));
@@ -641,6 +643,10 @@ function AppContent() {
   const [showIntelligenceHUD, setShowIntelligenceHUD] = useState(false);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [showQuickDock3D, setShowQuickDock3D] = useState(false);
+  const [showUltraHUD, setShowUltraHUD] = useState(false);
+  const [showSystemStatus, setShowSystemStatus] = useState(true);
+  const [showAmbientLayer, setShowAmbientLayer] = useState(true);
+  const [showFuturisticBg, setShowFuturisticBg] = useState(true);
   const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
   void addCostEntry; void shellGeneratorInject;
 
@@ -1027,6 +1033,20 @@ function AppContent() {
     <>
     {!bootDone && <BootScreen onDone={() => setBootDone(true)} />}
     <NexusExecutorHUD dispatchers={nexusDispatchers} />
+    {/* ── Holo Notification System (always mounted) ────────────────────── */}
+    <Suspense fallback={null}>
+      <HoloNotificationProvider />
+    </Suspense>
+    {/* ── Ambient 5D Background Layer ──────────────────────────────────── */}
+    <Suspense fallback={null}>
+      {showAmbientLayer && <AmbientLayer />}
+      {showFuturisticBg && <FuturisticBackground3D opacity={0.35} />}
+    </Suspense>
+    {/* ── Ultra HUD Overlay + System Status Widget ──────────────────────── */}
+    <Suspense fallback={null}>
+      {showUltraHUD && <UltraHUD />}
+      {showSystemStatus && <SystemStatusWidget />}
+    </Suspense>
     {/* ── OMNIX ABSOLUTE SYSTEM ─────────────────────────────────────────── */}
     {/* ── OMNIX ABSOLUTE DASHBOARD — لوحة التحكم الإلهية الكاملة ──── */}
     <OmnixAbsoluteDashboard
@@ -1297,11 +1317,19 @@ function AppContent() {
           onToggleIntelligenceHUD={() => setShowIntelligenceHUD(v => !v)}
           onToggleNotificationCenter={() => setShowNotificationCenter(v => !v)}
           onToggleQuickDock3D={() => setShowQuickDock3D(v => !v)}
+          onToggleUltraHUD={() => setShowUltraHUD(v => !v)}
+          onToggleSystemStatus={() => setShowSystemStatus(v => !v)}
+          onToggleAmbientLayer={() => setShowAmbientLayer(v => !v)}
+          onToggleFuturisticBg={() => setShowFuturisticBg(v => !v)}
           showProviderHealth3D={showProviderHealth3D}
           showPersonaSwitcher3D={showPersonaSwitcher3D}
           showIntelligenceHUD={showIntelligenceHUD}
           showNotificationCenter={showNotificationCenter}
           showQuickDock3D={showQuickDock3D}
+          showUltraHUD={showUltraHUD}
+          showSystemStatus={showSystemStatus}
+          showAmbientLayer={showAmbientLayer}
+          showFuturisticBg={showFuturisticBg}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} controllerEnabled={controllerEnabled} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
