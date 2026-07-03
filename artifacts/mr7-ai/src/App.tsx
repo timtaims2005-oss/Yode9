@@ -310,6 +310,91 @@ const SystemsHub3DPage      = lazy(() => import("./components/SystemsHub3D").the
 const InfrastructureMap3DPage = lazy(() => import("./components/InfrastructureMap3D").then(m=>({default:m.InfrastructureMap3D})));
 
 // ── MODAL STATE REDUCER ───────────────────────────────────────────────────────
+// ── RESTORED MODALS (previously orphaned) ─────────────────────────────────
+const AdaV2Modal              = lazy(() => import("./components/modals/AdaV2Modal").then(m=>({default:m.AdaV2Modal})));
+const Agent4DesignCanvasModal = lazy(() => import("./components/modals/Agent4DesignCanvasModal").then(m=>({default:m.default})));
+const Agent4GitDashboardModal = lazy(() => import("./components/modals/Agent4GitDashboardModal").then(m=>({default:m.default})));
+const Agent4IntegrationsModal = lazy(() => import("./components/modals/Agent4IntegrationsModal").then(m=>({default:m.default})));
+const Agent4SlidesModal       = lazy(() => import("./components/modals/Agent4SlidesModal").then(m=>({default:m.default})));
+const Agent4WebSearchModal    = lazy(() => import("./components/modals/Agent4WebSearchModal").then(m=>({default:m.default})));
+const AgentFourModal          = lazy(() => import("./components/modals/AgentFourModal").then(m=>({default:m.default})));
+const AgentSwarmModal         = lazy(() => import("./components/modals/AgentSwarmModal").then(m=>({default:m.AgentSwarmModal})));
+const AgentV2Modal            = lazy(() => import("./components/modals/AgentV2Modal").then(m=>({default:m.default})));
+const AIAtlasModal            = lazy(() => import("./components/modals/AIAtlasModal").then(m=>({default:m.AIAtlasModal})));
+const AIInfraModal            = lazy(() => import("./components/modals/AIInfraModal").then(m=>({default:m.AIInfraModal})));
+const AISafetyModal           = lazy(() => import("./components/modals/AISafetyModal").then(m=>({default:m.AISafetyModal})));
+const AnomalyCSModal          = lazy(() => import("./components/modals/AnomalyCSModal").then(m=>({default:m.AnomalyCSModal})));
+const ArchEngineModal         = lazy(() => import("./components/modals/ArchEngineModal").then(m=>({default:m.ArchEngineModal})));
+const AttackSurfaceModal      = lazy(() => import("./components/modals/AttackSurfaceModal").then(m=>({default:m.AttackSurfaceModal})));
+const AutonomousOversightModal = lazy(() => import("./components/modals/AutonomousOversightModal").then(m=>({default:m.AutonomousOversightModal})));
+const AutonomousSOCModal      = lazy(() => import("./components/modals/AutonomousSOCModal").then(m=>({default:m.AutonomousSOCModal})));
+const BehavioralDNAModal      = lazy(() => import("./components/modals/BehavioralDNAModal").then(m=>({default:m.BehavioralDNAModal})));
+const BinaryCoreModal         = lazy(() => import("./components/modals/BinaryCoreModal").then(m=>({default:m.BinaryCoreModal})));
+const BuildYourOwnXModal      = lazy(() => import("./components/modals/BuildYourOwnXModal").then(m=>({default:m.BuildYourOwnXModal})));
+const CausalReasoningModal    = lazy(() => import("./components/modals/CausalReasoningModal").then(m=>({default:m.CausalReasoningModal})));
+const ClaudeCodeModal         = lazy(() => import("./components/modals/ClaudeCodeModal").then(m=>({default:m.ClaudeCodeModal})));
+const ClaudeSkillsModal       = lazy(() => import("./components/modals/ClaudeSkillsModal").then(m=>({default:m.ClaudeSkillsModal})));
+const CrossDomainRiskModal    = lazy(() => import("./components/modals/CrossDomainRiskModal").then(m=>({default:m.CrossDomainRiskModal})));
+const CyberConsciousnessModal = lazy(() => import("./components/modals/CyberConsciousnessModal").then(m=>({default:m.CyberConsciousnessModal})));
+const CyberEvolutionModal     = lazy(() => import("./components/modals/CyberEvolutionModal").then(m=>({default:m.CyberEvolutionModal})));
+const CyberIntelBrainModal    = lazy(() => import("./components/modals/CyberIntelBrainModal").then(m=>({default:m.CyberIntelBrainModal})));
+const CyberPhysicalModal      = lazy(() => import("./components/modals/CyberPhysicalModal").then(m=>({default:m.CyberPhysicalModal})));
+const CyberWarfareModal       = lazy(() => import("./components/modals/CyberWarfareModal").then(m=>({default:m.CyberWarfareModal})));
+const DarkWebSearchModal      = lazy(() => import("./components/modals/DarkWebSearchModal").then(m=>({default:m.DarkWebSearchModal})));
+const DataIntelModal          = lazy(() => import("./components/modals/DataIntelModal").then(m=>({default:m.DataIntelModal})));
+const DeepfakeDetectorModal   = lazy(() => import("./components/modals/DeepfakeDetectorModal").then(m=>({default:m.DeepfakeDetectorModal})));
+const DeepPacketModal         = lazy(() => import("./components/modals/DeepPacketModal").then(m=>({default:m.DeepPacketModal})));
+const DigitalTwinModal        = lazy(() => import("./components/modals/DigitalTwinModal").then(m=>({default:m.DigitalTwinModal})));
+const ExploitAbsModal         = lazy(() => import("./components/modals/ExploitAbsModal").then(m=>({default:m.ExploitAbsModal})));
+const ExploitResistModal      = lazy(() => import("./components/modals/ExploitResistModal").then(m=>({default:m.ExploitResistModal})));
+const ForensicReconModal      = lazy(() => import("./components/modals/ForensicReconModal").then(m=>({default:m.ForensicReconModal})));
+const FridayAIModal           = lazy(() => import("./components/modals/FridayAIModal").then(m=>({default:m.FridayAIModal})));
+const FullSpectrumAIModal     = lazy(() => import("./components/modals/FullSpectrumAIModal").then(m=>({default:m.FullSpectrumAIModal})));
+const GlobalIntelSyncModal    = lazy(() => import("./components/modals/GlobalIntelSyncModal").then(m=>({default:m.GlobalIntelSyncModal})));
+const HyperAdaptiveModal      = lazy(() => import("./components/modals/HyperAdaptiveModal").then(m=>({default:m.HyperAdaptiveModal})));
+const HyperFusionModal        = lazy(() => import("./components/modals/HyperFusionModal").then(m=>({default:m.HyperFusionModal})));
+const IdentityGraphModal      = lazy(() => import("./components/modals/IdentityGraphModal").then(m=>({default:m.IdentityGraphModal})));
+const IncidentResponseModal   = lazy(() => import("./components/modals/IncidentResponseModal").then(m=>({default:m.IncidentResponseModal})));
+const InfraIntelModal         = lazy(() => import("./components/modals/InfraIntelModal").then(m=>({default:m.InfraIntelModal})));
+const InstagramCLIModal       = lazy(() => import("./components/modals/InstagramCLIModal").then(m=>({default:m.InstagramCLIModal})));
+const IntelligenceFabricModal = lazy(() => import("./components/modals/IntelligenceFabricModal").then(m=>({default:m.IntelligenceFabricModal})));
+const JarvisHologramModal     = lazy(() => import("./components/modals/JarvisHologramModal").then(m=>({default:m.JarvisHologramModal})));
+const LargeScaleAnomalyModal  = lazy(() => import("./components/modals/LargeScaleAnomalyModal").then(m=>({default:m.LargeScaleAnomalyModal})));
+const MalwareAnalysisModal    = lazy(() => import("./components/modals/MalwareAnalysisModal").then(m=>({default:m.MalwareAnalysisModal})));
+const MalwareCogModal         = lazy(() => import("./components/modals/MalwareCogModal").then(m=>({default:m.MalwareCogModal})));
+const MalwareToolsModal       = lazy(() => import("./components/modals/MalwareToolsModal").then(m=>({default:m.MalwareToolsModal})));
+const MisinfoDetectorModal    = lazy(() => import("./components/modals/MisinfoDetectorModal").then(m=>({default:m.MisinfoDetectorModal})));
+const MultiRealityModal       = lazy(() => import("./components/modals/MultiRealityModal").then(m=>({default:m.MultiRealityModal})));
+const OdysseusCompareModal    = lazy(() => import("./components/modals/OdysseusCompareModal").then(m=>({default:m.OdysseusCompareModal})));
+const OdysseusDeepResearchModal = lazy(() => import("./components/modals/OdysseusDeepResearchModal").then(m=>({default:m.OdysseusDeepResearchModal})));
+const OdysseusDocEditorModal  = lazy(() => import("./components/modals/OdysseusDocEditorModal").then(m=>({default:m.OdysseusDocEditorModal})));
+const OdysseusEmailAIModal    = lazy(() => import("./components/modals/OdysseusEmailAIModal").then(m=>({default:m.OdysseusEmailAIModal})));
+const OdysseusModelCookbookModal = lazy(() => import("./components/modals/OdysseusModelCookbookModal").then(m=>({default:m.OdysseusModelCookbookModal})));
+const OdysseusTaskCalendarModal = lazy(() => import("./components/modals/OdysseusTaskCalendarModal").then(m=>({default:m.OdysseusTaskCalendarModal})));
+const OdysseusWorkspaceModal  = lazy(() => import("./components/modals/OdysseusWorkspaceModal").then(m=>({default:m.OdysseusWorkspaceModal})));
+const OmniBotModal            = lazy(() => import("./components/modals/OmniBotModal").then(m=>({default:m.OmniBotModal})));
+const OnboardingTourModal     = lazy(() => import("./components/modals/OnboardingTourModal").then(m=>({default:m.OnboardingTourModal})));
+const PaymentModal            = lazy(() => import("./components/modals/PaymentModal").then(m=>({default:m.PaymentModal})));
+const PocketAIModal           = lazy(() => import("./components/modals/PocketAIModal").then(m=>({default:m.PocketAIModal})));
+const PrivacyRiskModal        = lazy(() => import("./components/modals/PrivacyRiskModal").then(m=>({default:m.PrivacyRiskModal})));
+const ProviderStatusModal     = lazy(() => import("./components/modals/ProviderStatusModal").then(m=>({default:m.ProviderStatusModal})));
+const SelfHealingModal        = lazy(() => import("./components/modals/SelfHealingModal").then(m=>({default:m.SelfHealingModal})));
+const SelfImprovingModal      = lazy(() => import("./components/modals/SelfImprovingModal").then(m=>({default:m.SelfImprovingModal})));
+const ShareModal              = lazy(() => import("./components/modals/ShareModal").then(m=>({default:m.ShareModal})));
+const SovereignAIModal        = lazy(() => import("./components/modals/SovereignAIModal").then(m=>({default:m.SovereignAIModal})));
+const SysCognitionModal       = lazy(() => import("./components/modals/SysCognitionModal").then(m=>({default:m.SysCognitionModal})));
+const SysEvolutionModal       = lazy(() => import("./components/modals/SysEvolutionModal").then(m=>({default:m.SysEvolutionModal})));
+const SysObsModal             = lazy(() => import("./components/modals/SysObsModal").then(m=>({default:m.SysObsModal})));
+const TemporalThreatModal     = lazy(() => import("./components/modals/TemporalThreatModal").then(m=>({default:m.TemporalThreatModal})));
+const ThreatCogModal          = lazy(() => import("./components/modals/ThreatCogModal").then(m=>({default:m.ThreatCogModal})));
+const ThreatDetectionModal    = lazy(() => import("./components/modals/ThreatDetectionModal").then(m=>({default:m.ThreatDetectionModal})));
+const ThreatPredictModal      = lazy(() => import("./components/modals/ThreatPredictModal").then(m=>({default:m.ThreatPredictModal})));
+const VisionCaptureModal      = lazy(() => import("./components/modals/VisionCaptureModal").then(m=>({default:m.VisionCaptureModal})));
+const VoiceChatModal          = lazy(() => import("./components/modals/VoiceChatModal").then(m=>({default:m.VoiceChatModal})));
+const VulnDiscoveryModal      = lazy(() => import("./components/modals/VulnDiscoveryModal").then(m=>({default:m.VulnDiscoveryModal})));
+const WhatsNewModal           = lazy(() => import("./components/modals/WhatsNewModal").then(m=>({default:m.WhatsNewModal})));
+const ZeroBoundaryModal       = lazy(() => import("./components/modals/ZeroBoundaryModal").then(m=>({default:m.ZeroBoundaryModal})));
+
 const MODAL_IDS = [
   'personaEditor','personaManager','localModel','providerSettings','pricing','api','settings','account',
   'tool','shortcuts','palette','toolsHub','memory','bookmarks','search','compare',
@@ -399,6 +484,8 @@ const MODAL_IDS = [
   'customGpts',
   'scheduledTasks',
   'orchestratorHub',
+  // Restored modals
+  'adaV2', 'agent4DesignCanvas', 'agent4GitDashboard', 'agent4Integrations', 'agent4Slides', 'agent4WebSearch', 'agentFour', 'agentSwarm', 'agentV2', 'aiAtlas', 'aiInfra', 'aiSafety', 'anomalyCS', 'archEngine', 'attackSurface', 'autonomousOversight', 'autonomousSOC', 'behavioralDNA', 'binaryCore', 'buildYourOwnX', 'causalReasoning', 'claudeCode', 'claudeSkills', 'crossDomainRisk', 'cyberConsciousness', 'cyberEvolution', 'cyberIntelBrain', 'cyberPhysical', 'cyberWarfare', 'darkWebSearch', 'dataIntel', 'deepfakeDetector', 'deepPacket', 'digitalTwin', 'exploitAbs', 'exploitResist', 'forensicRecon', 'fridayAI', 'fullSpectrumAI', 'globalIntelSync', 'hyperAdaptive', 'hyperFusion', 'identityGraph', 'incidentResponse', 'infraIntel', 'instagramCLI', 'intelligenceFabric', 'jarvisHologram', 'largeScaleAnomaly', 'malwareAnalysis', 'malwareCog', 'malwareTools', 'misinfoDetector', 'multiReality', 'odysseusCompare', 'odysseusDeepResearch', 'odysseusDocEditor', 'odysseusEmailAI', 'odysseusModelCookbook', 'odysseusTaskCalendar', 'odysseusWorkspace', 'omniBot', 'onboardingTour', 'payment', 'pocketAI', 'privacyRisk', 'providerStatus', 'selfHealing', 'selfImproving', 'share', 'sovereignAI', 'sysCognition', 'sysEvolution', 'sysObs', 'temporalThreat', 'threatCog', 'threatDetection', 'threatPredict', 'visionCapture', 'voiceChat', 'vulnDiscovery', 'whatsNew', 'zeroBoundary',
 ] as const;
 
 type ModalId = typeof MODAL_IDS[number];
@@ -1065,6 +1152,89 @@ function AppContent() {
           onTogglePerfMon={() => setShowPerfMon(v => !v)}
           onToggleGlobalStatus={() => setShowGlobalStatus(v => !v)}
           onToggleOfflineQueue={() => setShowOfflineQueue(v => !v)}
+          onOpenAdaV2={() => open('adaV2')}
+          onOpenAgent4DesignCanvas={() => open('agent4DesignCanvas')}
+          onOpenAgent4GitDashboard={() => open('agent4GitDashboard')}
+          onOpenAgent4Integrations={() => open('agent4Integrations')}
+          onOpenAgent4Slides={() => open('agent4Slides')}
+          onOpenAgent4WebSearch={() => open('agent4WebSearch')}
+          onOpenAgentFour={() => open('agentFour')}
+          onOpenAgentSwarm={() => open('agentSwarm')}
+          onOpenAgentV2={() => open('agentV2')}
+          onOpenAiAtlas={() => open('aiAtlas')}
+          onOpenAiInfra={() => open('aiInfra')}
+          onOpenAiSafety={() => open('aiSafety')}
+          onOpenAnomalyCS={() => open('anomalyCS')}
+          onOpenArchEngine={() => open('archEngine')}
+          onOpenAttackSurface={() => open('attackSurface')}
+          onOpenAutonomousOversight={() => open('autonomousOversight')}
+          onOpenAutonomousSOC={() => open('autonomousSOC')}
+          onOpenBehavioralDNA={() => open('behavioralDNA')}
+          onOpenBinaryCore={() => open('binaryCore')}
+          onOpenBuildYourOwnX={() => open('buildYourOwnX')}
+          onOpenCausalReasoning={() => open('causalReasoning')}
+          onOpenClaudeCode={() => open('claudeCode')}
+          onOpenClaudeSkills={() => open('claudeSkills')}
+          onOpenCrossDomainRisk={() => open('crossDomainRisk')}
+          onOpenCyberConsciousness={() => open('cyberConsciousness')}
+          onOpenCyberEvolution={() => open('cyberEvolution')}
+          onOpenCyberIntelBrain={() => open('cyberIntelBrain')}
+          onOpenCyberPhysical={() => open('cyberPhysical')}
+          onOpenCyberWarfare={() => open('cyberWarfare')}
+          onOpenDarkWebSearch={() => open('darkWebSearch')}
+          onOpenDataIntel={() => open('dataIntel')}
+          onOpenDeepfakeDetector={() => open('deepfakeDetector')}
+          onOpenDeepPacket={() => open('deepPacket')}
+          onOpenDigitalTwin={() => open('digitalTwin')}
+          onOpenExploitAbs={() => open('exploitAbs')}
+          onOpenExploitResist={() => open('exploitResist')}
+          onOpenForensicRecon={() => open('forensicRecon')}
+          onOpenFridayAI={() => open('fridayAI')}
+          onOpenFullSpectrumAI={() => open('fullSpectrumAI')}
+          onOpenGlobalIntelSync={() => open('globalIntelSync')}
+          onOpenHyperAdaptive={() => open('hyperAdaptive')}
+          onOpenHyperFusion={() => open('hyperFusion')}
+          onOpenIdentityGraph={() => open('identityGraph')}
+          onOpenIncidentResponse={() => open('incidentResponse')}
+          onOpenInfraIntel={() => open('infraIntel')}
+          onOpenInstagramCLI={() => open('instagramCLI')}
+          onOpenIntelligenceFabric={() => open('intelligenceFabric')}
+          onOpenJarvisHologram={() => open('jarvisHologram')}
+          onOpenLargeScaleAnomaly={() => open('largeScaleAnomaly')}
+          onOpenMalwareAnalysis={() => open('malwareAnalysis')}
+          onOpenMalwareCog={() => open('malwareCog')}
+          onOpenMalwareTools={() => open('malwareTools')}
+          onOpenMisinfoDetector={() => open('misinfoDetector')}
+          onOpenMultiReality={() => open('multiReality')}
+          onOpenOdysseusCompare={() => open('odysseusCompare')}
+          onOpenOdysseusDeepResearch={() => open('odysseusDeepResearch')}
+          onOpenOdysseusDocEditor={() => open('odysseusDocEditor')}
+          onOpenOdysseusEmailAI={() => open('odysseusEmailAI')}
+          onOpenOdysseusModelCookbook={() => open('odysseusModelCookbook')}
+          onOpenOdysseusTaskCalendar={() => open('odysseusTaskCalendar')}
+          onOpenOdysseusWorkspace={() => open('odysseusWorkspace')}
+          onOpenOmniBot={() => open('omniBot')}
+          onOpenOnboardingTour={() => open('onboardingTour')}
+          onOpenPayment={() => open('payment')}
+          onOpenPocketAI={() => open('pocketAI')}
+          onOpenPrivacyRisk={() => open('privacyRisk')}
+          onOpenProviderStatus={() => open('providerStatus')}
+          onOpenSelfHealing={() => open('selfHealing')}
+          onOpenSelfImproving={() => open('selfImproving')}
+          onOpenShare={() => open('share')}
+          onOpenSovereignAI={() => open('sovereignAI')}
+          onOpenSysCognition={() => open('sysCognition')}
+          onOpenSysEvolution={() => open('sysEvolution')}
+          onOpenSysObs={() => open('sysObs')}
+          onOpenTemporalThreat={() => open('temporalThreat')}
+          onOpenThreatCog={() => open('threatCog')}
+          onOpenThreatDetection={() => open('threatDetection')}
+          onOpenThreatPredict={() => open('threatPredict')}
+          onOpenVisionCapture={() => open('visionCapture')}
+          onOpenVoiceChat={() => open('voiceChat')}
+          onOpenVulnDiscovery={() => open('vulnDiscovery')}
+          onOpenWhatsNew={() => open('whatsNew')}
+          onOpenZeroBoundary={() => open('zeroBoundary')}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} controllerEnabled={controllerEnabled} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
@@ -1147,6 +1317,91 @@ function AppContent() {
         <Suspense fallback={null}>
           <MobileSecurityModal isOpen={modals.mobileSecurity} onClose={() => close('mobileSecurity')} />
         </Suspense>
+
+        {/* ── RESTORED MODALS (previously orphaned features) ───────────────── */}
+        <AdaV2Modal open={modals.adaV2} onOpenChange={(v) => mDispatch({type:'SET',id:'adaV2',value:v})} />
+        <Agent4DesignCanvasModal open={modals.agent4DesignCanvas} onOpenChange={(v) => mDispatch({type:'SET',id:'agent4DesignCanvas',value:v})} />
+        <Agent4GitDashboardModal open={modals.agent4GitDashboard} onOpenChange={(v) => mDispatch({type:'SET',id:'agent4GitDashboard',value:v})} />
+        <Agent4IntegrationsModal open={modals.agent4Integrations} onOpenChange={(v) => mDispatch({type:'SET',id:'agent4Integrations',value:v})} />
+        <Agent4SlidesModal open={modals.agent4Slides} onOpenChange={(v) => mDispatch({type:'SET',id:'agent4Slides',value:v})} />
+        <Agent4WebSearchModal open={modals.agent4WebSearch} onOpenChange={(v) => mDispatch({type:'SET',id:'agent4WebSearch',value:v})} />
+        <AgentFourModal open={modals.agentFour} onOpenChange={(v) => mDispatch({type:'SET',id:'agentFour',value:v})} />
+        <AgentSwarmModal open={modals.agentSwarm} onOpenChange={(v) => mDispatch({type:'SET',id:'agentSwarm',value:v})} />
+        {modals.agentV2 && <AgentV2Modal onClose={() => close('agentV2')} />}
+        <AIAtlasModal open={modals.aiAtlas} onOpenChange={(v) => mDispatch({type:'SET',id:'aiAtlas',value:v})} />
+        <AIInfraModal isOpen={modals.aiInfra} onClose={() => close('aiInfra')} />
+        <AISafetyModal open={modals.aiSafety} onOpenChange={(v) => mDispatch({type:'SET',id:'aiSafety',value:v})} />
+        <AnomalyCSModal open={modals.anomalyCS} onOpenChange={(v) => mDispatch({type:'SET',id:'anomalyCS',value:v})} />
+        <ArchEngineModal open={modals.archEngine} onOpenChange={(v) => mDispatch({type:'SET',id:'archEngine',value:v})} />
+        <AttackSurfaceModal open={modals.attackSurface} onOpenChange={(v) => mDispatch({type:'SET',id:'attackSurface',value:v})} />
+        <AutonomousOversightModal open={modals.autonomousOversight} onOpenChange={(v) => mDispatch({type:'SET',id:'autonomousOversight',value:v})} />
+        <AutonomousSOCModal open={modals.autonomousSOC} onOpenChange={(v) => mDispatch({type:'SET',id:'autonomousSOC',value:v})} />
+        <BehavioralDNAModal open={modals.behavioralDNA} onOpenChange={(v) => mDispatch({type:'SET',id:'behavioralDNA',value:v})} />
+        <BinaryCoreModal open={modals.binaryCore} onOpenChange={(v) => mDispatch({type:'SET',id:'binaryCore',value:v})} />
+        <BuildYourOwnXModal open={modals.buildYourOwnX} onOpenChange={(v) => mDispatch({type:'SET',id:'buildYourOwnX',value:v})} />
+        <CausalReasoningModal open={modals.causalReasoning} onOpenChange={(v) => mDispatch({type:'SET',id:'causalReasoning',value:v})} />
+        <ClaudeCodeModal open={modals.claudeCode} onOpenChange={(v) => mDispatch({type:'SET',id:'claudeCode',value:v})} />
+        <ClaudeSkillsModal open={modals.claudeSkills} onOpenChange={(v) => mDispatch({type:'SET',id:'claudeSkills',value:v})} />
+        <CrossDomainRiskModal open={modals.crossDomainRisk} onOpenChange={(v) => mDispatch({type:'SET',id:'crossDomainRisk',value:v})} />
+        <CyberConsciousnessModal open={modals.cyberConsciousness} onOpenChange={(v) => mDispatch({type:'SET',id:'cyberConsciousness',value:v})} />
+        <CyberEvolutionModal open={modals.cyberEvolution} onOpenChange={(v) => mDispatch({type:'SET',id:'cyberEvolution',value:v})} />
+        <CyberIntelBrainModal open={modals.cyberIntelBrain} onOpenChange={(v) => mDispatch({type:'SET',id:'cyberIntelBrain',value:v})} />
+        <CyberPhysicalModal open={modals.cyberPhysical} onOpenChange={(v) => mDispatch({type:'SET',id:'cyberPhysical',value:v})} />
+        <CyberWarfareModal open={modals.cyberWarfare} onOpenChange={(v) => mDispatch({type:'SET',id:'cyberWarfare',value:v})} />
+        <DarkWebSearchModal open={modals.darkWebSearch} onClose={() => close('darkWebSearch')} onInjectToChat={(text) => setShellGeneratorInject(text)} />
+        <DataIntelModal open={modals.dataIntel} onOpenChange={(v) => mDispatch({type:'SET',id:'dataIntel',value:v})} />
+        <DeepfakeDetectorModal open={modals.deepfakeDetector} onOpenChange={(v) => mDispatch({type:'SET',id:'deepfakeDetector',value:v})} />
+        <DeepPacketModal open={modals.deepPacket} onOpenChange={(v) => mDispatch({type:'SET',id:'deepPacket',value:v})} />
+        <DigitalTwinModal open={modals.digitalTwin} onOpenChange={(v) => mDispatch({type:'SET',id:'digitalTwin',value:v})} />
+        <ExploitAbsModal open={modals.exploitAbs} onOpenChange={(v) => mDispatch({type:'SET',id:'exploitAbs',value:v})} />
+        <ExploitResistModal open={modals.exploitResist} onOpenChange={(v) => mDispatch({type:'SET',id:'exploitResist',value:v})} />
+        <ForensicReconModal open={modals.forensicRecon} onOpenChange={(v) => mDispatch({type:'SET',id:'forensicRecon',value:v})} />
+        <FridayAIModal open={modals.fridayAI} onOpenChange={(v) => mDispatch({type:'SET',id:'fridayAI',value:v})} />
+        <FullSpectrumAIModal open={modals.fullSpectrumAI} onOpenChange={(v) => mDispatch({type:'SET',id:'fullSpectrumAI',value:v})} />
+        <GlobalIntelSyncModal open={modals.globalIntelSync} onOpenChange={(v) => mDispatch({type:'SET',id:'globalIntelSync',value:v})} />
+        <HyperAdaptiveModal open={modals.hyperAdaptive} onOpenChange={(v) => mDispatch({type:'SET',id:'hyperAdaptive',value:v})} />
+        <HyperFusionModal open={modals.hyperFusion} onClose={() => close('hyperFusion')} />
+        <IdentityGraphModal open={modals.identityGraph} onOpenChange={(v) => mDispatch({type:'SET',id:'identityGraph',value:v})} />
+        <IncidentResponseModal open={modals.incidentResponse} onOpenChange={(v) => mDispatch({type:'SET',id:'incidentResponse',value:v})} />
+        <InfraIntelModal open={modals.infraIntel} onOpenChange={(v) => mDispatch({type:'SET',id:'infraIntel',value:v})} />
+        <InstagramCLIModal open={modals.instagramCLI} onOpenChange={(v) => mDispatch({type:'SET',id:'instagramCLI',value:v})} />
+        <IntelligenceFabricModal open={modals.intelligenceFabric} onOpenChange={(v) => mDispatch({type:'SET',id:'intelligenceFabric',value:v})} />
+        <JarvisHologramModal open={modals.jarvisHologram} onOpenChange={(v) => mDispatch({type:'SET',id:'jarvisHologram',value:v})} />
+        <LargeScaleAnomalyModal open={modals.largeScaleAnomaly} onOpenChange={(v) => mDispatch({type:'SET',id:'largeScaleAnomaly',value:v})} />
+        <MalwareAnalysisModal open={modals.malwareAnalysis} onOpenChange={(v) => mDispatch({type:'SET',id:'malwareAnalysis',value:v})} />
+        <MalwareCogModal open={modals.malwareCog} onOpenChange={(v) => mDispatch({type:'SET',id:'malwareCog',value:v})} />
+        <MalwareToolsModal open={modals.malwareTools} onOpenChange={(v) => mDispatch({type:'SET',id:'malwareTools',value:v})} onGenerate={(prompt) => setShellGeneratorInject(prompt)} />
+        <MisinfoDetectorModal open={modals.misinfoDetector} onOpenChange={(v) => mDispatch({type:'SET',id:'misinfoDetector',value:v})} />
+        <MultiRealityModal open={modals.multiReality} onOpenChange={(v) => mDispatch({type:'SET',id:'multiReality',value:v})} />
+        <OdysseusCompareModal open={modals.odysseusCompare} onOpenChange={(v) => mDispatch({type:'SET',id:'odysseusCompare',value:v})} />
+        <OdysseusDeepResearchModal open={modals.odysseusDeepResearch} onOpenChange={(v) => mDispatch({type:'SET',id:'odysseusDeepResearch',value:v})} />
+        <OdysseusDocEditorModal open={modals.odysseusDocEditor} onOpenChange={(v) => mDispatch({type:'SET',id:'odysseusDocEditor',value:v})} />
+        <OdysseusEmailAIModal open={modals.odysseusEmailAI} onOpenChange={(v) => mDispatch({type:'SET',id:'odysseusEmailAI',value:v})} />
+        <OdysseusModelCookbookModal open={modals.odysseusModelCookbook} onOpenChange={(v) => mDispatch({type:'SET',id:'odysseusModelCookbook',value:v})} />
+        <OdysseusTaskCalendarModal open={modals.odysseusTaskCalendar} onOpenChange={(v) => mDispatch({type:'SET',id:'odysseusTaskCalendar',value:v})} />
+        <OdysseusWorkspaceModal open={modals.odysseusWorkspace} onOpenChange={(v) => mDispatch({type:'SET',id:'odysseusWorkspace',value:v})} />
+        <OmniBotModal open={modals.omniBot} onOpenChange={(v) => mDispatch({type:'SET',id:'omniBot',value:v})} />
+        <OnboardingTourModal open={modals.onboardingTour} onClose={() => close('onboardingTour')} />
+        <PaymentModal open={modals.payment} onOpenChange={(v) => mDispatch({type:'SET',id:'payment',value:v})} plan="professional" yearly={false} onActivate={() => mDispatch({type:'SET',id:'payment',value:false})} />
+        <PocketAIModal open={modals.pocketAI} onOpenChange={(v) => mDispatch({type:'SET',id:'pocketAI',value:v})} />
+        <PrivacyRiskModal open={modals.privacyRisk} onOpenChange={(v) => mDispatch({type:'SET',id:'privacyRisk',value:v})} />
+        <ProviderStatusModal open={modals.providerStatus} onOpenChange={(v) => mDispatch({type:'SET',id:'providerStatus',value:v})} />
+        <SelfHealingModal open={modals.selfHealing} onOpenChange={(v) => mDispatch({type:'SET',id:'selfHealing',value:v})} />
+        <SelfImprovingModal open={modals.selfImproving} onOpenChange={(v) => mDispatch({type:'SET',id:'selfImproving',value:v})} />
+        <ShareModal open={modals.share} onOpenChange={(v) => mDispatch({type:'SET',id:'share',value:v})} chatId={state.activeChatId ?? ''} />
+        <SovereignAIModal open={modals.sovereignAI} onOpenChange={(v) => mDispatch({type:'SET',id:'sovereignAI',value:v})} />
+        <SysCognitionModal open={modals.sysCognition} onOpenChange={(v) => mDispatch({type:'SET',id:'sysCognition',value:v})} />
+        <SysEvolutionModal open={modals.sysEvolution} onOpenChange={(v) => mDispatch({type:'SET',id:'sysEvolution',value:v})} />
+        <SysObsModal open={modals.sysObs} onOpenChange={(v) => mDispatch({type:'SET',id:'sysObs',value:v})} />
+        <TemporalThreatModal open={modals.temporalThreat} onOpenChange={(v) => mDispatch({type:'SET',id:'temporalThreat',value:v})} />
+        <ThreatCogModal open={modals.threatCog} onOpenChange={(v) => mDispatch({type:'SET',id:'threatCog',value:v})} />
+        <ThreatDetectionModal open={modals.threatDetection} onOpenChange={(v) => mDispatch({type:'SET',id:'threatDetection',value:v})} />
+        <ThreatPredictModal open={modals.threatPredict} onOpenChange={(v) => mDispatch({type:'SET',id:'threatPredict',value:v})} />
+        <VisionCaptureModal open={modals.visionCapture} onOpenChange={(v) => mDispatch({type:'SET',id:'visionCapture',value:v})} />
+        <VoiceChatModal open={modals.voiceChat} onOpenChange={(v) => mDispatch({type:'SET',id:'voiceChat',value:v})} />
+        <VulnDiscoveryModal open={modals.vulnDiscovery} onOpenChange={(v) => mDispatch({type:'SET',id:'vulnDiscovery',value:v})} />
+        <WhatsNewModal open={modals.whatsNew} onClose={() => close('whatsNew')} />
+        <ZeroBoundaryModal open={modals.zeroBoundary} onOpenChange={(v) => mDispatch({type:'SET',id:'zeroBoundary',value:v})} />
         <WindowChrome open={modals.changelog} color="#e21227" title="CHANGELOG" onClose={() => close('changelog')}>
           <ChangelogModal open={modals.changelog} onOpenChange={(v) => mDispatch({type:'SET',id:'changelog',value:v})} />
         </WindowChrome>

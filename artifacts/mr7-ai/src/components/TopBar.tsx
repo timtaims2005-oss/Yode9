@@ -7,7 +7,7 @@ import {
   ShieldAlert, Globe2, Radio, ListChecks, Braces, Shuffle, Users2, GraduationCap,
   Dna, Gauge, DollarSign, Layers3, Rss, ShieldCheck, BrainCircuit, Zap as ZapIcon,
   AlertTriangle, Waypoints, LayoutGrid, Rows3, Newspaper, History, Map as MapIcon,
-  Bug, Workflow, Skull, Target, GitBranch, Cog, HeartPulse, MonitorCog, WifiOff,
+  Bug, Workflow, Skull, Target, GitBranch, Cog, HeartPulse, MonitorCog, WifiOff, Sparkles,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
@@ -163,6 +163,90 @@ export type TopBarProps = {
   onTogglePerfMon: () => void;
   onToggleGlobalStatus: () => void;
   onToggleOfflineQueue: () => void;
+  // ── Restored modals (previously orphaned) ──────────────────────────────
+  onOpenAdaV2: () => void;
+  onOpenAgent4DesignCanvas: () => void;
+  onOpenAgent4GitDashboard: () => void;
+  onOpenAgent4Integrations: () => void;
+  onOpenAgent4Slides: () => void;
+  onOpenAgent4WebSearch: () => void;
+  onOpenAgentFour: () => void;
+  onOpenAgentSwarm: () => void;
+  onOpenAgentV2: () => void;
+  onOpenAiAtlas: () => void;
+  onOpenAiInfra: () => void;
+  onOpenAiSafety: () => void;
+  onOpenAnomalyCS: () => void;
+  onOpenArchEngine: () => void;
+  onOpenAttackSurface: () => void;
+  onOpenAutonomousOversight: () => void;
+  onOpenAutonomousSOC: () => void;
+  onOpenBehavioralDNA: () => void;
+  onOpenBinaryCore: () => void;
+  onOpenBuildYourOwnX: () => void;
+  onOpenCausalReasoning: () => void;
+  onOpenClaudeCode: () => void;
+  onOpenClaudeSkills: () => void;
+  onOpenCrossDomainRisk: () => void;
+  onOpenCyberConsciousness: () => void;
+  onOpenCyberEvolution: () => void;
+  onOpenCyberIntelBrain: () => void;
+  onOpenCyberPhysical: () => void;
+  onOpenCyberWarfare: () => void;
+  onOpenDarkWebSearch: () => void;
+  onOpenDataIntel: () => void;
+  onOpenDeepfakeDetector: () => void;
+  onOpenDeepPacket: () => void;
+  onOpenDigitalTwin: () => void;
+  onOpenExploitAbs: () => void;
+  onOpenExploitResist: () => void;
+  onOpenForensicRecon: () => void;
+  onOpenFridayAI: () => void;
+  onOpenFullSpectrumAI: () => void;
+  onOpenGlobalIntelSync: () => void;
+  onOpenHyperAdaptive: () => void;
+  onOpenHyperFusion: () => void;
+  onOpenIdentityGraph: () => void;
+  onOpenIncidentResponse: () => void;
+  onOpenInfraIntel: () => void;
+  onOpenInstagramCLI: () => void;
+  onOpenIntelligenceFabric: () => void;
+  onOpenJarvisHologram: () => void;
+  onOpenLargeScaleAnomaly: () => void;
+  onOpenMalwareAnalysis: () => void;
+  onOpenMalwareCog: () => void;
+  onOpenMalwareTools: () => void;
+  onOpenMisinfoDetector: () => void;
+  onOpenMultiReality: () => void;
+  onOpenOdysseusCompare: () => void;
+  onOpenOdysseusDeepResearch: () => void;
+  onOpenOdysseusDocEditor: () => void;
+  onOpenOdysseusEmailAI: () => void;
+  onOpenOdysseusModelCookbook: () => void;
+  onOpenOdysseusTaskCalendar: () => void;
+  onOpenOdysseusWorkspace: () => void;
+  onOpenOmniBot: () => void;
+  onOpenOnboardingTour: () => void;
+  onOpenPayment: () => void;
+  onOpenPocketAI: () => void;
+  onOpenPrivacyRisk: () => void;
+  onOpenProviderStatus: () => void;
+  onOpenSelfHealing: () => void;
+  onOpenSelfImproving: () => void;
+  onOpenShare: () => void;
+  onOpenSovereignAI: () => void;
+  onOpenSysCognition: () => void;
+  onOpenSysEvolution: () => void;
+  onOpenSysObs: () => void;
+  onOpenTemporalThreat: () => void;
+  onOpenThreatCog: () => void;
+  onOpenThreatDetection: () => void;
+  onOpenThreatPredict: () => void;
+  onOpenVisionCapture: () => void;
+  onOpenVoiceChat: () => void;
+  onOpenVulnDiscovery: () => void;
+  onOpenWhatsNew: () => void;
+  onOpenZeroBoundary: () => void;
 };
 
 export function TopBar(props: TopBarProps) {
@@ -245,6 +329,93 @@ export function TopBar(props: TopBarProps) {
     { label: "Performance Command Center", icon: Cog, onClick: props.onOpenPerfCC },
   ];
 
+
+  const restoredItems: IconAction[] = [
+    { label: "Ada V2", icon: Sparkles, onClick: props.onOpenAdaV2 },
+    { label: "Agent4 Design Canvas", icon: Sparkles, onClick: props.onOpenAgent4DesignCanvas },
+    { label: "Agent4 Git Dashboard", icon: Sparkles, onClick: props.onOpenAgent4GitDashboard },
+    { label: "Agent4 Integrations", icon: Sparkles, onClick: props.onOpenAgent4Integrations },
+    { label: "Agent4 Slides", icon: Sparkles, onClick: props.onOpenAgent4Slides },
+    { label: "Agent4 Web Search", icon: Sparkles, onClick: props.onOpenAgent4WebSearch },
+    { label: "Agent Four", icon: Sparkles, onClick: props.onOpenAgentFour },
+    { label: "Agent Swarm", icon: Sparkles, onClick: props.onOpenAgentSwarm },
+    { label: "Agent V2", icon: Sparkles, onClick: props.onOpenAgentV2 },
+    { label: "AI Atlas", icon: Sparkles, onClick: props.onOpenAiAtlas },
+    { label: "AI Infra", icon: Sparkles, onClick: props.onOpenAiInfra },
+    { label: "AI Safety", icon: Sparkles, onClick: props.onOpenAiSafety },
+    { label: "Anomaly CS", icon: Sparkles, onClick: props.onOpenAnomalyCS },
+    { label: "Arch Engine", icon: Sparkles, onClick: props.onOpenArchEngine },
+    { label: "Attack Surface", icon: Sparkles, onClick: props.onOpenAttackSurface },
+    { label: "Autonomous Oversight", icon: Sparkles, onClick: props.onOpenAutonomousOversight },
+    { label: "Autonomous SOC", icon: Sparkles, onClick: props.onOpenAutonomousSOC },
+    { label: "Behavioral DNA", icon: Sparkles, onClick: props.onOpenBehavioralDNA },
+    { label: "Binary Core", icon: Sparkles, onClick: props.onOpenBinaryCore },
+    { label: "Build Your Own X", icon: Sparkles, onClick: props.onOpenBuildYourOwnX },
+    { label: "Causal Reasoning", icon: Sparkles, onClick: props.onOpenCausalReasoning },
+    { label: "Claude Code", icon: Sparkles, onClick: props.onOpenClaudeCode },
+    { label: "Claude Skills", icon: Sparkles, onClick: props.onOpenClaudeSkills },
+    { label: "Cross Domain Risk", icon: Sparkles, onClick: props.onOpenCrossDomainRisk },
+    { label: "Cyber Consciousness", icon: Sparkles, onClick: props.onOpenCyberConsciousness },
+    { label: "Cyber Evolution", icon: Sparkles, onClick: props.onOpenCyberEvolution },
+    { label: "Cyber Intel Brain", icon: Sparkles, onClick: props.onOpenCyberIntelBrain },
+    { label: "Cyber Physical", icon: Sparkles, onClick: props.onOpenCyberPhysical },
+    { label: "Cyber Warfare", icon: Sparkles, onClick: props.onOpenCyberWarfare },
+    { label: "Dark Web Search", icon: Sparkles, onClick: props.onOpenDarkWebSearch },
+    { label: "Data Intel", icon: Sparkles, onClick: props.onOpenDataIntel },
+    { label: "Deepfake Detector", icon: Sparkles, onClick: props.onOpenDeepfakeDetector },
+    { label: "Deep Packet", icon: Sparkles, onClick: props.onOpenDeepPacket },
+    { label: "Digital Twin", icon: Sparkles, onClick: props.onOpenDigitalTwin },
+    { label: "Exploit Abs", icon: Sparkles, onClick: props.onOpenExploitAbs },
+    { label: "Exploit Resist", icon: Sparkles, onClick: props.onOpenExploitResist },
+    { label: "Forensic Recon", icon: Sparkles, onClick: props.onOpenForensicRecon },
+    { label: "Friday AI", icon: Sparkles, onClick: props.onOpenFridayAI },
+    { label: "Full Spectrum AI", icon: Sparkles, onClick: props.onOpenFullSpectrumAI },
+    { label: "Global Intel Sync", icon: Sparkles, onClick: props.onOpenGlobalIntelSync },
+    { label: "Hyper Adaptive", icon: Sparkles, onClick: props.onOpenHyperAdaptive },
+    { label: "Hyper Fusion", icon: Sparkles, onClick: props.onOpenHyperFusion },
+    { label: "Identity Graph", icon: Sparkles, onClick: props.onOpenIdentityGraph },
+    { label: "Incident Response", icon: Sparkles, onClick: props.onOpenIncidentResponse },
+    { label: "Infra Intel", icon: Sparkles, onClick: props.onOpenInfraIntel },
+    { label: "Instagram CLI", icon: Sparkles, onClick: props.onOpenInstagramCLI },
+    { label: "Intelligence Fabric", icon: Sparkles, onClick: props.onOpenIntelligenceFabric },
+    { label: "Jarvis Hologram", icon: Sparkles, onClick: props.onOpenJarvisHologram },
+    { label: "Large Scale Anomaly", icon: Sparkles, onClick: props.onOpenLargeScaleAnomaly },
+    { label: "Malware Analysis", icon: Sparkles, onClick: props.onOpenMalwareAnalysis },
+    { label: "Malware Cog", icon: Sparkles, onClick: props.onOpenMalwareCog },
+    { label: "Malware Tools", icon: Sparkles, onClick: props.onOpenMalwareTools },
+    { label: "Misinfo Detector", icon: Sparkles, onClick: props.onOpenMisinfoDetector },
+    { label: "Multi Reality", icon: Sparkles, onClick: props.onOpenMultiReality },
+    { label: "Odysseus Compare", icon: Sparkles, onClick: props.onOpenOdysseusCompare },
+    { label: "Odysseus Deep Research", icon: Sparkles, onClick: props.onOpenOdysseusDeepResearch },
+    { label: "Odysseus Doc Editor", icon: Sparkles, onClick: props.onOpenOdysseusDocEditor },
+    { label: "Odysseus Email AI", icon: Sparkles, onClick: props.onOpenOdysseusEmailAI },
+    { label: "Odysseus Model Cookbook", icon: Sparkles, onClick: props.onOpenOdysseusModelCookbook },
+    { label: "Odysseus Task Calendar", icon: Sparkles, onClick: props.onOpenOdysseusTaskCalendar },
+    { label: "Odysseus Workspace", icon: Sparkles, onClick: props.onOpenOdysseusWorkspace },
+    { label: "Omni Bot", icon: Sparkles, onClick: props.onOpenOmniBot },
+    { label: "Onboarding Tour", icon: Sparkles, onClick: props.onOpenOnboardingTour },
+    { label: "Payment", icon: Sparkles, onClick: props.onOpenPayment },
+    { label: "Pocket AI", icon: Sparkles, onClick: props.onOpenPocketAI },
+    { label: "Privacy Risk", icon: Sparkles, onClick: props.onOpenPrivacyRisk },
+    { label: "Provider Status", icon: Sparkles, onClick: props.onOpenProviderStatus },
+    { label: "Self Healing", icon: Sparkles, onClick: props.onOpenSelfHealing },
+    { label: "Self Improving", icon: Sparkles, onClick: props.onOpenSelfImproving },
+    { label: "Share", icon: Sparkles, onClick: props.onOpenShare },
+    { label: "Sovereign AI", icon: Sparkles, onClick: props.onOpenSovereignAI },
+    { label: "Sys Cognition", icon: Sparkles, onClick: props.onOpenSysCognition },
+    { label: "Sys Evolution", icon: Sparkles, onClick: props.onOpenSysEvolution },
+    { label: "Sys Obs", icon: Sparkles, onClick: props.onOpenSysObs },
+    { label: "Temporal Threat", icon: Sparkles, onClick: props.onOpenTemporalThreat },
+    { label: "Threat Cog", icon: Sparkles, onClick: props.onOpenThreatCog },
+    { label: "Threat Detection", icon: Sparkles, onClick: props.onOpenThreatDetection },
+    { label: "Threat Predict", icon: Sparkles, onClick: props.onOpenThreatPredict },
+    { label: "Vision Capture", icon: Sparkles, onClick: props.onOpenVisionCapture },
+    { label: "Voice Chat", icon: Sparkles, onClick: props.onOpenVoiceChat },
+    { label: "Vuln Discovery", icon: Sparkles, onClick: props.onOpenVulnDiscovery },
+    { label: "Whats New", icon: Sparkles, onClick: props.onOpenWhatsNew },
+    { label: "Zero Boundary", icon: Sparkles, onClick: props.onOpenZeroBoundary },
+  ];
+
   return (
     <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card/60 backdrop-blur-sm shrink-0 overflow-x-auto">
       <button
@@ -303,6 +474,7 @@ export function TopBar(props: TopBarProps) {
         <ToolbarGroup label="Agents" icon={Bot} items={agentItems} activeColor="#a78bfa" />
         <ToolbarGroup label="Intel" icon={Radar} items={intelItems} activeColor="#22c55e" />
         <ToolbarGroup label="HUD" icon={Activity} items={hudItems} activeColor="#e21227" />
+        <ToolbarGroup label="More" icon={Sparkles} items={restoredItems} activeColor="#f59e0b" />
       </div>
 
       <div className="flex-1" />
