@@ -27,6 +27,7 @@ import { ChatScrollArea } from "./chat/ChatScrollArea";
 import { ChatInput } from "./chat/ChatInput";
 import { QuickActionBar } from "./chat/QuickActionBar";
 import { SecurityMissionsBar } from "./SecurityMissionsBar";
+import { FuturisticBackground3D } from "./FuturisticBackground3D";
 import { buildNexusSystemPrompt } from "@/lib/NexusInterceptor";
 import { executeNexusResponse } from "./NexusExecutor";
 import { executeOmnixResponse } from "@/lib/OmnixExecutor";
@@ -651,41 +652,47 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
 
       <div className="flex-1 relative overflow-hidden flex flex-col" style={{ isolation: "isolate" }}>
 
-        <NeuralStreamHUD streaming={streaming} tps={liveTps} tokenCount={liveTokens} mode={mode} />
+        {/* ── خلفية الشبكة المضيئة بألوان ساطعة (z-index:0, behind all content) ── */}
+        <FuturisticBackground3D accentColor="#00e5ff" opacity={0.55} />
 
-        <ChatScrollArea
-          scrollRef={scrollRef as React.RefObject<HTMLDivElement>}
-          chat={chat}
-          streaming={streaming}
-          isEmpty={isEmpty}
-          showScrollBtn={showScrollBtn}
-          editingId={editingId}
-          speakingId={speakingId}
-          reactionPickerMsgId={reactionPickerMsgId}
-          agentOn={agentOn}
-          state={state as Parameters<typeof ChatScrollArea>[0]["state"]}
-          dispatch={dispatch as Parameters<typeof ChatScrollArea>[0]["dispatch"]}
-          onFile={handleFile}
-          onRate={rate}
-          onEdit={startEdit}
-          onBookmark={bookmark}
-          onSpeak={speak}
-          onTranslate={translateMsg}
-          onBranch={branchFrom}
-          onRegenerate={regenerate}
-          onReactionPickerChange={setReactionPickerMsgId}
-          onSetInput={setInput}
-          onScrollToBottom={scrollToBottom}
-          onCopy={copyText}
-          t={t}
-        />
+        {/* ── foreground content sits above background (z-10) ── */}
+        <div className="relative z-10 flex flex-col flex-1 overflow-hidden">
+          <NeuralStreamHUD streaming={streaming} tps={liveTps} tokenCount={liveTokens} mode={mode} />
 
-        <ChatTypingIndicator
-          streaming={streaming}
-          liveTps={liveTps}
-          liveTokens={liveTokens}
-          onStop={stopStreaming}
-        />
+          <ChatScrollArea
+            scrollRef={scrollRef as React.RefObject<HTMLDivElement>}
+            chat={chat}
+            streaming={streaming}
+            isEmpty={isEmpty}
+            showScrollBtn={showScrollBtn}
+            editingId={editingId}
+            speakingId={speakingId}
+            reactionPickerMsgId={reactionPickerMsgId}
+            agentOn={agentOn}
+            state={state as Parameters<typeof ChatScrollArea>[0]["state"]}
+            dispatch={dispatch as Parameters<typeof ChatScrollArea>[0]["dispatch"]}
+            onFile={handleFile}
+            onRate={rate}
+            onEdit={startEdit}
+            onBookmark={bookmark}
+            onSpeak={speak}
+            onTranslate={translateMsg}
+            onBranch={branchFrom}
+            onRegenerate={regenerate}
+            onReactionPickerChange={setReactionPickerMsgId}
+            onSetInput={setInput}
+            onScrollToBottom={scrollToBottom}
+            onCopy={copyText}
+            t={t}
+          />
+
+          <ChatTypingIndicator
+            streaming={streaming}
+            liveTps={liveTps}
+            liveTokens={liveTokens}
+            onStop={stopStreaming}
+          />
+        </div>
       </div>
 
       <QuickActionBar onInsert={(text) => { setInput((prev) => prev ? `${prev}\n\n${text}` : text); setTimeout(() => taRef.current?.focus(), 50); }} />
