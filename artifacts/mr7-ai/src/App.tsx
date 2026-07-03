@@ -361,6 +361,7 @@ const IdleTrackerOrb          = lazy(() => import("./components/FloatingChatPane
 const StreamTPSBadge          = lazy(() => import("./components/StreamTPSBadge").then(m=>({default:m.StreamTPSBadge})));
 const ProviderHealthBadge3D   = lazy(() => import("./components/ProviderHealthBadge3D").then(m=>({default:m.ProviderHealthBadge3D})));
 const PersonaSwitcher3D       = lazy(() => import("./components/PersonaSwitcher3D").then(m=>({default:m.PersonaSwitcher3D})));
+const QuickDock3D             = lazy(() => import("./components/QuickDock3D").then(m=>({default:m.QuickDock3D})));
 const DataIntelModal          = lazy(() => import("./components/modals/DataIntelModal").then(m=>({default:m.DataIntelModal})));
 const DeepfakeDetectorModal   = lazy(() => import("./components/modals/DeepfakeDetectorModal").then(m=>({default:m.DeepfakeDetectorModal})));
 const DeepPacketModal         = lazy(() => import("./components/modals/DeepPacketModal").then(m=>({default:m.DeepPacketModal})));
@@ -637,6 +638,9 @@ function AppContent() {
   const [showStreamTPS, setShowStreamTPS] = useState(false);
   const [showProviderHealth3D, setShowProviderHealth3D] = useState(false);
   const [showPersonaSwitcher3D, setShowPersonaSwitcher3D] = useState(false);
+  const [showIntelligenceHUD, setShowIntelligenceHUD] = useState(false);
+  const [showNotificationCenter, setShowNotificationCenter] = useState(false);
+  const [showQuickDock3D, setShowQuickDock3D] = useState(false);
   const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
   void addCostEntry; void shellGeneratorInject;
 
@@ -1290,6 +1294,14 @@ function AppContent() {
           onOpenZeroBoundary={() => open('zeroBoundary')}
           onToggleProviderHealth3D={() => setShowProviderHealth3D(v => !v)}
           onTogglePersonaSwitcher3D={() => setShowPersonaSwitcher3D(v => !v)}
+          onToggleIntelligenceHUD={() => setShowIntelligenceHUD(v => !v)}
+          onToggleNotificationCenter={() => setShowNotificationCenter(v => !v)}
+          onToggleQuickDock3D={() => setShowQuickDock3D(v => !v)}
+          showProviderHealth3D={showProviderHealth3D}
+          showPersonaSwitcher3D={showPersonaSwitcher3D}
+          showIntelligenceHUD={showIntelligenceHUD}
+          showNotificationCenter={showNotificationCenter}
+          showQuickDock3D={showQuickDock3D}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} controllerEnabled={controllerEnabled} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
@@ -1747,6 +1759,20 @@ function AppContent() {
         {showStreamTPS && <StreamTPSBadge sessionId={state.activeChatId} visible={showStreamTPS} />}
         {showProviderHealth3D && <ProviderHealthBadge3D />}
         {showPersonaSwitcher3D && <PersonaSwitcher3D onOpenPersonaEditor={() => open('personaEditor')} onOpenPersonaManager={() => open('personaManager')} />}
+        {showIntelligenceHUD && <IntelligenceHUDOverlay onOpenCommandCenter={() => open('cyberHub')} />}
+        {showNotificationCenter && <NotificationCenter />}
+        {showQuickDock3D && (
+          <QuickDock3D
+            onOpenArsenal={() => open('arsenal')}
+            onOpenAgent={() => open('agent')}
+            onOpenNexus={() => open('nexus')}
+            onOpenWarRoom={() => open('warRoom')}
+            onOpenCognitiveWarfare={() => open('cognitiveWarfare')}
+            onOpenAutonomousOffense={() => open('autonomousOffense')}
+            onOpenCyberHierarchy={() => open('cyberHierarchy')}
+            onOpenAttackGraph={() => open('attackGraph')}
+          />
+        )}
       </Suspense>
 
       <div className="hidden md:block">

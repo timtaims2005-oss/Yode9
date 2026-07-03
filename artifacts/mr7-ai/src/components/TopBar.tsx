@@ -8,6 +8,7 @@ import {
   Dna, Gauge, DollarSign, Layers3, Rss, ShieldCheck, BrainCircuit, Zap as ZapIcon,
   AlertTriangle, Waypoints, LayoutGrid, Rows3, Newspaper, History, Map as MapIcon,
   Bug, Workflow, Skull, Target, GitBranch, Cog, HeartPulse, MonitorCog, WifiOff, Sparkles,
+  Bell, Eye, Box,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
@@ -21,7 +22,7 @@ export function TopBarHardwareButton({ onOpenHardware }: { onOpenHardware: () =>
   return (
     <motion.button
       onClick={onOpenHardware}
-      whileHover={{ scale: 1.05 }}
+      whileHover={{ scale: 1.08, boxShadow: "0 0 20px rgba(59, 130, 246, 0.7)" }}
       whileTap={{ scale: 0.95 }}
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide text-white"
       style={{
@@ -32,42 +33,65 @@ export function TopBarHardwareButton({ onOpenHardware }: { onOpenHardware: () =>
       title="Hardware Control Center"
     >
       <HardDrive className="w-4 h-4" />
-      <span className="hidden sm:inline">Hardware</span>
+      <span className="hidden sm:inline">HW</span>
     </motion.button>
   );
 }
 
-type IconAction = { label: string; icon: any; onClick: () => void };
+type IconAction = { label: string; icon: any; onClick: () => void; active?: boolean };
 
 function ToolbarGroup({
   label,
   icon: Icon,
   items,
   activeColor = "#e21227",
+  badge,
 }: {
   label: string;
   icon: any;
   items: IconAction[];
   activeColor?: string;
+  badge?: number;
 }) {
+  const activeCount = items.filter(i => i.active).length;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          className="relative flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold tracking-wide transition-all duration-200 hover:scale-105 shrink-0"
+          style={{
+            color: activeColor,
+            background: `${activeColor}18`,
+            border: `1px solid ${activeColor}35`,
+            boxShadow: `0 0 10px ${activeColor}18`,
+          }}
           title={label}
         >
-          <Icon className="w-4 h-4" style={{ color: activeColor }} />
+          <Icon className="w-3.5 h-3.5" />
           <span className="hidden lg:inline">{label}</span>
           <ChevronDown className="w-3 h-3 opacity-60" />
+          {(activeCount > 0 || badge) && (
+            <span
+              className="absolute -top-1 -right-1 min-w-[14px] h-3.5 flex items-center justify-center rounded-full text-[8px] font-black text-white px-0.5"
+              style={{ background: activeColor }}
+            >
+              {activeCount || badge}
+            </span>
+          )}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64 max-h-[70vh] overflow-y-auto bg-card border-border">
-        <DropdownMenuLabel>{label}</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs font-bold" style={{ color: activeColor }}>{label}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {items.map((item) => (
-          <DropdownMenuItem key={item.label} onSelect={item.onClick}>
-            <item.icon className="w-4 h-4" /> {item.label}
+          <DropdownMenuItem key={item.label} onSelect={item.onClick}
+            className={item.active ? "bg-primary/10" : ""}
+          >
+            <item.icon className="w-4 h-4" style={{ color: item.active ? activeColor : undefined }} />
+            <span className="flex-1">{item.label}</span>
+            {item.active && (
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: activeColor }} />
+            )}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -80,21 +104,28 @@ function HudToggleButton({
   icon: Icon,
   active,
   onClick,
+  color = "#e21227",
 }: {
   label: string;
   icon: any;
   active?: boolean;
   onClick: () => void;
+  color?: string;
 }) {
   return (
-    <button
+    <motion.button
       onClick={onClick}
       title={label}
-      className="p-1.5 rounded-lg transition-colors hover:bg-accent"
-      style={active ? { color: "#e21227", background: "rgba(226,18,39,0.12)" } : { color: "var(--muted-foreground)" }}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      className="p-1.5 rounded-lg transition-all duration-200"
+      style={active
+        ? { color: "#fff", background: color, boxShadow: `0 0 10px ${color}60` }
+        : { color: "var(--muted-foreground)", background: "transparent" }
+      }
     >
       <Icon className="w-4 h-4" />
-    </button>
+    </motion.button>
   );
 }
 
@@ -105,6 +136,16 @@ export type TopBarProps = {
   onOpenHardware?: () => void;
   onToggleProviderHealth3D?: () => void;
   onTogglePersonaSwitcher3D?: () => void;
+  onToggleIntelligenceHUD?: () => void;
+  onToggleNotificationCenter?: () => void;
+  onToggleQuickDock3D?: () => void;
+  // Active state indicators
+  showProviderHealth3D?: boolean;
+  showPersonaSwitcher3D?: boolean;
+  showIntelligenceHUD?: boolean;
+  showNotificationCenter?: boolean;
+  showQuickDock3D?: boolean;
+  // Standard props
   onOpenPricing: () => void;
   onOpenToolsHub: () => void;
   onOpenHelp: () => void;
@@ -332,7 +373,7 @@ export function TopBar(props: TopBarProps) {
     { label: "Attack Graph", icon: Network, onClick: props.onOpenAttackGraph },
   ];
 
-  const hudItems: { label: string; icon: any; onClick: () => void; active?: boolean }[] = [
+  const hudItems: IconAction[] = [
     { label: "Performance Dashboard", icon: Gauge, onClick: props.onOpenPerfDash },
     { label: "Cost Dashboard", icon: DollarSign, onClick: props.onOpenCostDash },
     { label: "Deduplication Visualizer", icon: Braces, onClick: props.onOpenDedupViz },
@@ -349,11 +390,13 @@ export function TopBar(props: TopBarProps) {
     { label: "Global Status", icon: Globe2, onClick: props.onToggleGlobalStatus },
     { label: "Offline Queue", icon: WifiOff, onClick: props.onToggleOfflineQueue },
     { label: "Performance Command Center", icon: Cog, onClick: props.onOpenPerfCC },
-    { label: "Provider Health 3D", icon: HeartPulse, onClick: () => props.onToggleProviderHealth3D?.() },
-    { label: "Persona Switcher 3D", icon: UserCircle2, onClick: () => props.onTogglePersonaSwitcher3D?.() },
+    { label: "Provider Health 3D", icon: HeartPulse, onClick: () => props.onToggleProviderHealth3D?.(), active: props.showProviderHealth3D },
+    { label: "Persona Switcher 3D", icon: UserCircle2, onClick: () => props.onTogglePersonaSwitcher3D?.(), active: props.showPersonaSwitcher3D },
+    { label: "Intelligence HUD", icon: Eye, onClick: () => props.onToggleIntelligenceHUD?.(), active: props.showIntelligenceHUD },
+    { label: "Notification Center", icon: Bell, onClick: () => props.onToggleNotificationCenter?.(), active: props.showNotificationCenter },
+    { label: "Quick Dock 3D", icon: Box, onClick: () => props.onToggleQuickDock3D?.(), active: props.showQuickDock3D },
     { label: "Hardware Dashboard", icon: HardDrive, onClick: () => setHardwareDashOpen(true) },
   ];
-
 
   const restoredItems: IconAction[] = [
     { label: "Ada V2", icon: Sparkles, onClick: props.onOpenAdaV2 },
@@ -459,104 +502,145 @@ export function TopBar(props: TopBarProps) {
     { label: "Stream TPS Badge", icon: Sparkles, onClick: props.onToggleStreamTPS },
   ];
 
+  // Count active HUD overlays for badge
+  const activeHudCount = [
+    props.showProviderHealth3D, props.showPersonaSwitcher3D,
+    props.showIntelligenceHUD, props.showNotificationCenter, props.showQuickDock3D,
+    props.hudsVisible,
+  ].filter(Boolean).length;
+
   return (
     <>
-    <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card/60 backdrop-blur-sm shrink-0 overflow-x-auto">
-      <button
-        onClick={props.onMenuClick}
-        className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground lg:hidden"
-        title="Menu"
-      >
-        <Menu className="w-4 h-4" />
-      </button>
-
-      <button
-        onClick={props.onToggleSidebar}
-        className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hidden lg:flex"
-        title={props.sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {props.sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-      </button>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-accent/40 hover:bg-accent transition-colors max-w-[220px]"
-            title="Select model"
-          >
-            <ActiveModelIcon className={`w-4 h-4 ${activeModelInfo?.color ?? "text-primary"}`} />
-            <span className="text-xs font-semibold truncate">{activeModelInfo?.id ?? "Model"}</span>
-            <ChevronDown className="w-3 h-3 opacity-60 shrink-0" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-80 max-h-[70vh] overflow-y-auto bg-card border-border">
-          <div className="px-2 pb-2 pt-1 sticky top-0 bg-card z-10">
-            <div className="flex items-center gap-2 px-2 py-1.5 rounded-md border border-border bg-background/60">
-              <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              <input
-                value={modelQuery}
-                onChange={(e) => setModelQuery(e.target.value)}
-                placeholder="Search models..."
-                className="bg-transparent outline-none text-xs w-full"
-              />
-            </div>
-          </div>
-          <DropdownMenuSeparator />
-          {filteredModels.map((m) => (
-            <DropdownMenuItem key={m.id} onSelect={() => dispatch({ type: "SET_MODEL", model: m.id })}>
-              <m.icon className={`w-4 h-4 ${m.color}`} />
-              <span className="flex-1 truncate">{m.id}</span>
-              {m.badge && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary/20 text-primary">{m.badge}</span>}
-              {m.id === state.activeModel && <Check className="w-3.5 h-3.5 text-primary shrink-0" />}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <div className="flex items-center gap-1 ml-1">
-        <ToolbarGroup label="Tools" icon={Wrench} items={toolsItems} activeColor="#00e5ff" />
-        <ToolbarGroup label="Agents" icon={Bot} items={agentItems} activeColor="#a78bfa" />
-        <ToolbarGroup label="Intel" icon={Radar} items={intelItems} activeColor="#22c55e" />
-        <ToolbarGroup label="HUD" icon={Activity} items={hudItems} activeColor="#e21227" />
-        <ToolbarGroup label="More" icon={Sparkles} items={restoredItems} activeColor="#f59e0b" />
-      </div>
-
-      <div className="flex-1" />
-
-      <div className="hidden xl:flex items-center gap-0.5 mr-1">
-        {hudItems.slice(0, 6).map((item) => (
-          <HudToggleButton key={item.label} label={item.label} icon={item.icon} active={item.active} onClick={item.onClick} />
-        ))}
-      </div>
-
-      <TopBarHardwareButton onOpenHardware={() => setHardwareDashOpen(true)} />
-
-      <button
-        onClick={props.onOpenHelp}
-        className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground"
-        title="Help"
-      >
-        <HelpCircle className="w-4 h-4" />
-      </button>
-
-      <motion.button
-        onClick={props.onOpenPricing}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide text-white shrink-0"
+      <div
+        className="flex items-center gap-1.5 px-3 py-2 border-b border-border shrink-0 overflow-x-auto"
         style={{
-          background: "linear-gradient(135deg, #e21227 0%, #7a0d16 100%)",
-          boxShadow: "0 0 12px rgba(226, 18, 39, 0.5)",
-          border: "1px solid rgba(226, 18, 39, 0.5)",
+          background: "linear-gradient(90deg, rgba(10,10,20,0.95) 0%, rgba(15,10,30,0.95) 50%, rgba(10,10,20,0.95) 100%)",
+          backdropFilter: "blur(20px)",
+          borderBottomColor: "rgba(226,18,39,0.2)",
+          boxShadow: "0 1px 0 rgba(226,18,39,0.1), inset 0 1px 0 rgba(255,255,255,0.03)",
         }}
-        title="Upgrade"
       >
-        <Crown className="w-4 h-4" />
-        <span className="hidden sm:inline">Upgrade</span>
-      </motion.button>
-    </div>
+        {/* Sidebar toggles */}
+        <button
+          onClick={props.onMenuClick}
+          className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground lg:hidden shrink-0"
+          title="Menu"
+        >
+          <Menu className="w-4 h-4" />
+        </button>
+        <button
+          onClick={props.onToggleSidebar}
+          className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hidden lg:flex shrink-0"
+          title={props.sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {props.sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+        </button>
 
-    <HardwareDashboardModal isOpen={hardwareDashOpen} onClose={() => setHardwareDashOpen(false)} />
+        {/* Divider */}
+        <div className="w-px h-5 bg-white/10 shrink-0" />
+
+        {/* Model selector */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all duration-200 hover:scale-105 max-w-[200px] shrink-0"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                boxShadow: "0 0 12px rgba(226,18,39,0.1)",
+              }}
+              title="Select model"
+            >
+              <ActiveModelIcon className={`w-4 h-4 shrink-0 ${activeModelInfo?.color ?? "text-primary"}`} />
+              <span className="text-[11px] font-bold truncate text-white/90">{activeModelInfo?.id ?? "Model"}</span>
+              <ChevronDown className="w-3 h-3 opacity-40 shrink-0" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-80 max-h-[70vh] overflow-y-auto bg-card border-border">
+            <div className="px-2 pb-2 pt-1 sticky top-0 bg-card z-10">
+              <div className="flex items-center gap-2 px-2 py-1.5 rounded-md border border-border bg-background/60">
+                <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <input
+                  value={modelQuery}
+                  onChange={(e) => setModelQuery(e.target.value)}
+                  placeholder="Search models..."
+                  className="bg-transparent outline-none text-xs w-full"
+                />
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            {filteredModels.map((m) => (
+              <DropdownMenuItem key={m.id} onSelect={() => dispatch({ type: "SET_MODEL", model: m.id })}>
+                <m.icon className={`w-4 h-4 ${m.color}`} />
+                <span className="flex-1 truncate">{m.id}</span>
+                {m.badge && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary/20 text-primary">{m.badge}</span>}
+                {m.id === state.activeModel && <Check className="w-3.5 h-3.5 text-primary shrink-0" />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Divider */}
+        <div className="w-px h-5 bg-white/10 shrink-0" />
+
+        {/* Main menu groups */}
+        <div className="flex items-center gap-1">
+          <ToolbarGroup label="Tools"   icon={Wrench}   items={toolsItems}    activeColor="#00e5ff" />
+          <ToolbarGroup label="Agents"  icon={Bot}      items={agentItems}    activeColor="#a78bfa" />
+          <ToolbarGroup label="Intel"   icon={Radar}    items={intelItems}    activeColor="#22c55e" />
+          <ToolbarGroup label="HUD"     icon={Activity} items={hudItems}      activeColor="#e21227" badge={activeHudCount > 0 ? activeHudCount : undefined} />
+          <ToolbarGroup label="More"    icon={Sparkles} items={restoredItems} activeColor="#f59e0b" />
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Quick HUD toggles — visible on xl */}
+        <div className="hidden xl:flex items-center gap-0.5 px-1 py-0.5 rounded-lg shrink-0"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+        >
+          <HudToggleButton label="Performance Dashboard" icon={Gauge}        onClick={props.onOpenPerfDash}          color="#e21227" />
+          <HudToggleButton label="Cost Dashboard"        icon={DollarSign}   onClick={props.onOpenCostDash}          color="#f59e0b" />
+          <HudToggleButton label="Threat Feed"           icon={Rss}          onClick={props.onOpenThreatFeed}        color="#e21227" />
+          <HudToggleButton label="Security Dashboard"    icon={ShieldCheck}  onClick={props.onOpenSecurityDash}      color="#22c55e" />
+          <HudToggleButton label="Provider Health 3D"    icon={HeartPulse}   onClick={() => props.onToggleProviderHealth3D?.()}   active={props.showProviderHealth3D}   color="#00e5ff" />
+          <HudToggleButton label="Persona Switcher 3D"   icon={UserCircle2}  onClick={() => props.onTogglePersonaSwitcher3D?.()}  active={props.showPersonaSwitcher3D}  color="#a78bfa" />
+          <HudToggleButton label="Intelligence HUD"      icon={Eye}          onClick={() => props.onToggleIntelligenceHUD?.()}    active={props.showIntelligenceHUD}    color="#22c55e" />
+          <HudToggleButton label="Notifications"         icon={Bell}         onClick={() => props.onToggleNotificationCenter?.()}active={props.showNotificationCenter} color="#f59e0b" />
+          <HudToggleButton label="Quick Dock 3D"         icon={Box}          onClick={() => props.onToggleQuickDock3D?.()}        active={props.showQuickDock3D}        color="#a78bfa" />
+        </div>
+
+        {/* Hardware button */}
+        <TopBarHardwareButton onOpenHardware={() => setHardwareDashOpen(true)} />
+
+        {/* Help */}
+        <button
+          onClick={props.onOpenHelp}
+          className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground shrink-0"
+          title="Help"
+        >
+          <HelpCircle className="w-4 h-4" />
+        </button>
+
+        {/* Upgrade */}
+        <motion.button
+          onClick={props.onOpenPricing}
+          whileHover={{ scale: 1.08, boxShadow: "0 0 20px rgba(226, 18, 39, 0.7)" }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black tracking-wide text-white shrink-0"
+          style={{
+            background: "linear-gradient(135deg, #e21227 0%, #7a0d16 100%)",
+            boxShadow: "0 0 12px rgba(226, 18, 39, 0.5)",
+            border: "1px solid rgba(226, 18, 39, 0.6)",
+          }}
+          title="Upgrade"
+        >
+          <Crown className="w-4 h-4" />
+          <span className="hidden sm:inline">PRO</span>
+        </motion.button>
+      </div>
+
+      <HardwareDashboardModal isOpen={hardwareDashOpen} onClose={() => setHardwareDashOpen(false)} />
     </>
   );
 }
