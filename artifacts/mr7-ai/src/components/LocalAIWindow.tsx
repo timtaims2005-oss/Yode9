@@ -5,7 +5,7 @@ import { useDraggable } from "@/hooks/useDraggable";
 import { useStore } from "@/lib/store";
 import {
   X, Server, Cpu, Activity, RefreshCw, Play, Download,
-  CheckCircle, Database, Zap, BarChart2,
+  CheckCircle, Database, Zap, BarChart2, ExternalLink,
 } from "lucide-react";
 
 interface EngineStatus {
@@ -145,10 +145,14 @@ export function LocalAIWindow({
   const [tab,        setTab]        = useState<Tab>("engines");
   const [tpsTarget,  setTpsTarget]  = useState(0);
   const [tpsHistory, setTpsHistory] = useState<number[]>(Array(40).fill(0));
-  const [launching,  setLaunching]  = useState<string | null>(null);
-  const [pullModel,  setPullModel]  = useState("");
-  const [pulling,    setPulling]    = useState(false);
-  const [pullLog,    setPullLog]    = useState("");
+  const [launching,        setLaunching]        = useState<string | null>(null);
+  const [installing,       setInstalling]       = useState<string | null>(null);
+  const [installLog,       setInstallLog]       = useState<Record<string, string>>({});
+  const [installPct,       setInstallPct]       = useState<Record<string, number | null>>({});
+  const [showOllamaPull,   setShowOllamaPull]   = useState(false);
+  const [pullModel,        setPullModel]        = useState("");
+  const [pulling,          setPulling]          = useState(false);
+  const [pullLog,          setPullLog]          = useState("");
 
   // ── DUEL tab state ────────────────────────────────────────────────────────
   const [duelModel1,   setDuelModel1]   = useState("");
@@ -523,6 +527,52 @@ export function LocalAIWindow({
     return () => window.removeEventListener("keydown", h);
   }, [open, onClose]);
 
+  // ── Install engine via SSE (buffered decoder for split chunks) ─────────────
+  const installEngine = async (id: string) => {
+    setInstalling(id);
+    setInstallLog(prev => ({ ...prev, [id]: "جارٍ التثبيت..." }));
+    setInstallPct(prev => ({ ...prev, [id]: null }));
+    try {
+      const r = await fetch(`/api/local-engines/install/${id}`, { method: "POST" });
+      if (r.body) {
+        const reader = r.body.getReader();
+        const dec    = new TextDecoder();
+        let   carry  = "";
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          // stream:true keeps multi-byte chars intact across chunks
+          const chunk = dec.decode(value, { stream: true });
+          const lines = (carry + chunk).split("\n");
+          // last element may be incomplete — carry it forward
+          carry = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            try {
+              const ev = JSON.parse(line.slice(5)) as { type: string; message?: string; pct?: number };
+              const msg = ev.message ?? "";
+              if (msg) setInstallLog(prev => ({ ...prev, [id]: msg }));
+              if (ev.pct != null) setInstallPct(prev => ({ ...prev, [id]: ev.pct ?? null }));
+              if (ev.type === "success") setInstallPct(prev => ({ ...prev, [id]: 100 }));
+            } catch { /* skip malformed line */ }
+          }
+        }
+        // flush any remaining carry
+        if (carry.startsWith("data:")) {
+          try {
+            const ev = JSON.parse(carry.slice(5)) as { type: string; message?: string; pct?: number };
+            if (ev.message) setInstallLog(prev => ({ ...prev, [id]: ev.message! }));
+            if (ev.type === "success") setInstallPct(prev => ({ ...prev, [id]: 100 }));
+          } catch { /* ignore */ }
+        }
+      }
+    } catch (e) {
+      setInstallLog(prev => ({ ...prev, [id]: `خطأ: ${String(e)}` }));
+    }
+    setInstalling(null);
+    setTimeout(fetchStatus, 1500);
+  };
+
   // ── Launch engine via SSE ───────────────────────────────────────────────────
   const launchEngine = async (id: string) => {
     setLaunching(id);
@@ -815,81 +865,246 @@ export function LocalAIWindow({
         <div className="overflow-y-auto scrollbar-none" style={{ maxHeight: 340 }}>
 
           {/* ENGINES TAB */}
-          {tab === "engines" && (
-            <div className="p-2.5 flex flex-col gap-1.5">
-              {displayEngines.map(eng => {
-                const ec      = ENG_COLOR[eng.id] ?? C;
-                const isLaunch = launching === eng.id;
-                return (
-                  <div key={eng.id}
-                    className="rounded-xl px-3 py-2.5 flex items-center gap-2.5 transition-all"
-                    style={{
-                      background: eng.online ? ec + "0a" : "rgba(255,255,255,0.025)",
-                      border: `1px solid ${eng.online ? ec + "28" : "rgba(255,255,255,0.055)"}`,
-                    }}
-                  >
-                    <motion.div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ background: eng.online ? ec : "rgba(255,255,255,0.14)", boxShadow: eng.online ? `0 0 7px ${ec}` : "none" }}
-                      animate={eng.online ? { scale: [0.88, 1.14, 0.88] } : {}}
-                      transition={{ duration: 1.7, repeat: Infinity }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] font-black" style={{ color: eng.online ? ec : "rgba(255,255,255,0.45)" }}>
-                          {eng.label}
-                        </span>
-                        <span className="text-[7px] font-mono px-1 rounded" style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.22)" }}>
-                          :{eng.port}
-                        </span>
-                        {eng.online && eng.latencyMs != null && (
-                          <span className="text-[7.5px] font-mono ml-auto" style={{ color: eng.latencyMs < 50 ? G : eng.latencyMs < 200 ? A : R }}>
-                            {eng.latencyMs}ms
-                          </span>
-                        )}
+          {tab === "engines" && (() => {
+            const DL_URLS: Record<string, string> = {
+              lmstudio:    "https://lmstudio.ai",
+              jan:         "https://jan.ai",
+              textgenwebui:"https://github.com/oobabooga/text-generation-webui/releases",
+              gpt4all:     "https://gpt4all.io",
+            };
+            const DL_STEPS: Record<string, string> = {
+              lmstudio:    "حمّله من lmstudio.ai ← Local Server ← Start (port 1234)",
+              jan:         "حمّله من jan.ai ← Hub ← نموذج ← Local API Server ← Start (port 1337)",
+              textgenwebui:"GitHub ← start_linux.sh ← يعمل على port 5000",
+              gpt4all:     "gpt4all.io ← Settings ← API Server ← Enable (port 4891)",
+            };
+            const PULL_SUGGESTIONS = ["llama3.2:3b","mistral:7b","codellama:7b","phi3:mini","gemma2:2b"];
+            return (
+              <div className="p-2.5 flex flex-col gap-2">
+                {displayEngines.map(eng => {
+                  const ec       = ENG_COLOR[eng.id] ?? C;
+                  const isLaunch = launching === eng.id;
+                  const isInst   = installing === eng.id;
+                  const iLog     = installLog[eng.id] ?? "";
+                  const iPct     = installPct[eng.id] ?? null;
+                  const isOllama = eng.id === "ollama";
+                  return (
+                    <div key={eng.id} className="rounded-xl overflow-hidden transition-all"
+                      style={{ border: `1px solid ${eng.online ? ec + "30" : "rgba(255,255,255,0.06)"}`, background: eng.online ? ec + "08" : "rgba(255,255,255,0.018)" }}>
+
+                      {/* ── Main row ── */}
+                      <div className="flex items-center gap-2.5 px-3 py-2.5">
+                        {/* Status dot */}
+                        <motion.div className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ background: eng.online ? ec : R, boxShadow: eng.online ? `0 0 7px ${ec}` : `0 0 4px ${R}55` }}
+                          animate={eng.online ? { scale: [0.85, 1.15, 0.85] } : { opacity: [0.4, 0.8, 0.4] }}
+                          transition={{ duration: 1.8, repeat: Infinity }}
+                        />
+
+                        {/* Label + meta */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] font-black" style={{ color: eng.online ? ec : "rgba(255,255,255,0.42)" }}>
+                              {eng.label}
+                            </span>
+                            <span className="text-[7px] font-mono px-1 rounded" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.22)" }}>
+                              :{eng.port}
+                            </span>
+                            {eng.online && eng.latencyMs != null && (
+                              <span className="text-[7.5px] font-mono px-1 rounded" style={{
+                                background: (eng.latencyMs < 50 ? G : eng.latencyMs < 200 ? A : R) + "18",
+                                color: eng.latencyMs < 50 ? G : eng.latencyMs < 200 ? A : R,
+                              }}>
+                                {eng.latencyMs}ms
+                              </span>
+                            )}
+                            {eng.online && (
+                              <span className="text-[7px] font-mono px-1 rounded" style={{ background: ec + "15", color: ec }}>
+                                {eng.models.length} نموذج
+                              </span>
+                            )}
+                            {!eng.online && (
+                              <span className="text-[7px] font-mono" style={{ color: R + "77" }}>OFFLINE</span>
+                            )}
+                          </div>
+                          {eng.online && eng.models.length > 0 && (
+                            <div className="text-[7.5px] mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.3)" }}>
+                              {eng.models.slice(0, 3).join(", ")}{eng.models.length > 3 ? ` +${eng.models.length - 3}` : ""}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* ── Action buttons ── */}
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {/* Activate button (online + models) */}
+                          {eng.online && eng.models.length > 0 && (
+                            <button onClick={() => activateModel(eng.models[0], eng.id)}
+                              className="px-2 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                              style={{ background: ec + "15", border: `1px solid ${ec}28`, color: ec }}>
+                              <Zap size={8} /> تفعيل
+                            </button>
+                          )}
+
+                          {/* canInstall engines (ollama/llamafile/kobold): Launch + Install */}
+                          {!eng.online && eng.canInstall && (
+                            <>
+                              <button onClick={() => launchEngine(eng.id)}
+                                disabled={!!launching || !!installing}
+                                className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                                style={{ background: ec + "18", border: `1px solid ${ec}30`, color: ec, opacity: !!launching && !isLaunch ? 0.45 : 1 }}>
+                                <motion.div animate={isLaunch ? { rotate: 360 } : {}} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}>
+                                  {isLaunch ? <RefreshCw size={8} /> : <Play size={8} />}
+                                </motion.div>
+                                {isLaunch ? "..." : "تشغيل"}
+                              </button>
+                              <button onClick={() => installEngine(eng.id)}
+                                disabled={!!installing || !!launching}
+                                className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                                style={{ background: G + "12", border: `1px solid ${G}28`, color: G, opacity: !!installing && !isInst ? 0.45 : 1 }}>
+                                <motion.div animate={isInst ? { rotate: 360 } : {}} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}>
+                                  {isInst ? <RefreshCw size={8} /> : <Download size={8} />}
+                                </motion.div>
+                                {isInst ? "..." : "تثبيت"}
+                              </button>
+                            </>
+                          )}
+
+                          {/* manual-install engines (lmstudio/jan/textgenwebui/gpt4all): external link */}
+                          {!eng.online && !eng.canInstall && DL_URLS[eng.id] && (
+                            <a href={DL_URLS[eng.id]} target="_blank" rel="noopener noreferrer"
+                              className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                              style={{ background: ec + "15", border: `1px solid ${ec}28`, color: ec }}>
+                              <ExternalLink size={8} /> تحميل ↗
+                            </a>
+                          )}
+
+                          {/* Launch button for lmstudio/jan too when offline */}
+                          {!eng.online && !eng.canInstall && (eng.id === "lmstudio" || eng.id === "jan") && (
+                            <button onClick={() => launchEngine(eng.id)}
+                              disabled={!!launching}
+                              className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                              style={{ background: ec + "12", border: `1px solid ${ec}22`, color: ec, opacity: !!launching && !isLaunch ? 0.45 : 1 }}>
+                              <motion.div animate={isLaunch ? { rotate: 360 } : {}} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}>
+                                {isLaunch ? <RefreshCw size={8} /> : <Play size={8} />}
+                              </motion.div>
+                              {isLaunch ? "..." : "فتح"}
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      {eng.online && eng.models.length > 0 && (
-                        <div className="text-[7.5px] mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.32)" }}>
-                          {eng.models.length} نموذج: {eng.models.slice(0, 2).join(", ")}{eng.models.length > 2 ? ` +${eng.models.length - 2}` : ""}
+
+                      {/* ── Install progress bar ── */}
+                      {isInst && (
+                        <div className="px-3 pb-2.5 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[7.5px] font-mono" style={{ color: G + "99" }}>{iLog}</span>
+                            {iPct != null && <span className="text-[8px] font-black font-mono" style={{ color: G }}>{iPct}%</span>}
+                          </div>
+                          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                            {iPct != null ? (
+                              <motion.div className="h-full rounded-full"
+                                style={{ background: `linear-gradient(90deg,${G},${C})`, boxShadow: `0 0 7px ${G}` }}
+                                animate={{ width: `${iPct}%` }} transition={{ duration: 0.3 }} />
+                            ) : (
+                              <motion.div className="h-full rounded-full"
+                                style={{ background: `linear-gradient(90deg,${G},${C})`, boxShadow: `0 0 7px ${G}` }}
+                                animate={{ width: ["5%","70%","5%"] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }} />
+                            )}
+                          </div>
                         </div>
                       )}
-                      {!eng.online && (
-                        <div className="text-[7.5px] mt-0.5" style={{ color: "rgba(255,255,255,0.18)" }}>غير متصل</div>
+
+                      {/* ── Install result (done) ── */}
+                      {!isInst && iLog && (
+                        <div className="px-3 pb-2 text-[7.5px] font-mono" style={{ color: iLog.startsWith("خطأ") ? R : G }}>{iLog}</div>
+                      )}
+
+                      {/* ── Manual-install guide hint ── */}
+                      {!eng.online && !eng.canInstall && DL_STEPS[eng.id] && (
+                        <div className="px-3 pb-2.5 text-[7.5px] font-mono leading-relaxed" style={{ color: "rgba(255,255,255,0.25)", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 6 }}>
+                          {DL_STEPS[eng.id]}
+                        </div>
+                      )}
+
+                      {/* ── Ollama: Pull Model section ── */}
+                      {isOllama && eng.online && (
+                        <div style={{ borderTop: `1px solid ${ec}18` }}>
+                          <button onClick={() => setShowOllamaPull(p => !p)}
+                            className="w-full flex items-center gap-1.5 px-3 py-1.5 text-[7px] font-black tracking-widest uppercase transition-all"
+                            style={{ color: ec + "66", background: showOllamaPull ? ec + "08" : "transparent" }}>
+                            <Download size={8} />
+                            PULL MODEL
+                            <span className="ml-auto" style={{ color: ec + "44" }}>{showOllamaPull ? "▲" : "▼"}</span>
+                          </button>
+                          {showOllamaPull && (
+                            <div className="px-3 pb-3 space-y-2">
+                              {/* Suggestions */}
+                              <div className="flex flex-wrap gap-1">
+                                {PULL_SUGGESTIONS.map(m => (
+                                  <button key={m} onClick={() => setPullModel(m)}
+                                    className="px-1.5 py-0.5 rounded text-[7px] font-mono transition-all"
+                                    style={{
+                                      background: pullModel === m ? ec + "25" : "rgba(255,255,255,0.04)",
+                                      border: `1px solid ${pullModel === m ? ec + "44" : "rgba(255,255,255,0.08)"}`,
+                                      color: pullModel === m ? ec : "rgba(255,255,255,0.42)",
+                                    }}>
+                                    {m}
+                                  </button>
+                                ))}
+                              </div>
+                              {/* Input + button */}
+                              <div className="flex gap-1.5">
+                                <input value={pullModel} onChange={e => setPullModel(e.target.value)}
+                                  onKeyDown={e => e.key === "Enter" && !pulling && pullOllamaModel()}
+                                  placeholder="llama3.2:3b أو أي نموذج..."
+                                  className="flex-1 px-2.5 py-1.5 rounded-lg text-[9px] font-mono outline-none"
+                                  style={{ background: "rgba(0,0,0,0.45)", border: `1px solid ${ec}22`, color: "rgba(255,255,255,0.8)", caretColor: ec }} />
+                                <button onClick={() => pullOllamaModel()} disabled={pulling || !pullModel.trim()}
+                                  className="px-2.5 py-1.5 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                                  style={{ background: pulling ? ec + "15" : ec + "22", border: `1px solid ${ec}33`, color: ec, opacity: !pullModel.trim() ? 0.4 : 1 }}>
+                                  <motion.div animate={pulling ? { rotate: 360 } : {}} transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }}>
+                                    {pulling ? <RefreshCw size={8} /> : <Download size={8} />}
+                                  </motion.div>
+                                  {pulling ? "جارٍ..." : "تحميل"}
+                                </button>
+                              </div>
+                              {/* Streaming progress */}
+                              {pulling && (() => {
+                                const pctM = pullLog.match(/(\d+)%/);
+                                const pct  = pctM ? parseInt(pctM[1]) : null;
+                                return (
+                                  <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[7.5px] font-mono truncate flex-1" style={{ color: ec + "99" }}>{pullLog}</span>
+                                      {pct != null && <span className="text-[9px] font-black font-mono ml-2" style={{ color: ec }}>{pct}%</span>}
+                                    </div>
+                                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                                      {pct != null ? (
+                                        <motion.div className="h-full rounded-full"
+                                          style={{ background: `linear-gradient(90deg,${ec},${G})`, boxShadow: `0 0 8px ${ec}` }}
+                                          animate={{ width: `${pct}%` }} transition={{ duration: 0.3 }} />
+                                      ) : (
+                                        <motion.div className="h-full rounded-full"
+                                          style={{ background: `linear-gradient(90deg,${ec},${G})`, boxShadow: `0 0 8px ${ec}` }}
+                                          animate={{ width: ["5%","65%","5%"] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }} />
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+                              {!pulling && pullLog && (
+                                <div className="text-[7.5px] font-mono" style={{ color: pullLog.startsWith("خطأ") ? R : G }}>{pullLog}</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
-                    {!eng.online && (
-                      <button
-                        onClick={() => launchEngine(eng.id)}
-                        disabled={!!launching}
-                        className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 flex-shrink-0 transition-all"
-                        style={{
-                          background: ec + "18", border: `1px solid ${ec}30`, color: ec,
-                          opacity: !!launching && !isLaunch ? 0.45 : 1,
-                        }}
-                      >
-                        <motion.div
-                          animate={isLaunch ? { rotate: 360 } : {}}
-                          transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
-                        >
-                          {isLaunch ? <RefreshCw size={8} /> : <Play size={8} />}
-                        </motion.div>
-                        {isLaunch ? "..." : "تشغيل"}
-                      </button>
-                    )}
-                    {eng.online && eng.models.length > 0 && (
-                      <button
-                        onClick={() => activateModel(eng.models[0], eng.id)}
-                        className="px-2 py-1 rounded-lg text-[8px] font-black flex-shrink-0 transition-all"
-                        style={{ background: ec + "15", border: `1px solid ${ec}28`, color: ec }}
-                      >
-                        <Zap size={8} />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           {/* MODELS TAB */}
           {tab === "models" && (

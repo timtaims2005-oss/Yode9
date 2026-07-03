@@ -99,9 +99,52 @@ server.on("upgrade", (req, socket, head) => {
   }
 });
 
+// ── Auto-launch Llamafile on startup ──────────────────────────────────────────
+async function autoLaunchLlamafile(): Promise<void> {
+  const WORKSPACE = process.cwd();
+  const bin = path.join(WORKSPACE, ".local-engines", "llamafile");
+  if (!fs.existsSync(bin)) { logger.info("Llamafile binary not found — skip"); return; }
+  try {
+    const chk = await fetch("http://localhost:8081/v1/models", { signal: AbortSignal.timeout(2000) });
+    if (chk.ok) { logger.info("Llamafile already running — skip"); return; }
+  } catch { /* not running */ }
+  try { fs.chmodSync(bin, 0o755); } catch { /* ignore */ }
+  const llamaProc = spawn(bin, ["--server", "--port", "8081", "--host", "0.0.0.0"], {
+    detached: true, stdio: "ignore",
+    env: { ...(process.env as Record<string, string>) },
+  });
+  llamaProc.on("error", (err) => logger.warn({ err }, "Llamafile spawn error"));
+  llamaProc.unref();
+  logger.info({ bin }, "Llamafile auto-launched on startup");
+}
+
+// ── Auto-launch KoboldCPP on startup ─────────────────────────────────────────
+async function autoLaunchKobold(): Promise<void> {
+  const WORKSPACE = process.cwd();
+  const pyScript = path.join(WORKSPACE, ".local-engines", "koboldcpp", "koboldcpp.py");
+  if (!fs.existsSync(pyScript)) { logger.info("KoboldCPP not found — skip"); return; }
+  try {
+    const chk = await fetch("http://localhost:5001/api/v1/model", { signal: AbortSignal.timeout(2000) });
+    if (chk.ok) { logger.info("KoboldCPP already running — skip"); return; }
+  } catch { /* not running */ }
+  const koboldProc = spawn("python3", [pyScript, "--port", "5001", "--host", "0.0.0.0", "--skiplauncher"], {
+    detached: true, stdio: "ignore",
+    cwd: path.dirname(pyScript),
+    env: { ...(process.env as Record<string, string>) },
+  });
+  koboldProc.on("error", (err) => logger.warn({ err }, "KoboldCPP spawn error — python3 may be unavailable"));
+  koboldProc.unref();
+  logger.info({ pyScript }, "KoboldCPP auto-launched on startup");
+}
+
 server.listen(port, (err?: Error) => {
   if (err) { logger.error({ err }, "Error listening on port"); process.exit(1); }
   logger.info({ port }, "Server listening");
-  // Auto-launch Ollama in background (non-blocking)
+  // Auto-launch Ollama immediately
   autoLaunchOllama().catch(e => logger.warn({ err: e }, "autoLaunchOllama error"));
+  // Auto-launch Llamafile + KoboldCPP after 5s (give Ollama priority)
+  setTimeout(() => {
+    autoLaunchLlamafile().catch(e => logger.warn({ err: e }, "autoLaunchLlamafile error"));
+    autoLaunchKobold().catch(e => logger.warn({ err: e }, "autoLaunchKobold error"));
+  }, 5000);
 });

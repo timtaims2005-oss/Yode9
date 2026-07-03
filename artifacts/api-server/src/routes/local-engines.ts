@@ -37,10 +37,7 @@ const BIN_DIR   = path.join(WORKSPACE, ".local-engines");
 async function pingEngine(eng: typeof ENGINES[number]): Promise<EngineStatus> {
   const t0 = Date.now();
   try {
-    const ctrl = new AbortController();
-    const tid  = setTimeout(() => ctrl.abort(), 3000);
-    const resp = await fetch(`${eng.base}${eng.apiPath}`, { signal: ctrl.signal });
-    clearTimeout(tid);
+    const resp = await fetch(`${eng.base}${eng.apiPath}`, { signal: AbortSignal.timeout(3000) });
     const latencyMs = Date.now() - t0;
 
     if (!resp.ok) return base(eng, false, latencyMs, [], null);
@@ -222,6 +219,64 @@ router.post("/local-engines/launch/:id", (req, res): void => {
       setTimeout(() => { send({ type: "success", message: "Open WebUI launched ✓" }); res.end(); }, 5000);
     } catch (e) {
       send({ type: "error", message: String(e) });
+      res.end();
+    }
+    return;
+  }
+
+  if (id === "lmstudio") {
+    const candidates = [
+      `${process.env["HOME"] ?? "/home/runner"}/.local/bin/lmstudio`,
+      "/usr/bin/lmstudio",
+      "/opt/lm-studio/lmstudio",
+      "/opt/lmstudio/lmstudio",
+    ];
+    const bin = candidates.find(p => fs.existsSync(p)) ?? null;
+    if (bin) {
+      try {
+        spawn(bin, [], { detached: true, stdio: "ignore" }).unref();
+        send({ type: "log", message: "LM Studio launched — enable Local Server on port 1234" });
+        let tries = 0;
+        const check = setInterval(async () => {
+          tries++;
+          try {
+            const r = await fetch("http://localhost:1234/v1/models", { signal: AbortSignal.timeout(2000) });
+            if (r.ok) { clearInterval(check); send({ type: "success", message: "LM Studio is online ✓" }); res.end(); }
+          } catch { /* waiting */ }
+          if (tries >= 20) { clearInterval(check); send({ type: "info", message: "LM Studio launched — go to Local Server tab and click Start" }); res.end(); }
+        }, 1000);
+      } catch (e) { send({ type: "error", message: String(e) }); res.end(); }
+    } else {
+      send({ type: "info", message: "LM Studio غير مثبّت — حمّله من lmstudio.ai ثم فعّل Local Server على المنفذ 1234" });
+      res.end();
+    }
+    return;
+  }
+
+  if (id === "jan") {
+    const candidates = [
+      `${process.env["HOME"] ?? "/home/runner"}/.local/bin/jan`,
+      "/usr/bin/jan",
+      "/opt/jan/jan",
+      `${process.env["HOME"] ?? "/home/runner"}/Applications/Jan.AppImage`,
+    ];
+    const bin = candidates.find(p => fs.existsSync(p)) ?? null;
+    if (bin) {
+      try {
+        spawn(bin, [], { detached: true, stdio: "ignore" }).unref();
+        send({ type: "log", message: "Jan launched — enable Local API Server on port 1337" });
+        let tries = 0;
+        const check = setInterval(async () => {
+          tries++;
+          try {
+            const r = await fetch("http://localhost:1337/v1/models", { signal: AbortSignal.timeout(2000) });
+            if (r.ok) { clearInterval(check); send({ type: "success", message: "Jan is online ✓" }); res.end(); }
+          } catch { /* waiting */ }
+          if (tries >= 20) { clearInterval(check); send({ type: "info", message: "Jan launched — go to Local API Server and click Start" }); res.end(); }
+        }, 1000);
+      } catch (e) { send({ type: "error", message: String(e) }); res.end(); }
+    } else {
+      send({ type: "info", message: "Jan غير مثبّت — حمّله من jan.ai ثم فعّل Local API Server على المنفذ 1337" });
       res.end();
     }
     return;
