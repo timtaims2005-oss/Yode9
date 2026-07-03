@@ -163,6 +163,24 @@ export type TopBarProps = {
   onTogglePerfMon: () => void;
   onToggleGlobalStatus: () => void;
   onToggleOfflineQueue: () => void;
+  onToggleCyberHeatmap: () => void;
+  onToggleCyber3DGrid: () => void;
+  onToggleQuantumCommand: () => void;
+  onToggleAIQuickSetup: () => void;
+  onToggleFloatingNetwork: () => void;
+  onToggleQuantumMemGraph: () => void;
+  onToggleQuantumPersona3D: () => void;
+  onToggleQuantumStatusBar: () => void;
+  onToggleWebGLParticles: () => void;
+  onToggleSysMonitorOrb: () => void;
+  onToggleIdleTrackerOrb: () => void;
+  onToggleStreamTPS: () => void;
+  onOpenRealTimeMonitor: () => void;
+  onOpenBlockchainTracker: () => void;
+  onOpenContextWindowPage: () => void;
+  onOpenSecurityAuditPage: () => void;
+  onOpenMonitoringPagePlain: () => void;
+  onOpenSecurityCompliancePagePlain: () => void;
   // ── Restored modals (previously orphaned) ──────────────────────────────
   onOpenAdaV2: () => void;
   onOpenAgent4DesignCanvas: () => void;
@@ -414,6 +432,24 @@ export function TopBar(props: TopBarProps) {
     { label: "Vuln Discovery", icon: Sparkles, onClick: props.onOpenVulnDiscovery },
     { label: "Whats New", icon: Sparkles, onClick: props.onOpenWhatsNew },
     { label: "Zero Boundary", icon: Sparkles, onClick: props.onOpenZeroBoundary },
+    { label: "Real-Time Monitor", icon: Sparkles, onClick: props.onOpenRealTimeMonitor },
+    { label: "Blockchain Tracker", icon: Sparkles, onClick: props.onOpenBlockchainTracker },
+    { label: "Context Window", icon: Sparkles, onClick: props.onOpenContextWindowPage },
+    { label: "Security Audit", icon: Sparkles, onClick: props.onOpenSecurityAuditPage },
+    { label: "Monitoring (Classic)", icon: Sparkles, onClick: props.onOpenMonitoringPagePlain },
+    { label: "Security Compliance (Classic)", icon: Sparkles, onClick: props.onOpenSecurityCompliancePagePlain },
+    { label: "Cyber Heatmap HUD", icon: Sparkles, onClick: props.onToggleCyberHeatmap },
+    { label: "Cyber 3D Grid", icon: Sparkles, onClick: props.onToggleCyber3DGrid },
+    { label: "Quantum Command Center", icon: Sparkles, onClick: props.onToggleQuantumCommand },
+    { label: "AI Quick Setup", icon: Sparkles, onClick: props.onToggleAIQuickSetup },
+    { label: "Floating Network Panel", icon: Sparkles, onClick: props.onToggleFloatingNetwork },
+    { label: "Quantum Memory Graph", icon: Sparkles, onClick: props.onToggleQuantumMemGraph },
+    { label: "Quantum Persona 3D", icon: Sparkles, onClick: props.onToggleQuantumPersona3D },
+    { label: "Quantum Status Bar", icon: Sparkles, onClick: props.onToggleQuantumStatusBar },
+    { label: "WebGL Particle Field", icon: Sparkles, onClick: props.onToggleWebGLParticles },
+    { label: "Sys Monitor Orb", icon: Sparkles, onClick: props.onToggleSysMonitorOrb },
+    { label: "Idle Tracker Orb", icon: Sparkles, onClick: props.onToggleIdleTrackerOrb },
+    { label: "Stream TPS Badge", icon: Sparkles, onClick: props.onToggleStreamTPS },
   ];
 
   return (

@@ -341,6 +341,24 @@ const CyberIntelBrainModal    = lazy(() => import("./components/modals/CyberInte
 const CyberPhysicalModal      = lazy(() => import("./components/modals/CyberPhysicalModal").then(m=>({default:m.CyberPhysicalModal})));
 const CyberWarfareModal       = lazy(() => import("./components/modals/CyberWarfareModal").then(m=>({default:m.CyberWarfareModal})));
 const DarkWebSearchModal      = lazy(() => import("./components/modals/DarkWebSearchModal").then(m=>({default:m.DarkWebSearchModal})));
+const RealTimeMonitorPanel    = lazy(() => import("./components/osint/RealTimeMonitor").then(m=>({default:m.RealTimeMonitor})));
+const BlockchainTrackerPanel  = lazy(() => import("./components/osint/BlockchainTracker").then(m=>({default:m.BlockchainTracker})));
+const ContextWindowPage       = lazy(() => import("./pages/ContextWindowPage").then(m=>({default:m.ContextWindowPage})));
+const SecurityAuditPage       = lazy(() => import("./pages/SecurityAuditPage").then(m=>({default:m.SecurityAuditPage})));
+const MonitoringPagePlain     = lazy(() => import("./pages/MonitoringPage").then(m=>({default:m.MonitoringPage})));
+const SecurityCompliancePagePlain = lazy(() => import("./pages/SecurityCompliancePage").then(m=>({default:m.SecurityCompliancePage})));
+const CyberHeatmapHUD         = lazy(() => import("./components/CyberHeatmapHUD").then(m=>({default:m.CyberHeatmapHUD})));
+const Cyber3DGrid             = lazy(() => import("./components/Cyber3DGrid").then(m=>({default:m.Cyber3DGrid})));
+const QuantumCommandCenter    = lazy(() => import("./components/QuantumCommandCenter").then(m=>({default:m.QuantumCommandCenter})));
+const AIQuickSetupButton      = lazy(() => import("./components/AIQuickSetupButton").then(m=>({default:m.AIQuickSetupButton})));
+const FloatingNetworkPanel    = lazy(() => import("./components/FloatingNetworkPanel").then(m=>({default:m.FloatingNetworkPanel})));
+const QuantumMemoryGraph      = lazy(() => import("./components/QuantumMemoryGraph").then(m=>({default:m.QuantumMemoryGraph})));
+const QuantumPersona3D        = lazy(() => import("./components/QuantumPersona3D").then(m=>({default:m.QuantumPersona3D})));
+const QuantumStatusBar        = lazy(() => import("./components/QuantumStatusBar").then(m=>({default:m.QuantumStatusBar})));
+const WebGLParticleField      = lazy(() => import("./components/WebGLParticleField").then(m=>({default:m.WebGLParticleField})));
+const SysMonitorOrb           = lazy(() => import("./components/FloatingChatPanels").then(m=>({default:m.SysMonitorOrb})));
+const IdleTrackerOrb          = lazy(() => import("./components/FloatingChatPanels").then(m=>({default:m.IdleTrackerOrb})));
+const StreamTPSBadge          = lazy(() => import("./components/StreamTPSBadge").then(m=>({default:m.StreamTPSBadge})));
 const DataIntelModal          = lazy(() => import("./components/modals/DataIntelModal").then(m=>({default:m.DataIntelModal})));
 const DeepfakeDetectorModal   = lazy(() => import("./components/modals/DeepfakeDetectorModal").then(m=>({default:m.DeepfakeDetectorModal})));
 const DeepPacketModal         = lazy(() => import("./components/modals/DeepPacketModal").then(m=>({default:m.DeepPacketModal})));
@@ -479,6 +497,7 @@ const MODAL_IDS = [
   'osintHub',
   'mobileSecurity',
   'darkWebIntelFull',
+  'realTimeMonitor', 'blockchainTracker', 'contextWindowPage', 'securityAuditPage', 'monitoringPagePlain', 'securityCompliancePagePlain',
   // ── Blueprint New Features ──────────────────────────────────────────────────
   'codeInterpreter',
   'customGpts',
@@ -602,6 +621,18 @@ function AppContent() {
   const [showPerfMon, setShowPerfMon] = useState(false);
   const [showGlobalStatus, setShowGlobalStatus] = useState(false);
   const [showOfflineQueue, setShowOfflineQueue] = useState(false);
+  const [showCyberHeatmap, setShowCyberHeatmap] = useState(false);
+  const [showCyber3DGrid, setShowCyber3DGrid] = useState(false);
+  const [showQuantumCommand, setShowQuantumCommand] = useState(false);
+  const [showAIQuickSetup, setShowAIQuickSetup] = useState(false);
+  const [showFloatingNetwork, setShowFloatingNetwork] = useState(false);
+  const [showQuantumMemGraph, setShowQuantumMemGraph] = useState(false);
+  const [showQuantumPersona3D, setShowQuantumPersona3D] = useState(false);
+  const [showQuantumStatusBar, setShowQuantumStatusBar] = useState(false);
+  const [showWebGLParticles, setShowWebGLParticles] = useState(false);
+  const [showSysMonitorOrb, setShowSysMonitorOrb] = useState(false);
+  const [showIdleTrackerOrb, setShowIdleTrackerOrb] = useState(false);
+  const [showStreamTPS, setShowStreamTPS] = useState(false);
   const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
   void addCostEntry; void shellGeneratorInject;
 
@@ -1152,6 +1183,24 @@ function AppContent() {
           onTogglePerfMon={() => setShowPerfMon(v => !v)}
           onToggleGlobalStatus={() => setShowGlobalStatus(v => !v)}
           onToggleOfflineQueue={() => setShowOfflineQueue(v => !v)}
+          onToggleCyberHeatmap={() => setShowCyberHeatmap(v => !v)}
+          onToggleCyber3DGrid={() => setShowCyber3DGrid(v => !v)}
+          onToggleQuantumCommand={() => setShowQuantumCommand(v => !v)}
+          onToggleAIQuickSetup={() => setShowAIQuickSetup(v => !v)}
+          onToggleFloatingNetwork={() => setShowFloatingNetwork(v => !v)}
+          onToggleQuantumMemGraph={() => setShowQuantumMemGraph(v => !v)}
+          onToggleQuantumPersona3D={() => setShowQuantumPersona3D(v => !v)}
+          onToggleQuantumStatusBar={() => setShowQuantumStatusBar(v => !v)}
+          onToggleWebGLParticles={() => setShowWebGLParticles(v => !v)}
+          onToggleSysMonitorOrb={() => setShowSysMonitorOrb(v => !v)}
+          onToggleIdleTrackerOrb={() => setShowIdleTrackerOrb(v => !v)}
+          onToggleStreamTPS={() => setShowStreamTPS(v => !v)}
+          onOpenRealTimeMonitor={() => open('realTimeMonitor')}
+          onOpenBlockchainTracker={() => open('blockchainTracker')}
+          onOpenContextWindowPage={() => open('contextWindowPage')}
+          onOpenSecurityAuditPage={() => open('securityAuditPage')}
+          onOpenMonitoringPagePlain={() => open('monitoringPagePlain')}
+          onOpenSecurityCompliancePagePlain={() => open('securityCompliancePagePlain')}
           onOpenAdaV2={() => open('adaV2')}
           onOpenAgent4DesignCanvas={() => open('agent4DesignCanvas')}
           onOpenAgent4GitDashboard={() => open('agent4GitDashboard')}
@@ -1349,6 +1398,36 @@ function AppContent() {
         <CyberPhysicalModal open={modals.cyberPhysical} onOpenChange={(v) => mDispatch({type:'SET',id:'cyberPhysical',value:v})} />
         <CyberWarfareModal open={modals.cyberWarfare} onOpenChange={(v) => mDispatch({type:'SET',id:'cyberWarfare',value:v})} />
         <DarkWebSearchModal open={modals.darkWebSearch} onClose={() => close('darkWebSearch')} onInjectToChat={(text) => setShellGeneratorInject(text)} />
+        {modals.realTimeMonitor && (
+          <WindowChrome open={true} color="#22c55e" title="RTM — المراقبة اللحظية" onClose={() => close('realTimeMonitor')}>
+            <RealTimeMonitorPanel onInjectToChat={(text) => setShellGeneratorInject(text)} />
+          </WindowChrome>
+        )}
+        {modals.blockchainTracker && (
+          <WindowChrome open={true} color="#f59e0b" title="Blockchain Tracker" onClose={() => close('blockchainTracker')}>
+            <BlockchainTrackerPanel onInjectToChat={(text) => setShellGeneratorInject(text)} />
+          </WindowChrome>
+        )}
+        {modals.contextWindowPage && (
+          <WindowChrome open={true} title="نافذة السياق" onClose={() => close('contextWindowPage')}>
+            <ContextWindowPage onClose={() => close('contextWindowPage')} />
+          </WindowChrome>
+        )}
+        {modals.securityAuditPage && (
+          <WindowChrome open={true} title="تدقيق الأمان" onClose={() => close('securityAuditPage')}>
+            <SecurityAuditPage onClose={() => close('securityAuditPage')} />
+          </WindowChrome>
+        )}
+        {modals.monitoringPagePlain && (
+          <WindowChrome open={true} title="المراقبة" onClose={() => close('monitoringPagePlain')}>
+            <MonitoringPagePlain onClose={() => close('monitoringPagePlain')} />
+          </WindowChrome>
+        )}
+        {modals.securityCompliancePagePlain && (
+          <WindowChrome open={true} title="الامتثال الأمني" onClose={() => close('securityCompliancePagePlain')}>
+            <SecurityCompliancePagePlain onClose={() => close('securityCompliancePagePlain')} />
+          </WindowChrome>
+        )}
         <DataIntelModal open={modals.dataIntel} onOpenChange={(v) => mDispatch({type:'SET',id:'dataIntel',value:v})} />
         <DeepfakeDetectorModal open={modals.deepfakeDetector} onOpenChange={(v) => mDispatch({type:'SET',id:'deepfakeDetector',value:v})} />
         <DeepPacketModal open={modals.deepPacket} onOpenChange={(v) => mDispatch({type:'SET',id:'deepPacket',value:v})} />
@@ -1647,6 +1726,20 @@ function AppContent() {
       {showPerfMon      && <PerfMonitor />}
       {showGlobalStatus && <GlobalStatusBar />}
       {showOfflineQueue && <OfflineQueueBanner />}
+      <Suspense fallback={null}>
+        {showCyberHeatmap && <CyberHeatmapHUD />}
+        {showCyber3DGrid && <Cyber3DGrid />}
+        {showQuantumCommand && <QuantumCommandCenter />}
+        {showAIQuickSetup && <AIQuickSetupButton />}
+        {showFloatingNetwork && <FloatingNetworkPanel />}
+        {showQuantumMemGraph && <QuantumMemoryGraph />}
+        {showQuantumPersona3D && <QuantumPersona3D onOpenPersonaManager={() => open('personaManager')} />}
+        {showQuantumStatusBar && <QuantumStatusBar />}
+        {showWebGLParticles && <WebGLParticleField />}
+        {showSysMonitorOrb && <SysMonitorOrb />}
+        {showIdleTrackerOrb && <IdleTrackerOrb />}
+        {showStreamTPS && <StreamTPSBadge sessionId={state.activeChatId} visible={showStreamTPS} />}
+      </Suspense>
 
       <div className="hidden md:block">
         <PipelineHUD
