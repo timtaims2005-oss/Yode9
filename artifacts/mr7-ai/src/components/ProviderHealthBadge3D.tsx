@@ -65,7 +65,8 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
     ctx.imageSmoothingQuality = "high";
 
     const SIZE = 24;
-    const DPR  = Math.min(window.devicePixelRatio * 2, 4);
+    // Cap DPR at 2 (was *2 capped at 4 — up to 75% GPU fill savings)
+    const DPR  = Math.min(window.devicePixelRatio, 2);
     cv.width   = SIZE * DPR;
     cv.height  = SIZE * DPR;
     cv.style.width = SIZE + "px"; cv.style.height = SIZE + "px";

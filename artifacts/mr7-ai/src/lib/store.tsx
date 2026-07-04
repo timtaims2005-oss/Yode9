@@ -21,7 +21,7 @@
 //  "mr7-idb-migrated"           idb-storage.ts     Set to "1" after IDB migration
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { createContext, useContext, useEffect, useRef, useReducer, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useReducer, useMemo, type ReactNode } from "react";
 import { type Subscription, type SubscriptionTier, INITIAL_SUBSCRIPTION } from "./subscription";
 import { fetchCloudChats, schedulePush } from "./cloud-sync";
 import { type ThemeId, getTheme, DEFAULT_THEME_ID } from "./themes";
@@ -688,14 +688,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // Keep stateRef current for crash recovery getter
   useEffect(() => { stateRef.current = state; });
 
-  // Persist to localStorage + IndexedDB + cloud
+  // Debounce timer for localStorage — avoids blocking main thread on every keypress
+  const lsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Persist to localStorage (debounced 300ms) + IndexedDB + cloud
   useEffect(() => {
-    // localStorage (fast)
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      // localStorage quota exceeded — rely on IDB
-    }
+    // localStorage: debounce to avoid JSON.stringify on every state change
+    if (lsTimerRef.current) clearTimeout(lsTimerRef.current);
+    const snapState = state; // capture current state for the closure (avoid stale ref)
+    lsTimerRef.current = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(snapState));
+      } catch { /* localStorage quota exceeded — rely on IDB */ }
+    }, 300);
 
     // IndexedDB (async, no size limit)
     idbSaveChats(state.chats).catch(() => {});
@@ -757,7 +762,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.setProperty("--chat-font-size", sizes[state.settings.density]);
   }, [state.settings.density]);
 
-  return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>;
+  // Memoize context value so consumers only re-render when state/dispatch actually changes
+  const ctxValue = useMemo(() => ({ state, dispatch }), [state]);
+  return <Ctx.Provider value={ctxValue}>{children}</Ctx.Provider>;
 }
 
 export function useStore() {

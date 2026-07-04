@@ -268,7 +268,7 @@ export function CveTimeline3DModal({ open, onOpenChange }: Props) {
       precision: "highp",
     });
     renderer.setSize(W, H);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio * 2, 4));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // was *2 capped at 4
     renderer.toneMapping    = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
     containerRef.current.appendChild(renderer.domElement);

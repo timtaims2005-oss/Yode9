@@ -48,6 +48,7 @@ export function NotificationsBell() {
 
   const fetchNotifs = useCallback(async () => {
     if (!getCachedUser()) return;
+    if (document.hidden) return; // skip when tab is not visible
     try {
       const res = await authFetch("/api/notifications?limit=40");
       if (!res.ok) return;
@@ -57,10 +58,10 @@ export function NotificationsBell() {
     } catch { /* offline */ }
   }, []);
 
-  // Poll every 30s
+  // Poll every 2 minutes (was 30s — reduces unnecessary network traffic)
   useEffect(() => {
     fetchNotifs();
-    pollRef.current = setInterval(fetchNotifs, 30_000);
+    pollRef.current = setInterval(fetchNotifs, 120_000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [fetchNotifs]);
 

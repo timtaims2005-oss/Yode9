@@ -179,7 +179,7 @@ export function CyberCommandCenter3D({ open, onClose, onOpenModal }: CyberComman
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
     renderer.setSize(W, H);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio * 2, 4));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // was *2 capped at 4
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.3;
     renderer.shadowMap.enabled = false;

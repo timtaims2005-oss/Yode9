@@ -208,7 +208,7 @@ function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; ho
     ctx.imageSmoothingQuality = "high";
 
     const SIZE = 24;
-    const DPR  = Math.min(window.devicePixelRatio * 2, 4);
+    const DPR  = Math.min(window.devicePixelRatio, 2); // was *2 capped at 4 — saves up to 75% GPU fill
     cv.width   = SIZE * DPR;
     cv.height  = SIZE * DPR;
     ctx.scale(DPR, DPR);

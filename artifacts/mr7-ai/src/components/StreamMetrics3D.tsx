@@ -53,7 +53,7 @@ function MetricsCanvas({ tps, peakTps, history, quality }:
     const cv = canvasRef.current;
     if (!cv) return;
     const W = 320, H = 160;
-    const DPR = Math.min(window.devicePixelRatio * 2, 4);
+    const DPR = Math.min(window.devicePixelRatio, 2); // was *2 capped at 4
     cv.width  = W * DPR;
     cv.height = H * DPR;
     const ctx = cv.getContext("2d", { alpha: true })!;

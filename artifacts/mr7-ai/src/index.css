@@ -200,6 +200,47 @@ html { scrollbar-gutter: stable; }
 /* ── Tab hidden optimization ── */
 body.tab-hidden canvas { animation-play-state: paused !important; }
 
+/* ── Chat message list: content-visibility for off-screen items ── */
+.chat-message-item {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 80px; /* estimated height */
+}
+
+/* ── Chat scroll container ── */
+.chat-messages-container {
+  contain: layout style;
+  will-change: scroll-position;
+}
+
+/* ── TopBar: prevent layout reflow from toolbar buttons ── */
+.topbar-strip {
+  contain: layout style;
+}
+
+/* ── Sidebar: isolated paint layer ── */
+.sidebar-panel {
+  contain: layout paint style;
+  will-change: transform;
+}
+
+/* ── Reduce expensive filters on low-power devices ── */
+@media (max-resolution: 1.5dppx) {
+  .backdrop-blur-md { backdrop-filter: blur(6px) !important; }
+  .backdrop-blur-lg { backdrop-filter: blur(8px) !important; }
+  .backdrop-blur-xl { backdrop-filter: blur(10px) !important; }
+}
+
+/* ── Font display swap for faster initial paint ── */
+@font-face { font-display: swap; }
+
+/* ── Optimize input responsiveness ── */
+input, textarea {
+  will-change: contents;
+}
+
+/* ── Prevent FOUC on dark theme ── */
+html.dark { color-scheme: dark; }
+
 /* ── Scrollable tab bars ── */
 .overflow-x-auto { -ms-overflow-style: none; scrollbar-width: none; }
 .overflow-x-auto::-webkit-scrollbar { display: none; }

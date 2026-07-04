@@ -221,12 +221,13 @@ export function LocalAIWindow({
     fetchStatus();
     let elapsed = 0;
     fastPollRef.current = setInterval(() => {
+      if (document.hidden) return; // skip when tab is not visible
       elapsed += 2;
       setBootSeconds(Math.min(elapsed, 30));
       fetchStatus();
       if (elapsed >= 30) {
         if (fastPollRef.current) { clearInterval(fastPollRef.current); fastPollRef.current = null; }
-        pollRef.current = setInterval(fetchStatus, 8000);
+        pollRef.current = setInterval(() => { if (!document.hidden) fetchStatus(); }, 8000);
       }
     }, 2000);
     return () => {

@@ -278,7 +278,7 @@ export function CyberHierarchy3DModal({ open, onOpenChange }: CyberHierarchy3DMo
     if (!canvas) return;
 
     const W = canvas.clientWidth, H = canvas.clientHeight;
-    const dpr = Math.min(window.devicePixelRatio * 2, 4);
+    const dpr = Math.min(window.devicePixelRatio, 2); // was *2 capped at 4
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: "high-performance" });
     renderer.setPixelRatio(dpr);

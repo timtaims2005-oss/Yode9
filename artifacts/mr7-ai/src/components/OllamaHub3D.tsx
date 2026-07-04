@@ -1012,9 +1012,10 @@ export function OllamaHub3D({ open, onClose }: OllamaHubProps) {
     fetchStatus();
     fetchDlStatus();
     fetchSysInfo();
-    const iv1 = setInterval(fetchStatus,   10_000);
-    const iv2 = setInterval(fetchDlStatus, 5_000);
-    const iv3 = setInterval(fetchSysInfo,  15_000);
+    // Consolidated: skip polls when tab is hidden to save CPU/network
+    const iv1 = setInterval(() => { if (!document.hidden) fetchStatus();   }, 15_000);
+    const iv2 = setInterval(() => { if (!document.hidden) fetchDlStatus(); }, 8_000);
+    const iv3 = setInterval(() => { if (!document.hidden) fetchSysInfo();  }, 20_000);
     return () => { clearInterval(iv1); clearInterval(iv2); clearInterval(iv3); };
   }, [open, fetchStatus, fetchDlStatus, fetchSysInfo]);
 

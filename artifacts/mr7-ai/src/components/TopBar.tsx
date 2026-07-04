@@ -409,7 +409,8 @@ function useLocalModelHealth(endpoint: string, enabled: boolean) {
 
   useEffect(() => {
     ping();
-    const id = setInterval(ping, 30000);
+    // Ping every 60s (was 30s) — skip when tab hidden
+    const id = setInterval(() => { if (!document.hidden) ping(); }, 60_000);
     return () => clearInterval(id);
   }, [ping]);
 
@@ -1447,7 +1448,7 @@ function OperationModeBtn3D() {
 }
 
 // ── Holographic HUD toolbar button ────────────────────────────────────────────
-function HUDBtn({
+const HUDBtn = React.memo(function HUDBtn({
   icon: Icon, label, color, onClick, badge, shortLabel, title: tip, active, iconOnly,
 }: {
   icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
@@ -1514,15 +1515,15 @@ function HUDBtn({
       )}
     </motion.button>
   );
-}
+});
 
 // ── Vertical divider between button groups ─────────────────────────────────────
-function VDivider() {
+const VDivider = React.memo(function VDivider() {
   return (
     <div className="flex-shrink-0 w-px mx-1 self-stretch my-1.5"
       style={{ background: "linear-gradient(180deg, transparent, rgba(226,18,39,0.25), transparent)" }} />
   );
-}
+});
 
 // ── Model selector 3D — External floating window ──────────────────────────────
 function ModelSelector3D({

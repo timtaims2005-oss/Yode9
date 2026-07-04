@@ -59,6 +59,7 @@ export function NotificationCenter({ compact = false }: Props) {
 
   const fetchNotifications = useCallback(async () => {
     if (!getAccessToken()) return;
+    if (document.hidden) return; // skip when tab is not visible
     try {
       const res = await authFetch("/api/notifications?limit=30");
       if (!res.ok) return;
@@ -69,9 +70,10 @@ export function NotificationCenter({ compact = false }: Props) {
     } catch { /* silent */ }
   }, []);
 
+  // Poll every 2 minutes (was 30s)
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30_000);
+    const interval = setInterval(fetchNotifications, 120_000);
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 

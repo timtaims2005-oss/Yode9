@@ -61,17 +61,20 @@ export default defineConfig({
     chunkSizeWarningLimit: 900,
     minify: "esbuild",
     cssMinify: true,
+    cssCodeSplit: true,
     reportCompressedSize: false,
+    sourcemap: false,
     rollupOptions: {
       treeshake: { moduleSideEffects: "no-external" },
       output: {
         manualChunks: {
           "vendor-react":    ["react", "react-dom"],
           "vendor-framer":   ["framer-motion"],
-          "vendor-three":    ["three"],
+          "vendor-three":    ["three", "@react-three/fiber", "@react-three/drei"],
           "vendor-ui":       ["@radix-ui/react-dialog", "@radix-ui/react-tooltip", "@radix-ui/react-popover"],
           "vendor-tanstack": ["@tanstack/react-query"],
           "vendor-lucide":   ["lucide-react"],
+          "vendor-wouter":   ["wouter"],
         },
       },
     },
@@ -84,6 +87,9 @@ export default defineConfig({
       "lucide-react",
       "@tanstack/react-query",
       "three",
+      "wouter",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-tooltip",
     ],
     exclude: [
       "@monaco-editor/react",

@@ -131,30 +131,31 @@ export function OmnixAbsoluteDashboard({ open, onClose }: OmnixAbsoluteDashboard
   return (
     <AnimatePresence>
       {open && (
-        {/* ── Click-away backdrop (doesn't cover TopBar) ── */}
-        <motion.div
-          key="omnix-backdrop"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed z-[9998]"
-          style={{ top: 48, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
-          onClick={onClose}
-        />
-        {/* ── Panel drops down from TopBar, centered ── */}
-        <motion.div
-          key="omnix-dashboard"
-          initial={{ y: -32, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -32, opacity: 0 }}
-          transition={{ type: "spring", damping: 28, stiffness: 320 }}
-          className="fixed z-[9999] left-1/2"
-          style={{ top: 48, transform: "translateX(-50%)", width: "min(1100px, 100vw)", bottom: 0 }}
-        >
+        <>
+          {/* ── Click-away backdrop (doesn't cover TopBar) ── */}
           <motion.div
-            className="relative w-full h-full bg-[#0a0a0a] border-x border-b border-[#1f1f1f] overflow-hidden flex flex-col shadow-2xl"
-            style={{ borderRadius: "0 0 16px 16px" }}
+            key="omnix-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed z-[9998]"
+            style={{ top: 48, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+            onClick={onClose}
+          />
+          {/* ── Panel drops down from TopBar, centered ── */}
+          <motion.div
+            key="omnix-dashboard"
+            initial={{ y: -32, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -32, opacity: 0 }}
+            transition={{ type: "spring", damping: 28, stiffness: 320 }}
+            className="fixed z-[9999] left-1/2"
+            style={{ top: 48, transform: "translateX(-50%)", width: "min(1100px, 100vw)", bottom: 0 }}
           >
+            <motion.div
+              className="relative w-full h-full bg-[#0a0a0a] border-x border-b border-[#1f1f1f] overflow-hidden flex flex-col shadow-2xl"
+              style={{ borderRadius: "0 0 16px 16px" }}
+            >
             {/* ── Header ───────────────────────────────────────────────────── */}
             <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-[#1f1f1f] bg-[#0d0d0d]">
               <div className="flex items-center gap-3">
@@ -223,8 +224,9 @@ export function OmnixAbsoluteDashboard({ open, onClose }: OmnixAbsoluteDashboard
               {tab === "evolution" && <EvolutionTab suggestions={suggestions} onApprove={(s) => core.evolution.approve(s)} onReject={(id) => core.evolution.reject(id)} stats={{ approved: core.evolution.getApprovedCount(), rejected: core.evolution.getRejectedCount(), total: core.registry.count() }} />}
               {tab === "voice"     && <VoiceTab voiceState={voiceState} voiceText={voiceText} supported={status.voiceSupported} isListening={status.isListening} onToggle={() => core.toggleVoice()} core={core} />}
             </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </>
       )}
     </AnimatePresence>
   );

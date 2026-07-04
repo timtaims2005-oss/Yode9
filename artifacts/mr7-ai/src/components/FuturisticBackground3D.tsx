@@ -428,8 +428,19 @@ export function FuturisticBackground3D({
 
     let lastFrameTs = 0;
     let _paused = false;
-    function _onVis() { _paused = document.hidden; }
+    let _intersecting = true;
+    function _onVis() { _paused = document.hidden || !_intersecting; }
     document.addEventListener("visibilitychange", _onVis);
+
+    // Pause when canvas scrolls off-screen
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        _intersecting = entry.isIntersecting;
+        _paused = document.hidden || !_intersecting;
+      },
+      { threshold: 0 }
+    );
+    observer.observe(canvas);
 
     function draw(now: number) {
       rafRef.current = requestAnimationFrame(draw);
@@ -454,6 +465,7 @@ export function FuturisticBackground3D({
     return () => {
       cancelAnimationFrame(rafRef.current);
       ro.disconnect();
+      observer.disconnect();
       document.removeEventListener("visibilitychange", _onVis);
     };
   }, [accentColor, opacity]);

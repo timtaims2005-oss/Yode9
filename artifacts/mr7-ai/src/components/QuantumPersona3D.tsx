@@ -42,7 +42,7 @@ function QuantumBrain3D({ open, hover, activeColor }: { open: boolean; hover: bo
     ctx.imageSmoothingQuality = "high";
 
     const SIZE = 46;
-    const DPR  = Math.min(window.devicePixelRatio * 2, 4);
+    const DPR  = Math.min(window.devicePixelRatio, 2); // was *2 capped at 4
     cv.width   = SIZE * DPR;
     cv.height  = SIZE * DPR;
     ctx.scale(DPR, DPR);

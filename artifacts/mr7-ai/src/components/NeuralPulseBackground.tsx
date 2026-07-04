@@ -114,8 +114,19 @@ export function NeuralPulseBackground() {
     }
 
     let _paused = false;
-    function _onVis() { _paused = document.hidden; }
+    let _intersecting = true;
+    function _onVis() { _paused = document.hidden || !_intersecting; }
     document.addEventListener("visibilitychange", _onVis);
+
+    // Pause when scrolled off-screen
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        _intersecting = entry.isIntersecting;
+        _paused = document.hidden || !_intersecting;
+      },
+      { threshold: 0 }
+    );
+    if (canvas) observer.observe(canvas);
 
     function draw(now: number) {
       frameRef.current = requestAnimationFrame(draw);
@@ -240,6 +251,7 @@ export function NeuralPulseBackground() {
     return () => {
       cancelAnimationFrame(frameRef.current);
       ro.disconnect();
+      observer.disconnect();
       canvas.removeEventListener("mousemove", onMouse);
       document.removeEventListener("visibilitychange", _onVis);
     };
