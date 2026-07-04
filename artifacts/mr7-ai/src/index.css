@@ -138,6 +138,36 @@ html { scrollbar-gutter: stable; }
   min-height: 44px;
 }
 
+/* ── Chat message container: GPU-composited scroll layer ── */
+.chat-messages-container {
+  contain: layout paint style;
+  overscroll-behavior: contain;
+  scroll-behavior: auto;
+}
+
+/* ── Individual chat message: content-visibility for off-screen messages ── */
+.chat-message-item {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 120px;
+}
+
+/* ── Streaming message: disable contain during active streaming ── */
+.chat-message-item:last-child {
+  content-visibility: visible;
+  contain-intrinsic-size: none;
+}
+
+/* ── Code blocks: contain paint to avoid global reflow ── */
+pre, .code-block-wrapper {
+  contain: content;
+  overflow: auto;
+}
+
+/* ── Reduce framer-motion overhead for non-animated list items ── */
+.chat-messages-container > * {
+  transform: translateZ(0);
+}
+
 /* ── Modal size system ── */
 .modal-sm  { max-width: min(420px, 96vw); }
 .modal-md  { max-width: min(720px, 96vw);  max-height: 90vh; }

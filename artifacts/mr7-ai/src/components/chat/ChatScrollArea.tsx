@@ -1,3 +1,4 @@
+import { memo, useCallback, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatEmptyState } from "@/components/ChatEmptyState";
@@ -32,24 +33,45 @@ interface ChatScrollAreaProps {
   t: (key: string, vars?: Record<string, string | number>) => string;
 }
 
-export function ChatScrollArea({
+const SCROLL_BTN_VARIANTS = {
+  initial: { opacity: 0, y: 10, scale: 0.9 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: 10, scale: 0.9 },
+};
+
+const SCROLL_BTN_TRANSITION = { duration: 0.15, ease: "easeOut" };
+
+export const ChatScrollArea = memo(function ChatScrollArea({
   scrollRef, chat, streaming, isEmpty, showScrollBtn,
   editingId, speakingId, reactionPickerMsgId, agentOn,
   state, dispatch, onFile, onRate, onEdit, onBookmark, onSpeak,
   onTranslate, onBranch, onRegenerate, onReactionPickerChange,
   onSetInput, onScrollToBottom, onCopy, t,
 }: ChatScrollAreaProps) {
+  const dragOverRef = useRef(false);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    dragOverRef.current = true;
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    dragOverRef.current = false;
+    const file = e.dataTransfer.files?.[0];
+    if (file) onFile(file);
+  }, [onFile]);
+
+  const messages = chat?.messages;
+
   return (
     <>
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 py-6 space-y-6 scroll-smooth"
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault();
-          const file = e.dataTransfer.files?.[0];
-          if (file) onFile(file);
-        }}
+        className="flex-1 overflow-y-auto px-4 py-6 space-y-6 chat-messages-container"
+        style={{ scrollBehavior: "auto", overscrollBehavior: "contain" }}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
       >
         {isEmpty && (
           <ChatEmptyState
@@ -60,38 +82,45 @@ export function ChatScrollArea({
           />
         )}
 
-        {chat?.messages.map((msg) => (
-          <ChatMessage
-            key={msg.id}
-            msg={msg}
-            chat={chat}
-            state={state}
-            streaming={streaming}
-            editingId={editingId}
-            speakingId={speakingId}
-            reactionPickerMsgId={reactionPickerMsgId}
-            agentOn={agentOn}
-            dispatch={dispatch}
-            onRate={onRate}
-            onEdit={onEdit}
-            onBookmark={onBookmark}
-            onSpeak={onSpeak}
-            onTranslate={onTranslate}
-            onBranch={onBranch}
-            onRegenerate={onRegenerate}
-            onReactionPickerChange={onReactionPickerChange}
-            onCopy={onCopy}
-            t={t}
-          />
-        ))}
+        {messages?.map((msg, index) => {
+          const isLast = index === messages.length - 1;
+          const isStreamingThis = streaming && isLast && msg.role === "assistant";
+          return (
+            <div key={msg.id} className="chat-message-item">
+              <ChatMessage
+                msg={msg}
+                chat={chat!}
+                state={state}
+                streaming={isStreamingThis}
+                editingId={editingId}
+                speakingId={speakingId}
+                reactionPickerMsgId={reactionPickerMsgId}
+                agentOn={agentOn}
+                dispatch={dispatch}
+                onRate={onRate}
+                onEdit={onEdit}
+                onBookmark={onBookmark}
+                onSpeak={onSpeak}
+                onTranslate={onTranslate}
+                onBranch={onBranch}
+                onRegenerate={onRegenerate}
+                onReactionPickerChange={onReactionPickerChange}
+                onCopy={onCopy}
+                t={t}
+              />
+            </div>
+          );
+        })}
       </div>
 
       <AnimatePresence>
         {showScrollBtn && (
           <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+            variants={SCROLL_BTN_VARIANTS}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={SCROLL_BTN_TRANSITION}
             onClick={onScrollToBottom}
             className="absolute bottom-44 right-4 w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center shadow-lg text-muted-foreground hover:text-foreground hover:bg-accent z-10"
             aria-label="Scroll to bottom"
@@ -102,4 +131,4 @@ export function ChatScrollArea({
       </AnimatePresence>
     </>
   );
-}
+});

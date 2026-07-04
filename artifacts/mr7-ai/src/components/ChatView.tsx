@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useStore, useActiveChat, type CouncilPayload, type CouncilSeatState, type GodmodePayload, type GodmodeChampState } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { ShareModal } from "./modals/ShareModal";
@@ -85,18 +85,29 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const triggerFile = () => fileRef.current?.click();
+  const triggerFile = useCallback(() => fileRef.current?.click(), []);
+  const scrollThrottleRef = useRef<number | null>(null);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     function onScroll() {
-      if (!el) return;
-      const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
-      setShowScrollBtn(distance > 200);
+      if (!el || scrollThrottleRef.current !== null) return;
+      scrollThrottleRef.current = window.setTimeout(() => {
+        scrollThrottleRef.current = null;
+        if (!el) return;
+        const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+        setShowScrollBtn(distance > 200);
+      }, 80);
     }
-    el.addEventListener("scroll", onScroll);
-    return () => el.removeEventListener("scroll", onScroll);
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      if (scrollThrottleRef.current !== null) {
+        clearTimeout(scrollThrottleRef.current);
+        scrollThrottleRef.current = null;
+      }
+    };
   }, []);
 
   useEffect(() => { scrollToBottom(); }, [chat?.id, chat?.messages.length]);
@@ -135,11 +146,11 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function scrollToBottom() {
+  const scrollToBottom = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    requestAnimationFrame(() => el.scrollTo({ top: el.scrollHeight, behavior: streaming ? "auto" : "smooth" }));
-  }
+    requestAnimationFrame(() => el.scrollTo({ top: el.scrollHeight, behavior: "auto" }));
+  }, []);
 
   function buildHistory(): ChatMessage[] {
     if (!chat) return [];
@@ -586,24 +597,43 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
     win.document.write(html); win.document.close();
   }
 
-  function copyText(text: string) {
+  const copyText = useCallback((text: string) => {
     navigator.clipboard.writeText(text).then(() => toast({ description: "Copied!" })).catch(() => toast({ description: "Copy failed." }));
-  }
+  }, [toast]);
 
-  function rate(msgId: string, rating: "up" | "down") {
+  const rate = useCallback((msgId: string, rating: "up" | "down") => {
     if (!chat) return;
     const m = chat.messages.find((x) => x.id === msgId);
     dispatch({ type: "PATCH_MSG", chatId: chat.id, msgId, patch: { rating: m?.rating === rating ? undefined : rating } });
     toast({ description: rating === "up" ? "Thanks for the upvote." : "We will improve this answer." });
-  }
+  }, [chat, dispatch, toast]);
 
-  function startEdit(msg: { id: string; content: string }) { setEditingId(msg.id); setInput(msg.content); requestAnimationFrame(() => taRef.current?.focus()); }
-  function cancelEdit() { setEditingId(null); setInput(""); }
-  function branchFrom(msgId: string) { if (!chat) return; dispatch({ type: "BRANCH_CHAT", chatId: chat.id, upToMsgId: msgId }); toast({ description: "Branched into a new chat." }); }
-  function clearChat() { if (!chat) return; dispatch({ type: "CLEAR_CHAT", id: chat.id }); toast({ description: "Conversation cleared." }); }
-  function bookmark(msgId: string) { if (!chat) return; dispatch({ type: "BOOKMARK_MSG", chatId: chat.id, msgId }); }
+  const startEdit = useCallback((msg: { id: string; content: string }) => {
+    setEditingId(msg.id);
+    setInput(msg.content);
+    requestAnimationFrame(() => taRef.current?.focus());
+  }, []);
 
-  function speak(msgId: string, text: string) {
+  const cancelEdit = useCallback(() => { setEditingId(null); setInput(""); }, []);
+
+  const branchFrom = useCallback((msgId: string) => {
+    if (!chat) return;
+    dispatch({ type: "BRANCH_CHAT", chatId: chat.id, upToMsgId: msgId });
+    toast({ description: "Branched into a new chat." });
+  }, [chat, dispatch, toast]);
+
+  const clearChat = useCallback(() => {
+    if (!chat) return;
+    dispatch({ type: "CLEAR_CHAT", id: chat.id });
+    toast({ description: "Conversation cleared." });
+  }, [chat, dispatch, toast]);
+
+  const bookmark = useCallback((msgId: string) => {
+    if (!chat) return;
+    dispatch({ type: "BOOKMARK_MSG", chatId: chat.id, msgId });
+  }, [chat, dispatch]);
+
+  const speak = useCallback((msgId: string, text: string) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) { toast({ description: "Speech synthesis not supported." }); return; }
     if (speakingId === msgId) { window.speechSynthesis.cancel(); setSpeakingId(null); return; }
     window.speechSynthesis.cancel();
@@ -611,9 +641,9 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
     u.rate = 1.0; u.pitch = 1.0; u.lang = state.settings.language === "ar" ? "ar-SA" : "en-US";
     u.onend = () => setSpeakingId(null); u.onerror = () => setSpeakingId(null);
     window.speechSynthesis.speak(u); setSpeakingId(msgId);
-  }
+  }, [speakingId, toast, state.settings.language]);
 
-  async function translateMsg(msgId: string, text: string) {
+  const translateMsg = useCallback(async (msgId: string, text: string) => {
     void msgId;
     try {
       const to = /[\u0600-\u06FF]/.test(text) ? "en" : "ar";
@@ -621,11 +651,11 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       const out = await translateText(text, to);
       if (chat) dispatch({ type: "ADD_MSG", chatId: chat.id, msg: { id: `a-${Date.now()}`, role: "assistant", content: out, ts: Date.now() } });
     } catch (err) { toast({ description: err instanceof Error ? err.message : "Translate failed." }); }
-  }
+  }, [chat, dispatch, toast]);
 
   const isEmpty = !chat || chat.messages.length === 0;
-  const wordCount = input.trim() ? input.trim().split(/\s+/).length : 0;
-  const totalTokens = chat ? chat.messages.reduce((s, m) => s + estimateTokens(m.content), 0) + estimateTokens(input) : estimateTokens(input);
+  const wordCount = useMemo(() => input.trim() ? input.trim().split(/\s+/).length : 0, [input]);
+  const totalTokens = useMemo(() => chat ? chat.messages.reduce((s, m) => s + estimateTokens(m.content), 0) + estimateTokens(input) : estimateTokens(input), [chat, input]);
 
   return (
     <div className="flex-1 flex flex-col h-full relative overflow-hidden">

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Loader2, Copy, ThumbsUp, ThumbsDown, RotateCw, Volume2, VolumeX, Languages, Pencil, Bookmark, BookmarkCheck, MoreHorizontal, GitBranch, Trash2, Brain, Paperclip } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -38,7 +39,7 @@ interface ChatMessageProps {
   t: (key: string, vars?: Record<string, string | number>) => string;
 }
 
-export function ChatMessage({
+function ChatMessageInner({
   msg, chat, state, streaming, editingId, speakingId, reactionPickerMsgId,
   agentOn, dispatch, holoMode = false, onRate, onEdit, onBookmark, onSpeak, onTranslate,
   onBranch, onRegenerate, onReactionPickerChange, onCopy, t,
@@ -441,3 +442,25 @@ export function ChatMessage({
     </motion.div>
   );
 }
+
+export const ChatMessage = memo(ChatMessageInner, (prev, next) => {
+  if (prev.msg.id !== next.msg.id) return false;
+  if (prev.streaming !== next.streaming) return false;
+  if (prev.streaming && next.streaming && prev.msg.content !== next.msg.content) return false;
+  if (!prev.streaming && !next.streaming && prev.msg.content !== next.msg.content) return false;
+  if (prev.editingId !== next.editingId) {
+    const relevant = prev.msg.id === prev.editingId || prev.msg.id === next.editingId;
+    if (relevant) return false;
+  }
+  if (prev.speakingId !== next.speakingId) {
+    const relevant = prev.msg.id === prev.speakingId || prev.msg.id === next.speakingId;
+    if (relevant) return false;
+  }
+  if (prev.reactionPickerMsgId !== next.reactionPickerMsgId) {
+    const relevant = prev.msg.id === prev.reactionPickerMsgId || prev.msg.id === next.reactionPickerMsgId;
+    if (relevant) return false;
+  }
+  if (prev.msg.rating !== next.msg.rating) return false;
+  if (prev.msg.bookmarked !== next.msg.bookmarked) return false;
+  return true;
+});
