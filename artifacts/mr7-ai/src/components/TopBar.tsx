@@ -97,6 +97,12 @@ interface TopBarProps {
   onTogglePerfMon?: () => void;
   onToggleGlobalStatus?: () => void;
   onToggleOfflineQueue?: () => void;
+  /** نافذة SYS كـ dropdown من TopBar */
+  onOpenSysPanel?: () => void;
+  /** نافذة NEXUS كـ dropdown من TopBar */
+  onOpenNexusPanel?: () => void;
+  /** نافذة OMNIX كـ dropdown من TopBar */
+  onOpenOmnixPanel?: () => void;
 }
 
 // ── Ultra 3D HUD Canvas — optimised (adaptive FPS, visibility API, reduced O(n²)) ──
@@ -2260,6 +2266,9 @@ export function TopBar({
   onTogglePerfMon,
   onToggleGlobalStatus,
   onToggleOfflineQueue,
+  onOpenSysPanel,
+  onOpenNexusPanel,
+  onOpenOmnixPanel,
 }: TopBarProps) {
   const { state, dispatch } = useStore();
   const { t } = useT();
@@ -2429,6 +2438,11 @@ export function TopBar({
         <VDivider />
 
         {/* ── RIGHT toolbar buttons — now inline in the single strip ── */}
+        {/* ══ SYS · NEXUS · OMNIX — three fixed TopBar dropdown triggers ══ */}
+        {onOpenSysPanel   && <HUDBtn icon={Monitor}  label="SYS"   shortLabel="SYS"   color="#22c55e" onClick={onOpenSysPanel}   badge="▼" />}
+        {onOpenNexusPanel && <HUDBtn icon={Network}  label="NEXUS" shortLabel="NEXUS" color="#00ff88" onClick={onOpenNexusPanel} badge="▼" />}
+        {onOpenOmnixPanel && <HUDBtn icon={Zap}      label="OMNIX" shortLabel="OMNIX" color="#e21227" onClick={onOpenOmnixPanel} badge="▼" />}
+        <VDivider />
         {/* ── GROUP 1 — Core ──────────────────────────────────────────── */}
         <HUDBtn icon={LayoutGrid} label={t("top.toolsHub")} shortLabel={t("top.tools")} color="#10b981" onClick={onOpenToolsHub} />
         <HUDBtn icon={Bot} label="KaliAgent" color="#ff4d4d" onClick={onOpenAgent} iconOnly />

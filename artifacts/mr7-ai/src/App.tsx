@@ -1207,6 +1207,9 @@ function AppContent() {
           onTogglePerfMon={() => setShowPerfMon(v => !v)}
           onToggleGlobalStatus={() => setShowGlobalStatus(v => !v)}
           onToggleOfflineQueue={() => setShowOfflineQueue(v => !v)}
+          onOpenSysPanel={() => toggle('masterHud')}
+          onOpenNexusPanel={() => toggle('nexusPanel')}
+          onOpenOmnixPanel={() => toggle('omnixAbsolute')}
         />
         <ChatView onOpenOsintDash={() => open('osintDash')} controllerEnabled={controllerEnabled} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
@@ -1705,12 +1708,29 @@ function AppContent() {
       {modals.securityDash && <SecurityDashboard3D onClose={() => close('securityDash')} />}
       {modals.contextMemory && <ContextMemoryPanel3D onClose={() => close('contextMemory')} />}
       {modals.prefetch    && <PrefetchIntelligence3D onClose={() => close('prefetch')} />}
-      {modals.masterHud   && <SystemMasterHUD3D
-        onOpenPerf={() => open('perfDash')}       onOpenCost={() => open('costDash')}
-        onOpenDedup={() => open('dedupViz')}      onOpenThreat={() => open('threatFeed')}
-        onOpenSecurity={() => open('securityDash')} onOpenMemory={() => open('contextMemory')}
-        onOpenPrefetch={() => open('prefetch')}   onOpenAnomalyLog={() => open('anomalyLog')}
-      />}
+      {/* SYS — anchored below TopBar (no longer floats over chat) */}
+      {modals.masterHud && (
+        <div style={{ position: "fixed", top: 48, right: 16, zIndex: 9900 }}>
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => close('masterHud')}
+              style={{
+                position: "absolute", top: -8, right: -8, zIndex: 10,
+                background: "#e21227", border: "none", borderRadius: "50%",
+                width: 20, height: 20, cursor: "pointer", color: "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 10, fontWeight: 900, boxShadow: "0 2px 8px #e2122755",
+              }}
+            >✕</button>
+            <SystemMasterHUD3D
+              onOpenPerf={() => open('perfDash')}       onOpenCost={() => open('costDash')}
+              onOpenDedup={() => open('dedupViz')}      onOpenThreat={() => open('threatFeed')}
+              onOpenSecurity={() => open('securityDash')} onOpenMemory={() => open('contextMemory')}
+              onOpenPrefetch={() => open('prefetch')}   onOpenAnomalyLog={() => open('anomalyLog')}
+            />
+          </div>
+        </div>
+      )}
       {modals.anomalyLog  && <AnomalyLog3D onClose={() => close('anomalyLog')} />}
       {modals.net3D       && <NetworkTopology3D onClose={() => close('net3D')} />}
 

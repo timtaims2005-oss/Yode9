@@ -241,26 +241,33 @@ export function NexusPanel({ open, onClose, dispatchers }: Props) {
 
   return (
     <AnimatePresence>
+      {/* ── Transparent click-away backdrop (doesn't cover TopBar) ── */}
       <motion.div
+        key="nexus-backdrop"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[9995] flex items-center justify-center"
-        style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}
-        onClick={(e) => e.target === e.currentTarget && onClose()}
+        className="fixed z-[9994]"
+        style={{ top: 48, left: 0, right: 0, bottom: 0 }}
+        onClick={onClose}
+      />
+      {/* ── Panel slides in from right below TopBar ── */}
+      <motion.div
+        key="nexus-panel"
+        initial={{ x: "100%", opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: "100%", opacity: 0 }}
+        transition={{ type: "spring", stiffness: 340, damping: 34 }}
+        className="fixed right-0 bottom-0 z-[9995] flex flex-col overflow-hidden"
+        style={{
+          top: 48,
+          width: "min(920px, 100vw)",
+          background: "rgba(2,8,18,0.98)",
+          borderLeft: "1px solid #00ff8828",
+          borderTop: "1px solid #00ff8818",
+          boxShadow: "-8px 0 60px rgba(0,0,0,0.8), -2px 0 30px #00ff8808",
+        }}
       >
-        <motion.div
-          initial={{ scale: 0.94, y: 24, opacity: 0 }}
-          animate={{ scale: 1, y: 0, opacity: 1 }}
-          exit={{ scale: 0.94, y: 24, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 380, damping: 30 }}
-          className="w-full max-w-4xl max-h-[90vh] rounded-2xl border flex flex-col overflow-hidden"
-          style={{
-            background: "rgba(2,8,18,0.97)",
-            borderColor: "#00ff8830",
-            boxShadow: "0 0 60px #00ff8815, 0 24px 80px #00000080",
-          }}
-        >
           {/* Header */}
           <div
             className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0"
@@ -401,7 +408,6 @@ export function NexusPanel({ open, onClose, dispatchers }: Props) {
 
             {tab === "state" && <StateTab />}
           </div>
-        </motion.div>
       </motion.div>
     </AnimatePresence>
   );
