@@ -592,7 +592,6 @@ function AppContent() {
   const toggle = useCallback((id: ModalId) => mDispatch({ type: 'TOGGLE', id }), []);
 
   // ── AI CONTROLLER REGISTRATION ────────────────────────────────────────────
-  const [controllerEnabled, setControllerEnabled] = useState(true);
   useEffect(() => {
     const dispatchers = {
       openModal:  (id: string) => mDispatch({ type: 'OPEN',   id: id as ModalId }),
@@ -993,7 +992,7 @@ function AppContent() {
     // ── OMNIX ABSOLUTE event routing ─────────────────────────────────────
     const onOmnixOpenModal  = (e: Event) => { const id = (e as CustomEvent).detail?.id; if (id && MODAL_IDS.includes(id as ModalId)) open(id as ModalId); };
     const onOmnixCloseModal = (e: Event) => { const id = (e as CustomEvent).detail?.id; if (id && MODAL_IDS.includes(id as ModalId)) close(id as ModalId); };
-    const onOmnixSetTheme   = (e: Event) => { const accent = (e as CustomEvent).detail?.accent; if (accent) dispatch({ type: "SET_ACCENT", payload: accent }); };
+    const onOmnixSetTheme   = (e: Event) => { const accent = (e as CustomEvent).detail?.accent; if (accent) dispatch({ type: "SET_ACCENT", accent }); };
     const onOmnixOpenDash   = () => open('omnixAbsolute');
     window.addEventListener("omnix:open-modal",    onOmnixOpenModal);
     window.addEventListener("omnix:close-modal",   onOmnixCloseModal);
@@ -1205,7 +1204,7 @@ function AppContent() {
           onOpenNexusPanel={() => toggle('nexusPanel')}
           onOpenOmnixPanel={() => toggle('omnixAbsolute')}
         />
-        <ChatView onOpenOsintDash={() => open('osintDash')} controllerEnabled={controllerEnabled} />
+        <ChatView onOpenOsintDash={() => open('osintDash')} />
         {modals.compare && <CompareView onClose={() => close('compare')} />}
       </main>
 
