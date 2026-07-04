@@ -55,7 +55,7 @@ import { AIControllerHUD } from "./components/AIControllerHUD";
 import { NexusExecutorHUD, registerNexusDispatchers } from "./components/NexusExecutor";
 import { NexusPanel } from "./components/NexusPanel";
 import { registerOmnixDispatchers } from "./lib/OmnixExecutor";
-import { OmnixHUDPanel, OmnixFloatingBadge } from "./components/OmnixHUD";
+import { OmnixHUDPanel } from "./components/OmnixHUD";
 import { OmnixVoice } from "./components/OmnixVoice";
 import { OmnixSelfEvolution } from "./components/OmnixSelfEvolution";
 import { OmnixCommandPalette } from "./components/OmnixCommandPalette";
@@ -643,7 +643,7 @@ function AppContent() {
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [showQuickDock3D, setShowQuickDock3D] = useState(false);
   const [showUltraHUD, setShowUltraHUD] = useState(false);
-  const [showSystemStatus, setShowSystemStatus] = useState(true);
+  const [showSystemStatus, setShowSystemStatus] = useState(false);
   const [showAmbientLayer, setShowAmbientLayer] = useState(true);
   const { entries: costEntries, addEntry: addCostEntry } = useCostTracker();
   void addCostEntry; void shellGeneratorInject;
@@ -1069,12 +1069,6 @@ function AppContent() {
       dispatchers={nexusDispatchers}
       open={omnixPaletteOpen}
       onClose={() => setOmnixPaletteOpen(false)}
-    />
-    <OmnixFloatingBadge
-      onOpenPanel={() => setOmnixPanelOpen(true)}
-      onOpenVoice={() => setOmnixVoiceOpen(true)}
-      onOpenEvolution={() => setOmnixEvoOpen(true)}
-      onOpenPalette={() => setOmnixPaletteOpen(true)}
     />
     <PerformanceCommandCenter open={perfCCOpen} onClose={() => setPerfCCOpen(false)} />
     <PerformanceBooster />
