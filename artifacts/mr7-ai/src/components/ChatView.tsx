@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { useStore, useActiveChat, type CouncilPayload, type CouncilSeatState, type GodmodePayload, type GodmodeChampState } from "@/lib/store";
+import { useEffect, useRef, useState, useCallback, useMemo, useTransition } from "react";
+import { useStore, useActiveChat, lockStreaming, unlockStreaming, type CouncilPayload, type CouncilSeatState, type GodmodePayload, type GodmodeChampState } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { ShareModal } from "./modals/ShareModal";
 import { VoiceChatModal } from "./modals/VoiceChatModal";
@@ -53,6 +53,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
   const { t } = useT();
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [, startStreamTransition] = useTransition();
   const [mode, setMode] = useState<"chat" | "code" | "web" | "council" | "fusion" | "godmode" | "debate" | "hydra" | "reason" | "redteam" | "polymorphic" | "soceng" | "vulnrecon" | "antiforensics" | "agentic" | "localllm" | "orchestrator">("chat");
   const [agentOn, setAgentOn] = useState(false);
   const [webOn, setWebOn] = useState(false);
@@ -162,6 +163,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
 
   async function callModel(historyOverride?: ChatMessage[]) {
     if (!chat) return;
+    lockStreaming();
     setStreaming(true);
     const aId = `a-${Date.now()}`;
     const chatId = chat.id;
@@ -247,7 +249,9 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       if (buf !== streamLastRef.current) {
         streamLastRef.current = buf;
         const out = activeStmCount(stmCfg) > 0 ? applyStm(buf, stmCfg) : buf;
-        dispatch({ type: "PATCH_MSG", chatId, msgId: aId, patch: { content: out } });
+        startStreamTransition(() => {
+          dispatch({ type: "PATCH_MSG", chatId, msgId: aId, patch: { content: out } });
+        });
         const elSec = (Date.now() - streamStart) / 1000;
         const estimatedToks = Math.round(buf.length / 4);
         setLiveTokens(estimatedToks);
@@ -314,6 +318,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
         }
       }
     } finally {
+      unlockStreaming();
       if (flushTimerRef.current) { cancelAnimationFrame(flushTimerRef.current); flushTimerRef.current = null; }
       if (acc && acc !== streamLastRef.current) {
         const out = activeStmCount(stmCfg) > 0 ? applyStm(acc, stmCfg) : acc;
@@ -349,6 +354,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
 
   async function callGodmode(history: ChatMessage[]) {
     if (!chat) return;
+    lockStreaming();
     setStreaming(true);
     const aId = `a-${Date.now()}`;
     const chatId = chat.id;
@@ -378,6 +384,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
     } catch (err) {
       if ((err as { name?: string })?.name !== "AbortError") { update({ ...payload, phase: "error", error: err instanceof Error ? err.message : "Godmode failed." }); toast({ description: err instanceof Error ? err.message : "Godmode failed." }); }
     } finally {
+      unlockStreaming();
       setStreaming(false);
       if (payload.winnerContent) {
         executeOmnixResponse(payload.winnerContent).catch(() => executeNexusResponse(payload.winnerContent!).catch(() => {}));
@@ -386,10 +393,11 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
     }
   }
 
-  function stopStreaming() { abortRef.current?.abort(); setStreaming(false); toast({ description: t("toast.stopped") }); }
+  function stopStreaming() { abortRef.current?.abort(); unlockStreaming(); setStreaming(false); toast({ description: t("toast.stopped") }); }
 
   async function callCouncilWith(history: ChatMessage[], cfg: CouncilConfig) {
     if (!chat) return;
+    lockStreaming();
     setStreaming(true);
     const aId = `a-${Date.now()}`;
     const chatId = chat.id;
@@ -430,6 +438,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
     } catch (err) {
       if ((err as { name?: string })?.name !== "AbortError") { update({ ...council, phase: "error", error: err instanceof Error ? err.message : "Council failed." }); toast({ description: err instanceof Error ? err.message : "Council failed." }); }
     } finally {
+      unlockStreaming();
       setStreaming(false);
       if (council.synthesis) {
         executeOmnixResponse(council.synthesis).catch(() => executeNexusResponse(council.synthesis!).catch(() => {}));
@@ -493,6 +502,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
 
   async function callAgent(history: ChatMessage[]) {
     if (!chat) return;
+    lockStreaming();
     setStreaming(true);
     const aId = `a-${Date.now()}`;
     const chatId = chat.id;
@@ -514,7 +524,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       );
     } catch (err) {
       if ((err as { name?: string })?.name !== "AbortError") { dispatch({ type: "PATCH_MSG", chatId, msgId: aId, patch: { content: answerAcc + `\n\n*Agent error: ${err instanceof Error ? err.message : "Agent failed."}*` } }); toast({ description: err instanceof Error ? err.message : "Agent failed." }); }
-    } finally { setStreaming(false); }
+    } finally { unlockStreaming(); setStreaming(false); }
   }
 
   async function handleContextCompression() {

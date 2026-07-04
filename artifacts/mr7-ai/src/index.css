@@ -19,24 +19,24 @@ body {
   text-rendering: optimizeSpeed;
 }
 
-/* ── 144fps GPU Compositing — promote all animated layers ── */
-[data-framer-component-type],
+/* ── GPU Compositing — only promote elements that ACTUALLY animate ── */
+/* Note: will-change is expensive — browser allocates GPU memory per element.
+   Only apply to sidebar/topbar because they have slide animations. */
 .CHAT-GPT-topbar,
 .CHAT-GPT-sidebar {
-  will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-/* ── Canvas — full GPU compositing pipeline ── */
+/* ── Canvas — isolated GPU layer per canvas ── */
 canvas {
   transform: translateZ(0);
   backface-visibility: hidden;
   image-rendering: auto;
-  will-change: contents;
+  contain: layout paint;
 }
 
-/* ── Compositor layers only on intentional animated elements ── */
+/* ── gpu-layer: explicit opt-in for components that need it ── */
 .gpu-layer {
   will-change: transform;
   transform: translateZ(0);
@@ -44,16 +44,12 @@ canvas {
   isolation: isolate;
 }
 
-/* ── Motion elements — GPU-promote framer-motion animated divs ── */
-[style*="opacity"],[style*="transform"],[style*="translate"] {
-  backface-visibility: hidden;
-}
-
-/* ── Scroll containers — momentum & smoothness ── */
+/* ── Scroll containers — momentum scrolling only (NO smooth during streaming) ── */
 [data-scroll], .overflow-y-auto, .overflow-auto, .overflow-y-scroll {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  scroll-behavior: smooth;
+  /* scroll-behavior: smooth is intentionally OMITTED here — causes jank during streaming.
+     Use JS el.scrollTo({ behavior: 'smooth' }) selectively instead. */
 }
 
 /* ── Layout containment for modals/panels (prevents reflow cascade) ── */

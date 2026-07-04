@@ -886,19 +886,19 @@ function AppContent() {
   }
 
   // ── Pipeline handlers ─────────────────────────────────────────────────────
-  function handlePipeToRag(item: PipelineItem) { setRagPipelineDoc({ text: item.content, name: `[${item.source}] ${item.label}`, key: nextKey() }); open('rag'); }
-  function handlePipeToCLI(item: PipelineItem) { setCliPipelineContext({ text: item.content, key: nextKey() }); open('geminiCLI'); }
-  function handlePipeToAgent(item: PipelineItem) { setAgentPipelineTask({ text: item.content, key: nextKey() }); open('agent'); }
-  function handlePipeToIDE(item: PipelineItem) { setIdePipelineCode({ text: item.content, key: nextKey() }); open('openGravity'); }
+  const handlePipeToRag   = useCallback((item: PipelineItem) => { setRagPipelineDoc({ text: item.content, name: `[${item.source}] ${item.label}`, key: nextKey() }); open('rag'); }, [open]);
+  const handlePipeToCLI   = useCallback((item: PipelineItem) => { setCliPipelineContext({ text: item.content, key: nextKey() }); open('geminiCLI'); }, [open]);
+  const handlePipeToAgent = useCallback((item: PipelineItem) => { setAgentPipelineTask({ text: item.content, key: nextKey() }); open('agent'); }, [open]);
+  const handlePipeToIDE   = useCallback((item: PipelineItem) => { setIdePipelineCode({ text: item.content, key: nextKey() }); open('openGravity'); }, [open]);
 
   // ── Arsenal launch handler ────────────────────────────────────────────────
-  function handleArsenalLaunch(id: ArsenalModuleId) {
+  const handleArsenalLaunch = useCallback((id: ArsenalModuleId) => {
     close('arsenal');
     if (id === "ai-terminal") { open('aiTerminal'); return; }
     const modalId = ARSENAL_MAP[id];
     if (modalId) { open(modalId); return; }
     setArsenalPage(id);
-  }
+  }, [open, close]);
 
   // ── AI Master Controller — orchestrator event bus ────────────────────────
   useEffect(() => {

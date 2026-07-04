@@ -21,7 +21,7 @@
 //  "mr7-idb-migrated"           idb-storage.ts     Set to "1" after IDB migration
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { createContext, useContext, useEffect, useRef, useReducer, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useReducer, useMemo, useCallback, type ReactNode } from "react";
 import { type Subscription, type SubscriptionTier, INITIAL_SUBSCRIPTION } from "./subscription";
 import { fetchCloudChats, schedulePush } from "./cloud-sync";
 import { type ThemeId, getTheme, DEFAULT_THEME_ID } from "./themes";
@@ -30,6 +30,18 @@ import { fts } from "./full-text-search";
 import { crashRecovery } from "./crash-recovery";
 import { compressToBase64, decompressFromBase64 } from "./lz-compress";
 import { cssBatch } from "./css-batch";
+
+// ── Streaming lock — prevents ALL heavy IO during active AI streaming ──────
+// Increment before streaming, decrement after. Any value > 0 means streaming.
+let _streamingLock = 0;
+let _pendingPersist = false;
+export function lockStreaming()     { _streamingLock = Math.max(0, _streamingLock) + 1; }
+export function unlockStreaming()   {
+  _streamingLock = Math.max(0, _streamingLock - 1);
+  // Signal that a persist is needed after streaming ends
+  if (_streamingLock === 0) _pendingPersist = true;
+}
+export function isStreamingLocked(): boolean { return _streamingLock > 0; }
 
 export type CouncilSeatState = {
   id: string;
@@ -497,15 +509,20 @@ function reducer(state: AppState, action: Action): AppState {
             : c,
         ),
       };
-    case "PATCH_MSG":
-      return {
-        ...state,
-        chats: state.chats.map((c) =>
-          c.id === action.chatId
-            ? { ...c, messages: c.messages.map((m) => (m.id === action.msgId ? { ...m, ...action.patch } : m)) }
-            : c,
-        ),
-      };
+    case "PATCH_MSG": {
+      const ci = state.chats.findIndex(c => c.id === action.chatId);
+      if (ci < 0) return state;
+      const chat = state.chats[ci];
+      const mi = chat.messages.findIndex(m => m.id === action.msgId);
+      if (mi < 0) return state;
+      const newMsg = { ...chat.messages[mi], ...action.patch };
+      const newMessages = state.chats[ci].messages.slice();
+      newMessages[mi] = newMsg;
+      const newChat = { ...chat, messages: newMessages };
+      const newChats = state.chats.slice();
+      newChats[ci] = newChat;
+      return { ...state, chats: newChats };
+    }
     case "EDIT_MSG":
       return {
         ...state,
@@ -692,35 +709,49 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const lsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Persist to localStorage (debounced 300ms) + IndexedDB + cloud
-  useEffect(() => {
-    // localStorage: debounce to avoid JSON.stringify on every state change
+  // Persist state — debounced and streaming-aware
+  // CRITICAL: during streaming, PATCH_MSG fires at ~60fps. We skip ALL
+  // heavy IO (localStorage, IDB, FTS, cloud) until streaming ends.
+  const persistState = useCallback((s: typeof state, force = false) => {
+    if (_streamingLock > 0 && !force) return; // skip during streaming
+
+    // localStorage: debounced 800ms to avoid JSON.stringify thrashing
     if (lsTimerRef.current) clearTimeout(lsTimerRef.current);
-    const snapState = state; // capture current state for the closure (avoid stale ref)
     lsTimerRef.current = setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(snapState));
-      } catch { /* localStorage quota exceeded — rely on IDB */ }
-    }, 300);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+      catch { /* quota exceeded — rely on IDB */ }
+    }, 800);
 
-    // IndexedDB (async, no size limit)
-    idbSaveChats(state.chats).catch(() => {});
+    // IDB (async, no size limit)
+    idbSaveChats(s.chats).catch(() => {});
 
-    // Update FTS index for new messages in active chat
-    const activeChat = state.chats.find(c => c.id === state.activeChatId);
+    // FTS index update for active chat only
+    const activeChat = s.chats.find(c => c.id === s.activeChatId);
     if (activeChat) {
       for (const msg of activeChat.messages) {
         fts.indexMessage(activeChat.id, activeChat.title, msg);
       }
     }
 
-    // Mark crash recovery as dirty
     crashRecovery.markDirty();
 
-    // Push to cloud (debounced) — only after initial hydration
-    if (hydratedRef.current) {
-      schedulePush(state.chats);
+    // Cloud push — only after hydration
+    if (hydratedRef.current) schedulePush(s.chats);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    // If streaming is active: skip everything (will re-run when streaming ends)
+    if (_streamingLock > 0) return;
+
+    // If persistence was pending from end-of-streaming: force a save
+    if (_pendingPersist) {
+      _pendingPersist = false;
+      persistState(state, true);
+      return;
     }
-  }, [state]);
+
+    persistState(state);
+  }, [state, persistState]);
 
   useEffect(() => {
     const accentMap: Record<ThemeAccent, string> = {
