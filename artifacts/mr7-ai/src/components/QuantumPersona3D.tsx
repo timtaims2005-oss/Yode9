@@ -53,7 +53,7 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
   const activePersona = state.activePersona ?? "default";
   const activePresetId = state.settings?.activePersonaPreset ?? "default";
   const activePreset = PERSONA_PRESETS.find(p => p.id === activePresetId) ?? PERSONA_PRESETS[0];
-  const activeColor = PERSONA_CAT_COLORS[activePersona] ?? PERSONA_CAT_COLORS[activePreset?.category ?? ""] ?? "#a78bfa";
+  const activeColor = state.settings.orbColors?.persona || PERSONA_CAT_COLORS[activePersona] || PERSONA_CAT_COLORS[activePreset?.category ?? ""] || "#a78bfa";
 
   useEffect(() => {
     if (!showPanel) return;

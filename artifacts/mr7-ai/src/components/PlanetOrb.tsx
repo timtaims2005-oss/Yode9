@@ -6,6 +6,12 @@ import { useEffect, useRef } from "react";
 // across the 4 TopBar icons with one focused, elegant aesthetic
 // (reference: dark red glass sphere, soft rim light, orbiting moons).
 
+export function hexToRgb(hex: string, fallback: [number, number, number]): [number, number, number] {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex.trim());
+  if (!m) return fallback;
+  return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
+}
+
 export interface PlanetOrbProps {
   size?: number;
   color?: [number, number, number];

@@ -214,6 +214,8 @@ export type Settings = {
   backgroundStyle: "checkerboard" | "grid" | "particles";
   // Colorful cybersecurity-style syntax highlighting inside chat bubbles
   colorfulChatText: boolean;
+  // Per-user custom colors for the 4 TopBar "planet orb" icons (hex). Empty/undefined = automatic default color.
+  orbColors: { health?: string; setup?: string; persona?: string; switcher?: string };
 };
 
 export type { ThemeId };
@@ -383,6 +385,7 @@ const initial: AppState = {
     apiKeyPool: [],
     backgroundStyle: "checkerboard",
     colorfulChatText: true,
+    orbColors: {},
   },
   themeAccent: "crimson",
   activeGlobeTheme: DEFAULT_THEME_ID,

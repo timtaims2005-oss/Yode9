@@ -358,6 +358,50 @@ export function SettingsModal({ open, onOpenChange }: { open: boolean; onOpenCha
           </div>
         </section>
 
+        {/* TopBar Orb Colors */}
+        <section className="mt-4 space-y-2">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5">
+            <Sparkles className="w-3 h-3" /> تخصيص ألوان كرات الشريط العلوي
+          </div>
+          <div className="text-[11px] text-muted-foreground mb-1">اختر لوناً مخصصاً لكل كرة، أو اتركها فارغة لاستخدام اللون التلقائي.</div>
+          <div className="grid grid-cols-2 gap-2">
+            {([
+              { key: "health", label: "مؤشر الاتصال" },
+              { key: "setup", label: "الإعداد السريع" },
+              { key: "persona", label: "شخصية AI" },
+              { key: "switcher", label: "محوّل الشخصيات" },
+            ] as const).map((orb) => {
+              const current = state.settings.orbColors?.[orb.key] ?? "";
+              return (
+                <div key={orb.key} className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-border bg-background/40">
+                  <span className="text-[12px] font-semibold truncate">{orb.label}</span>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <input
+                      type="color"
+                      value={current || "#e21227"}
+                      onChange={(e) => dispatch({ type: "SET_SETTINGS", patch: { orbColors: { ...state.settings.orbColors, [orb.key]: e.target.value } } })}
+                      className="w-7 h-7 rounded-md border border-border bg-transparent cursor-pointer"
+                    />
+                    {current && (
+                      <button
+                        onClick={() => {
+                          const next = { ...state.settings.orbColors };
+                          delete next[orb.key];
+                          dispatch({ type: "SET_SETTINGS", patch: { orbColors: next } });
+                        }}
+                        className="text-[10px] px-1.5 py-1 rounded-md border border-border hover:bg-accent"
+                        title="إعادة الافتراضي"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         {/* Data */}
         <section className="mt-4 space-y-2">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5">

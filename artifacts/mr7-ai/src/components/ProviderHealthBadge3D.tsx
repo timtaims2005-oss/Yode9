@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
-import { PlanetOrb } from "./PlanetOrb";
+import { PlanetOrb, hexToRgb } from "./PlanetOrb";
 
 type Health = "checking" | "healthy" | "slow" | "error" | "unknown";
 
@@ -42,7 +42,7 @@ const MONITOR_PROVIDERS = [
 
 // ── ULTRA 3D QUANTUM PLANET — RAINBOW SPECTRUM ────────────────────────────────
 // ── Futuristic health planet orb (clean single-hue design) ───────────────────
-function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; latency: number | null; open: boolean; hover: boolean }) {
+function QuantumPlanet3D({ health, latency, open, hover, customColor }: { health: Health; latency: number | null; open: boolean; hover: boolean; customColor?: string }) {
   void latency;
   const colorMap: Record<Health, [number, number, number]> = {
     healthy:  [34, 197, 94],
@@ -51,10 +51,11 @@ function QuantumPlanet3D({ health, latency, open, hover }: { health: Health; lat
     checking: [167, 139, 250],
     unknown:  [107, 114, 128],
   };
+  const color = customColor ? hexToRgb(customColor, colorMap[health]) : colorMap[health];
   return (
     <PlanetOrb
       size={28}
-      color={colorMap[health]}
+      color={color}
       hover={hover}
       open={open}
       pulse={health === "checking"}
@@ -455,7 +456,7 @@ export function ProviderHealthBadge3D() {
         {/* Health-status outer ring — CSS */}
         <span className="absolute inset-0 rounded-full pointer-events-none spin-slow"
           style={{ border: `1px dashed rgba(${health === "healthy" ? "34,197,94" : health === "error" ? "226,18,39" : "245,158,11"},0.20)`, margin: "-10px" }} />
-        <QuantumPlanet3D health={health} latency={latency} open={open} hover={planetHover} />
+        <QuantumPlanet3D health={health} latency={latency} open={open} hover={planetHover} customColor={state.settings.orbColors?.health} />
       </motion.button>
 
       {/* ── DRAGGABLE POPUP WINDOW ── */}

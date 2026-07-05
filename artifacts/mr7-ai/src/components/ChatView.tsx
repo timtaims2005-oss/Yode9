@@ -15,6 +15,7 @@ import { applyToTriggers, transform, type Technique, type Intensity } from "@/li
 import { useT } from "@/lib/i18n";
 import { tierAtLeast } from "@/lib/subscription";
 import { NeuralStreamHUD } from "./NeuralStreamHUD";
+import { InlineApiKeyPrompt, type InlineApiKeyPromptInfo } from "./InlineApiKeyPrompt";
 import { parseOrchestratorCommands, executeOrchestratorCommand, type OrchestratorCmd } from "@/lib/agent-orchestrator";
 import { streamChat, streamLocalChatViaProxy, streamCouncil, streamGodmode, autoTune, generateTitle, translateText, enhancePrompt, estimateTokens, streamAgent, compressContext, analyzeOsintFile, type ChatMessage, type AgentEvent } from "@/lib/chat-client";
 import { DEFAULT_COUNCIL_CONFIG, FUSION_COUNCIL_CONFIG, DEBATE_COUNCIL_CONFIG, HYDRA_COUNCIL_CONFIG, type CouncilConfig } from "./modals/CouncilSettingsModal";
@@ -45,6 +46,16 @@ function formatMd(s: string) {
     .replace(/\n/g, "<br>");
 }
 
+const PROVIDER_META: Record<string, { label: string; color: string; needsURL?: boolean }> = {
+  personal: { label: "الشخصي (Personal)", color: "#e21227" },
+  openai: { label: "OpenAI", color: "#10b981" },
+  anthropic: { label: "Anthropic", color: "#f97316" },
+  groq: { label: "Groq", color: "#f59e0b" },
+  gemini: { label: "Gemini", color: "#3b82f6" },
+  openrouter: { label: "OpenRouter", color: "#8b5cf6" },
+  custom: { label: "مخصص (Custom)", color: "#a78bfa", needsURL: true },
+};
+
 export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; onOpenOsintDash?: () => void } = {}) {
   void onShare;
   const { state, dispatch } = useStore();
@@ -53,6 +64,7 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
   const { t } = useT();
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [keyPrompt, setKeyPrompt] = useState<InlineApiKeyPromptInfo | null>(null);
   const [, startStreamTransition] = useTransition();
   const [mode, setMode] = useState<"chat" | "code" | "web" | "council" | "fusion" | "godmode" | "debate" | "hydra" | "reason" | "redteam" | "polymorphic" | "soceng" | "vulnrecon" | "antiforensics" | "agentic" | "localllm" | "orchestrator">("chat");
   const [agentOn, setAgentOn] = useState(false);
@@ -307,10 +319,11 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
         if (elapsed < minDisplayMs) await new Promise<void>(r => setTimeout(r, minDisplayMs - elapsed));
         const is401 = !useLocal && (message.includes("401") || message.toLowerCase().includes("api key"));
         if (is401) {
-          window.dispatchEvent(new CustomEvent("kali:trigger-auto-setup"));
-          acc += `\n\n> **[!]** لم يتم ضبط مفتاح API — جاري الضبط التلقائي للمزود، أعد إرسال رسالتك خلال لحظات...`;
+          const meta = PROVIDER_META[_activeProvider] ?? { label: _activeProvider, color: "#e21227", needsURL: _activeProvider === "custom" };
+          acc += `\n\n> **[!]** مفتاح API غير موجود لمزوّد "${meta.label}". أدخل المفتاح في الحقل أدناه لإعادة الإرسال فوراً.`;
           dispatch({ type: "PATCH_MSG", chatId, msgId: aId, patch: { content: acc } });
-          toast({ description: "جاري الضبط التلقائي للمزود..." });
+          setKeyPrompt({ providerId: _activeProvider, label: meta.label, color: meta.color, needsURL: meta.needsURL, baseURL: _resolvedApiBaseURL });
+          toast({ description: `أدخل مفتاح API لمزوّد ${meta.label} لإعادة الإرسال` });
         } else {
           acc += `\n\n> **[!]** ${message}`;
           dispatch({ type: "PATCH_MSG", chatId, msgId: aId, patch: { content: acc } });
@@ -572,6 +585,23 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
     }
   }
 
+  function saveInlineApiKey(key: string, baseURL?: string) {
+    if (!keyPrompt) return;
+    const { providerId } = keyPrompt;
+    if (providerId === "personal") {
+      dispatch({ type: "SET_SETTINGS", patch: { personalApiKey: key, ...(baseURL ? { personalApiBaseURL: baseURL } : {}) } });
+    } else {
+      localStorage.setItem(`mr7-ai-p-key-${providerId}`, key);
+      if (baseURL) localStorage.setItem(`mr7-ai-p-url-${providerId}`, baseURL);
+    }
+    setKeyPrompt(null);
+    toast({ description: `تم حفظ مفتاح ${keyPrompt.label} — جارٍ إعادة الإرسال...` });
+    if (chat && chat.messages[chat.messages.length - 1]?.role === "assistant") {
+      dispatch({ type: "POP_MSG", chatId: chat.id });
+    }
+    void callModel();
+  }
+
   async function regenerate() {
     if (!chat || streaming) return;
     if (localStorage.getItem("mr7-model-off") === "true") { toast({ description: "⚠️ AI Model is OFF.", variant: "destructive" }); return; }
@@ -736,6 +766,14 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
       </div>
 
       <QuickActionBar onInsert={(text) => { setInput((prev) => prev ? `${prev}\n\n${text}` : text); setTimeout(() => taRef.current?.focus(), 50); }} />
+
+      {keyPrompt && (
+        <InlineApiKeyPrompt
+          info={keyPrompt}
+          onSave={saveInlineApiKey}
+          onDismiss={() => setKeyPrompt(null)}
+        />
+      )}
 
       <ChatInput
         state={state as Parameters<typeof ChatInput>[0]["state"]}

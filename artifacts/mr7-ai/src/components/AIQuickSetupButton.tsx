@@ -3,7 +3,7 @@ import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore, ProviderName } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
-import { PlanetOrb } from "./PlanetOrb";
+import { PlanetOrb, hexToRgb } from "./PlanetOrb";
 
 const KEY_PREFIX = "mr7-ai-p-key-";
 const URL_PREFIX = "mr7-ai-p-url-";
@@ -188,17 +188,18 @@ type Phase = "idle" | "scanning" | "done" | "fail";
 
 // ── ULTRA 3D QUANTUM ATOM — RAINBOW SPECTRUM ──────────────────────────────────
 // ── Futuristic quick-setup planet orb (clean single-hue design) ──────────────
-function QuantumAtom3D({ phase, open, hover }: { phase: Phase; open: boolean; hover: boolean }) {
+function QuantumAtom3D({ phase, open, hover, customColor }: { phase: Phase; open: boolean; hover: boolean; customColor?: string }) {
   const colorMap: Record<Phase, [number, number, number]> = {
     idle:     [139, 92, 246],
     scanning: [245, 158, 11],
     done:     [34, 197, 94],
     fail:     [226, 18, 39],
   };
+  const color = customColor ? hexToRgb(customColor, colorMap[phase]) : colorMap[phase];
   return (
     <PlanetOrb
       size={32}
-      color={colorMap[phase]}
+      color={color}
       hover={hover}
       open={open}
       pulse={phase === "scanning"}
@@ -544,7 +545,7 @@ export function AIQuickSetupButton() {
             animate={{ scale: [1, 1.45, 1], opacity: [0.9, 0, 0.9] }}
             transition={{ duration: 1.0, repeat: Infinity, ease: "linear" }} />
         )}
-        <QuantumAtom3D phase={phase} open={open} hover={atomHover} />
+        <QuantumAtom3D phase={phase} open={open} hover={atomHover} customColor={state.settings.orbColors?.setup} />
       </motion.button>
 
       {/* ── DRAGGABLE POPUP WINDOW ── */}

@@ -4,7 +4,7 @@ import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { PERSONA_PRESETS, type PersonaPreset } from "./modals/PersonaEditorModal";
-import { PlanetOrb } from "./PlanetOrb";
+import { PlanetOrb, hexToRgb } from "./PlanetOrb";
 
 const CATEGORY_COLORS: Record<string, [number, number, number]> = {
   general:    [34,  197, 94 ],
@@ -41,7 +41,8 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
 
   const activePresetId = state.settings.activePersonaPreset ?? "default";
   const activePreset = PERSONA_PRESETS.find(p => p.id === activePresetId) ?? PERSONA_PRESETS[0];
-  const color = CATEGORY_COLORS[activePreset.category] ?? [34, 197, 94];
+  const customOrbColor = state.settings.orbColors?.switcher;
+  const color = customOrbColor ? hexToRgb(customOrbColor, [34, 197, 94]) : (CATEGORY_COLORS[activePreset.category] ?? [34, 197, 94]);
   const [cr, cg, cb] = color;
   const isCustomActive = activePresetId !== "default";
 
