@@ -440,22 +440,22 @@ export function ProviderHealthBadge3D() {
           width: 44, height: 44,
           x: magPos2.x, y: magPos2.y,
           background: open
-            ? "radial-gradient(circle at 38% 38%, rgba(139,92,246,0.32), rgba(10,4,28,0.97))"
-            : "radial-gradient(circle at 38% 38%, rgba(139,92,246,0.18), rgba(8,4,20,0.94))",
-          border: `2px solid rgba(139,92,246,${open ? 0.82 : 0.42})`,
+            ? "radial-gradient(circle at 38% 38%, rgba(226,18,39,0.32), rgba(14,2,4,0.97))"
+            : "radial-gradient(circle at 38% 38%, rgba(226,18,39,0.18), rgba(10,2,3,0.94))",
+          border: `2px solid rgba(226,18,39,${open ? 0.82 : 0.42})`,
           boxShadow: open
-            ? "0 0 40px rgba(139,92,246,0.60), 0 0 80px rgba(167,139,250,0.22), inset 0 0 16px rgba(167,139,250,0.12)"
-            : "0 0 20px rgba(139,92,246,0.35), 0 0 40px rgba(167,139,250,0.12)",
+            ? "0 0 40px rgba(226,18,39,0.60), 0 0 80px rgba(255,60,80,0.22), inset 0 0 16px rgba(255,60,80,0.12)"
+            : "0 0 20px rgba(226,18,39,0.35), 0 0 40px rgba(255,60,80,0.12)",
         }}
         whileHover={{ scale: 1.10, y: -1 }} whileTap={{ scale: 0.90 }}
         aria-label="حالة اتصال المزوّد"
       >
         {/* Idle outer orbit ring */}
         <span className="absolute inset-0 rounded-full pointer-events-none ring-pulse"
-          style={{ border: `1px solid rgba(139,92,246,${health === "healthy" ? 0.28 : health === "error" ? 0.0 : 0.18})`, margin: "-5px" }} />
+          style={{ border: `1px solid rgba(226,18,39,${health === "healthy" ? 0.28 : health === "error" ? 0.0 : 0.18})`, margin: "-5px" }} />
         {/* Health-status outer ring — CSS */}
         <span className="absolute inset-0 rounded-full pointer-events-none spin-slow"
-          style={{ border: `1px dashed rgba(${health === "healthy" ? "34,197,94" : health === "error" ? "226,18,39" : "245,158,11"},0.20)`, margin: "-10px" }} />
+          style={{ border: `1px dashed rgba(${health === "healthy" ? "226,18,39" : health === "error" ? "226,18,39" : "255,80,80"},0.22)`, margin: "-10px" }} />
         <QuantumPlanet3D health={health} latency={latency} open={open} hover={planetHover} customColor={state.settings.orbColors?.health} />
       </motion.button>
 

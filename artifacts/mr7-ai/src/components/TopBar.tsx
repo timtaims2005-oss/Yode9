@@ -2234,6 +2234,97 @@ function PinnedShortcutsBar({
   );
 }
 
+// ── Bug Report Button ──────────────────────────────────────────────────────────
+function BugReportButton() {
+  const [open, setOpen] = React.useState(false);
+  const [desc, setDesc] = React.useState("");
+  const [sent, setSent] = React.useState(false);
+
+  const handleSend = () => {
+    if (!desc.trim()) return;
+    const subject = encodeURIComponent("بلاغ خطأ - mr7.ai");
+    const body = encodeURIComponent(`الوصف:\n${desc}\n\nالصفحة: ${window.location.href}\nالمتصفح: ${navigator.userAgent}`);
+    window.open(`mailto:support@mr7.ai?subject=${subject}&body=${body}`, "_blank");
+    setSent(true);
+    setTimeout(() => { setSent(false); setDesc(""); setOpen(false); }, 2000);
+  };
+
+  return (
+    <>
+      <motion.button
+        onClick={() => setOpen(v => !v)}
+        className="flex-shrink-0 hidden sm:flex w-7 h-7 items-center justify-center rounded-lg"
+        style={{ color: "rgba(255,100,100,0.5)", border: "1px solid rgba(255,100,100,0.12)" }}
+        whileHover={{ color: "rgba(255,120,120,0.9)", background: "rgba(255,80,80,0.08)", scale: 1.06 }}
+        whileTap={{ scale: 0.94 }}
+        title="بلّغ عن مشكلة"
+        aria-label="بلّغ عن مشكلة"
+      >
+        <Bug className="w-3.5 h-3.5" />
+      </motion.button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 rounded-2xl z-[200] shadow-2xl overflow-hidden"
+            style={{ background: "rgba(10,8,18,0.97)", border: "1px solid rgba(255,80,80,0.22)", backdropFilter: "blur(20px)" }}
+            dir="rtl"
+          >
+            <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: "1px solid rgba(255,80,80,0.10)" }}>
+              <Bug className="w-4 h-4" style={{ color: "rgba(255,100,100,0.8)" }} />
+              <span className="text-[12px] font-bold" style={{ color: "rgba(255,255,255,0.85)" }}>بلّغ عن مشكلة</span>
+            </div>
+            <div className="p-4 space-y-3">
+              {sent ? (
+                <div className="text-center py-4">
+                  <div className="text-2xl mb-2">✅</div>
+                  <div className="text-[11px] font-bold" style={{ color: "rgba(34,197,94,0.9)" }}>شكراً! تم إرسال البلاغ</div>
+                </div>
+              ) : (
+                <>
+                  <textarea
+                    value={desc}
+                    onChange={e => setDesc(e.target.value)}
+                    placeholder="صِف المشكلة أو الخطأ الذي واجهته..."
+                    rows={4}
+                    className="w-full rounded-xl px-3 py-2.5 text-[10px] font-mono resize-none outline-none"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,80,80,0.18)", color: "rgba(255,255,255,0.80)", lineHeight: 1.6 }}
+                  />
+                  <div className="flex gap-2">
+                    <motion.button
+                      onClick={handleSend}
+                      disabled={!desc.trim()}
+                      className="flex-1 py-2 rounded-xl text-[10px] font-bold"
+                      style={{ background: desc.trim() ? "rgba(255,80,80,0.20)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(255,80,80,0.30)", color: desc.trim() ? "rgba(255,120,120,0.95)" : "rgba(255,255,255,0.25)" }}
+                      whileHover={desc.trim() ? { background: "rgba(255,80,80,0.28)" } : {}}
+                      whileTap={desc.trim() ? { scale: 0.97 } : {}}
+                    >
+                      إرسال
+                    </motion.button>
+                    <motion.button
+                      onClick={() => { setOpen(false); setDesc(""); }}
+                      className="px-4 py-2 rounded-xl text-[10px] font-bold"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.40)" }}
+                      whileHover={{ background: "rgba(255,255,255,0.08)" }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      إلغاء
+                    </motion.button>
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
 // ── Main TopBar ───────────────────────────────────────────────────────────────
 export function TopBar({
   onMenuClick, onOpenPricing, onOpenToolsHub, onOpenHelp, onOpenPersonaEditor, onOpenPersonaManager,
@@ -2595,6 +2686,8 @@ export function TopBar({
         >
           <HelpCircle className="w-4 h-4" />
         </motion.button>
+
+        <BugReportButton />
 
         <motion.button
           onClick={toggleCompact}

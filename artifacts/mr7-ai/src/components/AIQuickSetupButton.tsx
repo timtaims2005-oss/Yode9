@@ -186,11 +186,10 @@ const ALL_PROVIDERS: ProviderDef[] = [
 
 type Phase = "idle" | "scanning" | "done" | "fail";
 
-// ── ULTRA 3D QUANTUM ATOM — RAINBOW SPECTRUM ──────────────────────────────────
-// ── Futuristic quick-setup planet orb (clean single-hue design) ──────────────
+// ── ULTRA 3D QUANTUM ATOM — CLEAN WHITE ───────────────────────────────────────
 function QuantumAtom3D({ phase, open, hover, customColor }: { phase: Phase; open: boolean; hover: boolean; customColor?: string }) {
   const colorMap: Record<Phase, [number, number, number]> = {
-    idle:     [139, 92, 246],
+    idle:     [240, 240, 244],
     scanning: [245, 158, 11],
     done:     [34, 197, 94],
     fail:     [226, 18, 39],
@@ -517,12 +516,12 @@ export function AIQuickSetupButton() {
           width: 44, height: 44,
           x: magPos.x, y: magPos.y,
           background: open
-            ? "radial-gradient(circle at 38% 38%, rgba(0,255,136,0.32), rgba(0,18,14,0.97))"
-            : "radial-gradient(circle at 38% 38%, rgba(0,255,136,0.15), rgba(0,10,8,0.92))",
-          border: `2px solid rgba(0,255,136,${open ? 0.78 : 0.38})`,
+            ? "radial-gradient(circle at 38% 38%, rgba(240,240,244,0.28), rgba(10,10,16,0.97))"
+            : "radial-gradient(circle at 38% 38%, rgba(240,240,244,0.12), rgba(8,8,12,0.92))",
+          border: `2px solid rgba(240,240,244,${open ? 0.75 : 0.35})`,
           boxShadow: open
-            ? "0 0 36px rgba(0,255,136,0.55), 0 0 70px rgba(0,229,255,0.18), inset 0 0 14px rgba(0,255,136,0.12)"
-            : "0 0 18px rgba(0,255,136,0.30), 0 0 36px rgba(0,229,255,0.09)",
+            ? "0 0 36px rgba(240,240,244,0.40), 0 0 70px rgba(200,200,220,0.18), inset 0 0 14px rgba(255,255,255,0.10)"
+            : "0 0 18px rgba(240,240,244,0.22), 0 0 36px rgba(200,200,220,0.09)",
           cursor: phase === "scanning" ? "wait" : "pointer",
         }}
         whileHover={{ scale: 1.10, y: -1 }}
@@ -531,17 +530,17 @@ export function AIQuickSetupButton() {
       >
         {/* Idle outer orbit ring */}
         <motion.span className="absolute inset-0 rounded-full pointer-events-none"
-          style={{ border: "1px solid rgba(0,255,136,0.22)", margin: "-5px" }}
+          style={{ border: "1px solid rgba(240,240,244,0.22)", margin: "-5px" }}
           animate={{ opacity: [0.22, 0.55, 0.22], scale: [1, 1.08, 1] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }} />
         {/* Second orbit ring */}
         <motion.span className="absolute inset-0 rounded-full pointer-events-none"
-          style={{ border: "1px dashed rgba(0,229,255,0.14)", margin: "-10px" }}
+          style={{ border: "1px dashed rgba(220,220,240,0.14)", margin: "-10px" }}
           animate={{ rotate: [0, 360] }}
           transition={{ duration: 8, repeat: Infinity, ease: "linear" }} />
         {phase === "scanning" && (
           <motion.span className="absolute inset-0 rounded-full pointer-events-none"
-            style={{ border: "1px solid rgba(0,229,255,0.9)" }}
+            style={{ border: "1px solid rgba(240,240,244,0.9)" }}
             animate={{ scale: [1, 1.45, 1], opacity: [0.9, 0, 0.9] }}
             transition={{ duration: 1.0, repeat: Infinity, ease: "linear" }} />
         )}
@@ -571,21 +570,21 @@ export function AIQuickSetupButton() {
           >
             <div className="rounded-[18px] flex flex-col"
               style={{
-                background: "linear-gradient(160deg, rgba(0,12,8,0.99) 0%, rgba(2,8,6,0.99) 60%, rgba(0,10,6,0.99) 100%)",
-                border: "1px solid rgba(0,255,136,0.30)",
-                boxShadow: "0 0 100px rgba(0,255,136,0.14), 0 0 40px rgba(0,229,255,0.06), 0 32px 80px rgba(0,0,0,0.96), inset 0 1px 0 rgba(0,255,136,0.14), inset 0 0 60px rgba(0,255,136,0.02)",
+                background: "linear-gradient(160deg, rgba(8,8,14,0.99) 0%, rgba(6,6,12,0.99) 60%, rgba(8,8,14,0.99) 100%)",
+                border: "1px solid rgba(240,240,244,0.22)",
+                boxShadow: "0 0 100px rgba(240,240,244,0.08), 0 0 40px rgba(200,200,220,0.04), 0 32px 80px rgba(0,0,0,0.96), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 60px rgba(240,240,244,0.01)",
                 backdropFilter: "blur(36px)",
                 maxHeight: "78vh",
                 overflow: "hidden",
               }}>
-              <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(0,255,136,0.85),rgba(0,229,255,0.5),transparent)" }} />
+              <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(240,240,244,0.70),rgba(200,200,220,0.40),transparent)" }} />
 
               {/* Header — drag handle */}
               <div className="px-4 py-3 flex items-center justify-between cursor-move select-none"
-                style={{ borderBottom: "1px solid rgba(0,255,136,0.07)" }} onMouseDown={onWinDragDown}>
+                style={{ borderBottom: "1px solid rgba(240,240,244,0.07)" }} onMouseDown={onWinDragDown}>
                 <div>
                   <div className="text-[11px] font-black tracking-[0.22em] uppercase font-mono"
-                    style={{ color: "rgba(0,255,136,0.9)" }}>AI NEXUS SETUP</div>
+                    style={{ color: "rgba(240,240,244,0.88)" }}>⚙ إعدادات الذكاء الاصطناعي</div>
                   <div className="text-[8px] mt-0.5" style={{ color: "rgba(255,255,255,0.32)" }}>
                     {cfgCnt} مزوّد مُهيَّأ من {ALL_PROVIDERS.length}
                   </div>
@@ -611,17 +610,17 @@ export function AIQuickSetupButton() {
               </div>
 
               {/* Tab bar */}
-              <div className="flex px-4 gap-1 pt-2 pb-0" style={{ borderBottom: "1px solid rgba(0,255,136,0.08)" }}>
+              <div className="flex px-4 gap-1 pt-2 pb-0" style={{ borderBottom: "1px solid rgba(240,240,244,0.08)" }}>
                 {(["nexus", "metrics", "arsenal", "intel", "console"] as const).map(tab => {
-                  const labels: Record<string, string> = { nexus: "NEXUS", metrics: "METRICS", arsenal: "ARSENAL", intel: "INTEL", console: "⚡ CONSOLE" };
+                  const labels: Record<string, string> = { nexus: "المزوّدون", metrics: "الأداء", arsenal: "أدوات", intel: "ذكاء", console: "⚙ إعدادات" };
                   const active = activeTab === tab;
                   return (
                     <button key={tab} onClick={() => setActiveTab(tab)}
-                      className="px-3 py-1.5 text-[8px] font-black tracking-widest uppercase rounded-t-lg transition-all font-mono"
+                      className="px-2.5 py-1.5 text-[8px] font-black tracking-wide uppercase rounded-t-lg transition-all font-mono"
                       style={{
-                        color: active ? "rgba(0,255,136,0.95)" : "rgba(255,255,255,0.28)",
-                        background: active ? "rgba(0,255,136,0.08)" : "transparent",
-                        borderBottom: active ? "2px solid rgba(0,255,136,0.85)" : "2px solid transparent",
+                        color: active ? "rgba(240,240,244,0.95)" : "rgba(255,255,255,0.28)",
+                        background: active ? "rgba(240,240,244,0.07)" : "transparent",
+                        borderBottom: active ? "2px solid rgba(240,240,244,0.75)" : "2px solid transparent",
                       }}>
                       {labels[tab]}
                     </button>
@@ -638,7 +637,7 @@ export function AIQuickSetupButton() {
                       <span className="text-[9px] font-mono" style={{ color: "rgba(0,229,255,0.8)" }}>{scanMsg}</span>
                       <span className="text-[9px] font-black font-mono" style={{ color: "rgba(0,255,136,0.9)" }}>{scanProgress}%</span>
                     </div>
-                    <ScanBar progress={scanProgress} color="#00ff88" />
+                    <ScanBar progress={scanProgress} color="#e0e0f0" />
                   </div>
                 )}
                 <div className="px-4 pt-3 pb-2">
@@ -646,12 +645,12 @@ export function AIQuickSetupButton() {
                     className="w-full rounded-xl py-2.5 text-[10px] font-black tracking-widest uppercase flex items-center justify-center gap-2"
                     style={{
                       background: phase === "scanning"
-                        ? "rgba(0,255,136,0.05)"
-                        : "linear-gradient(135deg,rgba(0,255,136,0.18) 0%,rgba(0,229,255,0.1) 100%)",
-                      border: `1px solid rgba(0,255,136,${phase === "scanning" ? 0.14 : 0.40})`,
-                      color: phase === "scanning" ? "rgba(0,255,136,0.38)" : "rgba(0,255,136,0.92)",
+                        ? "rgba(240,240,244,0.04)"
+                        : "linear-gradient(135deg,rgba(240,240,244,0.14) 0%,rgba(200,200,220,0.08) 100%)",
+                      border: `1px solid rgba(240,240,244,${phase === "scanning" ? 0.12 : 0.35})`,
+                      color: phase === "scanning" ? "rgba(240,240,244,0.35)" : "rgba(240,240,244,0.88)",
                     }}
-                    whileHover={phase !== "scanning" ? { scale: 1.01, boxShadow: "0 0 20px rgba(0,255,136,0.2)" } : {}}
+                    whileHover={phase !== "scanning" ? { scale: 1.01, boxShadow: "0 0 20px rgba(240,240,244,0.12)" } : {}}
                     whileTap  ={phase !== "scanning" ? { scale: 0.98 } : {}}>
                     {phase === "scanning" ? (
                       <><motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>◌</motion.span>جارٍ المسح التلقائي...</>
@@ -663,7 +662,7 @@ export function AIQuickSetupButton() {
                 <div className="px-4 pb-2">
                   <div className="relative">
                     <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none"
-                      style={{ color: "rgba(0,255,136,0.45)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      style={{ color: "rgba(240,240,244,0.40)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
                     </svg>
                     <input type="text" value={providerSearch} onChange={e => setProviderSearch(e.target.value)}
@@ -671,7 +670,7 @@ export function AIQuickSetupButton() {
                       className="w-full pl-7 pr-2 py-1.5 text-[9px] font-mono rounded-lg outline-none"
                       style={{
                         background: "rgba(0,0,0,0.35)",
-                        border: `1px solid rgba(0,255,136,${providerSearch ? 0.38 : 0.15})`,
+                        border: `1px solid rgba(240,240,244,${providerSearch ? 0.28 : 0.12})`,
                         color: "rgba(255,255,255,0.8)",
                       }} dir="rtl" />
                     {providerSearch && (
@@ -682,9 +681,9 @@ export function AIQuickSetupButton() {
                   </div>
                 </div>
                 <div className="px-4 pb-3 space-y-1.5 max-h-[calc(88vh-220px)] overflow-y-auto"
-                  style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(0,255,136,0.18) transparent" }}>
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(240,240,244,0.15) transparent" }}>
                   <div className="text-[7px] font-bold tracking-[0.22em] uppercase mb-2 pt-1"
-                    style={{ color: "rgba(0,255,136,0.38)" }}>
+                    style={{ color: "rgba(240,240,244,0.38)" }}>
                     {providerSearch
                       ? `${ALL_PROVIDERS.filter(p => p.name.toLowerCase().includes(providerSearch.toLowerCase())).length} نتيجة`
                       : "المزوّدون المتاحون"}
@@ -877,62 +876,136 @@ export function AIQuickSetupButton() {
                 </div>
               )}
 
-              {/* ── CONSOLE TAB ── */}
+              {/* ── SETTINGS TAB ── */}
               {activeTab === "console" && (
-                <div className="p-3 space-y-2 overflow-y-auto" style={{ maxHeight: "55vh", scrollbarWidth: "thin", scrollbarColor: "rgba(0,255,136,0.18) transparent" }}>
-                  <div className="text-[7px] font-bold tracking-[0.25em] uppercase mb-2" style={{ color: "rgba(255,255,255,0.28)" }}>أوامر الأمن السيبراني السريعة</div>
-                  {[
-                    { label: "Nmap سريع", cmd: "nmap -sV -sC -O --top-ports 1000 TARGET_IP", color: "#00ff88", category: "RECON" },
-                    { label: "Gobuster دليل", cmd: "gobuster dir -u http://TARGET -w /usr/share/wordlists/dirb/common.txt -t 40", color: "#00e5ff", category: "WEB" },
-                    { label: "Nikto فحص", cmd: "nikto -h http://TARGET -C all -Format txt", color: "#f59e0b", category: "WEB" },
-                    { label: "Hydra SSH", cmd: "hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://TARGET -t 4", color: "#e21227", category: "BRUTE" },
-                    { label: "MSFconsole", cmd: "msfconsole -q -x 'use exploit/multi/handler; set PAYLOAD linux/x64/shell_reverse_tcp; run'", color: "#a78bfa", category: "EXPLOIT" },
-                    { label: "Sqlmap", cmd: "sqlmap -u 'http://TARGET/vuln.php?id=1' --dbs --batch --level 5 --risk 3", color: "#ff4d4d", category: "SQL" },
-                    { label: "Enum4linux", cmd: "enum4linux -a TARGET_IP 2>&1 | tee enum_results.txt", color: "#22c55e", category: "ENUM" },
-                    { label: "Burp Suite", cmd: "java -jar burpsuite_community.jar &", color: "#f97316", category: "PROXY" },
-                    { label: "Aircrack-ng", cmd: "airmon-ng start wlan0 && airodump-ng wlan0mon -w capture --band abg", color: "#06b6d4", category: "WIFI" },
-                    { label: "Hashcat MD5", cmd: "hashcat -m 0 -a 0 hash.txt /usr/share/wordlists/rockyou.txt --force", color: "#8b5cf6", category: "HASH" },
-                  ].map(item => (
-                    <motion.button key={item.label}
-                      onClick={() => { navigator.clipboard.writeText(item.cmd); }}
-                      className="w-full rounded-xl px-3 py-2.5 text-left group overflow-hidden relative"
-                      style={{ background: "rgba(0,0,0,0.45)", border: `1px solid ${item.color}20` }}
-                      whileHover={{ background: `${item.color}08`, borderColor: `${item.color}40` }} whileTap={{ scale: 0.98 }}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-1.5">
-                          <div className="px-1.5 py-0.5 rounded text-[6px] font-black font-mono" style={{ background: `${item.color}18`, color: item.color, border: `1px solid ${item.color}28` }}>{item.category}</div>
-                          <span className="text-[9px] font-bold" style={{ color: item.color }}>{item.label}</span>
+                <div className="p-3 space-y-3 overflow-y-auto" style={{ maxHeight: "55vh", scrollbarWidth: "thin", scrollbarColor: "rgba(240,240,244,0.15) transparent" }}>
+
+                  {/* Active provider display */}
+                  <div className="rounded-xl p-3 flex items-center gap-3"
+                    style={{ background: "rgba(240,240,244,0.04)", border: "1px solid rgba(240,240,244,0.10)" }}>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[7px] font-bold tracking-widest uppercase mb-0.5" style={{ color: "rgba(240,240,244,0.40)" }}>المزوّد النشط</div>
+                      <div className="text-[11px] font-black" style={{ color: "rgba(240,240,244,0.90)" }}>{state.activeProvider.toUpperCase()}</div>
+                      <div className="text-[8px] font-mono truncate mt-0.5" style={{ color: "rgba(255,255,255,0.30)" }}>{state.activeProviderModel?.split("/").pop() ?? "---"}</div>
+                    </div>
+                    <div className="w-2 h-2 rounded-full pulse-dot" style={{ background: "#22c55e", boxShadow: "0 0 8px #22c55e", animationDuration: "1.4s" }} />
+                  </div>
+
+                  {/* Toggle settings */}
+                  <div>
+                    <div className="text-[7px] font-bold tracking-widest uppercase mb-2" style={{ color: "rgba(240,240,244,0.35)" }}>الإعدادات العامة</div>
+                    <div className="space-y-1.5">
+                      {[
+                        { key: "streaming",  label: "بث الردود (Streaming)",    desc: "عرض الرد تدريجياً أثناء التوليد",    value: state.settings.streaming  ?? true },
+                        { key: "autoTitle",  label: "عنونة تلقائية",            desc: "توليد عنوان للمحادثة تلقائياً",       value: state.settings.autoTitle  ?? true },
+                      ].map(s => (
+                        <div key={s.key} className="flex items-center justify-between px-3 py-2 rounded-xl"
+                          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(240,240,244,0.06)" }}>
+                          <div className="flex-1 min-w-0 pr-2">
+                            <div className="text-[9px] font-bold" style={{ color: "rgba(240,240,244,0.80)" }}>{s.label}</div>
+                            <div className="text-[7px] mt-0.5" style={{ color: "rgba(255,255,255,0.28)" }}>{s.desc}</div>
+                          </div>
+                          <motion.button
+                            onClick={() => dispatch({ type: "SET_SETTINGS", patch: { [s.key]: !s.value } })}
+                            className="flex-shrink-0 w-10 h-5 rounded-full relative"
+                            style={{ background: s.value ? "rgba(34,197,94,0.8)" : "rgba(255,255,255,0.12)", border: `1px solid ${s.value ? "rgba(34,197,94,0.6)" : "rgba(255,255,255,0.15)"}` }}
+                            whileTap={{ scale: 0.95 }}>
+                            <motion.div className="absolute top-0.5 w-4 h-4 rounded-full bg-white"
+                              animate={{ left: s.value ? "calc(100% - 18px)" : "2px" }}
+                              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.4)" }} />
+                          </motion.button>
                         </div>
-                        <span className="text-[7px] font-mono opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: "rgba(255,255,255,0.5)" }}>COPY</span>
-                      </div>
-                      <div className="text-[7px] font-mono leading-relaxed truncate" style={{ color: "rgba(255,255,255,0.38)" }}>
-                        $ {item.cmd.slice(0,70)}{item.cmd.length > 70 ? "…" : ""}
-                      </div>
-                    </motion.button>
-                  ))}
-                  <div className="text-[7px] font-mono text-center pt-1" style={{ color: "rgba(255,255,255,0.18)" }}>انقر للنسخ إلى الحافظة</div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Temperature slider */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(240,240,244,0.35)" }}>درجة الإبداع (Temperature)</div>
+                      <span className="text-[10px] font-black font-mono" style={{ color: "rgba(240,240,244,0.85)" }}>
+                        {(state.settings.aiTemperature ?? 0.7).toFixed(1)}
+                      </span>
+                    </div>
+                    <input type="range" min="0" max="2" step="0.1"
+                      value={state.settings.aiTemperature ?? 0.7}
+                      onChange={e => dispatch({ type: "SET_SETTINGS", patch: { aiTemperature: parseFloat(e.target.value) } })}
+                      className="w-full h-1 rounded-full appearance-none cursor-pointer"
+                      style={{ accentColor: "rgba(240,240,244,0.8)", background: "rgba(240,240,244,0.12)" }} />
+                    <div className="flex justify-between mt-1">
+                      <span className="text-[6px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>دقيق 0</span>
+                      <span className="text-[6px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>متوازن 1</span>
+                      <span className="text-[6px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>إبداعي 2</span>
+                    </div>
+                  </div>
+
+                  {/* Max tokens */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(240,240,244,0.35)" }}>الحد الأقصى للرموز</div>
+                      <span className="text-[10px] font-black font-mono" style={{ color: "rgba(240,240,244,0.85)" }}>
+                        {state.settings.aiMaxTokens ?? 4096}
+                      </span>
+                    </div>
+                    <input type="range" min="512" max="32768" step="512"
+                      value={state.settings.aiMaxTokens ?? 4096}
+                      onChange={e => dispatch({ type: "SET_SETTINGS", patch: { aiMaxTokens: parseInt(e.target.value) } })}
+                      className="w-full h-1 rounded-full appearance-none cursor-pointer"
+                      style={{ accentColor: "rgba(240,240,244,0.8)", background: "rgba(240,240,244,0.12)" }} />
+                    <div className="flex justify-between mt-1">
+                      <span className="text-[6px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>512</span>
+                      <span className="text-[6px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>16K</span>
+                      <span className="text-[6px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>32K</span>
+                    </div>
+                  </div>
+
+                  {/* Top-P */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="text-[7px] font-bold tracking-widest uppercase" style={{ color: "rgba(240,240,244,0.35)" }}>تنوّع المخرجات (Top-P)</div>
+                      <span className="text-[10px] font-black font-mono" style={{ color: "rgba(240,240,244,0.85)" }}>
+                        {(state.settings.aiTopP ?? 1.0).toFixed(2)}
+                      </span>
+                    </div>
+                    <input type="range" min="0.1" max="1" step="0.05"
+                      value={state.settings.aiTopP ?? 1.0}
+                      onChange={e => dispatch({ type: "SET_SETTINGS", patch: { aiTopP: parseFloat(e.target.value) } })}
+                      className="w-full h-1 rounded-full appearance-none cursor-pointer"
+                      style={{ accentColor: "rgba(240,240,244,0.8)", background: "rgba(240,240,244,0.12)" }} />
+                  </div>
+
+                  {/* Reset button */}
+                  <motion.button
+                    onClick={() => dispatch({ type: "SET_SETTINGS", patch: { aiTemperature: 0.7, aiMaxTokens: 4096, aiTopP: 1.0, streaming: true, autoTitle: true } })}
+                    className="w-full py-2 rounded-xl text-[9px] font-bold tracking-wide"
+                    style={{ background: "rgba(240,240,244,0.04)", border: "1px solid rgba(240,240,244,0.12)", color: "rgba(240,240,244,0.55)" }}
+                    whileHover={{ background: "rgba(240,240,244,0.08)", color: "rgba(240,240,244,0.80)" }}
+                    whileTap={{ scale: 0.97 }}>
+                    إعادة ضبط الإعدادات للافتراضي
+                  </motion.button>
                 </div>
               )}
 
               {/* Footer */}
               <div className="px-4 py-2.5 flex items-center justify-between"
-                style={{ borderTop: "1px solid rgba(0,255,136,0.06)" }}>
+                style={{ borderTop: "1px solid rgba(240,240,244,0.06)" }}>
                 <div className="text-[8px] font-mono" style={{ color: "rgba(255,255,255,0.22)" }}>
-                  النشط: <span style={{ color: "rgba(0,255,136,0.7)" }}>{state.activeProvider.toUpperCase()}</span>
+                  النشط: <span style={{ color: "rgba(240,240,244,0.70)" }}>{state.activeProvider.toUpperCase()}</span>
                 </div>
                 <div className="flex items-center gap-0.5">
                   {["Ctrl", "Shift", "A"].map((k, i) => (
                     <span key={k} className="flex items-center gap-0.5">
                       {i > 0 && <span className="text-[7px]" style={{ color: "rgba(255,255,255,0.18)" }}>+</span>}
                       <kbd className="text-[7px] px-1.5 py-0.5 rounded font-mono"
-                        style={{ background: "#0a0d10", border: "1px solid rgba(0,255,136,0.18)", color: "rgba(0,255,136,0.6)" }}>
+                        style={{ background: "#0a0a12", border: "1px solid rgba(240,240,244,0.15)", color: "rgba(240,240,244,0.55)" }}>
                         {k}
                       </kbd>
                     </span>
                   ))}
                 </div>
               </div>
-              <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(0,229,255,0.32),transparent)" }} />
+              <div className="h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(240,240,244,0.25),transparent)" }} />
             </div>
           </motion.div>
         )}

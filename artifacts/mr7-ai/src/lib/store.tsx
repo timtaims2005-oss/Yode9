@@ -385,7 +385,7 @@ const initial: AppState = {
     apiKeyPool: [],
     backgroundStyle: "checkerboard",
     colorfulChatText: true,
-    orbColors: { health: "#e21227", setup: "#f5f5f0", persona: "#c7c9cc", switcher: "#1c1c1e" },
+    orbColors: { health: "#e21227", setup: "#f0f0f4", persona: "#0a0a14", switcher: "#c0c0c8" },
   },
   themeAccent: "crimson",
   activeGlobeTheme: DEFAULT_THEME_ID,
