@@ -5,7 +5,7 @@ import { CYBERWARFARE_KB } from "../lib/cyberwarfare-kb";
 import { DEFENSE_TOOLS_KB } from "../lib/defense-tools-kb";
 import { AISecurityGuard } from "../lib/ai-security-guard";
 
-const securityGuard = new AISecurityGuard();
+const securityGuard = AISecurityGuard;
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
