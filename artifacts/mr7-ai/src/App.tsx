@@ -6,11 +6,26 @@ class AppErrorBoundary extends Component<{ children: React.ReactNode; fallback?:
     this.state = { hasError: false };
   }
   static getDerivedStateFromError() { return { hasError: true }; }
-  componentDidCatch(e: Error) { console.warn("[AppErrorBoundary]", e.message); }
+  componentDidCatch(e: Error) { console.error("[AppErrorBoundary] modal failed to render:", e); }
   render() {
     if (this.state.hasError) return this.props.fallback ?? null;
     return this.props.children;
   }
+}
+
+function ModalLoadErrorFallback({ title, onClose }: { title: string; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-6">
+      <div className="max-w-sm w-full rounded-2xl border border-red-500/40 bg-[#0a0a0a] p-5 text-center">
+        <p className="text-red-400 font-black text-sm mb-1">تعذر تحميل النافذة</p>
+        <p className="text-white/60 text-xs mb-4">حدث خطأ غير متوقع أثناء فتح "{title}". حاول تحديث الصفحة.</p>
+        <div className="flex items-center justify-center gap-2">
+          <button onClick={() => window.location.reload()} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500/15 border border-red-500/40 text-red-300">تحديث الصفحة</button>
+          <button onClick={onClose} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white/5 border border-white/15 text-white/70">إغلاق</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 import { BootScreen } from "./components/BootScreen";
 import { Quantum4DWidget } from "./components/Quantum4DWidget";
@@ -1271,9 +1286,11 @@ function AppContent() {
         <WindowChrome open={modals.localBenchmark} color="#a78bfa" title="ENGINE BENCHMARK" onClose={() => close('localBenchmark')}>
           <LocalBenchmarkModal open={modals.localBenchmark} onOpenChange={(v) => mDispatch({type:'SET',id:'localBenchmark',value:v})} />
         </WindowChrome>
-        <WindowChrome open={modals.providerSettings} color="#00e5ff" title="PROVIDER SETTINGS" onClose={() => close('providerSettings')}>
-          <ProviderSettingsModal open={modals.providerSettings} onClose={() => close('providerSettings')} />
-        </WindowChrome>
+        <AppErrorBoundary fallback={<ModalLoadErrorFallback title="PROVIDER SETTINGS" onClose={() => close('providerSettings')} />}>
+          <WindowChrome open={modals.providerSettings} color="#00e5ff" title="PROVIDER SETTINGS" onClose={() => close('providerSettings')}>
+            <ProviderSettingsModal open={modals.providerSettings} onClose={() => close('providerSettings')} />
+          </WindowChrome>
+        </AppErrorBoundary>
         <WindowChrome open={modals.osintDash} color="#22c55e" title="OSINT DASHBOARD" onClose={() => close('osintDash')}>
           <OsintDashboard open={modals.osintDash} onOpenChange={(v) => mDispatch({type:'SET',id:'osintDash',value:v})} />
         </WindowChrome>
