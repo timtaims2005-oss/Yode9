@@ -2716,12 +2716,17 @@ export function TopBar({
         <motion.button
           type="button"
           onClick={onOpenProviderSettings}
+          onPointerUp={(e) => { e.stopPropagation(); onOpenProviderSettings(); }}
           className="flex-shrink-0 relative z-30 flex items-center gap-1.5 px-2.5 py-2 rounded-xl overflow-hidden"
           style={{
             background: "radial-gradient(circle at 35% 35%, rgba(139,92,246,0.20), rgba(0,0,0,0.88))",
             border: "1px solid rgba(139,92,246,0.40)",
             color: "#a78bfa",
             boxShadow: "0 0 18px rgba(139,92,246,0.28), inset 0 0 10px rgba(139,92,246,0.06)",
+            touchAction: "manipulation",
+            WebkitTapHighlightColor: "transparent",
+            minWidth: 40,
+            minHeight: 40,
           }}
           whileHover={{ scale: 1.06, y: -0.5, boxShadow: "0 0 28px rgba(139,92,246,0.45), inset 0 0 14px rgba(139,92,246,0.10)" }}
           whileTap={{ scale: 0.94 }}
