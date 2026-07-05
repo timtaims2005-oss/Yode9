@@ -1,7 +1,7 @@
 /**
  * KaliGPT Service Worker — PWA offline support
  */
-const CACHE_NAME = "kaligpt-v4";
+const CACHE_NAME = "kaligpt-v5";
 const STATIC_ASSETS = [
   "/",
   "/manifest.json",

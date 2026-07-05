@@ -47,12 +47,26 @@ function initErrorMonitor() {
 }
 
 // ── PWA Service Worker registration ──────────────────────────────────────────
+// IMPORTANT: only ever register in production builds. Registering the SW in
+// dev causes it to cache-first-serve stale JS/HTML bundles, so code fixes
+// (e.g. button handlers) silently fail to appear until a hard cache purge —
+// this previously masked real bug fixes during development.
 function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
+  if (!import.meta.env.PROD) {
+    // Defensively unregister any SW left over from earlier dev sessions and
+    // clear its caches so local testing always reflects the latest code.
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(reg => reg.unregister());
+    });
+    if ("caches" in window) {
+      caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+    }
+    return;
+  }
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js", { scope: "/" })
       .then(reg => {
-        if (import.meta.env.DEV) console.info("[KaliGPT SW] Registered:", reg.scope);
         reg.addEventListener("updatefound", () => {
           const sw = reg.installing;
           if (!sw) return;
@@ -65,7 +79,7 @@ function registerServiceWorker() {
         });
       })
       .catch(err => {
-        if (import.meta.env.DEV) console.warn("[KaliGPT SW] Registration failed:", err);
+        console.warn("[KaliGPT SW] Registration failed:", err);
       });
   });
 }
