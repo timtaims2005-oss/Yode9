@@ -2509,43 +2509,7 @@ export function TopBar({
         {(onOpenCisaLive || onOpenCveTimeline || onOpenCyberHierarchy || onOpenThreatFeed) && <VDivider />}
 
         {/* ── GROUP 5 — System ────────────────────────────────────────── */}
-        {onOpenProviderSettings && (
-          <motion.button
-            onClick={onOpenProviderSettings}
-            className="flex-shrink-0 relative flex items-center gap-1.5 px-2.5 py-2 rounded-xl overflow-hidden"
-            style={{
-              background: "radial-gradient(circle at 35% 35%, rgba(139,92,246,0.20), rgba(0,0,0,0.88))",
-              border: "1px solid rgba(139,92,246,0.40)",
-              color: "#a78bfa",
-              boxShadow: "0 0 18px rgba(139,92,246,0.28), inset 0 0 10px rgba(139,92,246,0.06)",
-            }}
-            whileHover={{ scale: 1.06, y: -0.5, boxShadow: "0 0 28px rgba(139,92,246,0.45), inset 0 0 14px rgba(139,92,246,0.10)" }}
-            whileTap={{ scale: 0.94 }}
-            title="إعدادات المزوّد"
-          >
-            {/* Pulse ring — CSS */}
-            <span className="absolute inset-0 rounded-xl pointer-events-none ring-pulse"
-              style={{ border: "1px solid rgba(139,92,246,0.20)", margin: "-3px" }} />
-            {/* Shimmer — CSS */}
-            <span className="btn-shimmer-inner"
-              style={{ background: "linear-gradient(90deg,transparent,rgba(167,139,250,0.18),transparent)" }} />
-            {/* Active dot — CSS */}
-            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 pulse-dot"
-              style={{ background: "#a78bfa", boxShadow: "0 0 6px rgba(139,92,246,0.9)" }} />
-            <div className="hidden sm:flex flex-col items-start leading-none gap-0.5">
-              <span className="text-[7px] font-black tracking-[0.3em] uppercase" style={{ color: "rgba(167,139,250,0.55)" }}>PROVIDER</span>
-              <span className="text-[9px] font-black tracking-wide uppercase">
-                {(state.activeProvider ?? "personal").slice(0, 8)}
-              </span>
-            </div>
-            {state.activeProviderModel && (
-              <span className="hidden md:block text-[8px] font-mono px-1 rounded"
-                style={{ color: "rgba(167,139,250,0.50)", background: "rgba(139,92,246,0.10)", border: "1px solid rgba(139,92,246,0.15)" }}>
-                {state.activeProviderModel.split("/").pop()?.slice(0, 8)}
-              </span>
-            )}
-          </motion.button>
-        )}
+        {/* Provider Settings button moved outside the scrollable strip — see PINNED block below main strip, always visible/reachable regardless of scroll position */}
 
         <LocalModelQuickToggle onOpenLocalModel={onOpenLocalModel} />
 
@@ -2653,6 +2617,47 @@ export function TopBar({
         <TokensPopover onUpgrade={onOpenPricing} />
 
       </div>{/* end main strip */}
+
+      {/* ── PINNED — Provider/AI Settings button (always visible, not inside scroll strip) ── */}
+      {onOpenProviderSettings && (
+        <motion.button
+          type="button"
+          onClick={onOpenProviderSettings}
+          className="flex-shrink-0 relative z-30 flex items-center gap-1.5 px-2.5 py-2 rounded-xl overflow-hidden"
+          style={{
+            background: "radial-gradient(circle at 35% 35%, rgba(139,92,246,0.20), rgba(0,0,0,0.88))",
+            border: "1px solid rgba(139,92,246,0.40)",
+            color: "#a78bfa",
+            boxShadow: "0 0 18px rgba(139,92,246,0.28), inset 0 0 10px rgba(139,92,246,0.06)",
+          }}
+          whileHover={{ scale: 1.06, y: -0.5, boxShadow: "0 0 28px rgba(139,92,246,0.45), inset 0 0 14px rgba(139,92,246,0.10)" }}
+          whileTap={{ scale: 0.94 }}
+          title="إعدادات المزوّد"
+          aria-label="إعدادات الذكاء الاصطناعي"
+        >
+          {/* Pulse ring — CSS */}
+          <span className="absolute inset-0 rounded-xl pointer-events-none ring-pulse"
+            style={{ border: "1px solid rgba(139,92,246,0.20)", margin: "-3px" }} />
+          {/* Shimmer — CSS */}
+          <span className="btn-shimmer-inner pointer-events-none"
+            style={{ background: "linear-gradient(90deg,transparent,rgba(167,139,250,0.18),transparent)" }} />
+          {/* Active dot — CSS */}
+          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 pulse-dot pointer-events-none"
+            style={{ background: "#a78bfa", boxShadow: "0 0 6px rgba(139,92,246,0.9)" }} />
+          <div className="hidden sm:flex flex-col items-start leading-none gap-0.5 pointer-events-none">
+            <span className="text-[7px] font-black tracking-[0.3em] uppercase" style={{ color: "rgba(167,139,250,0.55)" }}>PROVIDER</span>
+            <span className="text-[9px] font-black tracking-wide uppercase">
+              {(state.activeProvider ?? "personal").slice(0, 8)}
+            </span>
+          </div>
+          {state.activeProviderModel && (
+            <span className="hidden md:block text-[8px] font-mono px-1 rounded pointer-events-none"
+              style={{ color: "rgba(167,139,250,0.50)", background: "rgba(139,92,246,0.10)", border: "1px solid rgba(139,92,246,0.15)" }}>
+              {state.activeProviderModel.split("/").pop()?.slice(0, 8)}
+            </span>
+          )}
+        </motion.button>
+      )}
 
       {/* ── RIGHT scroll arrow ────────────────────────────────── */}
       <AnimatePresence>
