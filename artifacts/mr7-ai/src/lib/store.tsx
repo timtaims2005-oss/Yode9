@@ -385,7 +385,7 @@ const initial: AppState = {
     apiKeyPool: [],
     backgroundStyle: "checkerboard",
     colorfulChatText: true,
-    orbColors: {},
+    orbColors: { health: "#e21227", setup: "#f5f5f0", persona: "#c7c9cc", switcher: "#1c1c1e" },
   },
   themeAccent: "crimson",
   activeGlobeTheme: DEFAULT_THEME_ID,
@@ -426,7 +426,11 @@ function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         ...action.state,
-        settings: { ...initial.settings, ...(action.state.settings ?? {}) },
+        settings: {
+          ...initial.settings,
+          ...(action.state.settings ?? {}),
+          orbColors: { ...initial.settings.orbColors, ...(action.state.settings?.orbColors ?? {}) },
+        },
         subscription: { ...initial.subscription, ...(action.state.subscription ?? {}) },
         tokenHistory: { ...(action.state.tokenHistory ?? {}) },
       };
