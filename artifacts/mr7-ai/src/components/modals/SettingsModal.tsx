@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { FullPageOverlay } from "@/components/FullPageOverlay";
 import { Switch } from "@/components/ui/switch";
 import { Settings as SettingsIcon, Palette, Languages, Type, Coins, Trash2, Download, Sparkles, Bot, Layers, Brain, Globe, Check, X, RotateCcw } from "lucide-react";
@@ -5,7 +6,7 @@ import { useStore, ACCENT_OPTIONS, type Settings } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { useT, type TranslationKey } from "@/lib/i18n";
 import { THEMES, type ThemeId } from "@/lib/themes";
-import { resetAllDraggablePositions } from "@/hooks/useDraggable";
+import { resetAllDraggablePositions, isDraggableLocked, setDraggableLocked } from "@/hooks/useDraggable";
 
 type ToggleKey = {
   [K in keyof Settings]: Settings[K] extends boolean ? K : never;
@@ -43,6 +44,7 @@ export function SettingsModal({ open, onOpenChange }: { open: boolean; onOpenCha
   const { state, dispatch } = useStore();
   const { toast } = useToast();
   const { t } = useT();
+  const [windowsLocked, setWindowsLocked] = useState(() => isDraggableLocked());
 
   function exportAll() {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
@@ -263,6 +265,20 @@ export function SettingsModal({ open, onOpenChange }: { open: boolean; onOpenCha
           >
             <RotateCcw className="w-3.5 h-3.5" /> إعادة ضبط كل النوافذ
           </button>
+          <div className="flex items-center justify-between gap-4 py-3">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold">قفل مواضع النوافذ</div>
+              <div className="text-[12px] text-muted-foreground">منع سحب النوافذ العائمة عن طريق الخطأ بعد ترتيبها</div>
+            </div>
+            <Switch
+              checked={windowsLocked}
+              onCheckedChange={(v) => {
+                setWindowsLocked(v);
+                setDraggableLocked(v);
+                toast({ description: v ? "تم قفل مواضع النوافذ" : "تم إلغاء قفل مواضع النوافذ" });
+              }}
+            />
+          </div>
         </section>
 
         {/* AI engines */}

@@ -8,6 +8,18 @@ export function resetAllDraggablePositions() {
   window.dispatchEvent(new CustomEvent(RESET_ALL_POSITIONS_EVENT));
 }
 
+const LOCK_KEY = "mr7-windows-locked";
+export const LOCK_CHANGED_EVENT = "mr7:draggable-lock-changed";
+
+export function isDraggableLocked(): boolean {
+  try { return localStorage.getItem(LOCK_KEY) === "1"; } catch { return false; }
+}
+
+export function setDraggableLocked(locked: boolean) {
+  try { localStorage.setItem(LOCK_KEY, locked ? "1" : "0"); } catch {}
+  window.dispatchEvent(new CustomEvent(LOCK_CHANGED_EVENT, { detail: { locked } }));
+}
+
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
 
 /**
@@ -29,6 +41,8 @@ export function useDraggable(
     return defaultPos;
   });
 
+  const [locked, setLocked] = useState<boolean>(() => isDraggableLocked());
+
   const rootRef  = useRef<HTMLDivElement>(null);
   const rafRef   = useRef(0);
   const activeRef = useRef(false);
@@ -39,6 +53,13 @@ export function useDraggable(
   useEffect(() => {
     targetRef.current = { x: pos.x, y: pos.y };
   }, [pos]);
+
+  // Listen for global lock toggle
+  useEffect(() => {
+    const h = (e: Event) => setLocked((e as CustomEvent).detail?.locked ?? isDraggableLocked());
+    window.addEventListener(LOCK_CHANGED_EVENT, h);
+    return () => window.removeEventListener(LOCK_CHANGED_EVENT, h);
+  }, []);
 
   const commit = useCallback((x: number, y: number) => {
     const el = rootRef.current;
@@ -64,6 +85,7 @@ export function useDraggable(
   }, [storageKey, defaultPos.x, defaultPos.y]);
 
   const onDragMouseDown = useCallback((e: React.MouseEvent) => {
+    if (locked) return;
     if (e.button !== 0) return;
     if ((e.target as HTMLElement).closest("button")) return;
     e.preventDefault();
@@ -106,9 +128,10 @@ export function useDraggable(
 
     document.addEventListener("mousemove", move, { passive: true });
     document.addEventListener("mouseup",   up);
-  }, [commit]);
+  }, [commit, locked]);
 
   const onDragTouchStart = useCallback((e: React.TouchEvent) => {
+    if (locked) return;
     if ((e.target as HTMLElement).closest("button")) return;
     e.stopPropagation();
     const el = rootRef.current;
@@ -146,7 +169,7 @@ export function useDraggable(
 
     document.addEventListener("touchmove",  move, { passive: true });
     document.addEventListener("touchend",   up);
-  }, [commit]);
+  }, [commit, locked]);
 
   // Cleanup RAF on unmount
   useEffect(() => {
@@ -160,5 +183,5 @@ export function useDraggable(
     return () => window.removeEventListener(RESET_ALL_POSITIONS_EVENT, h);
   }, [resetPos]);
 
-  return { pos, rootRef, onDragMouseDown, onDragTouchStart, resetPos };
+  return { pos, rootRef, onDragMouseDown, onDragTouchStart, resetPos, locked };
 }
