@@ -7,6 +7,7 @@ import { PlanetOrb, hexToRgb } from "./PlanetOrb";
 
 const KEY_PREFIX = "mr7-ai-p-key-";
 const URL_PREFIX = "mr7-ai-p-url-";
+const OPEN_STATE_KEY = "mr7-setup-win-open";
 
 interface ProviderDef {
   id: string; name: string; shortName: string; color: string;
@@ -369,7 +370,14 @@ export function AIQuickSetupButton() {
   const { state, dispatch }       = useStore();
   const { toast }                 = useToast();
   const [phase, setPhase]         = useState<Phase>("idle");
-  const [open, setOpen]           = useState(false);
+  const [open, setOpenState]      = useState(() => localStorage.getItem(OPEN_STATE_KEY) === "1");
+  const setOpen = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
+    setOpenState(prev => {
+      const next = typeof value === "function" ? (value as (p: boolean) => boolean)(prev) : value;
+      localStorage.setItem(OPEN_STATE_KEY, next ? "1" : "0");
+      return next;
+    });
+  }, []);
   const { pos: dragPos, rootRef: winRef, onDragMouseDown: onWinDragDown } = useDraggable("mr7-setup-win", { x: 16, y: Math.round(window.innerHeight * 0.05) });
   const [scanProgress, setScanProgress] = useState(0);
   const [scanMsg, setScanMsg]     = useState("");
