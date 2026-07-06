@@ -47,6 +47,16 @@ export function useDraggable(
     try { localStorage.setItem(storageKey, JSON.stringify(p)); } catch {}
   }, [storageKey]);
 
+  const resetPos = useCallback(() => {
+    try { localStorage.removeItem(storageKey); } catch {}
+    const el = rootRef.current;
+    const w  = el?.offsetWidth ?? 0;
+    const cx = clamp(defaultPos.x, 0, window.innerWidth  - w - 2);
+    const cy = clamp(defaultPos.y, 0, window.innerHeight - 48);
+    if (el) { el.style.left = `${cx}px`; el.style.top = `${cy}px`; }
+    setPos({ x: cx, y: cy });
+  }, [storageKey, defaultPos.x, defaultPos.y]);
+
   const onDragMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return;
     if ((e.target as HTMLElement).closest("button")) return;
@@ -137,5 +147,5 @@ export function useDraggable(
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, []);
 
-  return { pos, rootRef, onDragMouseDown, onDragTouchStart };
+  return { pos, rootRef, onDragMouseDown, onDragTouchStart, resetPos };
 }

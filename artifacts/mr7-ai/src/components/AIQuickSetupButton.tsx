@@ -378,7 +378,7 @@ export function AIQuickSetupButton() {
       return next;
     });
   }, []);
-  const { pos: dragPos, rootRef: winRef, onDragMouseDown: onWinDragDown } = useDraggable("mr7-setup-win", { x: 16, y: Math.round(window.innerHeight * 0.05) });
+  const { pos: dragPos, rootRef: winRef, onDragMouseDown: onWinDragDown, resetPos: resetWinPos } = useDraggable("mr7-setup-win", { x: 16, y: Math.round(window.innerHeight * 0.05) });
   const [scanProgress, setScanProgress] = useState(0);
   const [scanMsg, setScanMsg]     = useState("");
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>({});
@@ -554,6 +554,32 @@ export function AIQuickSetupButton() {
         )}
         <QuantumAtom3D phase={phase} open={open} hover={atomHover} customColor={state.settings.orbColors?.setup} />
       </motion.button>
+
+      {open && (
+        <motion.button
+          onClick={() => { resetWinPos(); toast({ description: "تمت إعادة نافذة الإعدادات إلى موضعها الافتراضي" }); }}
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.7 }}
+          className="absolute flex items-center justify-center rounded-full"
+          style={{
+            width: 20, height: 20,
+            top: -4, right: -4,
+            background: "rgba(10,10,16,0.95)",
+            border: "1px solid rgba(240,240,244,0.35)",
+            color: "rgba(240,240,244,0.75)",
+          }}
+          whileHover={{ scale: 1.15, borderColor: "rgba(240,240,244,0.7)" }}
+          whileTap={{ scale: 0.9 }}
+          aria-label="إعادة ضبط موضع نافذة الإعدادات"
+          title="إعادة ضبط الموضع"
+        >
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+            <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.89" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M13.5 2.5v3.2h-3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </motion.button>
+      )}
 
       {/* ── DRAGGABLE POPUP WINDOW ── */}
       <AnimatePresence>
