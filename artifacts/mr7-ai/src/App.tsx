@@ -1286,9 +1286,11 @@ function AppContent() {
           <LocalBenchmarkModal open={modals.localBenchmark} onOpenChange={(v) => mDispatch({type:'SET',id:'localBenchmark',value:v})} />
         </WindowChrome>
         <AppErrorBoundary fallback={<ModalLoadErrorFallback title="PROVIDER SETTINGS" onClose={() => close('providerSettings')} />}>
-          <WindowChrome open={modals.providerSettings} color="#00e5ff" title="PROVIDER SETTINGS" onClose={() => close('providerSettings')}>
-            <ProviderSettingsModal open={modals.providerSettings} onClose={() => close('providerSettings')} />
-          </WindowChrome>
+          <Suspense fallback={null}>
+            <WindowChrome open={modals.providerSettings} color="#00e5ff" title="PROVIDER SETTINGS" onClose={() => close('providerSettings')}>
+              <ProviderSettingsModal open={modals.providerSettings} onClose={() => close('providerSettings')} />
+            </WindowChrome>
+          </Suspense>
         </AppErrorBoundary>
         <WindowChrome open={modals.osintDash} color="#22c55e" title="OSINT DASHBOARD" onClose={() => close('osintDash')}>
           <OsintDashboard open={modals.osintDash} onOpenChange={(v) => mDispatch({type:'SET',id:'osintDash',value:v})} />
