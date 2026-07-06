@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore, ProviderName } from "@/lib/store";
@@ -516,6 +517,7 @@ export function AIQuickSetupButton() {
         )}
       </motion.button>
 
+      {createPortal(
       <AnimatePresence>
         {open && (
           <motion.div
@@ -657,7 +659,9 @@ export function AIQuickSetupButton() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+      )}
     </div>
   );
 }
