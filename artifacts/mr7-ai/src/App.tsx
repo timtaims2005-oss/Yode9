@@ -1040,9 +1040,11 @@ function AppContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [omnixPanelOpen, omnixVoiceOpen, omnixEvoOpen, omnixPaletteOpen]);
 
+  const handleBootDone = useCallback(() => setBootDone(true), []);
+
   return (
     <>
-    {!bootDone && <BootScreen onDone={() => setBootDone(true)} />}
+    {!bootDone && <BootScreen onDone={handleBootDone} />}
     <NexusExecutorHUD dispatchers={nexusDispatchers} />
     {/* ── Holo Notification System (always mounted) ────────────────────── */}
     <Suspense fallback={null}>
