@@ -2493,6 +2493,32 @@ export function TopBar({
           </motion.button>
         )}
 
+        {/* ── AI Settings — plain <button> for reliable mobile touch ── */}
+        {onOpenProviderSettings && (
+          <button
+            type="button"
+            onClick={onOpenProviderSettings}
+            className="flex-shrink-0 flex items-center gap-1.5 px-2.5 rounded-xl"
+            style={{
+              background: "linear-gradient(135deg,rgba(139,92,246,0.22) 0%,rgba(0,229,255,0.10) 100%)",
+              border: "1px solid rgba(139,92,246,0.55)",
+              color: "#a78bfa",
+              boxShadow: "0 0 14px rgba(139,92,246,0.28)",
+              height: 34,
+              touchAction: "manipulation",
+              WebkitTapHighlightColor: "transparent",
+              cursor: "pointer",
+            }}
+            title="إعدادات الذكاء الاصطناعي"
+            aria-label="إعدادات الذكاء الاصطناعي"
+          >
+            <span className="w-2 h-2 rounded-full flex-shrink-0"
+              style={{ background: "#a78bfa", boxShadow: "0 0 7px rgba(139,92,246,0.9)" }} />
+            <span className="text-[10px] font-black tracking-wide">AI</span>
+            <span className="text-[10px] font-black tracking-wide">إعدادات</span>
+          </button>
+        )}
+
         {/* Model selector */}
         <ModelSelector3D onOpenPricing={onOpenPricing} />
 
@@ -2729,30 +2755,6 @@ export function TopBar({
         )}
       </AnimatePresence>
 
-      {/* ── AI Settings — PINNED outside scroll strip, always visible ── */}
-      {onOpenProviderSettings && (
-        <motion.button
-          type="button"
-          onClick={onOpenProviderSettings}
-          className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl relative z-20 ml-1"
-          style={{
-            background: "linear-gradient(135deg, rgba(139,92,246,0.22) 0%, rgba(0,229,255,0.10) 100%)",
-            border: "1px solid rgba(139,92,246,0.55)",
-            color: "#a78bfa",
-            boxShadow: "0 0 16px rgba(139,92,246,0.28)",
-            minHeight: 32,
-          }}
-          whileHover={{ scale: 1.06, boxShadow: "0 0 28px rgba(139,92,246,0.55)", borderColor: "rgba(139,92,246,0.85)" }}
-          whileTap={{ scale: 0.92 }}
-          title="إعدادات الذكاء الاصطناعي"
-          aria-label="إعدادات الذكاء الاصطناعي"
-        >
-          <span className="w-2 h-2 rounded-full flex-shrink-0"
-            style={{ background: "#a78bfa", boxShadow: "0 0 8px rgba(139,92,246,1)" }} />
-          <span className="text-[10px] font-black tracking-wide">AI</span>
-          <span className="text-[10px] font-black tracking-wide hidden xs:block">إعدادات</span>
-        </motion.button>
-      )}
 
       </div>{/* end h-14 main row */}
 
