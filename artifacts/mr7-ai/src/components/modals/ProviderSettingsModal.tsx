@@ -1,5 +1,6 @@
 import React from "react";
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import {
   X, RefreshCw, Check, Cpu, Globe, Zap, FlaskConical, Route, Server, User,
   ExternalLink, Search, Star, Info, Copy, CheckCheck, Key, Eye, EyeOff,
@@ -1819,11 +1820,12 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
     { id: "modes",     label: "الأوضاع",    icon: Zap         },
   ] as const;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
           className="fixed inset-0 z-[9999]"
+          style={{ isolation: "isolate" }}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <motion.div
             className="relative w-full h-full bg-[#080808] flex flex-col overflow-hidden"
@@ -2710,6 +2712,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
