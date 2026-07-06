@@ -390,11 +390,15 @@ export function AIQuickSetupButton() {
   useEffect(() => {
     if (!open) return;
     const h = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      // Keep open if click is inside the trigger button OR inside the portaled panel itself
+      const insideButton = panelRef.current?.contains(target) ?? false;
+      const insidePanel  = (winRef as React.RefObject<HTMLDivElement>).current?.contains(target) ?? false;
+      if (!insideButton && !insidePanel) setOpen(false);
     };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
-  }, [open, setOpen]);
+  }, [open, setOpen, winRef]);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
