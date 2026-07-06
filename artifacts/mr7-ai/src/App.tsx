@@ -365,7 +365,6 @@ const SecurityCompliancePagePlain = lazy(() => import("./pages/SecurityComplianc
 const CyberHeatmapHUD         = lazy(() => import("./components/CyberHeatmapHUD").then(m=>({default:m.CyberHeatmapHUD})));
 const Cyber3DGrid             = lazy(() => import("./components/Cyber3DGrid").then(m=>({default:m.Cyber3DGrid})));
 const QuantumCommandCenter    = lazy(() => import("./components/QuantumCommandCenter").then(m=>({default:m.QuantumCommandCenter})));
-const AIQuickSetupButton      = lazy(() => import("./components/AIQuickSetupButton").then(m=>({default:m.AIQuickSetupButton})));
 const FloatingNetworkPanel    = lazy(() => import("./components/FloatingNetworkPanel").then(m=>({default:m.FloatingNetworkPanel})));
 const QuantumMemoryGraph      = lazy(() => import("./components/QuantumMemoryGraph").then(m=>({default:m.QuantumMemoryGraph})));
 const QuantumPersona3D        = lazy(() => import("./components/QuantumPersona3D").then(m=>({default:m.QuantumPersona3D})));
@@ -1666,7 +1665,6 @@ function AppContent() {
         {showCyberHeatmap && <CyberHeatmapHUD />}
         {showCyber3DGrid && <Cyber3DGrid />}
         {showQuantumCommand && <QuantumCommandCenter />}
-        {showAIQuickSetup && <AIQuickSetupButton />}
         {showFloatingNetwork && <FloatingNetworkPanel />}
         {showQuantumMemGraph && <QuantumMemoryGraph />}
         {showQuantumPersona3D && <QuantumPersona3D onOpenPersonaManager={() => open('personaManager')} />}

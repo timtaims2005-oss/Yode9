@@ -560,7 +560,7 @@ export function AIQuickSetupButton() {
               position: "fixed",
               left: dragPos.x,
               top: dragPos.y,
-              zIndex: 9999,
+              zIndex: 99999,
               width: "clamp(280px, 34vw, 420px)",
               maxHeight: "78vh",
               perspective: "1400px",

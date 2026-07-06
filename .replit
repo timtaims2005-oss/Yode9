@@ -64,7 +64,7 @@ AUTO_LAUNCH_OLLAMA = "true"
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["bash", "deploy-start.sh"]
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
 build = ["bash", "-c", "cd artifacts/api-server && pnpm run build && cd ../mr7-ai && pnpm run build"]
 
 [[ports]]
