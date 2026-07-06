@@ -1823,7 +1823,7 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50"
+          className="fixed inset-0 z-[9999]"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <motion.div
             className="relative w-full h-full bg-[#080808] flex flex-col overflow-hidden"

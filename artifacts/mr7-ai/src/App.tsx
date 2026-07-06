@@ -131,7 +131,7 @@ const PersonaEditorModal    = lazy(() => import("./components/modals/PersonaEdit
 const PersonaManagerModal   = lazy(() => import("./components/modals/PersonaManagerModal").then(m=>({default:m.PersonaManagerModal})));
 const LocalModelModal       = lazy(() => import("./components/modals/LocalModelModal").then(m=>({default:m.LocalModelModal})));
 const LocalEngineHubModal   = lazy(() => import("./components/modals/LocalEngineHubModal").then(m=>({default:m.LocalEngineHubModal})));
-const ProviderSettingsModal = lazy(() => import("./components/modals/ProviderSettingsModal").then(m=>({default:m.ProviderSettingsModal})));
+import { ProviderSettingsModal } from "./components/modals/ProviderSettingsModal";
 const OsintDashboard        = lazy(() => import("./components/modals/OsintDashboard").then(m=>({default:m.OsintDashboard})));
 const OsintHubModal         = lazy(() => import("./components/modals/OsintHubModal").then(m=>({default:m.OsintHubModal})));
 const AdminPanel            = lazy(() => import("./components/modals/AdminPanel").then(m=>({default:m.AdminPanel})));
@@ -1285,13 +1285,7 @@ function AppContent() {
         <WindowChrome open={modals.localBenchmark} color="#a78bfa" title="ENGINE BENCHMARK" onClose={() => close('localBenchmark')}>
           <LocalBenchmarkModal open={modals.localBenchmark} onOpenChange={(v) => mDispatch({type:'SET',id:'localBenchmark',value:v})} />
         </WindowChrome>
-        <AppErrorBoundary fallback={<ModalLoadErrorFallback title="PROVIDER SETTINGS" onClose={() => close('providerSettings')} />}>
-          <Suspense fallback={null}>
-            <WindowChrome open={modals.providerSettings} color="#00e5ff" title="PROVIDER SETTINGS" onClose={() => close('providerSettings')}>
-              <ProviderSettingsModal open={modals.providerSettings} onClose={() => close('providerSettings')} />
-            </WindowChrome>
-          </Suspense>
-        </AppErrorBoundary>
+        <ProviderSettingsModal open={modals.providerSettings} onClose={() => close('providerSettings')} />
         <WindowChrome open={modals.osintDash} color="#22c55e" title="OSINT DASHBOARD" onClose={() => close('osintDash')}>
           <OsintDashboard open={modals.osintDash} onOpenChange={(v) => mDispatch({type:'SET',id:'osintDash',value:v})} />
         </WindowChrome>
