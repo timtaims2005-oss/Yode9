@@ -1,10 +1,11 @@
 import { FullPageOverlay } from "@/components/FullPageOverlay";
 import { Switch } from "@/components/ui/switch";
-import { Settings as SettingsIcon, Palette, Languages, Type, Coins, Trash2, Download, Sparkles, Bot, Layers, Brain, Globe, Check, X } from "lucide-react";
+import { Settings as SettingsIcon, Palette, Languages, Type, Coins, Trash2, Download, Sparkles, Bot, Layers, Brain, Globe, Check, X, RotateCcw } from "lucide-react";
 import { useStore, ACCENT_OPTIONS, type Settings } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { useT, type TranslationKey } from "@/lib/i18n";
 import { THEMES, type ThemeId } from "@/lib/themes";
+import { resetAllDraggablePositions } from "@/hooks/useDraggable";
 
 type ToggleKey = {
   [K in keyof Settings]: Settings[K] extends boolean ? K : never;
@@ -246,6 +247,22 @@ export function SettingsModal({ open, onOpenChange }: { open: boolean; onOpenCha
               onCheckedChange={(v) => dispatch({ type: "SET_SETTINGS", patch: { colorfulChatText: v } })}
             />
           </div>
+        </section>
+
+        {/* Reset all draggable windows */}
+        <section className="mt-4">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5 mb-1">
+            <RotateCcw className="w-3 h-3 text-cyan-400" /> النوافذ العائمة
+          </div>
+          <button
+            onClick={() => {
+              resetAllDraggablePositions();
+              toast({ description: "تمت إعادة جميع النوافذ القابلة للسحب إلى مواضعها الافتراضية" });
+            }}
+            className="w-full px-3 py-2 rounded-lg border border-cyan-400/40 bg-cyan-400/10 text-cyan-300 hover:bg-cyan-400/20 text-[12px] font-bold flex items-center justify-center gap-1.5"
+          >
+            <RotateCcw className="w-3.5 h-3.5" /> إعادة ضبط كل النوافذ
+          </button>
         </section>
 
         {/* AI engines */}

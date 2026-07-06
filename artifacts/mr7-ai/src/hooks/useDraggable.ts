@@ -2,6 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const GRID = 1; // no grid snapping — pixel-perfect
 
+export const RESET_ALL_POSITIONS_EVENT = "mr7:reset-all-draggable-positions";
+
+export function resetAllDraggablePositions() {
+  window.dispatchEvent(new CustomEvent(RESET_ALL_POSITIONS_EVENT));
+}
+
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
 
 /**
@@ -146,6 +152,13 @@ export function useDraggable(
   useEffect(() => {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, []);
+
+  // Listen for global "reset all" broadcast
+  useEffect(() => {
+    const h = () => resetPos();
+    window.addEventListener(RESET_ALL_POSITIONS_EVENT, h);
+    return () => window.removeEventListener(RESET_ALL_POSITIONS_EVENT, h);
+  }, [resetPos]);
 
   return { pos, rootRef, onDragMouseDown, onDragTouchStart, resetPos };
 }
