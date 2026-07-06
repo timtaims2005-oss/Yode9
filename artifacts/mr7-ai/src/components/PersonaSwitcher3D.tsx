@@ -1,5 +1,6 @@
 import React from "react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
@@ -137,7 +138,7 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
       )}
 
       {/* 3D External Draggable Window — UPGRADED v4 */}
-      <AnimatePresence>
+      {createPortal(<AnimatePresence>
         {showPanel && (
           <motion.div
             ref={panelRef as React.Ref<HTMLDivElement>}
@@ -464,7 +465,7 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
             <div className="h-px w-full" style={{ background: `linear-gradient(90deg, transparent, rgba(${cr},${cg},${cb},0.55), transparent)` }} />
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>, document.body)}
     </div>
   );
 }

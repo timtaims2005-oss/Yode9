@@ -1,5 +1,6 @@
 import React from "react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
@@ -149,7 +150,7 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
       )}
 
       {/* ── FLOATING PERSONA PANEL — QUANTUM v5 — Draggable Window ── */}
-      <AnimatePresence>
+      {createPortal(<AnimatePresence>
         {showPanel && (
             <motion.div
               ref={panelRef as React.Ref<HTMLDivElement>}
@@ -423,7 +424,7 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
               <div className="h-px" style={{ background: `linear-gradient(90deg,transparent,${activeColor}60,transparent)` }} />
             </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>, document.body)}
     </div>
   );
 }

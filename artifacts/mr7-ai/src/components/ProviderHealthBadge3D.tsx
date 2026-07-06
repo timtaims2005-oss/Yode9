@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
@@ -488,7 +489,7 @@ export function ProviderHealthBadge3D() {
       )}
 
       {/* ── DRAGGABLE POPUP WINDOW ── */}
-      <AnimatePresence>
+      {createPortal(<AnimatePresence>
         {open && (
           <motion.div
             ref={winRef as React.Ref<HTMLDivElement>}
@@ -974,7 +975,7 @@ export function ProviderHealthBadge3D() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>, document.body)}
     </div>
   );
 }
