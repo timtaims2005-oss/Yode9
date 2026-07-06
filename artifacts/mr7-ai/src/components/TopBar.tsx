@@ -2391,6 +2391,22 @@ export function TopBar({
     toast({ description: t(next ? "power.activated" : "power.deactivated") });
   }
 
+  const lastClickToastRef = useRef<{ label: string; time: number }>({ label: "", time: 0 });
+  function handleActionClickCapture(e: React.MouseEvent) {
+    const btn = (e.target as HTMLElement).closest("button, a[role='button']") as HTMLElement | null;
+    if (!btn || btn.disabled) return;
+    const label =
+      btn.getAttribute("aria-label") ||
+      btn.getAttribute("title") ||
+      btn.textContent?.trim().slice(0, 24) ||
+      "";
+    if (!label) return;
+    const now = Date.now();
+    if (lastClickToastRef.current.label === label && now - lastClickToastRef.current.time < 900) return;
+    lastClickToastRef.current = { label, time: now };
+    toast({ description: `✓ ${label}`, duration: 1400 });
+  }
+
   const [compact, setCompact] = useState(() => localStorage.getItem("mr7-topbar-compact") === "1");
   function toggleCompact() {
     setCompact(c => {
@@ -2415,7 +2431,7 @@ export function TopBar({
       }}
     >
       {/* ── Main row (h-14) — single scrollable strip ───────────────── */}
-      <div className="h-14 flex items-center px-1 relative overflow-hidden">
+      <div className="h-14 flex items-center px-1 relative overflow-hidden" onClickCapture={handleActionClickCapture}>
 
       {/* 3D HUD canvas background */}
       <TopBarHUDCanvas powerOn={powerOn} />

@@ -171,6 +171,27 @@ export function useDraggable(
     document.addEventListener("touchend",   up);
   }, [commit, locked]);
 
+  // Re-clamp persisted position to the current viewport on mount. A position
+  // saved on a different screen size (or window resize since last save) can
+  // otherwise leave the panel rendered fully off-screen — visually "not
+  // appearing" even though its open state toggled correctly.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const w = el.offsetWidth || 0;
+    const h = el.offsetHeight || 0;
+    const cx = clamp(pos.x, 0, Math.max(0, window.innerWidth - w - 2));
+    const cy = clamp(pos.y, 0, Math.max(0, window.innerHeight - Math.min(h, 48)));
+    if (cx !== pos.x || cy !== pos.y) {
+      el.style.left = `${cx}px`;
+      el.style.top = `${cy}px`;
+      const p = { x: cx, y: cy };
+      setPos(p);
+      try { localStorage.setItem(storageKey, JSON.stringify(p)); } catch {}
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Cleanup RAF on unmount
   useEffect(() => {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
