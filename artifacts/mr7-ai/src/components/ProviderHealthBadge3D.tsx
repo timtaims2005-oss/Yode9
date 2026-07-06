@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
+import { useToast } from "@/hooks/use-toast";
 import { PlanetOrb, hexToRgb } from "./PlanetOrb";
 
 type Health = "checking" | "healthy" | "slow" | "error" | "unknown";
@@ -320,7 +321,8 @@ export function ProviderHealthBadge3D() {
   const [history,  setHistory]   = useState<number[]>([]);
   const [checks,   setChecks]    = useState(0);
   const [open,     setOpen]      = useState(false);
-  const { pos: dragPos, rootRef: winRef, onDragMouseDown: onWinDragDown } = useDraggable("mr7-health-win", { x: Math.max(8, window.innerWidth - 440), y: Math.round(window.innerHeight * 0.05) });
+  const { pos: dragPos, rootRef: winRef, onDragMouseDown: onWinDragDown, resetPos: resetWinPos } = useDraggable("mr7-health-win", { x: Math.max(8, window.innerWidth - 440), y: Math.round(window.innerHeight * 0.05) });
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"status" | "matrix" | "shield" | "net" | "log" | "bench" | "pulse" | "globe">("status");
   const [eventLog,  setEventLog]  = useState<{ ts: number; msg: string; color: string }[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -458,6 +460,32 @@ export function ProviderHealthBadge3D() {
           style={{ border: `1px dashed rgba(${health === "healthy" ? "226,18,39" : health === "error" ? "226,18,39" : "255,80,80"},0.22)`, margin: "-10px" }} />
         <QuantumPlanet3D health={health} latency={latency} open={open} hover={planetHover} customColor={state.settings.orbColors?.health} />
       </motion.button>
+
+      {open && (
+        <motion.button
+          onClick={() => { resetWinPos(); toast({ description: "تمت إعادة نافذة حالة المزوّد إلى موضعها الافتراضي" }); }}
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.7 }}
+          className="absolute flex items-center justify-center rounded-full"
+          style={{
+            width: 20, height: 20,
+            top: -4, right: -4,
+            background: "rgba(10,10,16,0.95)",
+            border: "1px solid rgba(226,18,39,0.45)",
+            color: "rgba(255,120,130,0.85)",
+          }}
+          whileHover={{ scale: 1.15, borderColor: "rgba(226,18,39,0.85)" }}
+          whileTap={{ scale: 0.9 }}
+          aria-label="إعادة ضبط موضع نافذة حالة المزوّد"
+          title="إعادة ضبط الموضع"
+        >
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+            <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.89" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M13.5 2.5v3.2h-3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </motion.button>
+      )}
 
       {/* ── DRAGGABLE POPUP WINDOW ── */}
       <AnimatePresence>

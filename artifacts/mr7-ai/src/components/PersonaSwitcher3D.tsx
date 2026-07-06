@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
+import { useToast } from "@/hooks/use-toast";
 import { PERSONA_PRESETS, type PersonaPreset } from "./modals/PersonaEditorModal";
 import { PlanetOrb, hexToRgb } from "./PlanetOrb";
 
@@ -37,7 +38,8 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
   const [psSearch, setPsSearch] = useState("");
   const [psCategory, setPsCategory] = useState<"all"|"general"|"security"|"uncensored"|"specialist">("all");
   const ref = useRef<HTMLDivElement>(null);
-  const { pos: dragPos, rootRef: panelRef, onDragMouseDown } = useDraggable("mr7-ps3d-win", { x: Math.max(8, window.innerWidth - 580), y: 60 });
+  const { pos: dragPos, rootRef: panelRef, onDragMouseDown, resetPos: resetPanelPos } = useDraggable("mr7-ps3d-win", { x: Math.max(8, window.innerWidth - 580), y: 60 });
+  const { toast } = useToast();
 
   const activePresetId = state.settings.activePersonaPreset ?? "default";
   const activePreset = PERSONA_PRESETS.find(p => p.id === activePresetId) ?? PERSONA_PRESETS[0];
@@ -107,6 +109,32 @@ export function PersonaSwitcher3D({ onOpenPersonaEditor, onOpenPersonaManager }:
           />
         )}
       </motion.button>
+
+      {showPanel && (
+        <motion.button
+          onClick={() => { resetPanelPos(); toast({ description: "تمت إعادة نافذة محوّل الشخصيات إلى موضعها الافتراضي" }); }}
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.7 }}
+          className="absolute flex items-center justify-center rounded-full"
+          style={{
+            width: 20, height: 20,
+            top: -4, right: -4,
+            background: "rgba(10,10,16,0.95)",
+            border: `1px solid rgba(${cr},${cg},${cb},0.55)`,
+            color: `rgb(${cr},${cg},${cb})`,
+          }}
+          whileHover={{ scale: 1.15, borderColor: `rgba(${cr},${cg},${cb},0.9)` }}
+          whileTap={{ scale: 0.9 }}
+          aria-label="إعادة ضبط موضع محوّل الشخصيات"
+          title="إعادة ضبط الموضع"
+        >
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+            <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.89" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M13.5 2.5v3.2h-3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </motion.button>
+      )}
 
       {/* 3D External Draggable Window — UPGRADED v4 */}
       <AnimatePresence>

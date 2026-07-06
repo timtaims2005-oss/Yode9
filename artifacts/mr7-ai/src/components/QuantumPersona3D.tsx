@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
+import { useToast } from "@/hooks/use-toast";
 import { PERSONA_PRESETS } from "./modals/PersonaEditorModal";
 import { PlanetOrb } from "./PlanetOrb";
 
@@ -48,7 +49,8 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
   const [qpTab, setQpTab] = useState<"neural"|"matrix"|"sync"|"config">("neural");
   const [qpSearch, setQpSearch] = useState("");
   const clickOutRef = useRef<HTMLDivElement>(null);
-  const { pos: dragPos, rootRef: panelRef, onDragMouseDown: onPanelDragDown } = useDraggable("mr7-qp3d-win", { x: Math.max(8, (window.innerWidth - 560) / 2), y: 50 });
+  const { pos: dragPos, rootRef: panelRef, onDragMouseDown: onPanelDragDown, resetPos: resetPanelPos } = useDraggable("mr7-qp3d-win", { x: Math.max(8, (window.innerWidth - 560) / 2), y: 50 });
+  const { toast } = useToast();
 
   const activePersona = state.activePersona ?? "default";
   const activePresetId = state.settings?.activePersonaPreset ?? "default";
@@ -119,6 +121,32 @@ export function QuantumPersona3D({ onOpenPersonaManager }: QuantumPersona3DProps
           PERSONA
         </motion.div>
       </motion.div>
+
+      {showPanel && (
+        <motion.button
+          onClick={() => { resetPanelPos(); toast({ description: "تمت إعادة نافذة الشخصية إلى موضعها الافتراضي" }); }}
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.7 }}
+          className="absolute flex items-center justify-center rounded-full"
+          style={{
+            width: 20, height: 20,
+            top: -4, right: -4,
+            background: "rgba(10,10,16,0.95)",
+            border: `1px solid ${activeColor}70`,
+            color: activeColor,
+          }}
+          whileHover={{ scale: 1.15, borderColor: activeColor }}
+          whileTap={{ scale: 0.9 }}
+          aria-label="إعادة ضبط موضع نافذة الشخصية"
+          title="إعادة ضبط الموضع"
+        >
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+            <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.89" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M13.5 2.5v3.2h-3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </motion.button>
+      )}
 
       {/* ── FLOATING PERSONA PANEL — QUANTUM v5 — Draggable Window ── */}
       <AnimatePresence>
