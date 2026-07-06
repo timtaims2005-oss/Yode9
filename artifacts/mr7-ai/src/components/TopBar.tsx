@@ -2497,7 +2497,10 @@ export function TopBar({
         {onOpenProviderSettings && (
           <button
             type="button"
-            onClick={onOpenProviderSettings}
+            onClick={() => {
+              onOpenProviderSettings();
+              window.dispatchEvent(new CustomEvent("omnix:open-modal", { detail: { id: "providerSettings" } }));
+            }}
             className="flex-shrink-0 flex items-center gap-1.5 px-2.5 rounded-xl"
             style={{
               background: "linear-gradient(135deg,rgba(139,92,246,0.22) 0%,rgba(0,229,255,0.10) 100%)",
