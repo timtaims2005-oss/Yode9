@@ -1892,15 +1892,22 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
-                {isActivelyStreaming && (
-                  <button
-                    onClick={() => window.dispatchEvent(new CustomEvent("kali:stop-streaming"))}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/15 border border-red-500/30 text-red-400 hover:bg-red-500/25 transition-colors text-[11px] font-bold animate-pulse"
-                    title="إيقاف التوليد">
-                    <Square className="w-3 h-3 fill-current" />
-                    إيقاف
-                  </button>
-                )}
+                <button
+                  onClick={() => {
+                    if (isActivelyStreaming) {
+                      window.dispatchEvent(new CustomEvent("kali:stop-streaming"));
+                    }
+                  }}
+                  disabled={!isActivelyStreaming}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold transition-all duration-300 ${
+                    isActivelyStreaming
+                      ? "bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25 animate-pulse cursor-pointer"
+                      : "bg-white/5 border-white/10 text-white/25 cursor-not-allowed"
+                  }`}
+                  title={isActivelyStreaming ? "إيقاف التوليد الآن" : "لا يوجد توليد نشط"}>
+                  <Square className="w-3 h-3 fill-current" />
+                  إيقاف
+                </button>
                 <button onClick={reloadProviders} disabled={reloading}
                   className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors" title="تحديث">
                   <RefreshCw className={`w-3.5 h-3.5 ${reloading ? "animate-spin" : ""}`} />
