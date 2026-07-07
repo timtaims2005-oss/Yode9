@@ -35,7 +35,11 @@ export function useDraggable(
       const v = localStorage.getItem(storageKey);
       if (v) {
         const p = JSON.parse(v);
-        if (typeof p.x === "number" && typeof p.y === "number") return p;
+        if (typeof p.x === "number" && typeof p.y === "number") {
+          const cx = Math.max(0, Math.min(p.x, window.innerWidth  - 100));
+          const cy = Math.max(0, Math.min(p.y, window.innerHeight - 100));
+          return { x: cx, y: cy };
+        }
       }
     } catch {}
     return defaultPos;

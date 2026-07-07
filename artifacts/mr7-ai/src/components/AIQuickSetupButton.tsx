@@ -361,7 +361,7 @@ export function AIQuickSetupButton() {
   const { state, dispatch } = useStore();
   const { toast } = useToast();
   const [phase, setPhase] = useState<Phase>("idle");
-  const [open, setOpenState] = useState(() => localStorage.getItem(OPEN_STATE_KEY) === "1");
+  const [open, setOpenState] = useState(false);
   const setOpen = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
     setOpenState((prev) => {
       const next = typeof value === "function" ? (value as (p: boolean) => boolean)(prev) : value;
@@ -371,6 +371,19 @@ export function AIQuickSetupButton() {
   }, []);
   const { pos: dragPos, rootRef: winRef, onDragMouseDown: onWinDragDown, resetPos: resetWinPos } =
     useDraggable("mr7-setup-win", { x: 16, y: Math.round(window.innerHeight * 0.05) });
+
+  useEffect(() => {
+    if (!open) return;
+    const margin = 80;
+    if (
+      dragPos.x < 0 || dragPos.x > window.innerWidth  - margin ||
+      dragPos.y < 0 || dragPos.y > window.innerHeight - margin
+    ) {
+      resetWinPos();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const [scanProgress, setScanProgress] = useState(0);
   const [scanMsg, setScanMsg] = useState("");
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>({});
