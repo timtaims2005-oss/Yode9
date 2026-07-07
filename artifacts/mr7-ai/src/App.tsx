@@ -544,12 +544,7 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
 }
 
 function computeInitialAutoSetup(): boolean {
-  if (localStorage.getItem("mr7-ai-autoinit-done") !== "1") return true;
-  const P_KEY = "mr7-ai-p-key-";
-  const PROVIDERS = ["groq","openai","anthropic","gemini","openrouter","deepseek","xai","mistral","together","fireworks","perplexity","cohere","nvidia","github"];
-  const hasKey = PROVIDERS.some(id => { const k = localStorage.getItem(P_KEY + id)?.trim(); return k && k.length > 10; });
-  try { const s = JSON.parse(localStorage.getItem("mr7-ai-state-v2") || "{}"); if ((s?.settings?.personalApiKey?.trim()?.length ?? 0) > 10) return false; } catch { /* ignore */ }
-  return !hasKey;
+  return false;
 }
 
 function makeInitialModals(): ModalState {
@@ -796,8 +791,11 @@ function AppContent() {
         if ((s?.settings?.personalApiKey?.trim()?.length ?? 0) > 10) {
           dispatch({ type: "SET_SETTINGS", patch: { streaming: true, autoTitle: true, showTokenMeter: true } as never });
           mDispatch({ type: 'CLOSE', id: 'autoSetup' }); localStorage.setItem("mr7-ai-autoinit-done", "1");
+          return;
         }
       } catch { /* ignore */ }
+      mDispatch({ type: 'CLOSE', id: 'autoSetup' });
+      localStorage.setItem("mr7-ai-autoinit-done", "1");
     }
     silentInit();
   // eslint-disable-next-line react-hooks/exhaustive-deps

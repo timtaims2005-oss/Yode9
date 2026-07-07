@@ -1266,6 +1266,7 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
   const [operatorId]    = useState(() => { const h = () => Math.floor(Math.random()*0xffff).toString(16).padStart(4,"0").toUpperCase(); return `OPR-${h()}-${h()}-${h()}`; });
   const [clearance]     = useState(() => ["ALPHA","BRAVO","CHARLIE","DELTA","OMEGA"][Math.floor(Math.random()*5)]);
   const [missionCode]   = useState(() => `OP-${Math.floor(Math.random()*9000+1000)}-SHADOW`);
+  const [showSkip,      setShowSkip]      = useState(false);
 
   const dismiss = useCallback((path?: string) => {
     setShow(false);
@@ -1283,6 +1284,7 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
     SUBSYSTEMS.forEach((_, i) => {
       timers.push(setTimeout(() => setSubsysReady(prev => { const n=[...prev]; n[i]=true; return n; }), SUBSYSTEMS[i].delay));
     });
+    timers.push(setTimeout(() => setShowSkip(true), 3000));
     timers.push(setTimeout(() => setPhase("scan"), 2750));
     timers.push(setTimeout(() => setScanDone(true), 3100));
     timers.push(setTimeout(() => setPhase("modules"), 3200));
@@ -1359,6 +1361,19 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
               <span className="font-mono text-[7.5px]" style={{ color:"rgba(0,229,255,0.5)" }}>SESSION: {fmtTime(sessionSec)}</span>
               <span className="font-mono text-[7.5px]" style={{ color:"rgba(255,255,255,0.28)" }}>{new Date().toISOString().replace("T"," ").slice(0,19)} UTC</span>
               <span className="font-mono text-[7px] px-2 py-0.5 rounded" style={{ color:"#fbbf24",border:"1px solid rgba(251,191,36,0.3)",background:"rgba(251,191,36,0.07)" }}>THREAT: CRITICAL</span>
+              <AnimatePresence>
+                {showSkip && (
+                  <motion.button
+                    initial={{ opacity:0, x:10 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0 }}
+                    transition={{ duration:0.3 }}
+                    onClick={e => { e.stopPropagation(); dismiss(); }}
+                    className="font-mono text-[7.5px] px-3 py-1 rounded cursor-pointer"
+                    style={{ color:"#e21227", border:"1px solid rgba(226,18,39,0.5)", background:"rgba(226,18,39,0.1)", letterSpacing:"0.15em" }}
+                    whileHover={{ background:"rgba(226,18,39,0.22)", borderColor:"rgba(226,18,39,0.9)" }}>
+                    ⏭ تخطي
+                  </motion.button>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
