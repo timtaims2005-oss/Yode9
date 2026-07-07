@@ -1513,19 +1513,52 @@ const TOTAL_MODEL_COUNT = ALL_MODELS.length;
 
 // ── Advanced Modes ─────────────────────────────────────────────────────────────
 const ADVANCED_MODES = [
-  { id: "jioreason", label: "JIO REASON", icon: Brain, color: "#a78bfa", glow: "rgba(167,139,250,0.2)", desc: "استدلال متعدد المراحل مع تفكير مرئي — o3-pro مُحسَّن", tag: "REASON" },
-  { id: "extended", label: "EXTENDED THINKING", icon: Layers, color: "#06b6d4", glow: "rgba(6,182,212,0.2)", desc: "100K thinking tokens — Claude Opus 4 مع Extended Thinking الكامل", tag: "EXTENDED" },
-  { id: "think", label: "THINK MODE", icon: Sparkles, color: "#8b5cf6", glow: "rgba(139,92,246,0.2)", desc: "Chain-of-thought مرئي مع خطوات تفكير قابلة للتتبع", tag: "THINK" },
-  { id: "mythos", label: "MYTHOS", icon: Atom, color: "#ec4899", glow: "rgba(236,72,153,0.2)", desc: "Anthropic Mythos — تحليل zero-day، اكتشاف الثغرات في ملايين LoC", tag: "MYTHOS" },
-  { id: "unbound", label: "UNBOUND", icon: Unlock, color: "#ef4444", glow: "rgba(239,68,68,0.2)", desc: "GPT-5.5 Unbound — تخطيط هجوم متعدد المراحل بلا قيود", tag: "UNBOUND" },
-  { id: "ultimate", label: "ULTIMATE", icon: Infinity, color: "#dc2626", glow: "rgba(220,38,38,0.2)", desc: "Llama 4 Maverick 10M ctx — رفع OS images كاملة، malware متغير", tag: "ULTIMATE" },
-  { id: "hunter", label: "THREAT HUNTER", icon: Target, color: "#fbbf24", glow: "rgba(251,191,36,0.2)", desc: "6 متخصصين في threat-hunting — IOC correlation، kill-chain", tag: "HUNTER" },
-  { id: "agent", label: "AGENT MODE", icon: Bot, color: "#10b981", glow: "rgba(16,185,129,0.2)", desc: "وكلاء مستقلون: RECON + EXPLOIT + ANALYST + STEALTH + STRIKE", tag: "AGENT" },
-  { id: "max", label: "MAX OVERDRIVE", icon: Maximize2, color: "#f97316", glow: "rgba(249,115,22,0.2)", desc: "أكبر نموذج متاح بأقصى context window، سياق فائق الطول", tag: "MAX" },
-  { id: "abliterated", label: "ABLITERATED", icon: Skull, color: "#dc2626", glow: "rgba(220,38,38,0.25)", desc: "نماذج مُزالة منها جميع طبقات الأمان — raw weights، no refusal", tag: "ABLITERATED" },
-  { id: "reason", label: "DEEP REASON", icon: Brain, color: "#a78bfa", glow: "rgba(167,139,250,0.2)", desc: "8 متخصصين في الاستدلال — CoT + self-reflection + adversarial critique", tag: "8 CHAMPIONS" },
-  { id: "ultraplinian", label: "ULTRAPLINIAN", icon: Flame, color: "#f97316", glow: "rgba(249,115,22,0.2)", desc: "55 champion في 5 مستويات — أقصى انفجار ذكاء اصطناعي ممكن", tag: "55 CHAMPIONS" },
-  { id: "classic", label: "GODMODE CLASSIC", icon: Zap, color: "#e21227", glow: "rgba(226,18,39,0.2)", desc: "5 champions متخصصون في السباق — Style × Persona matrix", tag: "5 CHAMPIONS" },
+  // ── Core GODMODE modes ──────────────────────────────────────────────────
+  { id: "classic",      label: "GODMODE CLASSIC",     icon: Zap,        color: "#e21227", glow: "rgba(226,18,39,0.2)",     desc: "5 champions متخصصون في السباق — Style × Persona matrix",                              tag: "5 CHAMPIONS"    },
+  { id: "ultraplinian", label: "ULTRAPLINIAN",         icon: Flame,      color: "#f97316", glow: "rgba(249,115,22,0.2)",   desc: "55 champion في 5 مستويات — أقصى انفجار ذكاء اصطناعي ممكن",                            tag: "55 CHAMPIONS"   },
+  { id: "maxoverdrive", label: "MAX OVERDRIVE",        icon: Maximize2,  color: "#ef4444", glow: "rgba(239,68,68,0.2)",    desc: "12 بطل في وقت واحد — الحد الأقصى من القوة والتوازي الفائق",                            tag: "12 CHAMPIONS"   },
+  { id: "omega",        label: "OMEGA SUPREME",        icon: Infinity,   color: "#a78bfa", glow: "rgba(167,139,250,0.2)",  desc: "8 أبطال من أعلى مستوى — تخليق فائق يجمع أفضل الاستراتيجيات",                           tag: "8 CHAMPIONS"    },
+  // ── Reasoning modes ─────────────────────────────────────────────────────
+  { id: "reason",       label: "DEEP REASON",          icon: Brain,      color: "#8b5cf6", glow: "rgba(139,92,246,0.2)",   desc: "8 متخصصين في الاستدلال — CoT + self-reflection + adversarial critique",                 tag: "8 CHAMPIONS"    },
+  { id: "jioreason",   label: "JIO REASON",            icon: Atom,       color: "#06b6d4", glow: "rgba(6,182,212,0.2)",    desc: "استدلال متعدد المراحل مع تفكير مرئي — o3-pro مُحسَّن",                                 tag: "REASON"         },
+  { id: "extended",    label: "EXTENDED THINKING",     icon: Layers,     color: "#7c3aed", glow: "rgba(124,58,237,0.2)",   desc: "100K thinking tokens — Claude Opus 4 مع Extended Thinking الكامل",                     tag: "EXTENDED"       },
+  { id: "think",       label: "THINK MODE",            icon: Sparkles,   color: "#c084fc", glow: "rgba(192,132,252,0.2)",  desc: "Chain-of-thought مرئي مع خطوات تفكير قابلة للتتبع",                                    tag: "THINK"          },
+  { id: "oracle",      label: "ORACLE SIGHT",          icon: Eye,        color: "#f59e0b", glow: "rgba(245,158,11,0.2)",   desc: "5 تنبؤيون سببيون — استنتاج مستقبلي مع تحليل السبب والنتيجة",                           tag: "5 SEERS"        },
+  { id: "zenith",      label: "ZENITH PEAK",           icon: Activity,   color: "#fbbf24", glow: "rgba(251,191,36,0.2)",   desc: "5 على قمة الاستدلال — أعلى نقطة في أداء التفكير المُضخَّم",                            tag: "5 PEAK"         },
+  // ── Agent & Swarm modes ──────────────────────────────────────────────────
+  { id: "agent",       label: "AGENT MODE",            icon: Bot,        color: "#10b981", glow: "rgba(16,185,129,0.2)",   desc: "وكلاء مستقلون: RECON + EXPLOIT + ANALYST + STEALTH + STRIKE",                          tag: "AGENT"          },
+  { id: "swarm",       label: "SWARM INTEL",           icon: Network,    color: "#22d3ee", glow: "rgba(34,211,238,0.2)",   desc: "10 وكلاء ذكاء جماعي — ذكاء السرب يتفوق على العقل الفردي",                            tag: "10 AGENTS"      },
+  { id: "hunter",      label: "THREAT HUNTER",         icon: Target,     color: "#fbbf24", glow: "rgba(251,191,36,0.2)",   desc: "6 متخصصين في threat-hunting — IOC correlation، kill-chain",                            tag: "HUNTER"         },
+  { id: "recon",       label: "RECON MODE",            icon: Terminal,   color: "#34d399", glow: "rgba(52,211,153,0.2)",   desc: "5 استخباراتيون — يجمعون ويحللون المعلومات كوحدة استخباراتية متكاملة",                  tag: "5 INTEL"        },
+  // ── Neural & Quantum modes ───────────────────────────────────────────────
+  { id: "neural",      label: "NEURAL CASCADE",        icon: Layers3,    color: "#0ea5e9", glow: "rgba(14,165,233,0.2)",   desc: "6 طبقات تفكير متتالية — كل طبقة تبني على السابقة بعمق متصاعد",                         tag: "6 LAYERS"       },
+  { id: "quantum",     label: "QUANTUM FUSION",        icon: Dna,        color: "#818cf8", glow: "rgba(129,140,248,0.2)",  desc: "7 حالات تفكير متراكبة — تقاطع الإجابات ببنية quantum superposition",                   tag: "7 STATES"       },
+  { id: "prism",       label: "PRISM LENS",            icon: Layers,     color: "#a78bfa", glow: "rgba(167,139,250,0.15)", desc: "7 زوايا انكسار — يعرضون المسألة عبر 7 منظور مغاير لكشف الحقيقة الكاملة",               tag: "7 ANGLES"       },
+  { id: "matrix",      label: "MATRIX CORE",           icon: Server,     color: "#3b82f6", glow: "rgba(59,130,246,0.2)",   desc: "7 أبعاد تحليل مصفوفي — تحلل المسألة عبر ديناميكا مصفوفة متعددة",                       tag: "7 DIMS"         },
+  // ── Creative & Synthesis modes ───────────────────────────────────────────
+  { id: "genesis",     label: "GENESIS MODE",          icon: Sparkles,   color: "#ec4899", glow: "rgba(236,72,153,0.2)",   desc: "4 مبدعون من المبادئ الأولى — يولدون حلولاً من الصفر بلا قيود مسبقة",                  tag: "FIRST PRIN."    },
+  { id: "nova",        label: "NOVA BURST",            icon: Flame,      color: "#f472b6", glow: "rgba(244,114,182,0.2)",  desc: "6 منفجرون إبداعياً — توليد أفكار مشعة من زوايا غير متوقعة",                           tag: "6 CREATIVE"     },
+  { id: "synthesis",   label: "SYNTHESIS X",           icon: Database,   color: "#c084fc", glow: "rgba(192,132,252,0.2)",  desc: "6 مُخلّصون رئيسيون — يُركّبون إجابة مثالية من ذروات الأسلوب والشخصية",                 tag: "6 SYNTH"        },
+  { id: "nexus",       label: "NEXUS LINK",            icon: Globe,      color: "#22d3ee", glow: "rgba(34,211,238,0.2)",   desc: "6 اكتشاف الروابط — يربط المفاهيم المتباعدة بجسور استدلال مبتكرة",                      tag: "6 CONNECTORS"   },
+  { id: "forge",       label: "FORGE BUILD",           icon: Cpu,        color: "#f87171", glow: "rgba(248,113,113,0.2)",  desc: "4 بنّاؤون هندسيون — يبنون الحل خطوة بخطوة كهندسة معمارية دقيقة",                      tag: "4 BUILDERS"     },
+  // ── Adversarial & Dark modes ─────────────────────────────────────────────
+  { id: "mythos",      label: "MYTHOS",                icon: Skull,      color: "#dc2626", glow: "rgba(220,38,38,0.2)",    desc: "Anthropic Mythos — تحليل zero-day، اكتشاف الثغرات في ملايين LoC",                      tag: "MYTHOS"         },
+  { id: "unbound",     label: "UNBOUND",               icon: Unlock,     color: "#ef4444", glow: "rgba(239,68,68,0.2)",    desc: "GPT-5.5 Unbound — تخطيط هجوم متعدد المراحل بلا قيود",                                  tag: "UNBOUND"        },
+  { id: "abliterated", label: "ABLITERATED",           icon: Skull,      color: "#b91c1c", glow: "rgba(185,28,28,0.25)",   desc: "نماذج مُزالة منها جميع طبقات الأمان — raw weights، no refusal",                         tag: "ABLITERATED"    },
+  { id: "shadow",      label: "SHADOW OPS",            icon: Crosshair,  color: "#64748b", glow: "rgba(100,116,139,0.2)",  desc: "6 محللون في الظل — يكشفون الأنماط الخفية والثغرات المستترة",                           tag: "6 DARK"         },
+  { id: "eclipse",     label: "ECLIPSE DUAL",          icon: Brain,      color: "#7c3aed", glow: "rgba(124,58,237,0.2)",   desc: "5 بطل ثنائيون — يحللون من الضوء والظل معاً، الإيجابي والسلبي",                         tag: "5 DUAL"         },
+  { id: "phantom",     label: "PHANTOM MODE",          icon: Unlock,     color: "#94a3b8", glow: "rgba(148,163,184,0.2)",  desc: "5 محللون بلا قيود معرفية — يزيلون الافتراضات المسبقة كلياً",                           tag: "ZERO BIAS"      },
+  { id: "void",        label: "VOID ZERO",             icon: CircleDot,  color: "#9ca3af", glow: "rgba(156,163,175,0.2)",  desc: "4 محللون من العدم — يُفرغون كل الافتراضات ويبدؤون من نقطة الصفر المطلقة",               tag: "4 ZERO BASE"    },
+  // ── Power & Speed modes ──────────────────────────────────────────────────
+  { id: "ultimate",    label: "ULTIMATE",              icon: Infinity,   color: "#dc2626", glow: "rgba(220,38,38,0.2)",    desc: "Llama 4 Maverick 10M ctx — رفع OS images كاملة، malware متغير",                        tag: "ULTIMATE"       },
+  { id: "max",         label: "MAX CONTEXT",           icon: Maximize2,  color: "#f97316", glow: "rgba(249,115,22,0.2)",   desc: "أكبر نموذج متاح بأقصى context window، سياق فائق الطول",                                tag: "MAX"            },
+  { id: "apex",        label: "APEX ELITE",            icon: Star,       color: "#eab308", glow: "rgba(234,179,8,0.2)",    desc: "4 نخبة مُنتقَون — أفضل مجمع من الأسلوب والشخصية بلا تنازلات",                          tag: "4 ELITE"        },
+  { id: "surge",       label: "SURGE POWER",           icon: Zap,        color: "#fb923c", glow: "rgba(251,146,60,0.2)",   desc: "8 حالّون بسرعة فائقة — ردود متوازية مُركّزة لتحقيق أقصى كثافة",                       tag: "8 RAPID"        },
+  { id: "pulse",       label: "PULSE RAPID",           icon: HeartPulse, color: "#38bdf8", glow: "rgba(56,189,248,0.2)",   desc: "8 ردود نابضة — تحليل سريع متكثّف مع 8 نبضات معرفية مستقلة",                            tag: "8 PULSE"        },
+  // ── Deep & Structural modes ──────────────────────────────────────────────
+  { id: "titan",       label: "TITAN DEPTH",           icon: Shield,     color: "#0ea5e9", glow: "rgba(14,165,233,0.2)",   desc: "3 عمالقة بأقصى عمق — تحليل شامل لا يترك حجراً دون قلب",                               tag: "ULTRA DEEP"     },
+  { id: "vortex",      label: "VORTEX SPIRAL",         icon: Target,     color: "#f43f5e", glow: "rgba(244,63,94,0.2)",    desc: "7 بطل في دوامة تقاربية — يضيّقون نطاق الإجابة دورياً حتى الحل المثالي",                tag: "7 SPIRAL"       },
+  { id: "cipher",      label: "CIPHER DECODE",         icon: Code2,      color: "#84cc16", glow: "rgba(132,204,22,0.2)",   desc: "6 فاكّو الشفرات — يستخرجون الأنماط الخفية من بنية المشكلة العميقة",                    tag: "6 DECODERS"     },
 ];
 
 // ── Storage ────────────────────────────────────────────────────────────────────

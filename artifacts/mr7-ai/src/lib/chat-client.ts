@@ -544,7 +544,7 @@ export type GodmodeEvent =
 export type GodmodeRequest = {
   messages: ChatMessage[];
   language: "en" | "ar";
-  mode: "classic" | "ultraplinian" | "reason" | "hunter" | "agent" | "extended" | "maxoverdrive" | "unbound" | "jioreason" | "mythos" | "ultimate" | "think" | "max" | "abliterated" | "omega" | "neural" | "quantum" | "swarm" | "matrix" | "genesis" | "shadow" | "titan" | "oracle" | "phantom";
+  mode: "classic" | "ultraplinian" | "reason" | "hunter" | "agent" | "extended" | "maxoverdrive" | "unbound" | "jioreason" | "mythos" | "ultimate" | "think" | "max" | "abliterated" | "omega" | "neural" | "quantum" | "swarm" | "matrix" | "genesis" | "shadow" | "titan" | "oracle" | "phantom" | "nexus" | "vortex" | "apex" | "eclipse" | "cipher" | "surge" | "nova" | "prism" | "recon" | "synthesis" | "zenith" | "forge" | "pulse" | "void";
   tier?: "bronze" | "silver" | "gold" | "platinum" | "diamond";
   apiKey?: string;
   apiBaseURL?: string;
