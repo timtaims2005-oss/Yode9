@@ -146,6 +146,14 @@ export function ChatView({ onShare, onOpenOsintDash }: { onShare?: () => void; o
     return () => window.removeEventListener("kali:set-mode", onSetMode);
   }, []);
 
+  // ── Global stop-streaming event (from ProviderSettingsModal stop button) ──
+  useEffect(() => {
+    function onStopStreaming() { stopStreaming(); }
+    window.addEventListener("kali:stop-streaming", onStopStreaming);
+    return () => window.removeEventListener("kali:stop-streaming", onStopStreaming);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── OMNIX ABSOLUTE: تسجيل مكون ChatView في الخريطة الحية ─────────────────
   useEffect(() => {
     const sovereign = OmnixAbsoluteSovereign.getInstance();

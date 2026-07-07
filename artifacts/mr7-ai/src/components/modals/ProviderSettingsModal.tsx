@@ -2,7 +2,7 @@ import React from "react";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
-  X, RefreshCw, Check, Cpu, Globe, Zap, FlaskConical, Route, Server, User,
+  X, RefreshCw, Check, Cpu, Globe, Zap, FlaskConical, Route, Server, User, Square,
   ExternalLink, Search, Star, Info, Copy, CheckCheck, Key, Eye, EyeOff,
   ChevronRight, Activity, Lock, Unlock, Brain, Flame, Target, Bot, Layers,
   Shield, Maximize2, Skull, Atom, AlertTriangle, Wifi, WifiOff,
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { ProviderHealthDashboard3D } from "../ProviderHealthDashboard3D";
 import { motion, AnimatePresence } from "framer-motion";
-import { useStore } from "@/lib/store";
+import { useStore, isStreamingLocked } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -1600,6 +1600,14 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
   const [serverProviders, setServerProviders] = useState<ProviderInfo[]>([]);
   const [loadingProviders, setLoadingProviders] = useState(false);
   const [reloading, setReloading] = useState(false);
+  const [isActivelyStreaming, setIsActivelyStreaming] = useState(false);
+
+  // Poll the streaming lock so the stop button shows/hides correctly
+  useEffect(() => {
+    if (!open) return;
+    const id = setInterval(() => setIsActivelyStreaming(isStreamingLocked()), 200);
+    return () => clearInterval(id);
+  }, [open]);
 
   // Per-provider keys & URLs
   const [providerKeys, setProviderKeys] = useState<Record<string, string>>(() => {
@@ -1884,6 +1892,15 @@ export function ProviderSettingsModal({ open, onClose }: Props) {
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
+                {isActivelyStreaming && (
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent("kali:stop-streaming"))}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/15 border border-red-500/30 text-red-400 hover:bg-red-500/25 transition-colors text-[11px] font-bold animate-pulse"
+                    title="إيقاف التوليد">
+                    <Square className="w-3 h-3 fill-current" />
+                    إيقاف
+                  </button>
+                )}
                 <button onClick={reloadProviders} disabled={reloading}
                   className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#1f1f1f] text-muted-foreground hover:text-foreground transition-colors" title="تحديث">
                   <RefreshCw className={`w-3.5 h-3.5 ${reloading ? "animate-spin" : ""}`} />

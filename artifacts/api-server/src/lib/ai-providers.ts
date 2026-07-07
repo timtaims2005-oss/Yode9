@@ -462,10 +462,25 @@ export async function* streamCompletion(
     yield { done: true };
   } catch (e) {
     const isAbort = e instanceof Error && (e.name === "AbortError" || e.message.includes("abort"));
-    const msg = isAbort
-      ? "انتهت مهلة الطلب — تحقق من مفتاح API وإعدادات المزود"
-      : e instanceof Error ? e.message : "AI provider error";
-    yield { error: msg };
+    if (isAbort) {
+      yield { error: "انتهت مهلة الطلب — تحقق من مفتاح API وإعدادات المزود" };
+    } else if (e instanceof Error) {
+      const msg = e.message;
+      if (msg.includes("400") && (msg.includes("no body") || msg.includes("empty"))) {
+        yield {
+          error:
+            "خطأ 400: رفض المزود الطلب — تحقق من صحة اسم النموذج وعنوان API Base URL. قد يكون النموذج غير متاح لدى هذا المزود.",
+        };
+      } else if (msg.includes("401") || msg.toLowerCase().includes("unauthorized") || msg.toLowerCase().includes("api key")) {
+        yield { error: "مفتاح API غير صالح أو منتهي الصلاحية — أدخل مفتاحاً جديداً في إعدادات المزود." };
+      } else if (msg.includes("429")) {
+        yield { error: "تجاوزت حد الطلبات — انتظر قليلاً ثم أعد المحاولة." };
+      } else {
+        yield { error: msg };
+      }
+    } else {
+      yield { error: "AI provider error" };
+    }
   } finally {
     clearTimeout(timeout);
   }
