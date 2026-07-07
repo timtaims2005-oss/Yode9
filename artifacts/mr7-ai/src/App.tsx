@@ -1285,7 +1285,6 @@ function AppContent() {
         <WindowChrome open={modals.localBenchmark} color="#a78bfa" title="ENGINE BENCHMARK" onClose={() => close('localBenchmark')}>
           <LocalBenchmarkModal open={modals.localBenchmark} onOpenChange={(v) => mDispatch({type:'SET',id:'localBenchmark',value:v})} />
         </WindowChrome>
-        <ProviderSettingsModal open={modals.providerSettings} onClose={() => close('providerSettings')} />
         <WindowChrome open={modals.osintDash} color="#22c55e" title="OSINT DASHBOARD" onClose={() => close('osintDash')}>
           <OsintDashboard open={modals.osintDash} onOpenChange={(v) => mDispatch({type:'SET',id:'osintDash',value:v})} />
         </WindowChrome>
@@ -1630,6 +1629,9 @@ function AppContent() {
           />
         )}
       </Suspense>
+
+      {/* ProviderSettingsModal — outside Suspense so it's never blocked by lazy-modal loading */}
+      <ProviderSettingsModal open={modals.providerSettings} onClose={() => close('providerSettings')} />
 
       {godMode && (
         <div className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center">
