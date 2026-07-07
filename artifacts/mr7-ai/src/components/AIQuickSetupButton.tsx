@@ -1,15 +1,12 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useDraggable } from "@/hooks/useDraggable";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore, ProviderName } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
-import { PlanetOrb, hexToRgb } from "./PlanetOrb";
-import { Settings, Search, X, Zap, RotateCcw, Check } from "lucide-react";
+import { Settings, Search, X, Zap, Check } from "lucide-react";
 
 const KEY_PREFIX = "mr7-ai-p-key-";
 const URL_PREFIX = "mr7-ai-p-url-";
-const OPEN_STATE_KEY = "mr7-setup-win-open";
 
 interface ProviderDef {
   id: string; name: string; shortName: string; color: string;
@@ -361,34 +358,14 @@ export function AIQuickSetupButton() {
   const { state, dispatch } = useStore();
   const { toast } = useToast();
   const [phase, setPhase] = useState<Phase>("idle");
-  const [open, setOpenState] = useState(false);
-  const setOpen = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
-    setOpenState((prev) => {
-      const next = typeof value === "function" ? (value as (p: boolean) => boolean)(prev) : value;
-      localStorage.setItem(OPEN_STATE_KEY, next ? "1" : "0");
-      return next;
-    });
-  }, []);
-  const { pos: dragPos, rootRef: winRef, onDragMouseDown: onWinDragDown, resetPos: resetWinPos } =
-    useDraggable("mr7-setup-win", { x: 16, y: Math.round(window.innerHeight * 0.05) });
-
-  useEffect(() => {
-    if (!open) return;
-    const margin = 80;
-    if (
-      dragPos.x < 0 || dragPos.x > window.innerWidth  - margin ||
-      dragPos.y < 0 || dragPos.y > window.innerHeight - margin
-    ) {
-      resetWinPos();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  const [open, setOpen] = useState(false);
 
   const [scanProgress, setScanProgress] = useState(0);
   const [scanMsg, setScanMsg] = useState("");
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>({});
   const [keys, setKeys] = useState<Record<string, string>>({});
   const [providerSearch, setProviderSearch] = useState("");
+  const btnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -403,15 +380,14 @@ export function AIQuickSetupButton() {
   useEffect(() => {
     if (!open) return;
     const h = (e: MouseEvent) => {
-      const target = e.target as Node;
-      // Keep open if click is inside the trigger button OR inside the portaled panel itself
-      const insideButton = panelRef.current?.contains(target) ?? false;
-      const insidePanel  = (winRef as React.RefObject<HTMLDivElement>).current?.contains(target) ?? false;
-      if (!insideButton && !insidePanel) setOpen(false);
+      const t = e.target as Node;
+      if (!btnRef.current?.contains(t) && !panelRef.current?.contains(t)) {
+        setOpen(false);
+      }
     };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, [open, setOpen, winRef]);
+    document.addEventListener("mousedown", h, true);
+    return () => document.removeEventListener("mousedown", h, true);
+  }, [open]);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
@@ -420,7 +396,7 @@ export function AIQuickSetupButton() {
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [open, setOpen]);
+  }, [open]);
 
   function applyProvider(p: ProviderDef, model: string, key: string) {
     const url = localStorage.getItem(URL_PREFIX + p.id)?.trim() || p.baseURL;
@@ -498,10 +474,23 @@ export function AIQuickSetupButton() {
   const cfgCnt = ALL_PROVIDERS.filter((p) => (p.requiresKey ? (keys[p.id]?.length ?? 0) > 10 : true)).length;
   const filteredProviders = ALL_PROVIDERS.filter((p) => !providerSearch || p.name.toLowerCase().includes(providerSearch.toLowerCase()));
 
+  /* Compute panel position from button location when opening */
+  const [panelPos, setPanelPos] = useState({ top: 60, left: 16 });
+  useEffect(() => {
+    if (!open || !btnRef.current) return;
+    const r = btnRef.current.getBoundingClientRect();
+    const panelW = Math.min(400, Math.max(280, window.innerWidth * 0.32));
+    let left = r.left;
+    if (left + panelW > window.innerWidth - 8) left = window.innerWidth - panelW - 8;
+    if (left < 8) left = 8;
+    setPanelPos({ top: r.bottom + 8, left });
+  }, [open]);
+
   return (
-    <div className="relative flex-shrink-0" ref={panelRef}>
-      {/* Trigger button — simple, consistent circular orb like other TopBar buttons */}
+    <div className="relative flex-shrink-0">
+      {/* Trigger button */}
       <motion.button
+        ref={btnRef}
         onClick={() => setOpen((o) => !o)}
         disabled={phase === "scanning"}
         className="relative flex items-center justify-center rounded-full"
@@ -534,150 +523,131 @@ export function AIQuickSetupButton() {
         )}
       </motion.button>
 
-      {createPortal(
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            ref={winRef as React.Ref<HTMLDivElement>}
-            initial={{ opacity: 0, y: -8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
-            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+      {/* Floating panel — portal into body, position calculated from button rect */}
+      {open && createPortal(
+        <div
+          ref={panelRef}
+          style={{
+            position: "fixed",
+            top: panelPos.top,
+            left: panelPos.left,
+            width: "clamp(280px, 32vw, 400px)",
+            maxHeight: "76vh",
+            zIndex: 2147483647,
+            pointerEvents: "auto",
+          }}
+        >
+          <div
+            className="rounded-2xl flex flex-col overflow-hidden"
             style={{
-              position: "fixed",
-              left: dragPos.x,
-              top: dragPos.y,
-              zIndex: 99999,
-              width: "clamp(280px, 32vw, 400px)",
+              background: "linear-gradient(160deg, rgba(8,8,14,0.99) 0%, rgba(6,6,12,0.99) 100%)",
+              border: "1px solid rgba(240,240,244,0.18)",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.08)",
+              backdropFilter: "blur(28px)",
               maxHeight: "76vh",
-              pointerEvents: "auto",
             }}
           >
+            {/* Header */}
             <div
-              className="rounded-2xl flex flex-col overflow-hidden"
-              style={{
-                background: "linear-gradient(160deg, rgba(8,8,14,0.99) 0%, rgba(6,6,12,0.99) 100%)",
-                border: "1px solid rgba(240,240,244,0.18)",
-                boxShadow: "0 24px 64px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.08)",
-                backdropFilter: "blur(28px)",
-                maxHeight: "76vh",
-              }}
+              className="px-4 py-3 flex items-center justify-between select-none"
+              style={{ borderBottom: "1px solid rgba(240,240,244,0.08)" }}
             >
-              {/* Header — drag handle */}
-              <div
-                className="px-4 py-3 flex items-center justify-between cursor-move select-none"
-                style={{ borderBottom: "1px solid rgba(240,240,244,0.08)" }}
-                onMouseDown={onWinDragDown}
-              >
-                <div>
-                  <div className="text-[11px] font-black tracking-[0.16em] uppercase font-mono flex items-center gap-1.5" style={{ color: "rgba(240,240,244,0.9)" }}>
-                    <Settings className="w-3 h-3" /> إعدادات الذكاء الاصطناعي
-                  </div>
-                  <div className="text-[8px] mt-0.5" style={{ color: "rgba(255,255,255,0.32)" }}>
-                    {cfgCnt} مزوّد مُهيَّأ من {ALL_PROVIDERS.length}
-                  </div>
+              <div>
+                <div className="text-[11px] font-black tracking-[0.16em] uppercase font-mono flex items-center gap-1.5" style={{ color: "rgba(240,240,244,0.9)" }}>
+                  <Settings className="w-3 h-3" /> إعدادات الذكاء الاصطناعي
                 </div>
-                <div className="flex items-center gap-1">
-                  <motion.button
-                    onClick={() => { resetWinPos(); toast({ description: "تمت إعادة النافذة إلى موضعها الافتراضي" }); }}
-                    className="w-6 h-6 rounded-lg flex items-center justify-center"
-                    style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.45)" }}
-                    whileHover={{ background: "rgba(255,255,255,0.1)" }}
-                    title="إعادة ضبط الموضع"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                  </motion.button>
-                  <motion.button
-                    onClick={() => setOpen(false)}
-                    className="w-6 h-6 rounded-lg flex items-center justify-center"
-                    style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)" }}
-                    whileHover={{ background: "rgba(255,255,255,0.1)" }}
-                  >
-                    <X className="w-3 h-3" />
-                  </motion.button>
+                <div className="text-[8px] mt-0.5" style={{ color: "rgba(255,255,255,0.32)" }}>
+                  {cfgCnt} مزوّد مُهيَّأ من {ALL_PROVIDERS.length}
                 </div>
               </div>
+              <motion.button
+                onClick={() => setOpen(false)}
+                className="w-6 h-6 rounded-lg flex items-center justify-center"
+                style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)" }}
+                whileHover={{ background: "rgba(255,255,255,0.1)" }}
+              >
+                <X className="w-3 h-3" />
+              </motion.button>
+            </div>
 
-              {/* Auto-scan */}
-              <div className="px-4 pt-3 pb-2">
-                {phase === "scanning" && (
-                  <div className="mb-2">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[9px] font-mono" style={{ color: "rgba(0,229,255,0.8)" }}>{scanMsg}</span>
-                      <span className="text-[9px] font-black font-mono" style={{ color: "rgba(0,255,136,0.9)" }}>{scanProgress}%</span>
-                    </div>
-                    <ScanBar progress={scanProgress} />
+            {/* Auto-scan */}
+            <div className="px-4 pt-3 pb-2">
+              {phase === "scanning" && (
+                <div className="mb-2">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[9px] font-mono" style={{ color: "rgba(0,229,255,0.8)" }}>{scanMsg}</span>
+                    <span className="text-[9px] font-black font-mono" style={{ color: "rgba(0,255,136,0.9)" }}>{scanProgress}%</span>
                   </div>
+                  <ScanBar progress={scanProgress} />
+                </div>
+              )}
+              <motion.button
+                onClick={autoScan}
+                disabled={phase === "scanning"}
+                className="w-full rounded-xl py-2.5 text-[10px] font-black tracking-widest uppercase flex items-center justify-center gap-2"
+                style={{
+                  background: phase === "scanning" ? "rgba(240,240,244,0.04)" : "linear-gradient(135deg,rgba(240,240,244,0.14) 0%,rgba(200,200,220,0.08) 100%)",
+                  border: `1px solid rgba(240,240,244,${phase === "scanning" ? 0.12 : 0.35})`,
+                  color: phase === "scanning" ? "rgba(240,240,244,0.35)" : "rgba(240,240,244,0.9)",
+                }}
+                whileHover={phase !== "scanning" ? { scale: 1.01 } : {}}
+                whileTap={phase !== "scanning" ? { scale: 0.98 } : {}}
+              >
+                {phase === "scanning" ? (
+                  <><motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>◌</motion.span>جارٍ المسح التلقائي...</>
+                ) : (
+                  <><Zap className="w-3 h-3" />مسح تلقائي وتفعيل أفضل مزوّد</>
                 )}
-                <motion.button
-                  onClick={autoScan}
-                  disabled={phase === "scanning"}
-                  className="w-full rounded-xl py-2.5 text-[10px] font-black tracking-widest uppercase flex items-center justify-center gap-2"
+              </motion.button>
+            </div>
+
+            {/* Search */}
+            <div className="px-4 pb-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none" style={{ color: "rgba(240,240,244,0.4)" }} />
+                <input
+                  type="text" value={providerSearch} onChange={(e) => setProviderSearch(e.target.value)}
+                  placeholder="بحث عن مزوّد..."
+                  className="w-full pl-7 pr-2 py-1.5 text-[9px] font-mono rounded-lg outline-none"
                   style={{
-                    background: phase === "scanning" ? "rgba(240,240,244,0.04)" : "linear-gradient(135deg,rgba(240,240,244,0.14) 0%,rgba(200,200,220,0.08) 100%)",
-                    border: `1px solid rgba(240,240,244,${phase === "scanning" ? 0.12 : 0.35})`,
-                    color: phase === "scanning" ? "rgba(240,240,244,0.35)" : "rgba(240,240,244,0.9)",
+                    background: "rgba(0,0,0,0.35)",
+                    border: `1px solid rgba(240,240,244,${providerSearch ? 0.28 : 0.12})`,
+                    color: "rgba(255,255,255,0.8)",
                   }}
-                  whileHover={phase !== "scanning" ? { scale: 1.01 } : {}}
-                  whileTap={phase !== "scanning" ? { scale: 0.98 } : {}}
-                >
-                  {phase === "scanning" ? (
-                    <><motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>◌</motion.span>جارٍ المسح التلقائي...</>
-                  ) : (
-                    <><Zap className="w-3 h-3" />مسح تلقائي وتفعيل أفضل مزوّد</>
-                  )}
-                </motion.button>
-              </div>
-
-              {/* Search */}
-              <div className="px-4 pb-2">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none" style={{ color: "rgba(240,240,244,0.4)" }} />
-                  <input
-                    type="text" value={providerSearch} onChange={(e) => setProviderSearch(e.target.value)}
-                    placeholder="بحث عن مزوّد..."
-                    className="w-full pl-7 pr-2 py-1.5 text-[9px] font-mono rounded-lg outline-none"
-                    style={{
-                      background: "rgba(0,0,0,0.35)",
-                      border: `1px solid rgba(240,240,244,${providerSearch ? 0.28 : 0.12})`,
-                      color: "rgba(255,255,255,0.8)",
-                    }}
-                    dir="rtl"
-                  />
-                  {providerSearch && (
-                    <button onClick={() => setProviderSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.35)" }}>
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Provider list */}
-              <div
-                className="px-4 pb-4 space-y-1.5 overflow-y-auto"
-                style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(240,240,244,0.15) transparent" }}
-              >
-                <div className="text-[7px] font-bold tracking-[0.2em] uppercase mb-1" style={{ color: "rgba(240,240,244,0.38)" }}>
-                  {providerSearch ? `${filteredProviders.length} نتيجة` : "المزوّدون المتاحون"}
-                </div>
-                {filteredProviders.length === 0 && (
-                  <div className="text-center py-6 text-[9px]" style={{ color: "rgba(255,255,255,0.3)" }}>لا توجد نتائج</div>
+                  dir="rtl"
+                />
+                {providerSearch && (
+                  <button onClick={() => setProviderSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.35)" }}>
+                    <X className="w-3 h-3" />
+                  </button>
                 )}
-                {filteredProviders.map((p) => (
-                  <ProviderCard
-                    key={p.id} prov={p}
-                    isActive={state.activeProvider === p.providerName && state.activeProviderModel === (selectedModels[p.id] || p.models[0].id)}
-                    configuredKey={keys[p.id] ?? ""}
-                    selectedModel={selectedModels[p.id] ?? p.models[0].id}
-                    onActivate={handleActivate} onModelChange={handleModelChange} onKeyChange={handleKeyChange}
-                  />
-                ))}
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>,
-      document.body
+
+            {/* Provider list */}
+            <div
+              className="px-4 pb-4 space-y-1.5 overflow-y-auto"
+              style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(240,240,244,0.15) transparent" }}
+            >
+              <div className="text-[7px] font-bold tracking-[0.2em] uppercase mb-1" style={{ color: "rgba(240,240,244,0.38)" }}>
+                {providerSearch ? `${filteredProviders.length} نتيجة` : "المزوّدون المتاحون"}
+              </div>
+              {filteredProviders.length === 0 && (
+                <div className="text-center py-6 text-[9px]" style={{ color: "rgba(255,255,255,0.3)" }}>لا توجد نتائج</div>
+              )}
+              {filteredProviders.map((p) => (
+                <ProviderCard
+                  key={p.id} prov={p}
+                  isActive={state.activeProvider === p.providerName && state.activeProviderModel === (selectedModels[p.id] || p.models[0].id)}
+                  configuredKey={keys[p.id] ?? ""}
+                  selectedModel={selectedModels[p.id] ?? p.models[0].id}
+                  onActivate={handleActivate} onModelChange={handleModelChange} onKeyChange={handleKeyChange}
+                />
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
