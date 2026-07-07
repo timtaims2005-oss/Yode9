@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useStore, ProviderName } from "@/lib/store";
+import { useStore, ProviderName, isStreamingLocked } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Search, X, Zap, Check } from "lucide-react";
+import { Settings, Search, X, Zap, Check, Square } from "lucide-react";
 
 const KEY_PREFIX = "mr7-ai-p-key-";
 const URL_PREFIX = "mr7-ai-p-url-";
@@ -365,8 +365,15 @@ export function AIQuickSetupButton() {
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>({});
   const [keys, setKeys] = useState<Record<string, string>>({});
   const [providerSearch, setProviderSearch] = useState("");
+  const [isActivelyStreaming, setIsActivelyStreaming] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const id = setInterval(() => setIsActivelyStreaming(isStreamingLocked()), 200);
+    return () => clearInterval(id);
+  }, [open]);
 
   useEffect(() => {
     const loaded: Record<string, string> = {};
@@ -560,14 +567,29 @@ export function AIQuickSetupButton() {
                   {cfgCnt} مزوّد مُهيَّأ من {ALL_PROVIDERS.length}
                 </div>
               </div>
-              <motion.button
-                onClick={() => setOpen(false)}
-                className="w-6 h-6 rounded-lg flex items-center justify-center"
-                style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)" }}
-                whileHover={{ background: "rgba(255,255,255,0.1)" }}
-              >
-                <X className="w-3 h-3" />
-              </motion.button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => { if (isActivelyStreaming) window.dispatchEvent(new CustomEvent("kali:stop-streaming")); }}
+                  disabled={!isActivelyStreaming}
+                  title={isActivelyStreaming ? "إيقاف التوليد الآن" : "لا يوجد توليد نشط"}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[9px] font-bold transition-all duration-300 ${
+                    isActivelyStreaming
+                      ? "bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25 animate-pulse cursor-pointer"
+                      : "bg-white/5 border-white/10 text-white/25 cursor-not-allowed"
+                  }`}
+                >
+                  <Square className="w-2.5 h-2.5 fill-current" />
+                  إيقاف
+                </button>
+                <motion.button
+                  onClick={() => setOpen(false)}
+                  className="w-6 h-6 rounded-lg flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)" }}
+                  whileHover={{ background: "rgba(255,255,255,0.1)" }}
+                >
+                  <X className="w-3 h-3" />
+                </motion.button>
+              </div>
             </div>
 
             {/* Auto-scan */}
