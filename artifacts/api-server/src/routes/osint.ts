@@ -1,11 +1,46 @@
 import { Router, type IRouter } from "express";
 import { requirePersonalOpenAI, PERSONAL_DEFAULT_MODEL } from "../lib/ai-providers";
 import dns from "dns";
+import crypto from "crypto";
 
 const router: IRouter = Router();
 
 const FETCH_TIMEOUT = 8000;
 const SHORT_TIMEOUT = 3000;
+
+// ── OSINT In-Memory LRU Response Cache ────────────────────────────────────────
+// Caches expensive external API results (email/IP/domain lookups) for 5 minutes.
+// Prevents redundant calls when the same IOC is queried multiple times.
+
+interface OsintCacheEntry { data: unknown; exp: number }
+const _osintCache = new Map<string, OsintCacheEntry>();
+const OSINT_CACHE_TTL = 5 * 60_000;  // 5 minutes
+const OSINT_CACHE_MAX = 500;
+
+function osintCacheKey(type: string, value: string): string {
+  return crypto.createHash("sha256").update(`${type}:${value.toLowerCase().trim()}`).digest("hex").slice(0, 16);
+}
+
+function osintCacheGet(type: string, value: string): unknown | null {
+  const k = osintCacheKey(type, value);
+  const e = _osintCache.get(k);
+  if (!e) return null;
+  if (Date.now() > e.exp) { _osintCache.delete(k); return null; }
+  // LRU: move to end
+  _osintCache.delete(k);
+  _osintCache.set(k, e);
+  return e.data;
+}
+
+function osintCacheSet(type: string, value: string, data: unknown): void {
+  const k = osintCacheKey(type, value);
+  if (_osintCache.has(k)) _osintCache.delete(k);
+  if (_osintCache.size >= OSINT_CACHE_MAX) {
+    const firstKey = _osintCache.keys().next().value;
+    if (firstKey !== undefined) _osintCache.delete(firstKey);
+  }
+  _osintCache.set(k, { data, exp: Date.now() + OSINT_CACHE_TTL });
+}
 
 function extractIocs(text: string): Record<string, string[]> {
   const t = text.slice(0, 100000);
@@ -69,6 +104,13 @@ router.post("/osint/email", async (req, res) => {
     const email = (body.value ?? body.email ?? "").trim();
     if (!email || !email.includes("@")) {
       return res.status(400).json({ error: "Valid email required" });
+    }
+
+    // ── Cache hit: return immediately ────────────────────────────────────────
+    const cached = osintCacheGet("email", email);
+    if (cached) {
+      res.setHeader("X-Cache", "HIT");
+      return res.json(cached);
     }
 
     const langNote = body.language === "ar" ? "أجب باللغة العربية." : "Respond in English.";
@@ -160,7 +202,7 @@ LeakCheck نتيجة: ${JSON.stringify(leakData)}
 مصادر فاشلة: ${failedSources.join(", ") || "لا شيء"}`
     );
 
-    return res.json({
+    const emailResult = {
       sources,
       results: {
         email,
@@ -178,7 +220,9 @@ LeakCheck نتيجة: ${JSON.stringify(leakData)}
         : ["كلمة المرور تبدو آمنة — حافظ على عادات أمنية جيدة", "فعّل 2FA كإجراء وقائي", "اضبط تنبيهات مراقبة التسريبات",
            ...(mxSecurity.spf ? [] : ["أضف سجل SPF لمنع انتحال هوية البريد"]),
            ...(effectiveDmarc ? [] : ["أضف سياسة DMARC لتعزيز المصادقة"])],
-    });
+    };
+    osintCacheSet("email", email, emailResult);
+    return res.json(emailResult);
   } catch (err) {
     return res.status(500).json({ error: err instanceof Error ? err.message : "Email OSINT failed" });
   }
@@ -192,6 +236,9 @@ router.post("/osint/ip", async (req, res) => {
     if (!ip || !/^[\d.:a-fA-F]+$/.test(ip)) {
       return res.status(400).json({ error: "Valid IP address required" });
     }
+
+    const cachedIp = osintCacheGet("ip", ip);
+    if (cachedIp) { res.setHeader("X-Cache", "HIT"); return res.json(cachedIp); }
 
     const langNote = body.language === "ar" ? "أجب باللغة العربية." : "Respond in English.";
     const sources: Record<string, { success: boolean; error?: string }> = {};
@@ -282,7 +329,7 @@ ipapi.co: ${JSON.stringify(ipapiData).slice(0, 500)}
 مصادر فاشلة: ${failedSources.join(", ") || "لا شيء"}`
     );
 
-    return res.json({
+    const ipResult = {
       sources,
       results: { ip, ipApiData, ipwhoData, ipapiData, reverseDns, isProxy, isHosting, isMobile, abuseScore: 0 },
       analysis: analysisText,
@@ -290,7 +337,9 @@ ipapi.co: ${JSON.stringify(ipapiData).slice(0, 500)}
       recommendations: isProxy || isHosting
         ? ["راجع سجلات الاتصال من هذا IP", "طبّق تقييد معدل الطلبات (rate limiting)", "أضف للقائمة السوداء إذا كان مشبوهاً", "تحقق من حركة مرور غير عادية"]
         : ["IP يبدو نظيفاً — استمر في المراقبة الاعتيادية", "احتفظ بسجلات الوصول", "راجعه دورياً"],
-    });
+    };
+    osintCacheSet("ip", ip, ipResult);
+    return res.json(ipResult);
   } catch (err) {
     return res.status(500).json({ error: err instanceof Error ? err.message : "IP OSINT failed" });
   }
@@ -304,6 +353,9 @@ router.post("/osint/domain", async (req, res) => {
     if (!domain || !/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(domain)) {
       return res.status(400).json({ error: "Valid domain required" });
     }
+
+    const cachedDomain = osintCacheGet("domain", domain);
+    if (cachedDomain) { res.setHeader("X-Cache", "HIT"); return res.json(cachedDomain); }
 
     const langNote = body.language === "ar" ? "أجب باللغة العربية." : "Respond in English.";
     const sources: Record<string, { success: boolean; error?: string }> = {};
@@ -416,7 +468,7 @@ Cloudflare DoH: ${JSON.stringify(cfData).slice(0, 300)}
 
     const riskScore = subdomains.length > 50 ? 55 : subdomains.length > 20 ? 35 : 15;
 
-    return res.json({
+    const domainResult = {
       sources,
       results: { domain, dnsRecords, subdomains, rdapData, sslCount: crtData.length, mxSecurity, cfData },
       analysis: analysisText,
@@ -428,7 +480,9 @@ Cloudflare DoH: ${JSON.stringify(cfData).slice(0, 300)}
         "فعّل DNSSEC إذا لم يكن مفعّلاً",
         "راقب crt.sh لاكتشاف شهادات غير مصرح بها",
       ],
-    });
+    };
+    osintCacheSet("domain", domain, domainResult);
+    return res.json(domainResult);
   } catch (err) {
     return res.status(500).json({ error: err instanceof Error ? err.message : "Domain OSINT failed" });
   }

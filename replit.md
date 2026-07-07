@@ -1,5 +1,37 @@
 # mr7.ai / KaliGPT
 
+## How to Run the Project (July 2026)
+
+### Active Workflows (artifact-managed — these are the live ones)
+- **`artifacts/mr7-ai: web`** — Vite dev server, frontend React app (PORT=5000 via `pnpm run dev`)
+- **`artifacts/api-server: API Server`** — Express 5 backend (PORT=8080, auto-builds with `pnpm run build && pnpm run start`)
+
+### Legacy workflows in `.replit` — not used (FAILED)
+- `Start application` — was the old `cd artifacts/mr7-ai && BASE_PATH=/ PORT=5000 pnpm run dev`
+- `API Server` — was the old `cd artifacts/api-server && PORT=8080 pnpm run dev`
+
+### Manual start (from workspace root)
+```sh
+# Frontend
+cd artifacts/mr7-ai && BASE_PATH=/ PORT=5000 pnpm run dev
+
+# Backend
+cd artifacts/api-server && pnpm run build && PORT=8080 pnpm run start
+```
+
+### Key ports
+| Service | Port |
+|---------|------|
+| Frontend (Vite) | 5000 |
+| API server (Express) | 8080 |
+| Ollama (local AI) | 11434 |
+
+### Package management
+Use `pnpm` at the workspace root. Run `pnpm install` after pulling changes.
+
+---
+
+
 ## Local AI Engine Suite (July 2026)
 
 كامل نظام المحركات المحلية الـ 7 مُفعَّل ويعمل:

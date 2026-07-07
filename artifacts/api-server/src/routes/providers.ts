@@ -18,7 +18,9 @@ const testSchema = z.object({
 });
 
 // GET /providers — public (frontend needs this without auth)
+// Cache for 30s — provider list rarely changes
 router.get("/providers", (_req, res) => {
+  res.setHeader("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
   res.json({ providers: getAvailableProviders() });
 });
 

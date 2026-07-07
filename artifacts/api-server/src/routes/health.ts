@@ -9,6 +9,7 @@ const _startTime = Date.now();
 
 const healthHandler = (_req: import("express").Request, res: import("express").Response): void => {
   const data = HealthCheckResponse.parse({ status: "ok" });
+  res.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=10");
   res.json(data);
 };
 

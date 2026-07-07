@@ -4,7 +4,11 @@ import { logger } from "./lib/logger";
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-  max: 10,
+  max: 20,                      // up from 10 — handles concurrent requests
+  min: 2,                       // keep 2 warm connections ready
+  idleTimeoutMillis: 30_000,    // release idle connections after 30s
+  connectionTimeoutMillis: 5_000, // fail fast if can't get a connection
+  maxUses: 7500,                // recycle connections to avoid memory buildup
 });
 
 /**
@@ -143,6 +147,8 @@ export async function ensureAuthTables() {
     `).catch((err) => logger.warn({ err }, "security_events table may already exist"));
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_sec_events_user_id ON security_events (user_id)`).catch(() => {});
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_sec_events_type ON security_events (event_type)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_sec_events_created ON security_events (created_at DESC)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_users_referral_code ON users (referral_code)`).catch(() => {});
 
     // User sessions
     await pool.query(`

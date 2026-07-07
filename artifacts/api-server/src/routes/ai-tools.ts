@@ -64,10 +64,11 @@ function sanitizeOutput(output: string): string {
     .replace(/secret\s*[:=]\s*\S+/gi, "secret: [REDACTED]");
 }
 
-// ─── Inline LRU Cache ─────────────────────────────────────────────────────────
+// ─── Inline LRU Cache (O(1) eviction via Map insertion order) ────────────────
 
 interface CacheEntry { response: string; tokens: number; model: string; ts: number; exp: number; hits: number }
 const cacheStore = new Map<string, CacheEntry>();
+const MAX_CACHE = 1000;
 let cacheHits = 0, cacheMisses = 0;
 
 function cacheKey(msg: string, model: string) {
@@ -79,16 +80,22 @@ function cacheGet(msg: string, model: string): CacheEntry | null {
   const e = cacheStore.get(k);
   if (!e) { cacheMisses++; return null; }
   if (Date.now() > e.exp) { cacheStore.delete(k); cacheMisses++; return null; }
+  // LRU: move to end (most recently used)
+  cacheStore.delete(k);
+  cacheStore.set(k, e);
   e.hits++; cacheHits++;
   return e;
 }
 
 function cacheSet(msg: string, model: string, response: string, tokens: number, ttlMs = 300_000) {
-  if (cacheStore.size >= 1000) {
-    const oldest = Array.from(cacheStore.entries()).sort((a, b) => a[1].ts - b[1].ts)[0];
-    if (oldest) cacheStore.delete(oldest[0]);
+  const k = cacheKey(msg, model);
+  if (cacheStore.has(k)) cacheStore.delete(k); // refresh position
+  if (cacheStore.size >= MAX_CACHE) {
+    // O(1): evict oldest (first inserted) — Map preserves insertion order
+    const firstKey = cacheStore.keys().next().value;
+    if (firstKey !== undefined) cacheStore.delete(firstKey);
   }
-  cacheStore.set(cacheKey(msg, model), { response, tokens, model, ts: Date.now(), exp: Date.now() + ttlMs, hits: 0 });
+  cacheStore.set(k, { response, tokens, model, ts: Date.now(), exp: Date.now() + ttlMs, hits: 0 });
 }
 
 // ─── Providers ────────────────────────────────────────────────────────────────

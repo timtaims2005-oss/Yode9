@@ -14,6 +14,18 @@ const PORT = Number(process.env["PORT"] ?? 8080);
 const BASE = `http://127.0.0.1:${PORT}`;
 
 export function handleMuxSocket(ws: WebSocket): void {
+  // Heartbeat: send ping every 25s to prevent idle-timeout drops
+  const heartbeatTimer = setInterval(() => {
+    if (ws.readyState === ws.OPEN) {
+      ws.ping();
+    } else {
+      clearInterval(heartbeatTimer);
+    }
+  }, 25_000);
+
+  ws.on("close", () => clearInterval(heartbeatTimer));
+  ws.on("error", () => clearInterval(heartbeatTimer));
+
   ws.on("message", async (raw) => {
     let req: MuxRequest;
     try {

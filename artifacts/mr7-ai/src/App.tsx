@@ -581,7 +581,20 @@ const ARSENAL_MAP: Partial<Record<string, ModalId>> = {
   "mobilesecurity": "mobileSecurity",
 };
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime:            60_000,       // 1 min — don't refetch if data is fresh
+      gcTime:               5 * 60_000,   // 5 min — keep unused data in cache
+      retry:                1,            // only retry once on failure
+      refetchOnWindowFocus: false,        // prevent surprise refetches on tab focus
+      refetchOnReconnect:   "always",     // but do refetch after network reconnect
+    },
+    mutations: {
+      retry: 0,                           // mutations never retry automatically
+    },
+  },
+});
 const KONAMI = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
 
 function AppContent() {

@@ -184,12 +184,13 @@ router.get("/orgs/usage", jwtAuth, requireAuth, async (req: Request, res: Respon
     if (!org) { res.status(404).json({ error: "Not in org" }); return; }
 
     const { rows } = await pool.query(
-      `SELECT u.id, u.email, u.first_name, u.last_name, u.tokens_used, u.last_login_at
+      `SELECT u.id, u.email, u.first_name, u.last_name, u.tokens_used, u.last_login_at,
+              SUM(u.tokens_used) OVER () AS total_tokens_all
        FROM org_members om JOIN users u ON u.id=om.user_id
        WHERE om.org_id=$1 ORDER BY u.tokens_used DESC`,
       [org.id]
     );
-    const totalTokens = rows.reduce((s: number, r: Record<string, unknown>) => s + (r.tokens_used as number || 0), 0);
+    const totalTokens = rows[0]?.total_tokens_all ?? 0;
     res.json({ members: rows, totalTokens, memberCount: rows.length });
   } catch { res.status(500).json({ error: "Failed" }); }
 });

@@ -1,4 +1,5 @@
 import express, { type Express } from "express";
+import compression from "compression";
 import cors from "cors";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
@@ -142,6 +143,25 @@ const uploadLimiter = rateLimit({
 });
 
 app.use(globalLimiter);
+
+// ── Compression — gzip for text responses (SSE excluded to preserve streaming) ─
+app.use(compression({
+  level: 6,
+  threshold: 1024,
+  filter: (req, res) => {
+    // CRITICAL: never compress SSE streams — compression buffers output and
+    // destroys real-time token delivery. Check both incoming Accept and the
+    // Content-Type the route is about to send.
+    const accept = req.headers['accept'] ?? '';
+    const ct = res.getHeader('content-type') as string ?? '';
+    if (
+      accept.includes('text/event-stream') ||
+      ct.includes('text/event-stream') ||
+      req.headers['x-no-compression']
+    ) return false;
+    return compression.filter(req, res);
+  },
+}));
 
 app.use(
   pinoHttp({
