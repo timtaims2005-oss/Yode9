@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FullPageOverlay } from "@/components/FullPageOverlay";
 import { Switch } from "@/components/ui/switch";
-import { Settings as SettingsIcon, Palette, Languages, Type, Coins, Trash2, Download, Sparkles, Bot, Layers, Brain, Globe, Check, X, RotateCcw } from "lucide-react";
-import { useStore, ACCENT_OPTIONS, type Settings } from "@/lib/store";
+import { Settings as SettingsIcon, Palette, Languages, Type, Coins, Trash2, Download, Sparkles, Bot, Layers, Brain, Globe, Check, X, RotateCcw, Square } from "lucide-react";
+import { useStore, ACCENT_OPTIONS, type Settings, isStreamingLocked } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { useT, type TranslationKey } from "@/lib/i18n";
 import { THEMES, type ThemeId } from "@/lib/themes";
@@ -45,6 +45,13 @@ export function SettingsModal({ open, onOpenChange }: { open: boolean; onOpenCha
   const { toast } = useToast();
   const { t } = useT();
   const [windowsLocked, setWindowsLocked] = useState(() => isDraggableLocked());
+  const [isActivelyStreaming, setIsActivelyStreaming] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const id = setInterval(() => setIsActivelyStreaming(isStreamingLocked()), 200);
+    return () => clearInterval(id);
+  }, [open]);
 
   function exportAll() {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
@@ -86,9 +93,23 @@ export function SettingsModal({ open, onOpenChange }: { open: boolean; onOpenCha
             <h2 className="text-sm font-bold text-white">{t("settings.title")}</h2>
             <p className="text-[10px] text-[#555]">{t("settings.subtitle")}</p>
           </div>
-          <button onClick={() => onOpenChange(false)} className="ml-auto w-8 h-8 rounded-lg flex items-center justify-center bg-[#161616] border border-[#1f1f1f] text-[#555] hover:text-white hover:border-[#e21227] transition-all">
-            <X className="w-4 h-4" />
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => { if (isActivelyStreaming) window.dispatchEvent(new CustomEvent("kali:stop-streaming")); }}
+              disabled={!isActivelyStreaming}
+              title={isActivelyStreaming ? "إيقاف التوليد الآن" : "لا يوجد توليد نشط"}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold transition-all duration-300 ${
+                isActivelyStreaming
+                  ? "bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25 animate-pulse cursor-pointer"
+                  : "bg-white/5 border-white/10 text-white/25 cursor-not-allowed"
+              }`}>
+              <Square className="w-3 h-3 fill-current" />
+              إيقاف
+            </button>
+            <button onClick={() => onOpenChange(false)} className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#161616] border border-[#1f1f1f] text-[#555] hover:text-white hover:border-[#e21227] transition-all">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto p-5 space-y-6 max-w-2xl mx-auto w-full">
 
