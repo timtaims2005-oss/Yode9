@@ -312,6 +312,7 @@ const SecurityCompliancePage3D = lazy(() => import("./pages/SecurityCompliancePa
 const AdminDashboardPage    = lazy(() => import("./pages/AdminDashboard").then(m=>({default:m.AdminDashboard})));
 const OrganizationsPage     = lazy(() => import("./pages/OrganizationsPage").then(m=>({default:m.OrganizationsPage})));
 const PentestLabPage        = lazy(() => import("./pages/PentestLabPage").then(m=>({default:m.PentestLabPage})));
+const Yode9SecurityHubPage  = lazy(() => import("./pages/Yode9SecurityHubPage").then(m=>({default:m.default})));
 const SocialMediaArsenalPage = lazy(() => import("./pages/SocialMediaArsenalPage").then(m=>({default:m.SocialMediaArsenalPage})));
 const APTIntelPage          = lazy(() => import("./pages/APTIntelPage").then(m=>({default:m.APTIntelPage})));
 const MarketplacePage       = lazy(() => import("./pages/MarketplacePage").then(m=>({default:m.MarketplacePage})));
@@ -498,6 +499,7 @@ const MODAL_IDS = [
   'adminDashboardPage',
   'organizations',
   'pentestLab',
+  'yode9SecurityHub',
   'marketplace',
   'paymentGateway',
   'finetunePageWin',
@@ -880,6 +882,7 @@ function AppContent() {
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "j") { e.preventDefault(); toggle('finetune'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "d") { e.preventDefault(); toggle('debate'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "p") { e.preventDefault(); toggle('providerSettings'); }
+      if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "y") { e.preventDefault(); toggle('yode9SecurityHub'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "y") { e.preventDefault(); toggle('chainOfThought'); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F2") { e.preventDefault(); setPerfCCOpen(v => !v); }
       if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key === "F1") { e.preventDefault(); toggle('omnixAbsolute'); }
@@ -1987,6 +1990,13 @@ function AppContent() {
         {modals.pentestLab && (
           <WindowChrome open={true} title="مختبر اختبار الاختراق" onClose={() => close('pentestLab')}>
             <PentestLabPage onClose={() => close('pentestLab')} />
+          </WindowChrome>
+        )}
+      </Suspense>
+      <Suspense fallback={null}>
+        {modals.yode9SecurityHub && (
+          <WindowChrome open={true} color="#00e5ff" title="🛡️ YODE9 SECURITY HUB — 30 Agent Swarm + OSINT + CVE + Reports" onClose={() => close('yode9SecurityHub')}>
+            <Yode9SecurityHubPage />
           </WindowChrome>
         )}
       </Suspense>
