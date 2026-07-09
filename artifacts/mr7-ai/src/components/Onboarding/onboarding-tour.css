@@ -1,0 +1,75 @@
+/* Shepherd.js theme — matches the app's crimson/dark aesthetic */
+.shepherd-element.mr7-shepherd-step {
+  background: #111114;
+  border: 1px solid rgba(226, 18, 39, 0.35);
+  border-radius: 14px;
+  box-shadow: 0 0 24px rgba(226, 18, 39, 0.15), 0 8px 30px rgba(0, 0, 0, 0.6);
+  max-width: 340px;
+}
+
+.mr7-shepherd-step .shepherd-header {
+  background: transparent;
+  padding: 16px 16px 0 16px;
+}
+
+.mr7-shepherd-step .shepherd-title {
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.mr7-shepherd-step .shepherd-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 12px 16px;
+  direction: rtl;
+  text-align: right;
+}
+
+.mr7-shepherd-step .shepherd-footer {
+  padding: 0 16px 16px 16px;
+  gap: 8px;
+}
+
+.mr7-shepherd-step .shepherd-button {
+  background: #e21227;
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 18px;
+  box-shadow: 0 0 14px rgba(226, 18, 39, 0.25);
+}
+
+.mr7-shepherd-step .shepherd-button:hover {
+  background: #ff1a34;
+}
+
+.mr7-shepherd-step .shepherd-button-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: none;
+}
+
+.mr7-shepherd-step .shepherd-button-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.mr7-shepherd-step .shepherd-cancel-icon {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.mr7-shepherd-step .shepherd-cancel-icon:hover {
+  color: #fff;
+}
+
+.mr7-shepherd-step .shepherd-arrow:before {
+  background: #111114;
+  border: 1px solid rgba(226, 18, 39, 0.35);
+}
+
+.shepherd-modal-overlay-container {
+  opacity: 0.55;
+}

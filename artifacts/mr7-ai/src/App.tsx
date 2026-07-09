@@ -28,6 +28,7 @@ function ModalLoadErrorFallback({ title, onClose }: { title: string; onClose: ()
   );
 }
 import { BootScreen } from "./components/BootScreen";
+import { OnboardingTour } from "./components/Onboarding/OnboardingTour";
 import { Quantum4DWidget } from "./components/Quantum4DWidget";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -1411,6 +1412,7 @@ function AppContent() {
         <OdysseusWorkspaceModal open={modals.odysseusWorkspace} onOpenChange={(v) => mDispatch({type:'SET',id:'odysseusWorkspace',value:v})} />
         <OmniBotModal open={modals.omniBot} onOpenChange={(v) => mDispatch({type:'SET',id:'omniBot',value:v})} />
         <OnboardingTourModal open={modals.onboardingTour} onClose={() => close('onboardingTour')} />
+        <OnboardingTour />
         <PaymentModal open={modals.payment} onOpenChange={(v) => mDispatch({type:'SET',id:'payment',value:v})} plan="professional" yearly={false} onActivate={() => mDispatch({type:'SET',id:'payment',value:false})} />
         <PocketAIModal open={modals.pocketAI} onOpenChange={(v) => mDispatch({type:'SET',id:'pocketAI',value:v})} />
         <PrivacyRiskModal open={modals.privacyRisk} onOpenChange={(v) => mDispatch({type:'SET',id:'privacyRisk',value:v})} />

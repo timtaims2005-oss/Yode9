@@ -433,7 +433,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
       <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-5">
         {/* Actions */}
         <div className="space-y-2 pt-2">
-          <button onClick={handleNewChat}
+          <button onClick={handleNewChat} data-tour="new-chat"
             className="w-full flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all neon-btn relative overflow-hidden group"
             style={{
               background: "linear-gradient(135deg, rgba(226,18,39,0.15), rgba(40,0,8,0.8))",
@@ -488,6 +488,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
         {/* Tools Hub */}
         <button
           onClick={() => { onOpenToolsHub(); onClose(); }}
+          data-tour="tools-hub"
           className="w-full flex items-center justify-between rounded-xl px-3 py-2.5 transition-all group relative overflow-hidden"
           style={{
             background: "linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.04))",
@@ -1512,7 +1513,7 @@ export function Sidebar({ isOpen, onClose, collapsed, onToggleCollapsed, onOpenP
             </button>
             <div className="flex-1" />
             {/* Settings */}
-            <button onClick={onOpenSettings} className="rail-btn" title="الإعدادات">
+            <button onClick={onOpenSettings} className="rail-btn" title="الإعدادات" data-tour="settings">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
           </div>

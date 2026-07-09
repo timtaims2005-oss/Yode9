@@ -1,105 +1,117 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter
-} from "../ui/dialog";
-import { Button } from "../ui/button";
-import { Rocket, Shield, Key, Zap, Settings, CheckCircle } from "lucide-react";
+import { useEffect, useRef } from "react";
+import Shepherd from "shepherd.js";
+import "shepherd.js/dist/css/shepherd.css";
+import "./onboarding-tour.css";
 
-const steps = [
-  {
-    title: "مرحباً بك في KaliGPT",
-    description: "أقوى منصة ذكاء اصطناعي للأمن السيبراني. دعنا نأخذك في جولة سريعة.",
-    icon: <Rocket className="w-12 h-12 text-blue-500" />,
-  },
-  {
-    title: "مفاتيح API",
-    description: "قم بإعداد مفاتيح API الخاصة بك في الإعدادات للوصول إلى أفضل نماذج الذكاء الاصطناعي.",
-    icon: <Key className="w-12 h-12 text-yellow-500" />,
-  },
-  {
-    title: "أول فحص لك",
-    description: "استخدم أداة تحليل الثغرات لبدء فحص الكود أو الشبكة بلمسة واحدة.",
-    icon: <Shield className="w-12 h-12 text-green-500" />,
-  },
-  {
-    title: "الأدوات المتقدمة",
-    description: "اكتشف أكثر من 12 أداة متخصصة من OSINT إلى تحليل البرمجيات الخبيثة.",
-    icon: <Zap className="w-12 h-12 text-purple-500" />,
-  },
-  {
-    title: "ابدأ الآن",
-    description: "أنت جاهز تماماً. استمتع بتجربة أمنية لا مثيل لها.",
-    icon: <CheckCircle className="w-12 h-12 text-emerald-500" />,
-  }
-];
+const STORAGE_KEY = "onboarding_completed";
 
+/**
+ * Real, DOM-driven onboarding tour built on Shepherd.js.
+ * Each step attaches to an actual UI element (marked with a
+ * `data-tour="..."` attribute) instead of showing a static
+ * carousel disconnected from the app.
+ */
 export const OnboardingTour: React.FC = () => {
-  const [open, setOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+  const tourRef = useRef<InstanceType<typeof Shepherd.Tour> | null>(null);
 
   useEffect(() => {
-    const completed = localStorage.getItem('onboarding_completed');
-    if (!completed) {
-      setOpen(true);
-    }
+    const completed = localStorage.getItem(STORAGE_KEY);
+    if (completed) return;
+
+    // Elements are rendered lazily/conditionally (sidebar collapse state,
+    // async chunks, etc.) — wait briefly for them to mount before starting.
+    const timer = window.setTimeout(() => {
+      const tour = new Shepherd.Tour({
+        useModalOverlay: true,
+        defaultStepOptions: {
+          cancelIcon: { enabled: true },
+          classes: "mr7-shepherd-step",
+          scrollTo: { behavior: "smooth", block: "center" },
+          arrow: true,
+        },
+        exitOnEsc: true,
+        keyboardNavigation: true,
+      });
+      tourRef.current = tour;
+
+      const complete = () => localStorage.setItem(STORAGE_KEY, "true");
+      tour.on("complete", complete);
+      tour.on("cancel", complete);
+
+      const hasElement = (selector: string) => !!document.querySelector(selector);
+
+      tour.addStep({
+        id: "welcome",
+        title: "مرحباً بك في KaliGPT",
+        text: "أقوى منصة ذكاء اصطناعي للأمن السيبراني. دعنا نأخذك في جولة سريعة على العناصر الحقيقية في الواجهة.",
+        buttons: [
+          { text: "تخطي", action: tour.cancel, classes: "shepherd-button-secondary" },
+          { text: "التالي", action: tour.next },
+        ],
+      });
+
+      tour.addStep({
+        id: "api-keys",
+        title: "مفاتيح API",
+        text: "قم بإعداد مفاتيح API الخاصة بك في الإعدادات للوصول إلى أفضل نماذج الذكاء الاصطناعي.",
+        attachTo: hasElement('[data-tour="settings"]')
+          ? { element: '[data-tour="settings"]', on: "top" }
+          : undefined,
+        buttons: [
+          { text: "رجوع", action: tour.back, classes: "shepherd-button-secondary" },
+          { text: "التالي", action: tour.next },
+        ],
+      });
+
+      tour.addStep({
+        id: "first-scan",
+        title: "أول فحص لك",
+        text: "استخدم مركز الأدوات لبدء فحص الكود أو الشبكة بلمسة واحدة.",
+        attachTo: hasElement('[data-tour="tools-hub"]')
+          ? { element: '[data-tour="tools-hub"]', on: "bottom" }
+          : undefined,
+        buttons: [
+          { text: "رجوع", action: tour.back, classes: "shepherd-button-secondary" },
+          { text: "التالي", action: tour.next },
+        ],
+      });
+
+      tour.addStep({
+        id: "advanced-tools",
+        title: "الأدوات المتقدمة",
+        text: "اكتشف أكثر من 12 أداة متخصصة من OSINT إلى تحليل البرمجيات الخبيثة، كلها من نفس مركز الأدوات.",
+        attachTo: hasElement('[data-tour="tools-hub"]')
+          ? { element: '[data-tour="tools-hub"]', on: "bottom" }
+          : undefined,
+        buttons: [
+          { text: "رجوع", action: tour.back, classes: "shepherd-button-secondary" },
+          { text: "التالي", action: tour.next },
+        ],
+      });
+
+      tour.addStep({
+        id: "start-now",
+        title: "ابدأ الآن",
+        text: "أنت جاهز تماماً. اكتب رسالتك هنا وابدأ تجربة أمنية لا مثيل لها.",
+        attachTo: hasElement('[data-tour="chat-input"]')
+          ? { element: '[data-tour="chat-input"]', on: "top" }
+          : hasElement('[data-tour="new-chat"]')
+            ? { element: '[data-tour="new-chat"]', on: "bottom" }
+            : undefined,
+        buttons: [
+          { text: "رجوع", action: tour.back, classes: "shepherd-button-secondary" },
+          { text: "ابدأ الاستخدام", action: tour.complete },
+        ],
+      });
+
+      tour.start();
+    }, 800);
+
+    return () => {
+      window.clearTimeout(timer);
+      tourRef.current?.complete();
+    };
   }, []);
 
-  const nextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      completeTour();
-    }
-  };
-
-  const completeTour = () => {
-    localStorage.setItem('onboarding_completed', 'true');
-    setOpen(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md bg-[#0a0a0a] border-gray-800 text-white">
-        <DialogHeader className="flex flex-col items-center justify-center space-y-4 pt-4">
-          <div className="p-4 bg-gray-900 rounded-full">
-            {steps[currentStep].icon}
-          </div>
-          <DialogTitle className="text-2xl font-bold">{steps[currentStep].title}</DialogTitle>
-          <DialogDescription className="text-center text-gray-400">
-            {steps[currentStep].description}
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="flex justify-center space-x-2 py-4">
-          {steps.map((_, i) => (
-            <div 
-              key={i} 
-              className={`h-1.5 rounded-full transition-all duration-300 ${i === currentStep ? 'w-8 bg-blue-500' : 'w-2 bg-gray-700'}`}
-            />
-          ))}
-        </div>
-
-        <DialogFooter className="flex sm:justify-between items-center mt-4">
-          <Button 
-            variant="ghost" 
-            onClick={completeTour}
-            className="text-gray-500 hover:text-white"
-          >
-            تخطي
-          </Button>
-          <Button 
-            onClick={nextStep}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8"
-          >
-            {currentStep === steps.length - 1 ? "ابدأ الاستخدام" : "التالي"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+  return null;
 };

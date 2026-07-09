@@ -708,7 +708,7 @@ export function ChatInput({
                   {streaming ? "▶" : editingId ? "✎" : "›"}
                 </span>
               </div>
-              <textarea ref={taRef} value={input}
+              <textarea ref={taRef} value={input} data-tour="chat-input"
                 onChange={(e) => { setInput(e.target.value); setShowSlash(e.target.value.startsWith("/")); }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey && state.settings.sendOnEnter) { e.preventDefault(); onSend(input); }
