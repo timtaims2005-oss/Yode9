@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mr7ai
+  labels:
+    name: mr7ai
+    environment: production

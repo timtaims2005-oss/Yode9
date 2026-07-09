@@ -71,6 +71,10 @@ import scheduledRouter    from "./scheduled";
 import orchestratorRouter from "./orchestrator";
 import browserRouter      from "./browser";
 
+// ── Ultron Phase 2–4: Blog CMS + A/B Testing ─────────────────────────────────
+import blogRouter     from "./blog.js";
+import abTestsRouter  from "./ab-tests.js";
+
 const router: IRouter = Router();
 
 router.use(["/chat", "/council", "/godmode", "/image", "/vision", "/agent", "/agent4", "/rag", "/finetune", "/training"], tierRateLimit);
@@ -137,6 +141,9 @@ router.use(vectorRouter);
 router.use(webhooksMgmtRouter);
 router.use(featuresRouter);
 router.use(backupRouter);
+
+router.use(blogRouter);
+router.use(abTestsRouter);
 
 // ── New Blueprint Features ─────────────────────────────────────────────────────
 router.use(executeRouter);

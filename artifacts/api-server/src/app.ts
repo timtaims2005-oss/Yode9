@@ -33,6 +33,8 @@ import osintRouter from "./routes/osint";
 import aiToolsRouter from "./routes/ai-tools";
 import darkwebIntelligenceRouter from "./routes/darkweb-intelligence";
 import { osintIntelRouter } from "./routes/osint-intel";
+import blogRouter from "./routes/blog.js";
+import abTestsRouter from "./routes/ab-tests.js";
 
 // Validate environment at startup — exits if critical vars missing
 validateEnv();
@@ -314,6 +316,12 @@ app.use("/api", osintRouter);
 app.use("/api/ai-tools", aiToolsRouter);
 app.use("/api/darkweb-intelligence", darkwebIntelligenceRouter);
 app.use("/api/osint-intel", osintIntelRouter);
+
+// ── Blog CMS — public GET, admin POST/PATCH/DELETE protected internally ───────
+app.use("/api", blogRouter);
+
+// ── A/B Testing — public GET variant + track, admin results protected ─────────
+app.use("/api", abTestsRouter);
 
 // ── All remaining API routes — protected by internalAuth ─────────────────────
 app.use("/api", internalAuth, cloudChatsRouter);

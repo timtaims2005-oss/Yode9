@@ -431,6 +431,8 @@ const VoiceChatModal          = lazy(() => import("./components/modals/VoiceChat
 const VulnDiscoveryModal      = lazy(() => import("./components/modals/VulnDiscoveryModal").then(m=>({default:m.VulnDiscoveryModal})));
 const WhatsNewModal           = lazy(() => import("./components/modals/WhatsNewModal").then(m=>({default:m.WhatsNewModal})));
 const ZeroBoundaryModal       = lazy(() => import("./components/modals/ZeroBoundaryModal").then(m=>({default:m.ZeroBoundaryModal})));
+const BlogModal               = lazy(() => import("./components/modals/BlogModal").then(m=>({default:m.BlogModal})));
+const ChatSearchModal         = lazy(() => import("./components/modals/ChatSearchModal").then(m=>({default:m.ChatSearchModal})));
 
 const MODAL_IDS = [
   'personaEditor','personaManager','localModel','providerSettings','pricing','api','settings','account',
@@ -523,6 +525,8 @@ const MODAL_IDS = [
   'customGpts',
   'scheduledTasks',
   'orchestratorHub',
+  'blog',
+  'chatSearch',
   // Restored modals
   'adaV2', 'agent4DesignCanvas', 'agent4GitDashboard', 'agent4Integrations', 'agent4Slides', 'agent4WebSearch', 'agentFour', 'agentSwarm', 'agentV2', 'aiAtlas', 'aiInfra', 'aiSafety', 'anomalyCS', 'archEngine', 'attackSurface', 'autonomousOversight', 'autonomousSOC', 'behavioralDNA', 'binaryCore', 'buildYourOwnX', 'causalReasoning', 'claudeCode', 'claudeSkills', 'crossDomainRisk', 'cyberConsciousness', 'cyberEvolution', 'cyberIntelBrain', 'cyberPhysical', 'cyberWarfare', 'darkWebSearch', 'dataIntel', 'deepfakeDetector', 'deepPacket', 'digitalTwin', 'exploitAbs', 'exploitResist', 'forensicRecon', 'fridayAI', 'fullSpectrumAI', 'globalIntelSync', 'hyperAdaptive', 'hyperFusion', 'identityGraph', 'incidentResponse', 'infraIntel', 'instagramCLI', 'intelligenceFabric', 'jarvisHologram', 'largeScaleAnomaly', 'malwareAnalysis', 'malwareCog', 'malwareTools', 'misinfoDetector', 'multiReality', 'odysseusCompare', 'odysseusDeepResearch', 'odysseusDocEditor', 'odysseusEmailAI', 'odysseusModelCookbook', 'odysseusTaskCalendar', 'odysseusWorkspace', 'omniBot', 'onboardingTour', 'payment', 'pocketAI', 'privacyRisk', 'providerStatus', 'selfHealing', 'selfImproving', 'share', 'sovereignAI', 'sysCognition', 'sysEvolution', 'sysObs', 'temporalThreat', 'threatCog', 'threatDetection', 'threatPredict', 'visionCapture', 'voiceChat', 'vulnDiscovery', 'whatsNew', 'zeroBoundary',
 ] as const;
@@ -2112,6 +2116,26 @@ function AppContent() {
         {modals.orchestratorHub && (
           <OrchestratorHubModal open={true} onClose={() => close('orchestratorHub')} />
         )}
+      </Suspense>
+
+      {/* ── Ultron Phase 2: Chat Semantic Search ─────────────────────────────── */}
+      <Suspense fallback={null}>
+        <ChatSearchModal
+          open={modals.chatSearch}
+          onOpenChange={(v) => mDispatch({ type: 'SET', id: 'chatSearch', value: v })}
+          onNavigateChat={(chatId) => {
+            dispatch({ type: 'SELECT_CHAT', id: chatId });
+            close('chatSearch');
+          }}
+        />
+      </Suspense>
+
+      {/* ── Ultron Phase 3: Blog / CMS ───────────────────────────────────────── */}
+      <Suspense fallback={null}>
+        <BlogModal
+          open={modals.blog}
+          onOpenChange={(v) => mDispatch({ type: 'SET', id: 'blog', value: v })}
+        />
       </Suspense>
 
       {/* Global Window Tray — minimized windows only */}
