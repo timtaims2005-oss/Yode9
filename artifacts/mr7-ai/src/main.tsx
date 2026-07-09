@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { initSentry, captureException } from './lib/sentry';
 import { renderBudget } from './lib/render-budget';
 import { networkResilience } from './lib/network-resilience';
 import { smartCache } from './lib/smart-cache';
@@ -31,6 +32,7 @@ function initErrorMonitor() {
 
   window.addEventListener("error", (e: ErrorEvent) => {
     record("uncaught", e.message, e.error?.stack);
+    captureException(e.error ?? e.message, { type: "uncaught" });
     if (import.meta.env.DEV) {
       console.error("[KaliGPT Error Monitor]", e.message, e.error);
     }
@@ -40,6 +42,7 @@ function initErrorMonitor() {
     const msg = e.reason instanceof Error ? e.reason.message : String(e.reason);
     const stack = e.reason instanceof Error ? e.reason.stack : undefined;
     record("unhandledrejection", msg, stack);
+    captureException(e.reason, { type: "unhandledrejection" });
     if (import.meta.env.DEV) {
       console.error("[KaliGPT Promise Monitor]", e.reason);
     }
@@ -85,6 +88,7 @@ function registerServiceWorker() {
 }
 
 // Boot monitors before React renders
+initSentry();
 initErrorMonitor();
 registerServiceWorker();
 
