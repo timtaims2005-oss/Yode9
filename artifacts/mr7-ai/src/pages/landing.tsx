@@ -1411,7 +1411,8 @@ export default function LandingPage() {
                 <div style={{fontSize:11,fontFamily:"monospace",color:"rgba(255,255,255,0.32)",letterSpacing:"0.2em",marginBottom:14,fontWeight:700}}>{col.title}</div>
                 <div style={{display:"flex",flexDirection:"column",gap:10}}>
                   {col.links.map(l=>(
-                    <button key={l} style={{fontSize:13,color:"rgba(255,255,255,0.28)",background:"none",border:"none",cursor:"pointer",textAlign:"left",transition:"color .2s",padding:0}}
+                    <button key={l} onClick={l==="سياسة الخصوصية" ? ()=>navigate("/privacy") : l==="شروط الخدمة" ? ()=>navigate("/terms") : undefined}
+                      style={{fontSize:13,color:"rgba(255,255,255,0.28)",background:"none",border:"none",cursor:"pointer",textAlign:"left",transition:"color .2s",padding:0}}
                       onMouseEnter={e=>(e.currentTarget.style.color="rgba(255,255,255,0.72)")} onMouseLeave={e=>(e.currentTarget.style.color="rgba(255,255,255,0.28)")}>{l}</button>
                   ))}
                 </div>

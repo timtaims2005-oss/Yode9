@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocation } from "wouter";
 import { X, Mail, Lock, User, Eye, EyeOff, Shield, Zap, ChevronRight, AlertCircle, CheckCircle2, Loader2, KeyRound, AtSign } from "lucide-react";
 import { register, login, forgotPassword, resetPassword, type AuthResponse } from "@/lib/auth";
 import { dispatchAuthUser } from "@/hooks/useAuth";
@@ -27,7 +28,9 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [attemptsLeft, setAttemptsLeft] = useState<number | null>(null);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [, navigate] = useLocation();
 
   useEffect(() => { setTab(defaultTab); }, [defaultTab]);
   useEffect(() => { setError(null); setSuccess(null); setAttemptsLeft(null); }, [tab]);
@@ -88,6 +91,10 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: Props) {
   };
 
   const handleRegister = async () => {
+    if (!agreedToTerms) {
+      setError("يجب الموافقة على شروط الخدمة وسياسة الخصوصية للتسجيل");
+      return;
+    }
     setLoading(true); setError(null);
     try {
       const res = await register({ email, password, firstName, lastName, username: username || undefined });
@@ -335,7 +342,29 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: Props) {
               )}
             </AnimatePresence>
 
-            <button type="submit" disabled={loading}
+            {/* Mandatory agreement checkbox — required to register */}
+            {tab === "register" && (
+              <label className="flex items-start gap-2.5 text-xs text-zinc-400 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => { setAgreedToTerms(e.target.checked); if (e.target.checked) setError(null); }}
+                  className="mt-0.5 w-4 h-4 rounded accent-red-600 shrink-0 cursor-pointer"
+                />
+                <span>
+                  أوافق على{" "}
+                  <button type="button" onClick={() => navigate("/terms")} className="text-red-500/80 hover:text-red-400 underline transition-colors">
+                    شروط الخدمة
+                  </button>
+                  {" "}و{" "}
+                  <button type="button" onClick={() => navigate("/privacy")} className="text-red-500/80 hover:text-red-400 underline transition-colors">
+                    سياسة الخصوصية
+                  </button>
+                </span>
+              </label>
+            )}
+
+            <button type="submit" disabled={loading || (tab === "register" && !agreedToTerms)}
               className="w-full h-12 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 disabled:opacity-60 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(226,18,39,0.3)] hover:shadow-[0_0_30px_rgba(226,18,39,0.5)]">
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
               {loading ? "جارٍ المعالجة..." : submitLabels[tab]}
@@ -351,12 +380,14 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: Props) {
               </div>
             )}
 
-            <div className="text-center text-xs text-zinc-600 pt-1">
-              باستخدامك KaliGPT توافق على{" "}
-              <span className="text-red-500/70 cursor-pointer hover:text-red-400">شروط الخدمة</span>
-              {" "}و{" "}
-              <span className="text-red-500/70 cursor-pointer hover:text-red-400">سياسة الخصوصية</span>
-            </div>
+            {tab !== "register" && (
+              <div className="text-center text-xs text-zinc-600 pt-1">
+                باستخدامك KaliGPT توافق على{" "}
+                <button type="button" onClick={() => navigate("/terms")} className="text-red-500/70 hover:text-red-400 underline transition-colors">شروط الخدمة</button>
+                {" "}و{" "}
+                <button type="button" onClick={() => navigate("/privacy")} className="text-red-500/70 hover:text-red-400 underline transition-colors">سياسة الخصوصية</button>
+              </div>
+            )}
           </form>
 
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-red-900/40 to-transparent" />
