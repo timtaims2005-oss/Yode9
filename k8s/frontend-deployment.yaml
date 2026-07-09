@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: mr7ai/frontend:latest
+          image: ghcr.io/timtaims2005-oss/mr7-frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5000

@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: mr7ai/api-server:latest
+          image: ghcr.io/timtaims2005-oss/mr7-api:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
