@@ -1,0 +1,45 @@
+أريدك تصلح الفجوات الفعلية اللي لقيناها بعد الفحص الشامل. اشتغل بالترتيب، واختبر كل مرحلة قبل ما تنتقل للي بعدها، وأنشئ branch جديد باسم feature/production-hardening-v2 قبل ما تبدأ.
+
+=== تصليحات فورية ===
+
+المرحلة 1 — تشغيل اختبارات api-server بـ CI
+سكريبت pnpm --filter @workspace/api-server run test موجود أصلاً (vitest run) وفيه 4 ملفات اختبار جاهزة (rate-limit, auth, reports, health). فقط أضف خطوة تشغّله بـ job الـ api-server بـ .github/workflows/ci.yml بعد خطوة الـ build، مع متغيرات DATABASE_URL و SESSION_SECRET بنفس أسلوب job الـ python.
+
+المرحلة 2 — توحيد ملفات Kubernetes
+احذف k8s/ai-deployment.yaml (النسخة القديمة اللي فيها api-server + frontend + redis بملف وحد، ولسا موجودة بالتوازي مع الملفات المنفصلة). راجع كل الملفات الباقية (api-deployment.yaml, frontend-deployment.yaml, api-service.yaml, hpa.yaml, ingress.yaml, redis-deployment.yaml, postgres-pvc.yaml, namespace.yaml) وتأكد التسمية موحدة بكل مكان (namespace, selectors, service names). بعدها تحقق بـ kubectl apply --dry-run=client -f k8s/.
+
+المرحلة 3 — بناء ونشر صور Docker عبر CI
+أضف job جديد بـ ci.yml اسمه docker-build يشتغل بس عند push لـ main:
+- docker/build-push-action + تسجيل دخول ghcr.io عبر GITHUB_TOKEN
+- ابني وارفع ghcr.io/<owner>/mr7-api:latest و ghcr.io/<owner>/mr7-frontend:latest + tag بالـ commit SHA
+- عدّل image: بملفات k8s/api-deployment.yaml و k8s/frontend-deployment.yaml من mr7ai/... إلى ghcr.io/<owner>/...
+
+=== تحسينات جاهزية الإنتاج ===
+
+المرحلة 4 — إكمال Sentry
+Sentry منفّذ بشكل صحيح بـ artifacts/api-server/src/lib/telemetry.ts (مع fallback آمن). أضف نفس المنطق لـ:
+- artifacts/mr7-ai (React): @sentry/react، DSN اختياري بدون كسر البناء لو غير موجود
+- pentest-lab/backend (Flask): sentry-sdk[flask]، نفس مبدأ fallback
+
+المرحلة 5 — Backup تلقائي لقاعدة البيانات
+لا يوجد ملف db-backup.yml إطلاقاً. أنشئه بـ .github/workflows/، cron يومي، pg_dump من DATABASE_URL. اسأل المستخدم أي تخزين متاح (S3 / R2 / GCS) قبل ما تكمل هذي الخطوة.
+
+المرحلة 6 — إكمال Logging المركزي
+api-server يستخدم pino بشكل صحيح (مع redact). لكن pentest-lab/backend لسا يستخدم logging.basicConfig عادي و38 ملف فيهم print() مباشر. حوّلها لـ JSON structured logging (نفس فورمات: timestamp, level, service, message, context) واستبدل كل print() الموجودة بـ logger المناسب.
+
+المرحلة 7 — صفحة Status
+مو موجودة إطلاقاً. أنشئ StatusPage.tsx بالفرونت إند + route /api/health/status بالباك إند (منفصل عن /api/health و/api/healthz الموجودين حالياً) يفحص: قاعدة البيانات، Redis، آخر مزود AI اشتغل. اعرض النتيجة كـ badge أخضر/أصفر/أحمر لكل خدمة.
+
+المرحلة 8 — نظام فوترة PDF
+pdf_reports.py الموجود مخصص لتقارير الاختراق الأمنية فقط، مو للفواتير. أضف جدول invoices جديد بـ lib/db/src/schema/index.ts، وعند حدث checkout.session.completed بـ artifacts/api-server/src/routes/stripe.ts ولّد فاتورة PDF (ReportLab بايثون أو مكافئ Node) وأرسلها بالإيميل أو خزّنها بالجدول عشان المستخدم يحملها من حسابه.
+
+المرحلة 9 — Onboarding تفاعلي حقيقي
+OnboardingTour.tsx الموجود حالياً عبارة عن Dialog ثابت بخطوات نصية، مو tour تفاعلي فوق الواجهة الفعلية. استبدله بمكتبة Shepherd.js أو Intro.js تعمل tour حقيقي يأشر على عناصر الواجهة الفعلية (زر مفاتيح API، أداة الفحص، إلخ).
+
+المرحلة 10 — ربط Privacy/Terms
+privacy.tsx و terms.tsx موجودين فعلاً بمحتوى جيد ومربوطين بـ routes /privacy و /terms. الناقص فقط: أضف روابط لهم بالـ footer، وأضف checkbox موافقة إلزامي بصفحة التسجيل يربط لنفس الصفحتين.
+
+=== لا تنفذ الآن ===
+لا تنفذ: Load testing، PgBouncer، CDN، تعدد العملات — لسا نفس الشي، تحتاج قرارات مني أولاً.
+
+ابدأ بالمرحلة 1 الآن.
