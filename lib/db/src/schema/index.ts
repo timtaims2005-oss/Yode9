@@ -15,3 +15,4 @@ export * from "./knowledge_base";
 export * from "./reports";
 export * from "./webhooks";
 export * from "./user_subscriptions";
+export * from "./invoices";

@@ -380,6 +380,27 @@ export async function ensureAuthTables() {
     `).catch((err) => logger.warn({ err }, "webhooks table may already exist"));
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_webhooks_user_id ON webhooks (user_id)`).catch(() => {});
 
+    // Invoices (generated on successful Stripe payments)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS invoices (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        stripe_invoice_id VARCHAR,
+        stripe_session_id VARCHAR,
+        plan_id VARCHAR,
+        amount NUMERIC(10,2) NOT NULL DEFAULT 0,
+        currency VARCHAR NOT NULL DEFAULT 'usd',
+        status VARCHAR NOT NULL DEFAULT 'paid',
+        description TEXT,
+        period_start TIMESTAMP WITH TIME ZONE,
+        period_end TIMESTAMP WITH TIME ZONE,
+        pdf_url TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "invoices table may already exist"));
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_invoices_user_id ON invoices (user_id)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_invoices_created_at ON invoices (created_at)`).catch(() => {});
+
     logger.info("Database tables ensured.");
   } catch (err) {
     // Don't crash the server if the database isn't ready yet —
