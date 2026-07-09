@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { WebSocketServer, WebSocket } from "ws";
+import { cacheGet, cacheSet } from "../lib/redis.js";
 
 const router = Router();
 
@@ -24,8 +25,13 @@ interface KevFeed {
   vulnerabilities: KevVuln[];
 }
 
+// L1: hot in-memory layer (survives within process, fast)
 let cache: { data: KevFeed; ts: number } | null = null;
 const CACHE_TTL_MS = 60 * 60 * 1000;
+
+// L2: Redis cache — persists across restarts, shared across instances
+const REDIS_KEV_KEY = "cisa:kev:feed";
+const REDIS_KEV_TTL_SEC = 60 * 60; // 1 hour
 
 // WebSocket broadcast registry
 const wsClients = new Set<WebSocket>();
@@ -70,8 +76,13 @@ async function pollAndBroadcast() {
   const data = await fetchFeed();
   if (!data) return;
 
+  const fetchedAt = Date.now();
   const prev = cache;
-  cache = { data, ts: Date.now() };
+  cache = { data, ts: fetchedAt };
+
+  // Persist envelope (data + original fetchedAt) to Redis L2
+  const envelope: KevRedisEnvelope = { data, fetchedAt };
+  cacheSet(REDIS_KEV_KEY, envelope, REDIS_KEV_TTL_SEC).catch(() => {});
 
   if (prev && knownCveIds.size > 0) {
     const newEntries = data.vulnerabilities.filter(v => !knownCveIds.has(v.cveID));
@@ -87,8 +98,26 @@ async function pollAndBroadcast() {
   }
 }
 
-// Poll every 5 minutes for new KEV entries
-void pollAndBroadcast();
+// Envelope stored in Redis so we can recover the original fetch timestamp.
+// This prevents L1 from outliving the intended 1-hour global TTL after a restart.
+interface KevRedisEnvelope {
+  data: KevFeed;
+  fetchedAt: number; // Unix ms when we fetched from CISA
+}
+
+// On startup: warm L1 from Redis before first poll (avoids cold-start miss)
+async function warmFromRedis() {
+  try {
+    const envelope = await cacheGet<KevRedisEnvelope>(REDIS_KEV_KEY);
+    if (envelope && !cache) {
+      // Restore the original fetch timestamp so L1 expiry aligns with Redis TTL
+      cache = { data: envelope.data, ts: envelope.fetchedAt };
+      knownCveIds = new Set(envelope.data.vulnerabilities.map(v => v.cveID));
+    }
+  } catch { /* ignore */ }
+}
+
+void warmFromRedis().then(() => pollAndBroadcast());
 setInterval(pollAndBroadcast, 5 * 60 * 1000);
 
 const FALLBACK: KevFeed = {
@@ -122,14 +151,30 @@ const FALLBACK: KevFeed = {
 
 router.get("/cisa-kev", async (_req, res) => {
   try {
+    // L1: in-memory hot cache
     if (cache && Date.now() - cache.ts < CACHE_TTL_MS) {
-      res.set("X-Cache", "HIT");
+      res.set("X-Cache", "HIT-L1");
       return res.json(cache.data);
     }
+    // L2: Redis persistent cache (survives restarts; envelope carries original fetchedAt)
+    const envelope = await cacheGet<KevRedisEnvelope>(REDIS_KEV_KEY);
+    if (envelope) {
+      // Only promote to L1 if still within 1-hour window from original fetch
+      if (Date.now() - envelope.fetchedAt < CACHE_TTL_MS) {
+        cache = { data: envelope.data, ts: envelope.fetchedAt };
+        res.set("X-Cache", "HIT-L2");
+        return res.json(envelope.data);
+      }
+      // Envelope expired — fall through to fresh fetch
+    }
+    // Cache miss: fetch from CISA
     const data = await fetchFeed();
     if (!data) throw new Error("fetch failed");
-    cache = { data, ts: Date.now() };
+    const fetchedAt = Date.now();
+    cache = { data, ts: fetchedAt };
     if (knownCveIds.size === 0) knownCveIds = new Set(data.vulnerabilities.map(v => v.cveID));
+    const newEnvelope: KevRedisEnvelope = { data, fetchedAt };
+    cacheSet(REDIS_KEV_KEY, newEnvelope, REDIS_KEV_TTL_SEC).catch(() => {});
     res.set("X-Cache", "MISS");
     return res.json(data);
   } catch {

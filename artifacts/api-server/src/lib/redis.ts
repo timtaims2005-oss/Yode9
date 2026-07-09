@@ -50,6 +50,12 @@ class InMemoryCache implements CacheBackend {
 
   async incr(key: string): Promise<number> {
     const entry = this.store.get(key);
+    // Honour expiry before incrementing — same semantics as Redis INCR on expired key
+    if (entry && entry.expires && entry.expires < Date.now()) {
+      this.store.delete(key);
+      this.store.set(key, { value: "1" });
+      return 1;
+    }
     const current = entry ? parseInt(entry.value, 10) || 0 : 0;
     const next = current + 1;
     this.store.set(key, { value: String(next), expires: entry?.expires });
