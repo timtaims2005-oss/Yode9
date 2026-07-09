@@ -9,6 +9,7 @@ import App from "./App";
 import LandingPage from "./pages/landing";
 import PrivacyPage from "./pages/privacy";
 import TermsPage from "./pages/terms";
+import StatusPage from "./pages/StatusPage";
 import FAQPage from "./pages/faq";
 import ContactPage from "./pages/contact";
 import RoadmapPage from "./pages/roadmap";
@@ -167,6 +168,7 @@ createRoot(document.getElementById("root")!).render(
       <Route path="/app" component={App} />
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/terms" component={TermsPage} />
+      <Route path="/status" component={StatusPage} />
       <Route path="/faq" component={FAQPage} />
       <Route path="/contact" component={ContactPage} />
       <Route path="/roadmap" component={RoadmapPage} />

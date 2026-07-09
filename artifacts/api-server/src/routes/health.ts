@@ -2,6 +2,8 @@ import { Router, type IRouter } from "express";
 import { HealthCheckResponse } from "@workspace/api-zod";
 import { pool } from "../db";
 import { circuitRegistry } from "../lib/circuit-breaker";
+import { getRedis } from "../lib/redis.js";
+import { listProviders } from "../lib/ai-providers.js";
 import os from "os";
 
 const router: IRouter = Router();
@@ -47,6 +49,58 @@ router.get("/health/deep", async (_req, res) => {
       pid: process.pid,
     },
     circuits,
+    ts: new Date().toISOString(),
+  });
+});
+
+// ── Status page endpoint ───────────────────────────────────────────────────────
+// Separate from /health and /healthz: designed for the human-facing Status
+// page, reporting per-service traffic-light state (green/yellow/red) rather
+// than a single ok/degraded flag.
+type ServiceStatus = "green" | "yellow" | "red";
+
+router.get("/health/status", async (_req, res) => {
+  const services: Record<string, { status: ServiceStatus; detail: string; latencyMs?: number }> = {};
+
+  // Database
+  const dbStart = Date.now();
+  try {
+    await pool.query("SELECT 1");
+    services["database"] = { status: "green", detail: "Connected", latencyMs: Date.now() - dbStart };
+  } catch (err) {
+    services["database"] = { status: "red", detail: String(err), latencyMs: Date.now() - dbStart };
+  }
+
+  // Redis (in-memory fallback counts as degraded, not down)
+  const redisStart = Date.now();
+  try {
+    const redisConfigured = !!process.env.REDIS_URL;
+    const r = await getRedis();
+    await r.set("health:status:ping", "1", 5);
+    const latencyMs = Date.now() - redisStart;
+    services["redis"] = redisConfigured
+      ? { status: "green", detail: "Connected", latencyMs }
+      : { status: "yellow", detail: "REDIS_URL not set — using in-memory fallback", latencyMs };
+  } catch (err) {
+    services["redis"] = { status: "red", detail: String(err), latencyMs: Date.now() - redisStart };
+  }
+
+  // AI providers — green if at least one provider has a key configured
+  const providers = listProviders();
+  const availableProviders = providers.filter((p) => p.available);
+  services["ai_providers"] = availableProviders.length > 0
+    ? { status: "green", detail: `${availableProviders.length} provider(s) available: ${availableProviders.map((p) => p.name).join(", ")}` }
+    : { status: "red", detail: "No AI provider has an API key configured" };
+
+  const overall: ServiceStatus = Object.values(services).some((s) => s.status === "red")
+    ? "red"
+    : Object.values(services).some((s) => s.status === "yellow")
+      ? "yellow"
+      : "green";
+
+  res.status(overall === "red" ? 503 : 200).json({
+    overall,
+    services,
     ts: new Date().toISOString(),
   });
 });
