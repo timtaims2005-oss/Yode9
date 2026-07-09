@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { requirePersonalOpenAI, PERSONAL_DEFAULT_MODEL } from "../lib/ai-providers";
+import { cacheGet, cacheSet } from "../lib/redis.js";
 import dns from "dns";
 import crypto from "crypto";
 
@@ -8,38 +9,47 @@ const router: IRouter = Router();
 const FETCH_TIMEOUT = 8000;
 const SHORT_TIMEOUT = 3000;
 
-// ── OSINT In-Memory LRU Response Cache ────────────────────────────────────────
-// Caches expensive external API results (email/IP/domain lookups) for 5 minutes.
-// Prevents redundant calls when the same IOC is queried multiple times.
+// ── OSINT Redis-Backed Cache (L1 in-memory + L2 Redis) ────────────────────────
+// L1: hot in-memory map for same-process ultra-fast lookups (30s TTL, max 500)
+// L2: Redis (or in-memory fallback when REDIS_URL not set) for 5-min shared cache
+// Survives server restarts; shared across multiple instances when Redis is live.
 
-interface OsintCacheEntry { data: unknown; exp: number }
-const _osintCache = new Map<string, OsintCacheEntry>();
-const OSINT_CACHE_TTL = 5 * 60_000;  // 5 minutes
-const OSINT_CACHE_MAX = 500;
+const OSINT_L1_TTL = 30_000;           // 30 seconds in-memory hot layer
+const OSINT_L2_TTL_SEC = 5 * 60;       // 5 minutes Redis layer
+const OSINT_L1_MAX = 500;
 
-function osintCacheKey(type: string, value: string): string {
-  return crypto.createHash("sha256").update(`${type}:${value.toLowerCase().trim()}`).digest("hex").slice(0, 16);
+interface L1Entry { data: unknown; exp: number }
+const _l1 = new Map<string, L1Entry>();
+
+function _osintKey(type: string, value: string): string {
+  return `osint:${type}:${crypto.createHash("sha256").update(value.toLowerCase().trim()).digest("hex").slice(0, 16)}`;
 }
 
-function osintCacheGet(type: string, value: string): unknown | null {
-  const k = osintCacheKey(type, value);
-  const e = _osintCache.get(k);
-  if (!e) return null;
-  if (Date.now() > e.exp) { _osintCache.delete(k); return null; }
-  // LRU: move to end
-  _osintCache.delete(k);
-  _osintCache.set(k, e);
-  return e.data;
-}
-
-function osintCacheSet(type: string, value: string, data: unknown): void {
-  const k = osintCacheKey(type, value);
-  if (_osintCache.has(k)) _osintCache.delete(k);
-  if (_osintCache.size >= OSINT_CACHE_MAX) {
-    const firstKey = _osintCache.keys().next().value;
-    if (firstKey !== undefined) _osintCache.delete(firstKey);
+async function osintCacheGet(type: string, value: string): Promise<unknown | null> {
+  const key = _osintKey(type, value);
+  // L1 check (sync)
+  const l1 = _l1.get(key);
+  if (l1) {
+    if (Date.now() < l1.exp) return l1.data;
+    _l1.delete(key);
   }
-  _osintCache.set(k, { data, exp: Date.now() + OSINT_CACHE_TTL });
+  // L2 check (Redis / in-memory fallback)
+  const l2 = await cacheGet<unknown>(key);
+  if (l2 !== null) {
+    // Promote to L1
+    if (_l1.size >= OSINT_L1_MAX) _l1.delete(_l1.keys().next().value!);
+    _l1.set(key, { data: l2, exp: Date.now() + OSINT_L1_TTL });
+  }
+  return l2;
+}
+
+async function osintCacheSet(type: string, value: string, data: unknown): Promise<void> {
+  const key = _osintKey(type, value);
+  // Write L1
+  if (_l1.size >= OSINT_L1_MAX) _l1.delete(_l1.keys().next().value!);
+  _l1.set(key, { data, exp: Date.now() + OSINT_L1_TTL });
+  // Write L2 (non-blocking — don't await to avoid delaying response)
+  cacheSet(key, data, OSINT_L2_TTL_SEC).catch(() => {});
 }
 
 function extractIocs(text: string): Record<string, string[]> {
@@ -107,7 +117,7 @@ router.post("/osint/email", async (req, res) => {
     }
 
     // ── Cache hit: return immediately ────────────────────────────────────────
-    const cached = osintCacheGet("email", email);
+    const cached = await osintCacheGet("email", email);
     if (cached) {
       res.setHeader("X-Cache", "HIT");
       return res.json(cached);
@@ -221,7 +231,7 @@ LeakCheck نتيجة: ${JSON.stringify(leakData)}
            ...(mxSecurity.spf ? [] : ["أضف سجل SPF لمنع انتحال هوية البريد"]),
            ...(effectiveDmarc ? [] : ["أضف سياسة DMARC لتعزيز المصادقة"])],
     };
-    osintCacheSet("email", email, emailResult);
+    await osintCacheSet("email", email, emailResult);
     return res.json(emailResult);
   } catch (err) {
     return res.status(500).json({ error: err instanceof Error ? err.message : "Email OSINT failed" });
@@ -237,7 +247,7 @@ router.post("/osint/ip", async (req, res) => {
       return res.status(400).json({ error: "Valid IP address required" });
     }
 
-    const cachedIp = osintCacheGet("ip", ip);
+    const cachedIp = await osintCacheGet("ip", ip);
     if (cachedIp) { res.setHeader("X-Cache", "HIT"); return res.json(cachedIp); }
 
     const langNote = body.language === "ar" ? "أجب باللغة العربية." : "Respond in English.";
@@ -338,7 +348,7 @@ ipapi.co: ${JSON.stringify(ipapiData).slice(0, 500)}
         ? ["راجع سجلات الاتصال من هذا IP", "طبّق تقييد معدل الطلبات (rate limiting)", "أضف للقائمة السوداء إذا كان مشبوهاً", "تحقق من حركة مرور غير عادية"]
         : ["IP يبدو نظيفاً — استمر في المراقبة الاعتيادية", "احتفظ بسجلات الوصول", "راجعه دورياً"],
     };
-    osintCacheSet("ip", ip, ipResult);
+    await osintCacheSet("ip", ip, ipResult);
     return res.json(ipResult);
   } catch (err) {
     return res.status(500).json({ error: err instanceof Error ? err.message : "IP OSINT failed" });
@@ -354,7 +364,7 @@ router.post("/osint/domain", async (req, res) => {
       return res.status(400).json({ error: "Valid domain required" });
     }
 
-    const cachedDomain = osintCacheGet("domain", domain);
+    const cachedDomain = await osintCacheGet("domain", domain);
     if (cachedDomain) { res.setHeader("X-Cache", "HIT"); return res.json(cachedDomain); }
 
     const langNote = body.language === "ar" ? "أجب باللغة العربية." : "Respond in English.";
@@ -481,7 +491,7 @@ Cloudflare DoH: ${JSON.stringify(cfData).slice(0, 300)}
         "راقب crt.sh لاكتشاف شهادات غير مصرح بها",
       ],
     };
-    osintCacheSet("domain", domain, domainResult);
+    await osintCacheSet("domain", domain, domainResult);
     return res.json(domainResult);
   } catch (err) {
     return res.status(500).json({ error: err instanceof Error ? err.message : "Domain OSINT failed" });

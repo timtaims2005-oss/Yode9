@@ -71,6 +71,10 @@ class InMemoryCache implements CacheBackend {
 // ── Redis client (lazy init) ──────────────────────────────────────────────────
 let _client: CacheBackend | null = null;
 
+// Expose raw ioredis instance for session store (connect-redis v9)
+let _rawIoRedis: unknown | null = null;
+export function getRawIoRedis(): unknown | null { return _rawIoRedis; }
+
 async function createRedisClient(): Promise<CacheBackend> {
   const url = process.env.REDIS_URL;
   if (!url) {
@@ -96,6 +100,9 @@ async function createRedisClient(): Promise<CacheBackend> {
     client.on("connect", () => {
       logger.info("[redis] Connected");
     });
+
+    // Expose raw client for session store
+    _rawIoRedis = client;
 
     // Wrap ioredis in our interface
     const backend: CacheBackend = {

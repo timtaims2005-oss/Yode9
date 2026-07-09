@@ -6,7 +6,10 @@ import { rateLimit } from "express-rate-limit";
 import pinoHttp from "pino-http";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
+import { RedisStore } from "connect-redis";
 import passport from "passport";
+import { getRedis, getRawIoRedis } from "./lib/redis.js";
+import { osintLimiter, cveSearchLimiter } from "./middlewares/redis-rate-limit.js";
 import router from "./routes";
 import healthRouter from "./routes/health";
 import providersRouter from "./routes/providers";
@@ -189,20 +192,39 @@ app.use(sanitizeInputs);
 app.use(attackDetector);
 
 // ── Session + Passport ────────────────────────────────────────────────────────
+// Use Redis as session store when REDIS_URL is set; fall back to PostgreSQL.
 const PgStore = connectPg(session);
+// RedisStore imported directly from connect-redis v9 (named export)
 
 const sessionSecret = process.env.SESSION_SECRET || "mr7-ai-dev-secret-change-in-prod";
+
+async function buildSessionStore() {
+  if (process.env.REDIS_URL) {
+    try {
+      // Warm up Redis so getRawIoRedis() is populated
+      await getRedis();
+      const raw = getRawIoRedis();
+      if (raw) {
+        logger.info("[session] Using Redis session store");
+        // connect-redis v9 accepts an ioredis-compatible client directly
+        return new RedisStore({ client: raw as ConstructorParameters<typeof RedisStore>[0]["client"] });
+      }
+    } catch {
+      // fall through to PgStore
+    }
+  }
+  logger.info("[session] Using PostgreSQL session store");
+  return new PgStore({ pool, createTableIfMissing: true, tableName: "sessions" });
+}
+
+const sessionStore = await buildSessionStore();
 
 app.use(
   session({
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
-    store: new PgStore({
-      pool,
-      createTableIfMissing: true,
-      tableName: "sessions",
-    }),
+    store: sessionStore,
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -281,10 +303,11 @@ app.use("/api", subscriptionsRouter);
 // ── Threat Intelligence — public read, write protected ───────────────────────
 app.use("/api", threatIntelRouter);
 
-// ── OSINT Advanced — public scanner endpoints ─────────────────────────────────
-app.use("/api/osint-advanced", osintAdvancedRouter);
+// ── OSINT Advanced — public scanner endpoints (Redis rate-limited) ────────────
+app.use("/api/osint-advanced", osintLimiter, osintAdvancedRouter);
 
-// ── OSINT Intelligence endpoints (email, ip, domain, hash, username, phone) ──
+// ── OSINT Intelligence endpoints — Redis rate-limited ─────────────────────────
+app.use("/api/osint", osintLimiter);
 app.use("/api", osintRouter);
 
 // ── AI Tools — security, cache, providers, validation ─────────────────────────
