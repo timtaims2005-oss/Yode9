@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mr7-frontend
+  namespace: mr7ai
+  labels:
+    app: mr7-frontend
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mr7-frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: mr7-frontend
+        tier: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: mr7ai/frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+              name: http
+          env:
+            - name: VITE_API_URL
+              value: /api
+            - name: PORT
+              value: "5000"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mr7-frontend-svc
+  namespace: mr7ai
+spec:
+  selector:
+    app: mr7-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+  type: ClusterIP

@@ -1,0 +1,573 @@
+import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
+
+export type ProviderName = "openai" | "anthropic" | "groq" | "gemini" | "openrouter" | "custom" | "personal" | "zhipu" | "glm" | "cloudflare";
+
+export type ProviderInfo = {
+  id: ProviderName;
+  name: string;
+  available: boolean;
+  models: string[];
+  baseURL?: string;
+};
+
+export const PERSONAL_DEFAULT_MODEL = process.env.PERSONAL_DEFAULT_MODEL ?? "gpt-3.5-turbo";
+
+const WORLD_MODELS = [
+  // OpenAI
+  "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo",
+  "o1", "o1-mini", "o3", "o3-mini", "o4-mini",
+  // Anthropic Claude
+  "claude-opus-4-5", "claude-sonnet-4-5", "claude-3-5-sonnet-20241022",
+  "claude-3-5-haiku-20241022", "claude-3-opus-20240229", "claude-3-7-sonnet-20250219",
+  // Google Gemini
+  "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-pro",
+  // Meta Llama
+  "llama-3.3-70b-instruct", "llama-3.1-8b-instant", "llama-3.1-405b-instruct",
+  "llama-3.2-90b-vision-instruct", "llama-3.2-11b-vision-instruct",
+  // Mistral
+  "mistral-large-latest", "mistral-medium-latest", "mistral-small-latest",
+  "codestral-latest", "mistral-nemo", "mistral-7b-instruct",
+  // DeepSeek (China)
+  "deepseek-r1", "deepseek-v3", "deepseek-chat", "deepseek-coder-v2",
+  "deepseek-r1-distill-llama-70b",
+  // Alibaba Qwen (China)
+  "qwen-max", "qwen-plus", "qwen-turbo", "qwen2.5-72b-instruct",
+  "qwen2.5-coder-32b-instruct", "qwq-32b",
+  // Yi / 01.ai (China)
+  "yi-lightning", "yi-large", "yi-large-fc", "yi-large-rag",
+  // Cohere
+  "command-r-plus", "command-r", "command-light",
+  // Moonshot (China)
+  "moonshot-v1-128k", "moonshot-v1-32k", "moonshot-v1-8k",
+  // Zhipu AI GLM (China)
+  "glm-5.2", "glm-5.1", "glm-5", "glm-4-plus", "glm-4", "glm-4-flash", "glm-zero-preview",
+  // Baidu ERNIE (China)
+  "ernie-4.5-8k", "ernie-4.0-8k", "ernie-3.5-8k",
+  // Perplexity
+  "llama-3.1-sonar-large-128k-online", "llama-3.1-sonar-small-128k-online",
+  // Mixtral
+  "mixtral-8x7b-instruct", "mixtral-8x22b-instruct",
+];
+
+type ProviderConfig = {
+  name: string;
+  envKey: string;
+  baseURL: string;
+  models: string[];
+  requiresKey?: boolean;
+};
+
+const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
+  openai: {
+    name: "OpenAI",
+    envKey: "OPENAI_API_KEY",
+    baseURL: "https://api.openai.com/v1",
+    models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo", "o1", "o1-mini", "o3-mini"],
+    requiresKey: true,
+  },
+  anthropic: {
+    name: "Anthropic",
+    envKey: "ANTHROPIC_API_KEY",
+    baseURL: "https://api.anthropic.com",
+    models: ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"],
+    requiresKey: true,
+  },
+  groq: {
+    name: "Groq",
+    envKey: "GROQ_API_KEY",
+    baseURL: "https://api.groq.com/openai/v1",
+    models: ["llama-3.1-8b-instant", "llama-3.3-70b-instruct", "mixtral-8x7b-32768"],
+    requiresKey: true,
+  },
+  gemini: {
+    name: "Google Gemini",
+    envKey: "GEMINI_API_KEY",
+    baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
+    models: ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"],
+    requiresKey: true,
+  },
+  openrouter: {
+    name: "OpenRouter",
+    envKey: "OPENROUTER_API_KEY",
+    baseURL: "https://openrouter.ai/api/v1",
+    models: WORLD_MODELS,
+    requiresKey: true,
+  },
+  custom: {
+    name: "Custom / Self-hosted",
+    envKey: "CUSTOM_API_KEY",
+    baseURL: "",
+    models: [],
+    requiresKey: false,
+  },
+  personal: {
+    name: "Personal / Custom",
+    envKey: "PERSONAL_API_KEY",
+    baseURL: "",
+    models: [],
+    requiresKey: false,
+  },
+  zhipu: {
+    name: "Zhipu AI (GLM-5.2 / GLM-5.1 / GLM-5)",
+    envKey: "ZHIPU_API_KEY",
+    baseURL: "https://open.bigmodel.cn/api/paas/v4",
+    models: ["glm-5.2", "glm-5.1", "glm-5", "glm-4-plus", "glm-4", "glm-4-flash", "glm-zero-preview"],
+    requiresKey: true,
+  },
+  glm: {
+    name: "ZAI / GLM-5 (api.z.ai — International)",
+    envKey: "ZAI_API_KEY",
+    baseURL: "https://api.z.ai/v1",
+    models: ["glm-5.2", "glm-5.1", "glm-5", "glm-4-plus", "glm-4", "glm-4-flash", "glm-zero-preview"],
+    requiresKey: true,
+  },
+  cloudflare: {
+    name: "Cloudflare Workers AI",
+    envKey: "CLOUDFLARE_API_TOKEN",
+    baseURL: "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1",
+    models: [
+      "@cf/meta/llama-3.1-8b-instruct",
+      "@cf/meta/llama-3.2-3b-instruct",
+      "@cf/mistral/mistral-7b-instruct-v0.1",
+      "@cf/google/gemma-7b-it",
+    ],
+    requiresKey: true,
+  },
+};
+
+function getCloudflareBaseURL(): string {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim() || "";
+  return `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1`;
+}
+
+function getPersonalBase(): string {
+  return process.env.PERSONAL_API_BASE_URL?.trim() || "";
+}
+
+function getPersonalKey(): string {
+  return process.env.PERSONAL_API_KEY?.trim() || "";
+}
+
+export function hasAnyApiKey(): boolean {
+  return !!(
+    process.env.PERSONAL_API_KEY?.trim() ||
+    process.env.ANTHROPIC_API_KEY?.trim() ||
+    process.env.GROQ_API_KEY?.trim() ||
+    process.env.GEMINI_API_KEY?.trim() ||
+    process.env.OPENROUTER_API_KEY?.trim() ||
+    process.env.CUSTOM_API_KEY?.trim() ||
+    process.env.OPENAI_API_KEY?.trim() ||
+    process.env.ZHIPU_API_KEY?.trim() ||
+    process.env.ZAI_API_KEY?.trim() ||
+    process.env.CLOUDFLARE_API_TOKEN?.trim()
+  );
+}
+
+export function listProviders(): ProviderInfo[] {
+  return (Object.entries(PROVIDER_CONFIGS) as [ProviderName, ProviderConfig][]).map(
+    ([id, cfg]) => {
+      let available: boolean;
+      if (id === "personal") {
+        available = !!getPersonalKey();
+      } else if (id === "custom") {
+        available = !!(process.env.CUSTOM_API_KEY || process.env.CUSTOM_API_BASE_URL);
+      } else if (id === "openai") {
+        available = !!(process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY);
+      } else if (id === "anthropic") {
+        available = !!(process.env.ANTHROPIC_API_KEY || process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY);
+      } else if (id === "cloudflare") {
+        available = !!(process.env.CLOUDFLARE_API_TOKEN?.trim() && process.env.CLOUDFLARE_ACCOUNT_ID?.trim());
+      } else {
+        available = !!process.env[cfg.envKey];
+      }
+      const baseURL = id === "personal" ? getPersonalBase() : id === "cloudflare" ? getCloudflareBaseURL() : cfg.baseURL;
+      return { id, name: cfg.name, available, models: cfg.models, baseURL };
+    }
+  );
+}
+
+let _openaiClients: Partial<Record<string, OpenAI>> = {};
+let _anthropic: Anthropic | null = null;
+
+export function getOpenAICompatibleClient(provider: ProviderName): OpenAI | null {
+  const cacheKey = provider;
+  if (_openaiClients[cacheKey]) return _openaiClients[cacheKey]!;
+
+  const cfg = PROVIDER_CONFIGS[provider];
+  let apiKey: string | undefined;
+  let baseURL: string | undefined = cfg.baseURL;
+
+  if (provider === "custom") {
+    apiKey = process.env.CUSTOM_API_KEY || undefined;
+    baseURL = process.env.CUSTOM_API_BASE_URL || "https://api.openai.com/v1";
+  } else if (provider === "zhipu") {
+    apiKey = process.env.ZHIPU_API_KEY || undefined;
+    baseURL = "https://open.bigmodel.cn/api/paas/v4";
+  } else if (provider === "glm") {
+    apiKey = process.env.ZAI_API_KEY || undefined;
+    baseURL = "https://api.z.ai/v1";
+  } else if (provider === "personal") {
+    apiKey = getPersonalKey() || undefined;
+    baseURL = getPersonalBase() || undefined;
+  } else if (provider === "openai") {
+    apiKey = process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY || undefined;
+    baseURL = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || cfg.baseURL;
+  } else {
+    apiKey = process.env[cfg.envKey];
+  }
+
+  if (!apiKey) return null;
+
+  const clientOpts: ConstructorParameters<typeof OpenAI>[0] = { apiKey };
+  if (baseURL) clientOpts.baseURL = baseURL;
+
+  if (provider === "openrouter") {
+    clientOpts.defaultHeaders = {
+      "HTTP-Referer": "https://mr7.ai",
+      "X-Title": "KaliGPT / mr7.ai",
+    };
+  }
+
+  const client = new OpenAI(clientOpts);
+  _openaiClients[cacheKey] = client;
+  return client;
+}
+
+export function getPersonalOpenAI(): OpenAI | null {
+  const key = getPersonalKey();
+  const base = getPersonalBase();
+  if (!key) return null;
+  return new OpenAI({ apiKey: key, ...(base ? { baseURL: base } : {}) });
+}
+
+export function requirePersonalOpenAI(): OpenAI {
+  const client = getPersonalOpenAI();
+  if (!client) {
+    throw new Error(
+      "لم يتم ضبط مفتاح API. افتح إعدادات المزود من القائمة الجانبية واختر مزوداً وأدخل المفتاح."
+    );
+  }
+  return client;
+}
+
+export function getAnthropicClient(): Anthropic {
+  if (_anthropic) return _anthropic;
+  const apiKey = process.env.ANTHROPIC_API_KEY || process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set. Add it in Secrets.");
+  _anthropic = new Anthropic({ apiKey });
+  return _anthropic;
+}
+
+export function invalidateProviderCache() {
+  _openaiClients = {};
+  _anthropic = null;
+}
+
+export type StreamChunk = { content?: string; done?: boolean; error?: string };
+
+export async function callOnce(
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+  maxTokens = 1000,
+): Promise<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+  try {
+    const client = getPersonalOpenAI();
+    if (!client) return "";
+    const res = await client.chat.completions.create({
+      model: PERSONAL_DEFAULT_MODEL,
+      max_tokens: maxTokens,
+      messages,
+    }, { signal: controller.signal });
+    return res.choices?.[0]?.message?.content ?? "";
+  } catch {
+    return "";
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export function getClientWithCredentials(apiKey: string, apiBaseURL?: string): OpenAI {
+  return new OpenAI({
+    apiKey,
+    ...(apiBaseURL ? { baseURL: apiBaseURL } : {}),
+  });
+}
+
+export async function* streamCompletion(
+  provider: ProviderName,
+  model: string,
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+  temperature = 0.7,
+  opts?: { apiKey?: string; apiBaseURL?: string }
+): AsyncGenerator<StreamChunk> {
+  const controller = new AbortController();
+  const TIMEOUT_MS = 60_000;
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    // ── Path 1: Frontend passed a key directly (from ProviderSettingsModal) ──
+    if (opts?.apiKey && opts.apiKey.trim().length > 10) {
+      const client = getClientWithCredentials(opts.apiKey.trim(), opts.apiBaseURL?.trim());
+      const resolvedModel = model || PERSONAL_DEFAULT_MODEL;
+      try {
+        const streamRes = await client.chat.completions.create({
+          model: resolvedModel,
+          messages,
+          stream: true,
+          temperature,
+        }, { signal: controller.signal });
+        for await (const chunk of streamRes) {
+          const content = chunk.choices?.[0]?.delta?.content;
+          if (content) yield { content };
+        }
+        yield { done: true };
+        return;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "API error";
+        yield { error: msg };
+        return;
+      }
+    }
+
+    // ── Path 2: Anthropic (server-side key) ──
+    if (provider === "anthropic") {
+      try {
+        const client = getAnthropicClient();
+        const systemMsg = messages.find((m) => m.role === "system");
+        const chatMsgs = messages
+          .filter((m) => m.role !== "system")
+          .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+
+        const stream = client.messages.stream({
+          model,
+          max_tokens: 8192,
+          system: systemMsg?.content,
+          messages: chatMsgs,
+          temperature,
+        });
+
+        for await (const event of stream) {
+          if (
+            event.type === "content_block_delta" &&
+            event.delta.type === "text_delta"
+          ) {
+            yield { content: event.delta.text };
+          }
+        }
+        yield { done: true };
+        return;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Anthropic API error";
+        yield { error: msg };
+        return;
+      }
+    }
+
+    // ── Path 2.5: Cloudflare Workers AI (server-side key, raw fetch — different endpoint shape) ──
+    if (provider === "cloudflare") {
+      const apiToken = process.env.CLOUDFLARE_API_TOKEN?.trim();
+      const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim();
+      if (!apiToken || !accountId) {
+        yield {
+          error: "لم يتم ضبط CLOUDFLARE_API_TOKEN أو CLOUDFLARE_ACCOUNT_ID. أضفهما في Secrets.",
+        };
+        return;
+      }
+      const resolvedModel = model || "@cf/meta/llama-3.1-8b-instruct";
+      const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${resolvedModel}`;
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ messages, temperature, stream: true }),
+          signal: controller.signal,
+        });
+
+        if (!res.ok || !res.body) {
+          const text = await res.text().catch(() => "");
+          yield { error: `Cloudflare Workers AI error (${res.status}): ${text || res.statusText}` };
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const payload = trimmed.slice(5).trim();
+            if (payload === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(payload);
+              const content = parsed?.response ?? parsed?.result?.response ?? "";
+              if (content) yield { content };
+            } catch {
+              // ignore malformed SSE chunk
+            }
+          }
+        }
+        yield { done: true };
+        return;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Cloudflare Workers AI error";
+        yield { error: msg };
+        return;
+      }
+    }
+
+    // ── Path 3: OpenAI-compatible provider (server-side key) ──
+    const resolvedProvider: ProviderName =
+      (provider === "personal" || !PROVIDER_CONFIGS[provider])
+        ? "personal"
+        : provider;
+
+    const client = getOpenAICompatibleClient(resolvedProvider);
+
+    if (!client) {
+      yield {
+        error:
+          "لم يتم ضبط مفتاح API. افتح إعدادات المزود من القائمة الجانبية واختر مزوداً وأدخل المفتاح.",
+      };
+      return;
+    }
+
+    const resolvedModel = model || PERSONAL_DEFAULT_MODEL;
+
+    const isGlm5 = /^glm-5/.test(resolvedModel);
+    const glm5Extra = isGlm5 ? { extra_body: { reasoning_effort: "max" } } : {};
+
+    const streamRes = await client.chat.completions.create({
+      model: resolvedModel,
+      messages,
+      stream: true,
+      temperature,
+      ...glm5Extra,
+    } as Parameters<typeof client.chat.completions.create>[0], { signal: controller.signal }) as AsyncIterable<import("openai/resources").ChatCompletionChunk>;
+
+    for await (const chunk of streamRes) {
+      const content = chunk.choices?.[0]?.delta?.content;
+      if (content) yield { content };
+    }
+    yield { done: true };
+  } catch (e) {
+    const isAbort = e instanceof Error && (e.name === "AbortError" || e.message.includes("abort"));
+    if (isAbort) {
+      yield { error: "انتهت مهلة الطلب — تحقق من مفتاح API وإعدادات المزود" };
+    } else if (e instanceof Error) {
+      const msg = e.message;
+      if (msg.includes("400") && (msg.includes("no body") || msg.includes("empty"))) {
+        yield {
+          error:
+            "خطأ 400: رفض المزود الطلب — تحقق من صحة اسم النموذج وعنوان API Base URL. قد يكون النموذج غير متاح لدى هذا المزود.",
+        };
+      } else if (msg.includes("401") || msg.toLowerCase().includes("unauthorized") || msg.toLowerCase().includes("api key")) {
+        yield { error: "مفتاح API غير صالح أو منتهي الصلاحية — أدخل مفتاحاً جديداً في إعدادات المزود." };
+      } else if (msg.includes("429")) {
+        yield { error: "تجاوزت حد الطلبات — انتظر قليلاً ثم أعد المحاولة." };
+      } else {
+        yield { error: msg };
+      }
+    } else {
+      yield { error: "AI provider error" };
+    }
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+const FALLBACK_ORDER: ProviderName[] = [
+  "personal", "cloudflare", "openrouter", "groq", "openai", "anthropic", "gemini", "zhipu", "glm",
+];
+
+export async function* streamWithFallback(
+  primaryProvider: ProviderName,
+  model: string,
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+  temperature = 0.7,
+  opts?: { apiKey?: string; apiBaseURL?: string },
+): AsyncGenerator<StreamChunk> {
+  // If the client supplied its own key, that is an explicit choice — never override it.
+  if (opts?.apiKey && opts.apiKey.trim().length > 10) {
+    yield* streamCompletion(primaryProvider, model, messages, temperature, opts);
+    return;
+  }
+
+  const available = new Set(listProviders().filter((p) => p.available).map((p) => p.id));
+  const chain: ProviderName[] = [primaryProvider, ...FALLBACK_ORDER].filter(
+    (p, i, arr) => arr.indexOf(p) === i && (p === primaryProvider || available.has(p)),
+  );
+
+  let lastError = "";
+  for (const candidate of chain) {
+    const candidateModel = candidate === primaryProvider ? model : (PROVIDER_CONFIGS[candidate]?.models[0] || PERSONAL_DEFAULT_MODEL);
+    let gotContent = false;
+    let sawError = false;
+    try {
+      for await (const chunk of streamCompletion(candidate, candidateModel, messages, temperature)) {
+        if (chunk.error) {
+          sawError = true;
+          lastError = chunk.error;
+          break;
+        }
+        if (chunk.content) {
+          gotContent = true;
+          yield chunk;
+        }
+        if (chunk.done) {
+          yield chunk;
+          return;
+        }
+      }
+    } catch (e) {
+      sawError = true;
+      lastError = e instanceof Error ? e.message : "provider error";
+    }
+    if (gotContent) return;
+    if (!sawError) return;
+    // Nothing was streamed and this candidate errored — try the next provider automatically.
+  }
+
+  yield {
+    error: lastError
+      ? `فشلت جميع محاولات محرك الذكاء الاصطناعي (آخر خطأ: ${lastError}). أضف مفتاح API واحد على الأقل في الإعدادات.`
+      : "لا يوجد مزود ذكاء اصطناعي مُفعّل. أضف مفتاح API واحد على الأقل من الإعدادات (Cloudflare Workers AI مجاني).",
+  };
+}
+
+export const aiProviders = {
+  async streamOpenAI(
+    opts: {
+      model: string;
+      messages: { role: "system" | "user" | "assistant"; content: string }[];
+      temperature?: number;
+      max_tokens?: number;
+      response_format?: { type: string };
+      apiKey: string;
+    },
+    onChunk: (chunk: string) => void,
+  ): Promise<void> {
+    const client = new OpenAI({ apiKey: opts.apiKey });
+    const res = await client.chat.completions.create({
+      model: opts.model,
+      messages: opts.messages,
+      stream: true,
+      temperature: opts.temperature ?? 0.1,
+      max_tokens: opts.max_tokens ?? 4000,
+      ...(opts.response_format ? { response_format: opts.response_format as { type: "json_object" } } : {}),
+    });
+    for await (const chunk of res) {
+      const c = chunk.choices?.[0]?.delta?.content;
+      if (c) onChunk(c);
+    }
+  },
+};

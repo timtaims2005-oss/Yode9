@@ -1,0 +1,1982 @@
+import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useDraggable } from "@/hooks/useDraggable";
+import { useStore } from "@/lib/store";
+import {
+  X, Server, Cpu, Activity, RefreshCw, Play, Download,
+  CheckCircle, Database, Zap, BarChart2, ExternalLink,
+} from "lucide-react";
+
+interface EngineStatus {
+  id: string; label: string; port: number; online: boolean;
+  latencyMs: number | null; models: string[]; version: string | null;
+  canInstall: boolean; installAvailable: boolean;
+}
+
+const C   = "#00e5ff";
+const G   = "#22c55e";
+const R   = "#ef4444";
+const V   = "#a78bfa";
+const A   = "#fbbf24";
+const OR  = "#f97316";
+const PK  = "#ec4899";
+const IN  = "#6366f1";
+const LM  = "#84cc16";  // lime — llama.cpp
+const NT  = "#06b6d4";  // cyan — Nitro
+const LA  = "#8b5cf6";  // violet — LocalAI
+
+const ENG_COLOR: Record<string, string> = {
+  ollama: C, lmstudio: V, jan: G,
+  textgenwebui: OR, gpt4all: A, llamafile: PK, kobold: IN,
+  llamacpp: LM, nitro: NT, localai: LA,
+};
+
+type Tab = "engines" | "models" | "perf" | "duel";
+
+// ── Module-level helpers (must NOT be defined inside render) ──────────────────
+interface ModelOpt { m: string; label: string; col: string }
+
+function ModelSelector({ value, onChange, exclude, side, allModels }: {
+  value: string; onChange: (v: string) => void; exclude?: string; side: 1 | 2; allModels: ModelOpt[];
+}) {
+  const col = side === 1 ? C : V;
+  return (
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      className="w-full rounded-lg px-2 py-1.5 text-[9px] font-mono outline-none appearance-none cursor-pointer transition-all"
+      style={{ background: "rgba(0,0,0,0.5)", border: `1px solid ${col}25`, color: value ? col : "rgba(255,255,255,0.3)" }}
+    >
+      <option value="">— اختر نموذجاً —</option>
+      {allModels.filter(x => x.m !== exclude).map(({ m, label }) => (
+        <option key={m} value={m}>{m} ({label})</option>
+      ))}
+    </select>
+  );
+}
+
+function TpsBar({ tps, running, col }: { tps: number; running: boolean; col: string }) {
+  const pct = Math.min((tps / 60) * 100, 100);
+  return (
+    <div className="flex items-center gap-1.5 mt-1">
+      <span className="text-[7px] font-mono uppercase tracking-widest shrink-0" style={{ color: "rgba(255,255,255,0.22)" }}>TPS</span>
+      <div className="flex-1 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: col, boxShadow: running ? `0 0 6px ${col}` : "none" }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.4 }}
+        />
+      </div>
+      <span className="text-[8px] font-mono w-8 text-right" style={{ color: running && tps > 0 ? col : "rgba(255,255,255,0.25)" }}>
+        {running && tps > 0 ? `${tps}` : "—"}
+      </span>
+    </div>
+  );
+}
+
+function OutputPanel({ output, running, model, col, tps }: {
+  output: string; running: boolean; model: string; col: string; tps: number;
+}) {
+  return (
+    <div className="flex-1 min-w-0 flex flex-col" style={{ minHeight: 180 }}>
+      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-t-xl" style={{
+        background: col + "10", borderTop: `1px solid ${col}22`,
+        borderLeft: `1px solid ${col}22`, borderRight: `1px solid ${col}22`,
+      }}>
+        <motion.div
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ background: col, boxShadow: running ? `0 0 6px ${col}` : "none" }}
+          animate={running ? { scale: [0.8, 1.2, 0.8], opacity: [0.5, 1, 0.5] } : {}}
+          transition={{ duration: 0.7, repeat: Infinity }}
+        />
+        <span className="text-[8px] font-black truncate flex-1" style={{ color: col }}>
+          {model || "—"}
+        </span>
+        {running && (
+          <motion.span
+            className="text-[7px] font-mono px-1 rounded"
+            style={{ background: col + "18", color: col }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 0.8, repeat: Infinity }}
+          >
+            LIVE
+          </motion.span>
+        )}
+      </div>
+      <div
+        className="flex-1 px-2.5 py-2 text-[9.5px] font-mono leading-relaxed overflow-y-auto scrollbar-none"
+        style={{
+          background: col + "04", border: `1px solid ${col}14`, borderTop: "none",
+          borderBottomLeftRadius: 10, borderBottomRightRadius: 10,
+          color: "rgba(255,255,255,0.72)", whiteSpace: "pre-wrap", wordBreak: "break-word", minHeight: 140,
+        }}
+      >
+        {output || (
+          <span style={{ color: "rgba(255,255,255,0.15)" }}>
+            {model ? "في انتظار الإطلاق..." : "اختر نموذجاً أعلاه"}
+          </span>
+        )}
+        {running && (
+          <motion.span
+            style={{ display: "inline-block", width: 6, height: 12, background: col, borderRadius: 1, marginLeft: 2, verticalAlign: "middle" }}
+            animate={{ opacity: [1, 0, 1] }}
+            transition={{ duration: 0.5, repeat: Infinity }}
+          />
+        )}
+      </div>
+      <div className="px-1 pt-1">
+        <TpsBar tps={tps} running={running} col={col} />
+      </div>
+    </div>
+  );
+}
+
+export function LocalAIWindow({
+  open, onClose, onOpenNexus, onOpenHub, onOpenBench,
+}: {
+  open: boolean; onClose: () => void;
+  onOpenNexus: () => void; onOpenHub: () => void; onOpenBench: () => void;
+}) {
+  const { state, dispatch } = useStore();
+  const { pos, rootRef, onDragMouseDown, onDragTouchStart } = useDraggable(
+    "mr7-local-ai-win", { x: 80, y: 70 }
+  );
+
+  const [engines,    setEngines]    = useState<EngineStatus[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [tab,        setTab]        = useState<Tab>("engines");
+  const [tpsTarget,  setTpsTarget]  = useState(0);
+  const [tpsHistory, setTpsHistory] = useState<number[]>(Array(40).fill(0));
+  const [launching,        setLaunching]        = useState<string | null>(null);
+  const [launchLog,        setLaunchLog]        = useState<Record<string, string>>({});
+  const [launchStatus,     setLaunchStatus]     = useState<Record<string, "ok"|"err"|"info"|null>>({});
+  const [installing,       setInstalling]       = useState<string | null>(null);
+  const [installLog,       setInstallLog]       = useState<Record<string, string>>({});
+  const [installPct,       setInstallPct]       = useState<Record<string, number | null>>({});
+  const [pullPct,          setPullPct]          = useState<number | null>(null);
+  const [showOllamaPull,   setShowOllamaPull]   = useState(false);
+  const [pullModel,        setPullModel]        = useState("");
+  const [pulling,          setPulling]          = useState(false);
+  const [pullLog,          setPullLog]          = useState("");
+  const [deletingModel,    setDeletingModel]    = useState<string | null>(null);
+  const [deleteError,      setDeleteError]      = useState<string | null>(null);
+  const [benchModel,       setBenchModel]       = useState("");
+  const [benching,         setBenching]         = useState(false);
+  const [benchLog,         setBenchLog]         = useState("");
+  const [benchTps,         setBenchTps]         = useState<number | null>(null);
+  const [benchTokens,      setBenchTokens]      = useState<number | null>(null);
+  const [modelInputs,      setModelInputs]      = useState<Record<string, string>>({});
+  const [phi3Pct,          setPhi3Pct]          = useState<number | null>(null);
+  const [phi3Status,       setPhi3Status]       = useState<"idle" | "downloading" | "done">("idle");
+  const [downloadingPhi3,  setDownloadingPhi3]  = useState(false);
+  const [bootSeconds,      setBootSeconds]      = useState(0);
+
+  // ── DUEL tab state ────────────────────────────────────────────────────────
+  const [duelModel1,   setDuelModel1]   = useState("");
+  const [duelModel2,   setDuelModel2]   = useState("");
+  const [duelPrompt,   setDuelPrompt]   = useState("");
+  const [duelOut1,     setDuelOut1]     = useState("");
+  const [duelOut2,     setDuelOut2]     = useState("");
+  const [duelRunning1, setDuelRunning1] = useState(false);
+  const [duelRunning2, setDuelRunning2] = useState(false);
+  const [duelTps1,     setDuelTps1]     = useState(0);
+  const [duelTps2,     setDuelTps2]     = useState(0);
+  const duelAbort1 = useRef<AbortController | null>(null);
+  const duelAbort2 = useRef<AbortController | null>(null);
+
+  const mainCanvasRef = useRef<HTMLCanvasElement>(null);
+  const gaugeCanvasRef = useRef<HTMLCanvasElement>(null);
+  const mainRafRef    = useRef(0);
+  const gaugeRafRef   = useRef(0);
+  const frameRef      = useRef(0);
+  const displayTpsRef = useRef(0);
+  const pollRef       = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tpsTimerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fastPollRef   = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const onlineCount  = engines.filter(e => e.online).length;
+  const ollamaEng    = engines.find(e => e.id === "ollama");
+  const ollamaModels = ollamaEng?.models ?? [];
+  const mainColor    = onlineCount > 0 ? G : C;
+
+  // ── Poll engine status ──────────────────────────────────────────────────────
+  const fetchStatus = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const r = await fetch("/api/local-engines/status");
+      if (r.ok) {
+        const d = await r.json() as { engines: EngineStatus[] };
+        setEngines(d.engines ?? []);
+      }
+    } catch { /* ignore */ }
+    setRefreshing(false);
+  }, []);
+
+  // ── Fast initial poll (2s for 30s) then slow poll (8s) — #4 ─────────────────
+  useEffect(() => {
+    if (!open) return;
+    setBootSeconds(0);
+    fetchStatus();
+    let elapsed = 0;
+    fastPollRef.current = setInterval(() => {
+      if (document.hidden) return; // skip when tab is not visible
+      elapsed += 2;
+      setBootSeconds(Math.min(elapsed, 30));
+      fetchStatus();
+      if (elapsed >= 30) {
+        if (fastPollRef.current) { clearInterval(fastPollRef.current); fastPollRef.current = null; }
+        pollRef.current = setInterval(() => { if (!document.hidden) fetchStatus(); }, 8000);
+      }
+    }, 2000);
+    return () => {
+      if (fastPollRef.current) { clearInterval(fastPollRef.current); fastPollRef.current = null; }
+      if (pollRef.current)     { clearInterval(pollRef.current);     pollRef.current     = null; }
+    };
+  }, [open, fetchStatus]);
+
+  // ── Phi-3 model status poll — #2 ──────────────────────────────────────────
+  useEffect(() => {
+    if (!open) return;
+    const checkPhi3 = async () => {
+      try {
+        const r = await fetch("/api/local-engines/phi3-status");
+        if (r.ok) {
+          const d = await r.json() as { status: string; pct: number | null };
+          setPhi3Status(d.status as "idle" | "downloading" | "done");
+          setPhi3Pct(d.pct);
+        }
+      } catch { /* ignore */ }
+    };
+    checkPhi3();
+    const t = setInterval(checkPhi3, 3000);
+    return () => clearInterval(t);
+  }, [open]);
+
+  // ── TPS simulation ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!open) return;
+    tpsTimerRef.current = setInterval(() => {
+      const latency = ollamaEng?.latencyMs ?? null;
+      const online  = ollamaEng?.online ?? false;
+      const est = online && latency
+        ? Math.round((1000 / latency) * 5 * (0.8 + Math.random() * 0.4))
+        : 0;
+      const next = Math.max(0, Math.min(120, est));
+      setTpsTarget(next);
+      setTpsHistory(h => [...h.slice(1), next]);
+    }, 600);
+    return () => { if (tpsTimerRef.current) clearInterval(tpsTimerRef.current); };
+  }, [open, ollamaEng]);
+
+  // ── Main HUD canvas ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!open) return;
+    const cv = mainCanvasRef.current; if (!cv) return;
+    const ctx = cv.getContext("2d")!;
+
+    const resize = () => {
+      cv.width  = cv.offsetWidth  * devicePixelRatio;
+      cv.height = cv.offsetHeight * devicePixelRatio;
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+    };
+    resize();
+    const ro = new ResizeObserver(resize); ro.observe(cv);
+
+    const PCount = 55;
+    const particles = Array.from({ length: PCount }, () => ({
+      x: Math.random() * 400, y: Math.random() * 110,
+      vx: (Math.random() - 0.5) * 0.35,
+      vy: (Math.random() - 0.5) * 0.25,
+      r:  Math.random() * 1.4 + 0.4,
+      phase: Math.random() * Math.PI * 2,
+      col: [C, G, V, A][Math.floor(Math.random() * 4)],
+    }));
+
+    const nodes = Array.from({ length: 14 }, (_, i) => ({
+      x: 20 + (i % 7) * 54,
+      y: 22 + Math.floor(i / 7) * 68,
+      phase: Math.random() * Math.PI * 2,
+      col: [C, G, V][i % 3],
+    }));
+
+    const rings = [
+      { rx: 48, ry: 12, spd: 0.012, ph: 0,   col: C  },
+      { rx: 35, ry:  9, spd: 0.018, ph: 2.0,  col: V  },
+      { rx: 22, ry:  6, spd: 0.025, ph: 4.2,  col: G  },
+    ];
+
+    const streams = Array.from({ length: 5 }, (_, i) => ({
+      y0: 15 + i * 18, y1: 10 + i * 22, y2: 20 + i * 14, y3: 12 + i * 20,
+      t: Math.random(),
+      col: [C, G, V, A, OR][i],
+    }));
+
+    let isLive = true;
+    const draw = () => {
+      if (!isLive) return;
+      frameRef.current++;
+      const f = frameRef.current;
+      const W = cv.offsetWidth, H = cv.offsetHeight;
+      if (W < 1 || H < 1) { mainRafRef.current = requestAnimationFrame(draw); return; }
+      ctx.clearRect(0, 0, W, H);
+
+      // Base fill
+      ctx.fillStyle = "rgba(1,5,8,0.96)";
+      ctx.fillRect(0, 0, W, H);
+
+      // Hex grid
+      const hR = 14;
+      const hW = hR * 2;
+      const hH = Math.sqrt(3) * hR;
+      ctx.save();
+      for (let row = -1; row < Math.ceil(H / hH) + 1; row++) {
+        for (let col = -1; col < Math.ceil(W / hW) + 2; col++) {
+          const hx = col * hW * 0.75 + (row % 2 === 0 ? 0 : hW * 0.375);
+          const hy = row * hH;
+          const pulse = Math.sin(f * 0.018 + hx * 0.04 + hy * 0.06);
+          ctx.globalAlpha = 0.013 + pulse * 0.018;
+          ctx.strokeStyle = onlineCount > 0 ? G : C;
+          ctx.lineWidth   = 0.5;
+          ctx.beginPath();
+          for (let s = 0; s < 6; s++) {
+            const ang = (Math.PI / 3) * s - Math.PI / 6;
+            const px  = hx + hR * Math.cos(ang);
+            const py  = hy + hR * Math.sin(ang);
+            if (s === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.closePath(); ctx.stroke();
+        }
+      }
+      ctx.restore();
+
+      // Data stream bezier paths + moving dots
+      streams.forEach(s => {
+        s.t = (s.t + 0.004) % 1;
+        const t = s.t, mt = 1 - t;
+        const bx = mt*mt*mt*0 + 3*mt*mt*t*140 + 3*mt*t*t*280 + t*t*t*390;
+        const by = mt*mt*mt*s.y0 + 3*mt*mt*t*s.y1 + 3*mt*t*t*s.y2 + t*t*t*s.y3;
+        ctx.globalAlpha = 0.05;
+        ctx.strokeStyle = s.col;
+        ctx.lineWidth   = 0.8;
+        ctx.beginPath(); ctx.moveTo(0, s.y0);
+        ctx.bezierCurveTo(140, s.y1, 280, s.y2, 390, s.y3);
+        ctx.stroke();
+        ctx.globalAlpha = 0.9;
+        const dg = ctx.createRadialGradient(bx, by, 0, bx, by, 6);
+        dg.addColorStop(0, s.col + "ff");
+        dg.addColorStop(1, s.col + "00");
+        ctx.fillStyle = dg;
+        ctx.beginPath(); ctx.arc(bx, by, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+
+      // Neural network edges
+      ctx.lineWidth = 0.7;
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx   = nodes[j].x - nodes[i].x;
+          const dy   = nodes[j].y - nodes[i].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > 120) continue;
+          ctx.globalAlpha = (1 - dist / 120) * 0.15 *
+            (0.5 + Math.sin(f * 0.025 + i * 0.7 + j * 0.5) * 0.5);
+          ctx.strokeStyle = C;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+
+      // Neural nodes
+      nodes.forEach((n, i) => {
+        const pulse = Math.sin(f * 0.04 + n.phase);
+        const nr    = 2 + pulse * 1.5;
+        ctx.globalAlpha = 0.5 + pulse * 0.5;
+        const ng = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, nr * 3);
+        ng.addColorStop(0, n.col + "ff");
+        ng.addColorStop(1, n.col + "00");
+        ctx.fillStyle = ng;
+        ctx.beginPath(); ctx.arc(n.x, n.y, nr * 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = n.col;
+        ctx.beginPath(); ctx.arc(n.x, n.y, nr, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+        void i;
+      });
+
+      // 3D orbital rings (right side)
+      const rcx = W - 62, rcy = H / 2;
+      rings.forEach(ring => {
+        const angle = f * ring.spd + ring.ph;
+        ctx.save();
+        ctx.translate(rcx, rcy);
+        ctx.globalAlpha = 0.28;
+        ctx.strokeStyle = ring.col;
+        ctx.lineWidth   = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, ring.rx, ring.ry, 0.4, 0, Math.PI * 2);
+        ctx.stroke();
+        const dotp = { x: ring.rx * Math.cos(angle), y: ring.ry * Math.sin(angle) };
+        ctx.globalAlpha = 1;
+        ctx.shadowColor = ring.col;
+        ctx.shadowBlur  = 10;
+        const dg2 = ctx.createRadialGradient(dotp.x, dotp.y, 0, dotp.x, dotp.y, 5);
+        dg2.addColorStop(0, ring.col + "ff");
+        dg2.addColorStop(1, ring.col + "00");
+        ctx.fillStyle = dg2;
+        ctx.beginPath(); ctx.arc(dotp.x, dotp.y, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0;
+        for (let tr = 1; tr <= 8; tr++) {
+          const ta = angle - tr * 0.15;
+          ctx.globalAlpha = (1 - tr / 8) * 0.32;
+          ctx.fillStyle   = ring.col;
+          ctx.beginPath();
+          ctx.arc(ring.rx * Math.cos(ta), ring.ry * Math.sin(ta), 2.5 - tr * 0.25, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      });
+
+      // Particles
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.phase += 0.03;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        ctx.globalAlpha = 0.25 + Math.sin(p.phase) * 0.25;
+        ctx.fillStyle   = p.col;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+
+      // Scanline
+      const slY = ((f * 1.1) % (H + 3)) - 1.5;
+      const slG = ctx.createLinearGradient(0, slY, 0, slY + 2.5);
+      slG.addColorStop(0,   "rgba(0,229,255,0)");
+      slG.addColorStop(0.5, onlineCount > 0 ? "rgba(34,197,94,0.18)" : "rgba(0,229,255,0.13)");
+      slG.addColorStop(1,   "rgba(0,229,255,0)");
+      ctx.fillStyle = slG;
+      ctx.fillRect(0, slY, W, 2.5);
+
+      // Bottom fade
+      const fadeG = ctx.createLinearGradient(0, H - 22, 0, H);
+      fadeG.addColorStop(0, "rgba(0,0,0,0)");
+      fadeG.addColorStop(1, "rgba(0,0,0,0.85)");
+      ctx.fillStyle = fadeG;
+      ctx.fillRect(0, H - 22, W, 22);
+
+      mainRafRef.current = requestAnimationFrame(draw);
+    };
+    mainRafRef.current = requestAnimationFrame(draw);
+    return () => {
+      isLive = false;
+      cancelAnimationFrame(mainRafRef.current);
+      ro.disconnect();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, onlineCount]);
+
+  // ── TPS Gauge canvas ────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!open) return;
+    const cv = gaugeCanvasRef.current; if (!cv) return;
+    const ctx = cv.getContext("2d")!;
+    const DPR = devicePixelRatio;
+    cv.width  = 120 * DPR;
+    cv.height = 120 * DPR;
+    ctx.scale(DPR, DPR);
+
+    let gaugeLive = true;
+    const loop = () => {
+      if (!gaugeLive) return;
+      displayTpsRef.current += (tpsTarget - displayTpsRef.current) * 0.07;
+      const W = 120, H = 120, cx = W / 2, cy = H / 2;
+      const r = 46;
+      const startA = Math.PI * 0.75;
+      const endA   = Math.PI * 2.25;
+      const ratio  = Math.min(displayTpsRef.current / 120, 1);
+      const arcEnd = startA + (endA - startA) * ratio;
+      ctx.clearRect(0, 0, W, H);
+
+      // Outer halo
+      ctx.lineWidth   = 1;
+      ctx.strokeStyle = "rgba(0,229,255,0.06)";
+      ctx.beginPath(); ctx.arc(cx, cy, r + 10, 0, Math.PI * 2); ctx.stroke();
+
+      // Track
+      ctx.lineWidth   = 9;
+      ctx.strokeStyle = "rgba(0,229,255,0.07)";
+      ctx.lineCap     = "round";
+      ctx.beginPath(); ctx.arc(cx, cy, r, startA, endA); ctx.stroke();
+
+      // Tick marks
+      for (let i = 0; i <= 12; i++) {
+        const ta     = startA + (endA - startA) * (i / 12);
+        const isMaj  = i % 3 === 0;
+        const inner  = isMaj ? r - 16 : r - 10;
+        ctx.lineWidth   = isMaj ? 1.2 : 0.7;
+        ctx.lineCap     = "butt";
+        ctx.strokeStyle = `rgba(0,229,255,${isMaj ? 0.44 : 0.17})`;
+        ctx.beginPath();
+        ctx.moveTo(cx + (r + 6) * Math.cos(ta), cy + (r + 6) * Math.sin(ta));
+        ctx.lineTo(cx + inner      * Math.cos(ta), cy + inner      * Math.sin(ta));
+        ctx.stroke();
+      }
+
+      // Fill arc + glow
+      if (ratio > 0.005) {
+        const col   = ratio < 0.35 ? C : ratio < 0.65 ? A : G;
+        ctx.lineWidth   = 9;
+        ctx.lineCap     = "round";
+        ctx.strokeStyle = col + "cc";
+        ctx.shadowColor = col;
+        ctx.shadowBlur  = 18;
+        ctx.beginPath(); ctx.arc(cx, cy, r, startA, arcEnd); ctx.stroke();
+        ctx.shadowBlur  = 0;
+
+        // Tip glow
+        const tipX = cx + r * Math.cos(arcEnd);
+        const tipY = cy + r * Math.sin(arcEnd);
+        const tg   = ctx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 9);
+        tg.addColorStop(0, col + "ff");
+        tg.addColorStop(0.5, col + "88");
+        tg.addColorStop(1,   col + "00");
+        ctx.fillStyle = tg;
+        ctx.beginPath(); ctx.arc(tipX, tipY, 9, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // Center value
+      const disp = Math.round(displayTpsRef.current);
+      const vCol = disp > 0 ? (ratio < 0.35 ? C : ratio < 0.65 ? A : G) : "rgba(255,255,255,0.2)";
+      ctx.fillStyle    = vCol;
+      ctx.textAlign    = "center";
+      ctx.textBaseline = "middle";
+      ctx.font         = `bold 22px 'JetBrains Mono', monospace`;
+      ctx.fillText(disp > 0 ? String(disp) : "—", cx, cy - 6);
+      ctx.fillStyle = "rgba(255,255,255,0.28)";
+      ctx.font      = "8.5px monospace";
+      ctx.fillText("TOK/SEC", cx, cy + 12);
+      ctx.fillStyle = "rgba(255,255,255,0.15)";
+      ctx.font      = "7px monospace";
+      ctx.fillText("MAX 120", cx, cy + 24);
+
+      gaugeRafRef.current = requestAnimationFrame(loop);
+    };
+    gaugeRafRef.current = requestAnimationFrame(loop);
+    return () => {
+      gaugeLive = false;
+      cancelAnimationFrame(gaugeRafRef.current);
+    };
+  }, [open, tpsTarget]);
+
+  // ── Escape closes ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [open, onClose]);
+
+  // ── Install engine via SSE (buffered decoder for split chunks) ─────────────
+  const installEngine = async (id: string) => {
+    setInstalling(id);
+    setInstallLog(prev => ({ ...prev, [id]: "جارٍ التثبيت..." }));
+    setInstallPct(prev => ({ ...prev, [id]: null }));
+    try {
+      const r = await fetch(`/api/local-engines/install/${id}`, { method: "POST" });
+      if (r.body) {
+        const reader = r.body.getReader();
+        const dec    = new TextDecoder();
+        let   carry  = "";
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          // stream:true keeps multi-byte chars intact across chunks
+          const chunk = dec.decode(value, { stream: true });
+          const lines = (carry + chunk).split("\n");
+          // last element may be incomplete — carry it forward
+          carry = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            try {
+              const ev = JSON.parse(line.slice(5)) as { type: string; message?: string; pct?: number };
+              const msg = ev.message ?? "";
+              if (msg) setInstallLog(prev => ({ ...prev, [id]: msg }));
+              if (ev.pct != null) setInstallPct(prev => ({ ...prev, [id]: ev.pct ?? null }));
+              if (ev.type === "success") setInstallPct(prev => ({ ...prev, [id]: 100 }));
+            } catch { /* skip malformed line */ }
+          }
+        }
+        // flush any remaining carry
+        if (carry.startsWith("data:")) {
+          try {
+            const ev = JSON.parse(carry.slice(5)) as { type: string; message?: string; pct?: number };
+            if (ev.message) setInstallLog(prev => ({ ...prev, [id]: ev.message! }));
+            if (ev.type === "success") setInstallPct(prev => ({ ...prev, [id]: 100 }));
+          } catch { /* ignore */ }
+        }
+      }
+    } catch (e) {
+      setInstallLog(prev => ({ ...prev, [id]: `خطأ: ${String(e)}` }));
+    }
+    setInstalling(null);
+    setTimeout(fetchStatus, 1500);
+  };
+
+  // ── Launch engine via SSE — shows live log to user ─────────────────────────
+  const launchEngine = async (id: string) => {
+    setLaunching(id);
+    setLaunchLog(prev => ({ ...prev, [id]: "جارٍ التشغيل..." }));
+    setLaunchStatus(prev => ({ ...prev, [id]: null }));
+    try {
+      const r = await fetch(`/api/local-engines/launch/${id}`, { method: "POST" });
+      if (r.body) {
+        const reader = r.body.getReader();
+        const dec    = new TextDecoder();
+        let   carry  = "";
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = dec.decode(value, { stream: true });
+          const lines = (carry + chunk).split("\n");
+          carry = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            try {
+              const ev = JSON.parse(line.slice(5)) as { type: string; message?: string };
+              const msg = ev.message ?? "";
+              if (msg) setLaunchLog(prev => ({ ...prev, [id]: msg }));
+              if (ev.type === "success") setLaunchStatus(prev => ({ ...prev, [id]: "ok" }));
+              else if (ev.type === "error") setLaunchStatus(prev => ({ ...prev, [id]: "err" }));
+              else if (ev.type === "info")  setLaunchStatus(prev => ({ ...prev, [id]: "info" }));
+            } catch { /* skip malformed */ }
+          }
+        }
+      }
+    } catch (e) {
+      setLaunchLog(prev => ({ ...prev, [id]: `خطأ: ${String(e)}` }));
+      setLaunchStatus(prev => ({ ...prev, [id]: "err" }));
+    }
+    setLaunching(null);
+    setTimeout(fetchStatus, 2000);
+  };
+
+  // ── Download Phi-3 model for Llamafile — #2 ───────────────────────────────
+  const downloadPhi3 = async () => {
+    setDownloadingPhi3(true);
+    setPhi3Status("downloading");
+    setPhi3Pct(0);
+    try {
+      const r = await fetch("/api/local-engines/llamafile-model", { method: "POST" });
+      if (r.body) {
+        const reader = r.body.getReader();
+        const dec    = new TextDecoder();
+        let   carry  = "";
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = dec.decode(value, { stream: true });
+          const lines = (carry + chunk).split("\n");
+          carry = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            try {
+              const ev = JSON.parse(line.slice(5)) as { type: string; pct?: number; message?: string };
+              if (ev.pct != null) setPhi3Pct(ev.pct);
+              if (ev.type === "success") { setPhi3Status("done"); setPhi3Pct(100); }
+              else if (ev.type === "error") { setPhi3Status("idle"); setPhi3Pct(null); }
+            } catch { /* skip */ }
+          }
+        }
+      }
+    } catch { setPhi3Status("idle"); setPhi3Pct(null); }
+    setDownloadingPhi3(false);
+  };
+
+  // ── Delete Ollama model ─────────────────────────────────────────────────────
+  const deleteOllamaModel = async (model: string) => {
+    setDeletingModel(model);
+    setDeleteError(null);
+    try {
+      const r = await fetch(`/api/local-engines/model/${encodeURIComponent(model)}`, { method: "DELETE" });
+      const data = await r.json() as { success?: boolean; error?: string };
+      if (!data.success) setDeleteError(data.error ?? "فشل الحذف");
+      else setTimeout(fetchStatus, 1000);
+    } catch (e) { setDeleteError(String(e)); }
+    setDeletingModel(null);
+  };
+
+  // ── Quick Benchmark ──────────────────────────────────────────────────────────
+  const runBenchmark = async (model?: string) => {
+    const m = model ?? benchModel;
+    if (!m) return;
+    setBenchModel(m);
+    setBenching(true);
+    setBenchLog(`بدء الاختبار مع ${m}...`);
+    setBenchTps(null);
+    setBenchTokens(null);
+    try {
+      const r = await fetch("/api/local-engines/benchmark", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: m }),
+      });
+      if (r.body) {
+        const reader = r.body.getReader();
+        const dec    = new TextDecoder();
+        let   carry  = "";
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = dec.decode(value, { stream: true });
+          const lines = (carry + chunk).split("\n");
+          carry = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            try {
+              const ev = JSON.parse(line.slice(5)) as { type: string; tps?: number; tokens?: number; totalMs?: number; message?: string };
+              if (ev.type === "token") {
+                setBenchTps(ev.tps ?? null);
+                setBenchTokens(ev.tokens ?? null);
+                setBenchLog(`${ev.tokens} توكن · ${ev.tps} tok/s`);
+              } else if (ev.type === "done") {
+                setBenchTps(ev.tps ?? null);
+                setBenchTokens(ev.tokens ?? null);
+                setBenchLog(`✓ ${ev.tokens} توكن · ${ev.tps} tok/s · ${ev.totalMs}ms`);
+                setTpsTarget(ev.tps ?? 0);
+              } else if (ev.type === "error") {
+                setBenchLog(`خطأ: ${ev.message ?? ""}`);
+              }
+            } catch { /* skip */ }
+          }
+        }
+      }
+    } catch (e) { setBenchLog(`خطأ: ${String(e)}`); }
+    setBenching(false);
+  };
+
+  // ── Pull Ollama model — with real streaming % ─────────────────────────────
+  const pullOllamaModel = async (overrideModel?: string) => {
+    const modelName = (overrideModel ?? pullModel).trim();
+    if (!modelName) return;
+    if (overrideModel) setPullModel(overrideModel);
+    setPulling(true);
+    setPullLog("بدء التحميل...");
+    setPullPct(null);
+    try {
+      const r = await fetch("/api/local-engines/pull-model", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: modelName }),
+      });
+      if (r.body) {
+        const reader = r.body.getReader();
+        const dec    = new TextDecoder();
+        let   carry  = "";
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = dec.decode(value, { stream: true });
+          const lines = (carry + chunk).split("\n");
+          carry = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            try {
+              const ev = JSON.parse(line.slice(5)) as {
+                type: string; status?: string; pct?: number; message?: string;
+              };
+              if (ev.type === "progress") {
+                const label = ev.status ?? "...";
+                const p = ev.pct ?? null;
+                setPullLog(label);
+                if (p != null) setPullPct(p);
+              } else if (ev.type === "success") {
+                setPullLog("✓ تم التحميل بنجاح");
+                setPullPct(100);
+              } else if (ev.type === "error") {
+                setPullLog(`خطأ: ${ev.message ?? ""}`);
+                setPullPct(null);
+              }
+            } catch { /* skip */ }
+          }
+        }
+      }
+    } catch (e) {
+      setPullLog(`خطأ: ${String(e)}`);
+      setPullPct(null);
+    }
+    setPulling(false);
+    setTimeout(fetchStatus, 1500);
+  };
+
+  // ── Activate model ──────────────────────────────────────────────────────────
+  const activateModel = (model: string, engineId: string) => {
+    const endpoints: Record<string, string> = {
+      ollama:      "http://localhost:11434/v1",
+      lmstudio:    "http://localhost:1234/v1",
+      jan:         "http://localhost:1337/v1",
+      gpt4all:     "http://localhost:4891/v1",
+      llamafile:   "http://localhost:8081/v1",
+      kobold:      "http://localhost:5001/v1",
+      llamacpp:    "http://localhost:8082/v1",
+      nitro:       "http://localhost:3928/v1",
+      localai:     "http://localhost:8083/v1",
+    };
+    dispatch({ type: "SET_SETTINGS", patch: {
+      useLocalModel: true, localModel: model,
+      localEndpoint: endpoints[engineId] ?? "http://localhost:11434/v1",
+    }});
+  };
+
+  // ── DUEL: stream one model ───────────────────────────────────────────────
+  const streamDuelSide = async (
+    modelName: string,
+    prompt: string,
+    setOut: (v: string | ((p: string) => string)) => void,
+    setRunning: (v: boolean) => void,
+    setTps: (v: number) => void,
+    abortRef: React.MutableRefObject<AbortController | null>,
+  ) => {
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+    setOut(""); setRunning(true); setTps(0);
+
+    const endpoint = engines.find(e => e.id === "ollama")?.online
+      ? "http://localhost:11434/v1"
+      : state.settings.localEndpoint || "http://localhost:11434/v1";
+
+    const t0 = Date.now();
+    let tokens = 0;
+    try {
+      const resp = await fetch("/api/local-proxy/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: ac.signal,
+        body: JSON.stringify({
+          endpoint,
+          model: modelName,
+          messages: [{ role: "user", content: prompt }],
+          stream: true,
+        }),
+      });
+      if (!resp.body) throw new Error("No stream");
+      const reader = resp.body.getReader();
+      const dec = new TextDecoder();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const text = dec.decode(value);
+        for (const line of text.split("\n")) {
+          if (!line.startsWith("data:")) continue;
+          const chunk = line.slice(5).trim();
+          if (chunk === "[DONE]") break;
+          try {
+            const json = JSON.parse(chunk);
+            const delta = json.choices?.[0]?.delta?.content ?? "";
+            if (delta) {
+              tokens++;
+              setOut(prev => prev + delta);
+              setTps(Math.round(tokens / ((Date.now() - t0) / 1000)));
+            }
+          } catch { /* skip */ }
+        }
+      }
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") {
+        setOut(prev => prev + `\n\n[خطأ: ${(e as Error).message}]`);
+      }
+    }
+    setRunning(false);
+  };
+
+  const fireDuel = () => {
+    if (!duelPrompt.trim() || (!duelModel1 && !duelModel2)) return;
+    if (duelModel1) streamDuelSide(duelModel1, duelPrompt, setDuelOut1, setDuelRunning1, setDuelTps1, duelAbort1);
+    if (duelModel2) streamDuelSide(duelModel2, duelPrompt, setDuelOut2, setDuelRunning2, setDuelTps2, duelAbort2);
+  };
+
+  const stopDuel = () => {
+    duelAbort1.current?.abort(); duelAbort2.current?.abort();
+    setDuelRunning1(false); setDuelRunning2(false);
+  };
+
+  if (!open) return null;
+
+  const placeholder10 = Array.from({ length: 10 }, (_, i) => ({
+    id:    ["ollama","lmstudio","jan","textgenwebui","gpt4all","llamafile","kobold","llamacpp","nitro","localai"][i],
+    label: ["Ollama","LM Studio","Jan","text-gen-webui","GPT4All","Llamafile","KoboldCPP","llama.cpp","Nitro","LocalAI"][i],
+    port:  [11434,1234,1337,5000,4891,8081,5001,8082,3928,8083][i],
+    online: false, latencyMs: null, models: [], version: null,
+    canInstall: [true,false,false,false,false,true,true,true,true,true][i],
+    installAvailable: [false,false,false,false,false,true,false,true,true,true][i],
+  }));
+
+  const displayEngines = engines.length ? engines : placeholder10;
+
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        key="local-ai-window"
+        ref={rootRef}
+        style={{
+          position: "fixed",
+          left: pos.x, top: pos.y,
+          width: 390,
+          zIndex: 9100,
+          borderRadius: 18,
+          overflow: "hidden",
+          background: "linear-gradient(170deg,rgba(2,8,10,0.99) 0%,rgba(1,4,6,1) 100%)",
+          border: `1px solid ${mainColor}22`,
+          boxShadow: `0 0 80px ${mainColor}0a,0 0 200px rgba(0,0,0,0.9),0 40px 120px rgba(0,0,0,0.97),inset 0 1px 0 ${C}12`,
+        }}
+        initial={{ opacity: 0, scale: 0.92, y: -18 }}
+        animate={{ opacity: 1,  scale: 1,    y: 0   }}
+        exit={{    opacity: 0,  scale: 0.92, y: -18 }}
+        transition={{ duration: 0.22, ease: [0.16,1,0.3,1] }}
+      >
+        {/* ── 3D HUD Header (draggable handle) ── */}
+        <div
+          className="relative select-none cursor-move"
+          style={{ height: 112 }}
+          onMouseDown={onDragMouseDown}
+          onTouchStart={onDragTouchStart}
+        >
+          <canvas ref={mainCanvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
+
+          {/* Overlay content */}
+          <div className="relative z-10 flex items-start justify-between p-3 h-full" style={{ pointerEvents: "none" }}>
+            <div className="flex flex-col justify-between h-full">
+              <div>
+                <div className="text-[6px] font-black tracking-[0.42em] uppercase mb-1.5" style={{ color: C + "44" }}>
+                  LOCAL AI ENGINE SUITE
+                </div>
+                <div className="flex items-center gap-2">
+                  <motion.div
+                    className="w-2 h-2 rounded-full"
+                    style={{
+                      background: onlineCount > 0 ? G : R,
+                      boxShadow:  `0 0 8px ${onlineCount > 0 ? G : R}`,
+                    }}
+                    animate={{ opacity: [0.55, 1, 0.55] }}
+                    transition={{ duration: 1.3, repeat: Infinity }}
+                  />
+                  <span className="text-[13px] font-black" style={{ color: onlineCount > 0 ? G : "rgba(255,255,255,0.6)" }}>
+                    {onlineCount}/{engines.length || 7} محرك متصل
+                  </span>
+                </div>
+                {ollamaEng?.online && ollamaEng.version && (
+                  <div className="text-[8.5px] font-mono mt-1" style={{ color: C + "44" }}>
+                    Ollama v{ollamaEng.version} • :{ollamaEng.port}
+                  </div>
+                )}
+              </div>
+              {/* Engine mini-bar */}
+              <div className="flex gap-1 pb-2">
+                {displayEngines.map((e, i) => {
+                  const ec = ENG_COLOR[e.id] ?? C;
+                  return (
+                    <motion.div key={i}
+                      className="flex-1 h-0.5 rounded-full"
+                      style={{ background: e.online ? ec : "rgba(255,255,255,0.08)" }}
+                      animate={e.online ? { opacity: [0.5,1,0.5] } : {}}
+                      transition={{ duration: 1.6, repeat: Infinity, delay: i * 0.1 }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Close button */}
+            <div style={{ pointerEvents: "auto" }}>
+              <button
+                onClick={onClose}
+                className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", color: R }}
+                onMouseEnter={e => (e.currentTarget.style.background = "rgba(239,68,68,0.28)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "rgba(239,68,68,0.12)")}
+              >
+                <X size={13} />
+              </button>
+            </div>
+          </div>
+
+          {/* Refresh button */}
+          <button
+            onClick={fetchStatus}
+            className="absolute bottom-2.5 right-2.5 flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-mono z-10 transition-all"
+            style={{ background: refreshing ? C + "22" : "rgba(0,229,255,0.07)", border: `1px solid ${C}1e`, color: C + "88" }}
+          >
+            <motion.div
+              animate={{ rotate: refreshing ? 360 : 0 }}
+              transition={{ duration: 0.6, ease: "linear", repeat: refreshing ? Infinity : 0 }}
+            >
+              <RefreshCw size={8} />
+            </motion.div>
+            {refreshing ? "جارٍ..." : "تحديث"}
+          </button>
+        </div>
+
+        {/* ── Tab Bar ── */}
+        <div className="flex" style={{ borderBottom: `1px solid ${C}10`, borderTop: `1px solid ${C}0c` }}>
+          {([
+            ["engines", "ENGINES", <Server size={9} key="s" />],
+            ["models",  "MODELS",  <Database size={9} key="d" />],
+            ["perf",    "PERF",    <Activity size={9} key="a" />],
+            ["duel",    "DUEL",    <Zap size={9} key="z" />],
+          ] as [Tab, string, React.ReactNode][]).map(([t, label, icon]) => {
+            const tabCol = t === "duel" ? V : C;
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className="flex-1 py-2 flex items-center justify-center gap-1.5 text-[8.5px] font-black tracking-widest uppercase transition-all"
+                style={{
+                  color: tab === t ? tabCol : "rgba(255,255,255,0.28)",
+                  borderBottom: tab === t ? `2px solid ${tabCol}` : "2px solid transparent",
+                  background:   tab === t ? tabCol + "06" : "transparent",
+                }}
+              >
+                {icon} {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Tab Content ── */}
+        <div className="overflow-y-auto scrollbar-none" style={{ maxHeight: 340 }}>
+
+          {/* ENGINES TAB */}
+          {tab === "engines" && (() => {
+            const DL_URLS: Record<string, string> = {
+              lmstudio:    "https://lmstudio.ai",
+              jan:         "https://jan.ai",
+              textgenwebui:"https://github.com/oobabooga/text-generation-webui",
+              gpt4all:     "https://gpt4all.io",
+            };
+            const DL_STEPS: Record<string, string[]> = {
+              lmstudio:    [
+                "① حمّل التطبيق من lmstudio.ai",
+                "② ثبّته وافتحه",
+                "③ حمّل نموذجاً من تبويب Discover",
+                "④ اذهب إلى Local Server ← Start Server (port 1234)",
+              ],
+              jan:         [
+                "① حمّل Jan من jan.ai",
+                "② ثبّته وافتحه",
+                "③ حمّل نموذجاً من Hub",
+                "④ اذهب إلى Local API Server ← Start (port 1337)",
+              ],
+              textgenwebui:[
+                "① افتح github.com/oobabooga/text-generation-webui",
+                "② حمّل المستودع وشغّل start_linux.sh",
+                "③ حمّل نموذجاً من تبويب Model",
+                "④ فعّل OpenAI API من Extensions (port 5000)",
+              ],
+              gpt4all:     [
+                "① حمّل GPT4All من gpt4all.io",
+                "② ثبّته وافتحه",
+                "③ حمّل نموذجاً من Models",
+                "④ Settings ← API Server ← Enable Server (port 4891)",
+              ],
+            };
+            const PULL_SUGGESTIONS = ["llama3.2:3b","mistral:7b","codellama:7b","phi3:mini","gemma2:2b"];
+            return (
+              <div className="p-2.5 flex flex-col gap-2">
+                {/* Boot status banner — visible for 30s, shows startup progress — #4 */}
+                {bootSeconds < 30 && engines.length > 0 && engines.some(e => e.installAvailable && !e.online) && (
+                  <div className="rounded-xl px-3 py-2 flex items-center gap-2.5"
+                    style={{ background: C + "07", border: `1px solid ${C}18` }}>
+                    <motion.div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: C }}
+                      animate={{ scale: [0.7, 1.25, 0.7], opacity: [0.45, 1, 0.45] }}
+                      transition={{ duration: 0.9, repeat: Infinity }} />
+                    <span className="text-[7.5px] font-mono flex-1" style={{ color: C + "cc" }}>
+                      المحركات المحلية تبدأ... ({30 - bootSeconds}s)
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {engines.filter(e => e.installAvailable).map(e => (
+                        <motion.div key={e.id} className="w-1.5 h-1.5 rounded-full"
+                          style={{ background: e.online ? (ENG_COLOR[e.id] ?? C) : "rgba(255,255,255,0.12)" }}
+                          animate={e.online ? {} : { opacity: [0.2, 0.6, 0.2] }}
+                          transition={{ duration: 1.2, repeat: Infinity }} />
+                      ))}
+                    </div>
+                    <span className="text-[7px] font-mono" style={{ color: "rgba(255,255,255,0.2)" }}>
+                      {engines.filter(e => e.online).length}/{engines.length}
+                    </span>
+                  </div>
+                )}
+                {displayEngines.map(eng => {
+                  const ec       = ENG_COLOR[eng.id] ?? C;
+                  const isLaunch = launching === eng.id;
+                  const isInst   = installing === eng.id;
+                  const iLog     = installLog[eng.id] ?? "";
+                  const iPct     = installPct[eng.id] ?? null;
+                  const isOllama = eng.id === "ollama";
+                  return (
+                    <div key={eng.id} className="rounded-xl overflow-hidden transition-all"
+                      style={{ border: `1px solid ${eng.online ? ec + "30" : "rgba(255,255,255,0.06)"}`, background: eng.online ? ec + "08" : "rgba(255,255,255,0.018)" }}>
+
+                      {/* ── Main row ── */}
+                      <div className="flex items-center gap-2.5 px-3 py-2.5">
+                        {/* Status dot */}
+                        <motion.div className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ background: eng.online ? ec : R, boxShadow: eng.online ? `0 0 7px ${ec}` : `0 0 4px ${R}55` }}
+                          animate={eng.online ? { scale: [0.85, 1.15, 0.85] } : { opacity: [0.4, 0.8, 0.4] }}
+                          transition={{ duration: 1.8, repeat: Infinity }}
+                        />
+
+                        {/* Label + meta */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] font-black" style={{ color: eng.online ? ec : "rgba(255,255,255,0.42)" }}>
+                              {eng.label}
+                            </span>
+                            <span className="text-[7px] font-mono px-1 rounded" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.22)" }}>
+                              :{eng.port}
+                            </span>
+                            {eng.online && eng.latencyMs != null && (
+                              <span className="text-[7.5px] font-mono px-1 rounded" style={{
+                                background: (eng.latencyMs < 50 ? G : eng.latencyMs < 200 ? A : R) + "18",
+                                color: eng.latencyMs < 50 ? G : eng.latencyMs < 200 ? A : R,
+                              }}>
+                                {eng.latencyMs}ms
+                              </span>
+                            )}
+                            {eng.online && (
+                              <span className="text-[7px] font-mono px-1 rounded" style={{ background: ec + "15", color: ec }}>
+                                {eng.models.length} نموذج
+                              </span>
+                            )}
+                            {!eng.online && (
+                              <span className="text-[7px] font-mono" style={{ color: R + "77" }}>OFFLINE</span>
+                            )}
+                          </div>
+                          {eng.online && eng.models.length > 0 && (
+                            <div className="text-[7.5px] mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.3)" }}>
+                              {eng.models.slice(0, 3).join(", ")}{eng.models.length > 3 ? ` +${eng.models.length - 3}` : ""}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* ── Action buttons ── */}
+                        <div className="flex items-center gap-1 flex-shrink-0 flex-wrap justify-end">
+                          {/* Activate button — #3: works for all online engines */}
+                          {eng.online && (
+                            <>
+                              {eng.models.length === 0 && (
+                                <input
+                                  value={modelInputs[eng.id] ?? ""}
+                                  onChange={e => setModelInputs(p => ({ ...p, [eng.id]: e.target.value }))}
+                                  placeholder="اسم النموذج..."
+                                  className="px-2 py-0.5 rounded-lg text-[8px] font-mono outline-none w-20"
+                                  style={{ background: "rgba(0,0,0,0.45)", border: `1px solid ${ec}28`, color: ec }}
+                                />
+                              )}
+                              <button
+                                onClick={() => activateModel(modelInputs[eng.id]?.trim() || eng.models[0] || "", eng.id)}
+                                disabled={!eng.models.length && !(modelInputs[eng.id]?.trim())}
+                                className="px-2 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                                style={{
+                                  background: ec + "15", border: `1px solid ${ec}28`, color: ec,
+                                  opacity: (!eng.models.length && !(modelInputs[eng.id]?.trim())) ? 0.35 : 1,
+                                }}>
+                                <Zap size={8} /> تفعيل
+                              </button>
+                            </>
+                          )}
+
+                          {/* canInstall engines (ollama/llamafile/kobold): Launch + Install — always visible */}
+                          {eng.canInstall && (
+                            <>
+                              <button onClick={() => launchEngine(eng.id)}
+                                disabled={!!launching || !!installing}
+                                className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                                style={{ background: ec + "18", border: `1px solid ${ec}30`, color: ec, opacity: (!!launching && !isLaunch) ? 0.45 : 1 }}>
+                                <motion.div animate={isLaunch ? { rotate: 360 } : {}} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}>
+                                  {isLaunch ? <RefreshCw size={8} /> : <Play size={8} />}
+                                </motion.div>
+                                {isLaunch ? "جارٍ..." : "تشغيل"}
+                              </button>
+                              <button onClick={() => installEngine(eng.id)}
+                                disabled={!!installing || !!launching}
+                                className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                                style={{ background: G + "12", border: `1px solid ${G}28`, color: G, opacity: (!!installing && !isInst) ? 0.45 : 1 }}>
+                                <motion.div animate={isInst ? { rotate: 360 } : {}} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}>
+                                  {isInst ? <RefreshCw size={8} /> : <Download size={8} />}
+                                </motion.div>
+                                {isInst ? "جارٍ..." : "تثبيت"}
+                              </button>
+                            </>
+                          )}
+
+                          {/* lmstudio/jan: Launch (try to open if installed) + external download — always visible */}
+                          {(eng.id === "lmstudio" || eng.id === "jan") && (
+                            <>
+                              <button onClick={() => launchEngine(eng.id)}
+                                disabled={!!launching}
+                                className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                                style={{ background: ec + "12", border: `1px solid ${ec}22`, color: ec, opacity: (!!launching && !isLaunch) ? 0.45 : 1 }}>
+                                <motion.div animate={isLaunch ? { rotate: 360 } : {}} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}>
+                                  {isLaunch ? <RefreshCw size={8} /> : <Play size={8} />}
+                                </motion.div>
+                                {isLaunch ? "جارٍ..." : "فتح التطبيق"}
+                              </button>
+                              {DL_URLS[eng.id] && (
+                                <a href={DL_URLS[eng.id]} target="_blank" rel="noopener noreferrer"
+                                  className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                                  style={{ background: ec + "15", border: `1px solid ${ec}28`, color: ec }}>
+                                  <ExternalLink size={8} /> تحميل ↗
+                                </a>
+                              )}
+                            </>
+                          )}
+
+                          {/* textgenwebui / gpt4all: external link only — always visible */}
+                          {(eng.id === "textgenwebui" || eng.id === "gpt4all") && DL_URLS[eng.id] && (
+                            <a href={DL_URLS[eng.id]} target="_blank" rel="noopener noreferrer"
+                              className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                              style={{ background: ec + "15", border: `1px solid ${ec}28`, color: ec }}>
+                              <ExternalLink size={8} /> تحميل ↗
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* ── Install progress bar ── */}
+                      {isInst && (
+                        <div className="px-3 pb-2.5 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[7.5px] font-mono" style={{ color: G + "99" }}>{iLog}</span>
+                            {iPct != null && <span className="text-[8px] font-black font-mono" style={{ color: G }}>{iPct}%</span>}
+                          </div>
+                          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                            {iPct != null ? (
+                              <motion.div className="h-full rounded-full"
+                                style={{ background: `linear-gradient(90deg,${G},${C})`, boxShadow: `0 0 7px ${G}` }}
+                                animate={{ width: `${iPct}%` }} transition={{ duration: 0.3 }} />
+                            ) : (
+                              <motion.div className="h-full rounded-full"
+                                style={{ background: `linear-gradient(90deg,${G},${C})`, boxShadow: `0 0 7px ${G}` }}
+                                animate={{ width: ["5%","70%","5%"] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }} />
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* ── Install result (done) ── */}
+                      {!isInst && iLog && (
+                        <div className="px-3 pb-2 text-[7.5px] font-mono" style={{ color: iLog.startsWith("خطأ") ? R : G }}>{iLog}</div>
+                      )}
+
+                      {/* ── Launch log — shows SSE messages from server ── */}
+                      {(() => {
+                        const lLog = launchLog[eng.id];
+                        const lSt  = launchStatus[eng.id];
+                        if (!lLog) return null;
+                        const logCol = lSt === "ok" ? G : lSt === "err" ? R : lSt === "info" ? A : C;
+                        return (
+                          <div className="px-3 pb-2 flex items-center gap-1.5" style={{ borderTop: "1px solid rgba(255,255,255,0.03)" }}>
+                            <motion.div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                              style={{ background: logCol }}
+                              animate={isLaunch ? { scale:[0.6,1.2,0.6], opacity:[0.5,1,0.5] } : {}}
+                              transition={{ duration: 0.8, repeat: Infinity }}
+                            />
+                            <span className="text-[7.5px] font-mono truncate" style={{ color: logCol + "dd" }}>{lLog}</span>
+                            {lSt === "ok" && <CheckCircle size={9} style={{ color: G, flexShrink: 0 }} />}
+                          </div>
+                        );
+                      })()}
+
+                      {/* ── Phi-3 model download section — Llamafile only — #2 ── */}
+                      {eng.id === "llamafile" && (
+                        <div className="px-3 pb-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 6 }}>
+                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <span className="text-[7.5px] font-mono" style={{ color: PK + "99" }}>Phi-3 Mini Model</span>
+                            {phi3Status === "done" ? (
+                              <span className="text-[7px] font-mono px-1.5 py-0.5 rounded flex items-center gap-1" style={{ background: G + "18", color: G }}>
+                                <CheckCircle size={7} /> مثبّت ✓
+                              </span>
+                            ) : phi3Status === "downloading" || downloadingPhi3 ? (
+                              <span className="text-[7px] font-mono px-1.5 py-0.5 rounded" style={{ background: A + "18", color: A }}>
+                                يُحمَّل {phi3Pct != null ? `${phi3Pct}%` : "..."}
+                              </span>
+                            ) : (
+                              <button onClick={downloadPhi3} disabled={downloadingPhi3}
+                                className="text-[7px] font-black px-2 py-0.5 rounded flex items-center gap-1 transition-all hover:opacity-80"
+                                style={{ background: PK + "18", border: `1px solid ${PK}30`, color: PK }}>
+                                <Download size={7} /> تحميل Phi-3 (2.4GB)
+                              </button>
+                            )}
+                          </div>
+                          {(phi3Status === "downloading" || downloadingPhi3) && (
+                            <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                              {phi3Pct != null ? (
+                                <motion.div className="h-full rounded-full"
+                                  style={{ background: `linear-gradient(90deg,${PK},${V})`, boxShadow: `0 0 5px ${PK}60` }}
+                                  animate={{ width: `${phi3Pct}%` }} transition={{ duration: 0.5 }} />
+                              ) : (
+                                <motion.div className="h-full rounded-full"
+                                  style={{ background: `linear-gradient(90deg,${PK},${V})` }}
+                                  animate={{ width: ["5%","70%","5%"] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }} />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* ── Manual-install guide steps (lmstudio/jan/textgenwebui/gpt4all) — always visible ── */}
+                      {!eng.canInstall && DL_STEPS[eng.id] && (
+                        <div className="px-3 pb-2.5 space-y-0.5" style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 6 }}>
+                          {(DL_STEPS[eng.id] as string[]).map((step, si) => (
+                            <div key={si} className="text-[7.5px] font-mono" style={{ color: si === 3 ? ec + "cc" : "rgba(255,255,255,0.28)" }}>
+                              {step}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* ── Ollama: Pull Model section — always visible ── */}
+                      {isOllama && (
+                        <div style={{ borderTop: `1px solid ${ec}18` }}>
+                          <button onClick={() => setShowOllamaPull(p => !p)}
+                            className="w-full flex items-center gap-1.5 px-3 py-1.5 text-[7px] font-black tracking-widest uppercase transition-all"
+                            style={{ color: ec + "66", background: showOllamaPull ? ec + "08" : "transparent" }}>
+                            <Download size={8} />
+                            PULL MODEL
+                            <span className="ml-auto" style={{ color: ec + "44" }}>{showOllamaPull ? "▲" : "▼"}</span>
+                          </button>
+                          {showOllamaPull && (
+                            <div className="px-3 pb-3 space-y-2">
+                              {/* Suggestions */}
+                              <div className="flex flex-wrap gap-1">
+                                {PULL_SUGGESTIONS.map(m => (
+                                  <button key={m} onClick={() => setPullModel(m)}
+                                    className="px-1.5 py-0.5 rounded text-[7px] font-mono transition-all"
+                                    style={{
+                                      background: pullModel === m ? ec + "25" : "rgba(255,255,255,0.04)",
+                                      border: `1px solid ${pullModel === m ? ec + "44" : "rgba(255,255,255,0.08)"}`,
+                                      color: pullModel === m ? ec : "rgba(255,255,255,0.42)",
+                                    }}>
+                                    {m}
+                                  </button>
+                                ))}
+                              </div>
+                              {/* Input + button */}
+                              <div className="flex gap-1.5">
+                                <input value={pullModel} onChange={e => setPullModel(e.target.value)}
+                                  onKeyDown={e => e.key === "Enter" && !pulling && pullOllamaModel()}
+                                  placeholder="llama3.2:3b أو أي نموذج..."
+                                  className="flex-1 px-2.5 py-1.5 rounded-lg text-[9px] font-mono outline-none"
+                                  style={{ background: "rgba(0,0,0,0.45)", border: `1px solid ${ec}22`, color: "rgba(255,255,255,0.8)", caretColor: ec }} />
+                                <button onClick={() => pullOllamaModel()} disabled={pulling || !pullModel.trim()}
+                                  className="px-2.5 py-1.5 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all"
+                                  style={{ background: pulling ? ec + "15" : ec + "22", border: `1px solid ${ec}33`, color: ec, opacity: !pullModel.trim() ? 0.4 : 1 }}>
+                                  <motion.div animate={pulling ? { rotate: 360 } : {}} transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }}>
+                                    {pulling ? <RefreshCw size={8} /> : <Download size={8} />}
+                                  </motion.div>
+                                  {pulling ? "جارٍ..." : "تحميل"}
+                                </button>
+                              </div>
+                              {/* Offline warning */}
+                              {!eng.online && !pulling && (
+                                <div className="text-[7.5px] font-mono px-1 py-1 rounded"
+                                  style={{ background: A + "10", border: `1px solid ${A}25`, color: A + "cc" }}>
+                                  Ollama غير مشغّل — اضغط "تشغيل" أولاً ثم حمّل النموذج
+                                </div>
+                              )}
+                              {/* Streaming progress */}
+                              {(pulling || pullLog) && (
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[7.5px] font-mono truncate flex-1"
+                                      style={{ color: pullLog.startsWith("خطأ") ? R : pulling ? ec + "99" : pullPct === 100 ? G : ec + "99" }}>
+                                      {pullLog || "جارٍ التحميل..."}
+                                    </span>
+                                    {pullPct != null && (
+                                      <span className="text-[9px] font-black font-mono ml-2"
+                                        style={{ color: pullPct === 100 ? G : ec }}>
+                                        {pullPct}%
+                                      </span>
+                                    )}
+                                  </div>
+                                  {(pulling || (pullPct != null && pullPct < 100)) && (
+                                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                                      {pullPct != null ? (
+                                        <motion.div className="h-full rounded-full"
+                                          style={{ background: `linear-gradient(90deg,${ec},${G})`, boxShadow: `0 0 8px ${ec}` }}
+                                          animate={{ width: `${pullPct}%` }} transition={{ duration: 0.3 }} />
+                                      ) : (
+                                        <motion.div className="h-full rounded-full"
+                                          style={{ background: `linear-gradient(90deg,${ec},${G})`, boxShadow: `0 0 8px ${ec}` }}
+                                          animate={{ width: ["5%","65%","5%"] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }} />
+                                      )}
+                                    </div>
+                                  )}
+                                  {!pulling && pullPct === 100 && (
+                                    <div className="flex items-center gap-1 text-[7.5px] font-mono" style={{ color: G }}>
+                                      <CheckCircle size={9} /> تم التحميل بنجاح
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
+          {/* MODELS TAB */}
+          {tab === "models" && (
+            <div className="p-2.5 flex flex-col gap-2.5">
+              {/* Quick-start: llama3.2:3b */}
+              <div
+                className="rounded-xl p-2.5 flex items-center gap-2.5 cursor-pointer transition-all"
+                style={{ background: `linear-gradient(135deg,${G}0a,${C}06)`, border: `1px solid ${G}30` }}
+              >
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: G + "22", border: `1px solid ${G}44` }}>
+                  <Zap size={13} style={{ color: G }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[9px] font-black" style={{ color: G }}>ابدأ بـ llama3.2:3b</div>
+                  <div className="text-[7.5px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>نموذج صغير وسريع · 2GB · مثالي لـ Replit CPU</div>
+                </div>
+                <button
+                  onClick={() => pullOllamaModel("llama3.2:3b")}
+                  disabled={pulling}
+                  className="px-2.5 py-1.5 rounded-lg text-[9px] font-black flex items-center gap-1 flex-shrink-0 transition-all"
+                  style={{ background: G + "22", border: `1px solid ${G}44`, color: G, opacity: pulling ? 0.5 : 1 }}
+                >
+                  <Download size={9} />
+                  تحميل تلقائي
+                </button>
+              </div>
+
+              {/* Pull model */}
+              <div className="rounded-xl p-2.5" style={{ background: C + "06", border: `1px solid ${C}18` }}>
+                <div className="text-[7px] font-black tracking-widest uppercase mb-2" style={{ color: C + "55" }}>
+                  تحميل نموذج Ollama جديد
+                </div>
+                <div className="flex gap-1.5">
+                  <input
+                    value={pullModel}
+                    onChange={e => setPullModel(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && !pulling && pullOllamaModel()}
+                    placeholder="مثال: llama3.2:3b أو qwen2.5:1.5b"
+                    className="flex-1 px-2.5 py-1.5 rounded-lg text-[10px] font-mono outline-none"
+                    style={{
+                      background: "rgba(0,0,0,0.4)", border: `1px solid ${C}22`,
+                      color: "rgba(255,255,255,0.8)", caretColor: C,
+                    }}
+                  />
+                  <button
+                    onClick={() => pullOllamaModel()}
+                    disabled={pulling || !pullModel.trim()}
+                    className="px-2.5 py-1 rounded-lg text-[9px] font-black flex items-center gap-1 transition-all"
+                    style={{
+                      background: pulling ? C + "15" : C + "22",
+                      border: `1px solid ${C}33`, color: C,
+                      opacity: !pullModel.trim() ? 0.4 : 1,
+                    }}
+                  >
+                    <motion.div
+                      animate={pulling ? { rotate: 360 } : {}}
+                      transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }}
+                    >
+                      {pulling ? <RefreshCw size={9} /> : <Download size={9} />}
+                    </motion.div>
+                    {pulling ? "جارٍ..." : "تحميل"}
+                  </button>
+                </div>
+
+                {/* Streaming progress bar — uses pullPct state (no regex) */}
+                {(pulling || pullLog) && (
+                  <div className="mt-2 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[8px] font-mono truncate flex-1"
+                        style={{ color: pullLog.startsWith("خطأ") ? R : pulling ? C + "88" : pullPct === 100 ? G : C + "88" }}>
+                        {pullLog || "جارٍ التحميل..."}
+                      </span>
+                      {pullPct != null && (
+                        <span className="text-[9px] font-black font-mono ml-2"
+                          style={{ color: pullPct === 100 ? G : C }}>
+                          {pullPct}%
+                        </span>
+                      )}
+                    </div>
+                    {(pulling || (pullPct != null && pullPct < 100)) && (
+                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                        {pullPct != null ? (
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{ background: `linear-gradient(90deg,${C},${G})`, boxShadow: `0 0 8px ${C}` }}
+                            animate={{ width: `${pullPct}%` }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        ) : (
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{ background: `linear-gradient(90deg,${C},${G})`, boxShadow: `0 0 8px ${C}` }}
+                            animate={{ width: ["5%","65%","5%"] }}
+                            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                          />
+                        )}
+                      </div>
+                    )}
+                    {!pulling && pullPct === 100 && (
+                      <div className="flex items-center gap-1 text-[8px] font-mono" style={{ color: G }}>
+                        <CheckCircle size={9} /> تم التحميل بنجاح — النموذج جاهز للاستخدام
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Ollama models */}
+              {!ollamaEng?.online ? (
+                <div className="text-center py-8" style={{ color: "rgba(255,255,255,0.2)" }}>
+                  <Server size={28} className="mx-auto mb-2 opacity-25" />
+                  <div className="text-[9px] font-mono">Ollama غير متصل</div>
+                  <div className="text-[8px] mt-1 opacity-60">شغّل المحرك من تبويب ENGINES</div>
+                </div>
+              ) : ollamaModels.length === 0 ? (
+                <div className="text-center py-8" style={{ color: "rgba(255,255,255,0.2)" }}>
+                  <Database size={28} className="mx-auto mb-2 opacity-25" />
+                  <div className="text-[9px] font-mono">لا توجد نماذج محلية</div>
+                  <div className="text-[8px] mt-1 opacity-60">حمّل نموذجاً أعلاه</div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  <div className="text-[7px] font-black tracking-widest uppercase px-0.5 mb-0.5" style={{ color: "rgba(255,255,255,0.22)" }}>
+                    نماذج Ollama ({ollamaModels.length})
+                  </div>
+                  {ollamaModels.map(model => {
+                    const isActive = state.settings.useLocalModel && state.settings.localModel === model;
+                    return (
+                      <div key={model}
+                        className="rounded-xl flex items-center gap-2 px-3 py-2 transition-all"
+                        style={{
+                          background: isActive ? G + "12" : "rgba(255,255,255,0.03)",
+                          border: `1px solid ${isActive ? G + "38" : "rgba(255,255,255,0.065)"}`,
+                        }}
+                      >
+                        {isActive && (
+                          <motion.div animate={{ scale: [0.8,1.2,0.8] }} transition={{ duration: 1.4, repeat: Infinity }}>
+                            <CheckCircle size={10} style={{ color: G }} />
+                          </motion.div>
+                        )}
+                        <span className="flex-1 text-[10px] font-mono truncate" style={{ color: isActive ? G : "rgba(255,255,255,0.65)" }}>
+                          {model}
+                        </span>
+                        <button
+                          onClick={() => activateModel(model, "ollama")}
+                          className="px-2.5 py-0.5 rounded-lg text-[8px] font-black flex-shrink-0 transition-all"
+                          style={{
+                            background: isActive ? G + "20" : C + "10",
+                            border: `1px solid ${isActive ? G + "40" : C + "25"}`,
+                            color: isActive ? G : C,
+                          }}
+                        >
+                          {isActive ? "مُفعَّل" : "تفعيل"}
+                        </button>
+                        <button
+                          onClick={() => runBenchmark(model)}
+                          disabled={benching}
+                          title="اختبار سرعة هذا النموذج"
+                          className="px-1.5 py-0.5 rounded-lg text-[7.5px] font-black flex-shrink-0 transition-all disabled:opacity-40"
+                          style={{ background: A + "10", border: `1px solid ${A}25`, color: A }}
+                        >
+                          {benching && benchModel === model ? "..." : "⚡"}
+                        </button>
+                        <button
+                          onClick={() => deleteOllamaModel(model)}
+                          disabled={!!deletingModel}
+                          title="حذف هذا النموذج"
+                          className="px-1.5 py-0.5 rounded-lg text-[7.5px] font-black flex-shrink-0 transition-all disabled:opacity-40"
+                          style={{ background: R + "10", border: `1px solid ${R}25`, color: R }}
+                        >
+                          {deletingModel === model ? "..." : "✕"}
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {deleteError && (
+                    <div className="text-[7.5px] font-mono px-1" style={{ color: R }}>{deleteError}</div>
+                  )}
+
+                  {/* Models from other online engines */}
+                  {engines.filter(e => e.id !== "ollama" && e.online && e.models.length > 0).map(eng => {
+                    const ec = ENG_COLOR[eng.id] ?? C;
+                    return (
+                      <div key={eng.id}>
+                        <div className="text-[7px] font-black tracking-widest uppercase px-0.5 mt-2 mb-1" style={{ color: ec + "55" }}>
+                          {eng.label} ({eng.models.length})
+                        </div>
+                        {eng.models.map(model => {
+                          const isAct = state.settings.useLocalModel && state.settings.localModel === model;
+                          return (
+                            <div key={model}
+                              className="rounded-xl flex items-center gap-2 px-3 py-2 mb-1 transition-all"
+                              style={{
+                                background: isAct ? ec + "10" : "rgba(255,255,255,0.02)",
+                                border: `1px solid ${isAct ? ec + "30" : "rgba(255,255,255,0.055)"}`,
+                              }}
+                            >
+                              <span className="flex-1 text-[10px] font-mono truncate" style={{ color: "rgba(255,255,255,0.58)" }}>
+                                {model}
+                              </span>
+                              <button
+                                onClick={() => activateModel(model, eng.id)}
+                                className="px-2.5 py-0.5 rounded-lg text-[8px] font-black flex-shrink-0"
+                                style={{ background: ec + "18", border: `1px solid ${ec}30`, color: ec }}
+                              >
+                                تفعيل
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* DUEL TAB ─────────────────────────────────────────────────────── */}
+          {tab === "duel" && (() => {
+            const allModels = engines.flatMap(e => e.online ? e.models.map(m => ({ m, label: e.label, col: ENG_COLOR[e.id] ?? C })) : []);
+            const isDueling = duelRunning1 || duelRunning2;
+
+            return (
+              <div className="p-2.5 flex flex-col gap-2.5">
+                {/* Title */}
+                <div className="text-center">
+                  <div className="text-[8px] font-black tracking-[0.3em] uppercase" style={{ color: V + "77" }}>
+                    DUAL MODEL ARENA
+                  </div>
+                  <div className="text-[6.5px] font-mono mt-0.5" style={{ color: "rgba(255,255,255,0.2)" }}>
+                    شغّل نفس البرومبت على نموذجين بالتوازي وقارن المخرجات
+                  </div>
+                </div>
+
+                {/* Model selectors */}
+                <div className="flex gap-2">
+                  <div className="flex-1 space-y-1">
+                    <div className="text-[7px] font-black tracking-widest uppercase px-0.5" style={{ color: C + "77" }}>
+                      CONTENDER A
+                    </div>
+                    <ModelSelector value={duelModel1} onChange={setDuelModel1} exclude={duelModel2} side={1} allModels={allModels} />
+                  </div>
+                  <div className="flex items-end justify-center pb-0.5">
+                    <span className="text-[10px] font-black" style={{ color: "rgba(255,255,255,0.2)" }}>VS</span>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <div className="text-[7px] font-black tracking-widest uppercase px-0.5" style={{ color: V + "77" }}>
+                      CONTENDER B
+                    </div>
+                    <ModelSelector value={duelModel2} onChange={setDuelModel2} exclude={duelModel1} side={2} allModels={allModels} />
+                  </div>
+                </div>
+
+                {/* Prompt input */}
+                <div className="space-y-1">
+                  <div className="text-[7px] font-black tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.25)" }}>
+                    PROMPT
+                  </div>
+                  <textarea
+                    value={duelPrompt}
+                    onChange={e => setDuelPrompt(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !isDueling) { e.preventDefault(); fireDuel(); } }}
+                    placeholder="اكتب السؤال وسيُرسل للنموذجين في آن واحد... (Enter للإرسال)"
+                    rows={2}
+                    className="w-full rounded-xl px-3 py-2 text-[10px] font-mono outline-none resize-none scrollbar-none"
+                    style={{
+                      background: "rgba(0,0,0,0.4)",
+                      border: `1px solid rgba(255,255,255,0.08)`,
+                      color: "rgba(255,255,255,0.8)",
+                      caretColor: V,
+                    }}
+                  />
+                </div>
+
+                {/* Fire / Stop button */}
+                <div className="flex gap-1.5">
+                  <motion.button
+                    onClick={isDueling ? stopDuel : fireDuel}
+                    disabled={!isDueling && (!duelPrompt.trim() || (!duelModel1 && !duelModel2))}
+                    className="flex-1 py-2 rounded-xl text-[9px] font-black tracking-widest uppercase flex items-center justify-center gap-1.5 transition-all disabled:opacity-35"
+                    style={{
+                      background: isDueling ? R + "18" : V + "18",
+                      border: `1px solid ${isDueling ? R + "35" : V + "35"}`,
+                      color: isDueling ? R : V,
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    {isDueling ? (
+                      <>
+                        <motion.div style={{ width: 7, height: 7, background: R, borderRadius: 1 }} />
+                        إيقاف
+                      </>
+                    ) : (
+                      <>
+                        <Zap size={9} />
+                        إطلاق الدوري
+                      </>
+                    )}
+                  </motion.button>
+                  <button
+                    onClick={() => { setDuelOut1(""); setDuelOut2(""); setDuelTps1(0); setDuelTps2(0); }}
+                    disabled={isDueling}
+                    className="px-3 py-2 rounded-xl text-[8px] font-black uppercase transition-all disabled:opacity-30"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.3)" }}
+                  >
+                    مسح
+                  </button>
+                </div>
+
+                {/* Dual output panels */}
+                <div className="flex gap-2" style={{ minHeight: 200 }}>
+                  <OutputPanel output={duelOut1} running={duelRunning1} model={duelModel1} col={C} tps={duelTps1} />
+
+                  {/* 3D Divider */}
+                  <div className="flex flex-col items-center justify-center gap-1" style={{ width: 16, flexShrink: 0 }}>
+                    {Array.from({ length: 8 }, (_, i) => (
+                      <motion.div
+                        key={i}
+                        className="w-0.5 rounded-full"
+                        style={{ height: 16, background: V }}
+                        animate={{ opacity: [0.12, 0.55, 0.12], scaleY: [0.7, 1.2, 0.7] }}
+                        transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.12 }}
+                      />
+                    ))}
+                  </div>
+
+                  <OutputPanel output={duelOut2} running={duelRunning2} model={duelModel2} col={V} tps={duelTps2} />
+                </div>
+
+                {allModels.length === 0 && (
+                  <div className="text-center py-2" style={{ color: "rgba(255,255,255,0.2)" }}>
+                    <div className="text-[9px] font-mono">لا توجد محركات متصلة</div>
+                    <div className="text-[8px] mt-0.5 opacity-60">افتح تبويب ENGINES وشغّل Ollama أولاً</div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* PERF TAB */}
+          {tab === "perf" && (
+            <div className="p-2.5 flex flex-col gap-2.5">
+              {/* TPS gauge + stat cards */}
+              <div className="flex items-center gap-3">
+                <canvas
+                  ref={gaugeCanvasRef}
+                  style={{ width: 120, height: 120, flexShrink: 0, borderRadius: 12 }}
+                />
+                <div className="flex-1 flex flex-col gap-1.5">
+                  {[
+                    {
+                      label: "LATENCY",
+                      value: ollamaEng?.latencyMs != null ? `${ollamaEng.latencyMs}ms` : "—",
+                      col:   ollamaEng?.latencyMs != null
+                        ? (ollamaEng.latencyMs < 50 ? G : ollamaEng.latencyMs < 200 ? A : R)
+                        : "rgba(255,255,255,0.2)",
+                    },
+                    {
+                      label: "MODELS",
+                      value: String(engines.reduce((s, e) => s + e.models.length, 0)),
+                      col:   C,
+                    },
+                    {
+                      label: "ONLINE",
+                      value: `${onlineCount}/${engines.length || 7}`,
+                      col:   onlineCount > 0 ? G : "rgba(255,255,255,0.2)",
+                    },
+                  ].map(card => (
+                    <div key={card.label}
+                      className="rounded-lg px-2.5 py-1.5"
+                      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.055)" }}
+                    >
+                      <div className="text-[6.5px] tracking-widest uppercase mb-0.5" style={{ color: "rgba(255,255,255,0.22)" }}>
+                        {card.label}
+                      </div>
+                      <div className="text-[15px] font-black font-mono leading-none" style={{ color: card.col }}>
+                        {card.value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* TPS Sparkline */}
+              <div className="rounded-xl p-2.5" style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.055)" }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[6.5px] font-black tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.22)" }}>
+                    TOKEN THROUGHPUT
+                  </span>
+                  <span className="text-[8px] font-mono" style={{ color: G + "88" }}>
+                    {Math.round(tpsTarget)} tok/s
+                  </span>
+                </div>
+                <svg width="100%" height="44" style={{ overflow: "visible" }}>
+                  <defs>
+                    <linearGradient id="mr7-spark-fill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stopColor={G} stopOpacity="0.28" />
+                      <stop offset="100%" stopColor={G} stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
+                  {(() => {
+                    const max  = Math.max(...tpsHistory, 8);
+                    const pts  = tpsHistory.map((v, i) => ({
+                      x: (i / (tpsHistory.length - 1)) * 100,
+                      y: 44 - (v / max) * 40,
+                    }));
+                    const path = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x}%,${p.y}`).join(" ");
+                    const fill = `${path} L100%,44 L0,44 Z`;
+                    return (
+                      <>
+                        <path d={fill} fill="url(#mr7-spark-fill)" />
+                        <path d={path} fill="none" stroke={G} strokeWidth="1.5" strokeLinejoin="round" />
+                        {pts.length > 0 && (
+                          <circle cx={`${pts[pts.length - 1].x}%`} cy={pts[pts.length - 1].y} r="3" fill={G}>
+                            <animate attributeName="r" values="3;5;3" dur="1.4s" repeatCount="indefinite" />
+                          </circle>
+                        )}
+                      </>
+                    );
+                  })()}
+                </svg>
+                <div className="flex justify-between text-[6.5px] font-mono mt-0.5" style={{ color: "rgba(255,255,255,0.18)" }}>
+                  <span>−20s</span><span>LIVE</span>
+                </div>
+              </div>
+
+              {/* Engine latency bars */}
+              <div className="rounded-xl p-2.5" style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.055)" }}>
+                <div className="text-[6.5px] font-black tracking-widest uppercase mb-2" style={{ color: "rgba(255,255,255,0.22)" }}>
+                  ENGINE PING
+                </div>
+                {displayEngines.filter(e => e.online).length > 0 ? (
+                  displayEngines.filter(e => e.online).map(eng => {
+                    const ec  = ENG_COLOR[eng.id] ?? C;
+                    const lat = eng.latencyMs ?? 0;
+                    const bw  = Math.min((lat / 300) * 100, 100);
+                    return (
+                      <div key={eng.id} className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[8px] w-20 truncate font-mono" style={{ color: "rgba(255,255,255,0.38)" }}>
+                          {eng.label}
+                        </span>
+                        <div className="flex-1 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+                          <div className="h-full rounded-full" style={{ width: `${bw}%`, background: ec, boxShadow: `0 0 4px ${ec}` }} />
+                        </div>
+                        <span className="text-[8px] font-mono w-10 text-right" style={{ color: ec }}>{lat}ms</span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-[9px] text-center py-2 font-mono" style={{ color: "rgba(255,255,255,0.18)" }}>
+                    لا يوجد محركات متصلة
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Benchmark */}
+              {(() => {
+                const ollamaModels = (engines.find(e => e.id === "ollama")?.models ?? []);
+                if (ollamaModels.length === 0) return null;
+                return (
+                  <div className="rounded-xl p-2.5 space-y-2" style={{ background: A + "06", border: `1px solid ${A}18` }}>
+                    <div className="flex items-center justify-between">
+                      <div className="text-[6.5px] font-black tracking-widest uppercase" style={{ color: A + "66" }}>
+                        QUICK BENCHMARK
+                      </div>
+                      {benchTps != null && !benching && (
+                        <span className="text-[9px] font-black font-mono" style={{ color: A }}>
+                          {benchTps} tok/s
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-1.5">
+                      <select
+                        value={benchModel}
+                        onChange={e => setBenchModel(e.target.value)}
+                        className="flex-1 px-2 py-1 rounded-lg text-[8.5px] font-mono outline-none"
+                        style={{ background: "rgba(0,0,0,0.4)", border: `1px solid ${A}22`, color: "rgba(255,255,255,0.7)" }}
+                      >
+                        <option value="">اختر نموذجاً</option>
+                        {ollamaModels.map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                      <button
+                        onClick={() => runBenchmark()}
+                        disabled={benching || !benchModel}
+                        className="px-2.5 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 transition-all disabled:opacity-40"
+                        style={{ background: benching ? A + "15" : A + "22", border: `1px solid ${A}33`, color: A }}
+                      >
+                        <motion.div animate={benching ? { rotate: 360 } : {}} transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }}>
+                          <Zap size={8} />
+                        </motion.div>
+                        {benching ? "جارٍ..." : "ابدأ"}
+                      </button>
+                    </div>
+                    {benchLog && (
+                      <div className="text-[7.5px] font-mono" style={{ color: benching ? A + "88" : benchLog.startsWith("خطأ") ? R : G }}>
+                        {benchLog}
+                      </div>
+                    )}
+                    {benching && benchTokens != null && (
+                      <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                        <motion.div className="h-full rounded-full"
+                          style={{ background: `linear-gradient(90deg,${A},${G})`, boxShadow: `0 0 6px ${A}` }}
+                          animate={{ width: ["5%","80%","5%"] }}
+                          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </div>
+
+        {/* ── Footer action buttons ── */}
+        <div className="flex gap-1.5 p-2.5" style={{ borderTop: `1px solid ${C}0c` }}>
+          {([
+            { label: "NEXUS", col: C,  icon: <Server   size={9} />, fn: () => { onClose(); onOpenNexus(); } },
+            { label: "HUB",   col: V,  icon: <Cpu      size={9} />, fn: () => { onClose(); onOpenHub();   } },
+            { label: "BENCH", col: A,  icon: <BarChart2 size={9} />, fn: () => { onClose(); onOpenBench(); } },
+          ]).map(btn => (
+            <button key={btn.label}
+              onClick={btn.fn}
+              className="flex-1 py-2 rounded-xl text-[8.5px] font-black tracking-widest uppercase flex items-center justify-center gap-1.5 transition-all"
+              style={{ background: btn.col + "0f", border: `1px solid ${btn.col}25`, color: btn.col }}
+              onMouseEnter={e => { e.currentTarget.style.background = btn.col + "22"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = btn.col + "0f"; }}
+            >
+              {btn.icon} {btn.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Corner brackets */}
+        {(["top-[6px] left-[6px] border-t border-l","top-[6px] right-[6px] border-t border-r",
+           "bottom-[6px] left-[6px] border-b border-l","bottom-[6px] right-[6px] border-b border-r",
+        ] as const).map((cls, i) => (
+          <span key={i} className={`absolute ${cls} w-3 h-3 pointer-events-none`}
+            style={{ borderColor: C + (i < 2 ? "33" : "1a") }} />
+        ))}
+      </motion.div>
+    </AnimatePresence>,
+    document.body
+  );
+}

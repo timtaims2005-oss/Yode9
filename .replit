@@ -1,20 +1,76 @@
-modules = ["nodejs-24"]
+modules = ["nodejs-20", "python-3.11", "web"]
+[agent]
+expertMode = true
+stack = "FLASK_VANILLA_JS"
+integrations = ["javascript_openai_ai_integrations:2.0.0", "javascript_anthropic_ai_integrations:2.0.0"]
 
-[deployment]
-router = "application"
-deploymentTarget = "autoscale"
-
-[deployment.postBuild]
-args = ["pnpm", "store", "prune"]
-env = { "CI" = "true" }
+[nix]
+channel = "stable-25_05"
+packages = ["cacert", "cargo", "freetype", "glibcLocales", "iana-etc", "lcms2", "libiconv", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "openssl", "pkg-config", "postgresql", "rustc", "tcl", "tk", "zlib"]
 
 [workflows]
 runButton = "Project"
 
-[agent]
-stack = "PNPM_WORKSPACE"
-expertMode = true
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
 
-[postMerge]
-path = "scripts/post-merge.sh"
-timeoutMs = 20000
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "mr7-ai API Server"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export PATH=\"/home/runner/workspace/.pythonlibs/bin:$PATH\" && export PYTHONPATH=\"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages:$PYTHONPATH\" && cd pentest-lab/backend && PORT=5000 python3 app.py"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "mr7-ai API Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd artifacts/api-server && pnpm run dev"
+waitForPort = 8080
+
+[userenv]
+
+[userenv.shared]
+NODE_ENV = "development"
+PORT = "8080"
+APP_URL = "https://${REPLIT_DEV_DOMAIN}"
+FRONTEND_URL = "https://${REPLIT_DEV_DOMAIN}"
+API_BASE_URL = "https://${REPLIT_DEV_DOMAIN}"
+ALLOWED_ORIGINS = "https://${REPLIT_DEV_DOMAIN}"
+APP_VERSION = "1.0.0"
+STORAGE_PROVIDER = "local"
+LOCAL_UPLOAD_DIR = "./uploads"
+AUTO_LAUNCH_OLLAMA = "true"
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+build = ["bash", "-c", "cd artifacts/api-server && pnpm run build && cd ../mr7-ai && pnpm run build"]
+
+[[ports]]
+localPort = 5000
+externalPort = 5000
+
+[[ports]]
+localPort = 8080
+externalPort = 80

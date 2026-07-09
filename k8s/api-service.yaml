@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mr7-api-svc
+  namespace: mr7ai
+  labels:
+    app: mr7-api
+spec:
+  selector:
+    app: mr7-api
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
