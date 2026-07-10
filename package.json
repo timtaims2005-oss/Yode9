@@ -9,11 +9,19 @@
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
   "private": true,
-  "dependencies": {
-    "@replit/connectors-sdk": "^0.4.1"
+  "engines": {
+    "node": ">=20.0.0"
   },
   "devDependencies": {
-    "prettier": "^3.9.4",
-    "typescript": "~5.9.3"
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2"
+  },
+  "dependencies": {
+    "drizzle-zod": "^0.8.3",
+    "openai": "^6.34.0",
+    "p-limit": "^7.3.0",
+    "p-retry": "^7.1.1",
+    "zod": "catalog:",
+    "zod-validation-error": "^5.0.0"
   }
 }

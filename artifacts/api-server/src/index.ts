@@ -1,25 +1,62 @@
+import { createServer } from "http";
+import { WebSocketServer } from "ws";
 import app from "./app";
 import { logger } from "./lib/logger";
+import { handleTerminalSocket } from "./routes/shell";
+import { registerCisaWsClient } from "./routes/cisa";
+import { handleCollabSocket } from "./routes/collab";
+import { handleMuxSocket } from "./routes/mux";
 
-const rawPort = process.env["PORT"];
-
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
-}
+const rawPort = process.env["PORT"] ?? "8080";
 
 const port = Number(rawPort);
+if (Number.isNaN(port) || port <= 0) throw new Error(`Invalid PORT value: "${rawPort}"`);
 
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
+const server = createServer(app);
 
-app.listen(port, (err) => {
-  if (err) {
-    logger.error({ err }, "Error listening on port");
-    process.exit(1);
+const wss         = new WebSocketServer({ noServer: true });
+const cisaWss     = new WebSocketServer({ noServer: true });
+const collabWss   = new WebSocketServer({ noServer: true });
+const muxWss      = new WebSocketServer({ noServer: true });
+
+wss.on("connection", handleTerminalSocket);
+
+cisaWss.on("connection", (ws) => {
+  registerCisaWsClient(ws);
+});
+
+collabWss.on("connection", (ws) => {
+  handleCollabSocket(ws);
+});
+
+muxWss.on("connection", (ws) => {
+  handleMuxSocket(ws);
+});
+
+server.on("upgrade", (req, socket, head) => {
+  const url = req.url ?? "";
+  if (url.startsWith("/api/terminal")) {
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      wss.emit("connection", ws, req);
+    });
+  } else if (url.startsWith("/api/cisa-live")) {
+    cisaWss.handleUpgrade(req, socket, head, (ws) => {
+      cisaWss.emit("connection", ws, req);
+    });
+  } else if (url.startsWith("/api/collab")) {
+    collabWss.handleUpgrade(req, socket, head, (ws) => {
+      collabWss.emit("connection", ws, req);
+    });
+  } else if (url.startsWith("/api/mux")) {
+    muxWss.handleUpgrade(req, socket, head, (ws) => {
+      muxWss.emit("connection", ws, req);
+    });
+  } else {
+    socket.destroy();
   }
+});
 
+server.listen(port, (err?: Error) => {
+  if (err) { logger.error({ err }, "Error listening on port"); process.exit(1); }
   logger.info({ port }, "Server listening");
 });
