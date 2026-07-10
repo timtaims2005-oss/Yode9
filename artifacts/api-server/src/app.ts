@@ -28,6 +28,7 @@ import { setupReplitAuth } from "./routes/auth";
 import { startBackupScheduler } from "./lib/backup";
 import { seedDefaultFlags } from "./lib/feature-flags";
 import threatIntelRouter from "./routes/threat-intel";
+import webhooksAlertsRouter from "./routes/webhooks-alerts";
 import osintAdvancedRouter from "./routes/osint-advanced";
 import osintRouter from "./routes/osint";
 import aiToolsRouter from "./routes/ai-tools";
@@ -304,6 +305,9 @@ app.use("/api", subscriptionsRouter);
 
 // ── Threat Intelligence — public read, write protected ───────────────────────
 app.use("/api", threatIntelRouter);
+
+// ── Alertmanager webhooks — internal network only, own bearer-token check ────
+app.use("/api", webhooksAlertsRouter);
 
 // ── OSINT Advanced — public scanner endpoints (Redis rate-limited) ────────────
 app.use("/api/osint-advanced", osintLimiter, osintAdvancedRouter);
