@@ -8,10 +8,12 @@ import { logger } from "./logger";
 
 type SubscriptionTier = "free" | "starter" | "professional" | "elite";
 
-const ADMIN_SECRET = process.env.ADMIN_SECRET ?? "CHATGPT-OWNER-2026";
+const ADMIN_SECRET = process.env.ADMIN_SECRET;
 
-if (process.env.NODE_ENV === "production" && ADMIN_SECRET === "CHATGPT-OWNER-2026") {
-  logger.warn("ADMIN_SECRET is using the default insecure value in production. Set ADMIN_SECRET env var.");
+if (!ADMIN_SECRET) {
+  logger.warn(
+    "ADMIN_SECRET is not set — legacy activation-code verification is disabled until it is configured.",
+  );
 }
 
 export interface VerifiedSubscription {
@@ -24,6 +26,7 @@ export interface VerifiedSubscription {
  * Returns null if invalid or expired.
  */
 export function verifyActivationCode(code: string): VerifiedSubscription | null {
+  if (!ADMIN_SECRET) return null;
   try {
     const padded = code.toLowerCase() + "=".repeat((4 - (code.length % 4)) % 4);
     const decoded = Buffer.from(padded, "base64").toString("utf8");
@@ -58,6 +61,7 @@ export function verifyActivationCode(code: string): VerifiedSubscription | null 
  * Uses constant-time comparison to prevent timing attacks.
  */
 export function verifyAdminPassword(password: string): boolean {
+  if (!ADMIN_SECRET) return false;
   try {
     const a = Buffer.from(password, "utf8");
     const b = Buffer.from(ADMIN_SECRET, "utf8");
@@ -72,6 +76,9 @@ export function verifyAdminPassword(password: string): boolean {
  * Generate an activation code (admin-only, server-side only).
  */
 export function generateActivationCode(tier: SubscriptionTier, days: number): string {
+  if (!ADMIN_SECRET) {
+    throw new Error("ADMIN_SECRET is not configured — cannot generate activation codes.");
+  }
   const expiry = Date.now() + days * 86_400_000;
   const raw = `${tier}|${expiry}|${ADMIN_SECRET}`;
   const encoded = Buffer.from(raw).toString("base64").replace(/=/g, "");

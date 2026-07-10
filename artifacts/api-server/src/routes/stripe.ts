@@ -7,6 +7,10 @@
 import { Router, type Request, type Response } from "express";
 import { pool } from "../db";
 import { jwtAuth, requireAuth } from "../middlewares/jwtAuth";
+import { generateInvoicePdf } from "../lib/invoice-pdf";
+import { getStorage, generateStorageKey } from "../lib/storage";
+import { sendInvoiceEmail } from "../lib/email";
+import { logger } from "../lib/logger";
 
 const router = Router();
 
@@ -158,6 +162,68 @@ router.post(
               JSON.stringify({ planId: plan.id, expiresAt }),
             ],
           );
+
+          // Generate and store a PDF invoice for this payment
+          try {
+            const amountPaid = (session.amount_total ?? plan.price * 100) / 100;
+            const currency = (session.currency ?? plan.currency ?? "usd");
+            const { rows: userRows } = await pool.query(
+              "SELECT email, first_name, last_name FROM users WHERE id = $1",
+              [userId],
+            );
+            const userRow = userRows[0] as { email?: string; first_name?: string; last_name?: string } | undefined;
+            const customerEmail = userRow?.email ?? "unknown@mr7.ai";
+            const customerName = [userRow?.first_name, userRow?.last_name].filter(Boolean).join(" ") || null;
+
+            const { rows: invoiceRows } = await pool.query(
+              `INSERT INTO invoices
+                 (user_id, stripe_invoice_id, stripe_session_id, plan_id, amount, currency, status, description, period_start, period_end)
+               VALUES ($1, $2, $3, $4, $5, $6, 'paid', $7, NOW(), $8)
+               RETURNING id, created_at`,
+              [
+                userId,
+                typeof session.invoice === "string" ? session.invoice : null,
+                session.id,
+                plan.id,
+                amountPaid,
+                currency,
+                `${plan.name} subscription`,
+                expiresAt.toISOString(),
+              ],
+            );
+            const invoiceRow = invoiceRows[0] as { id: string; created_at: string };
+            const invoiceNumber = `INV-${invoiceRow.id.slice(0, 8).toUpperCase()}`;
+
+            const pdf = await generateInvoicePdf({
+              invoiceId: invoiceRow.id,
+              invoiceNumber,
+              issuedAt: new Date(invoiceRow.created_at),
+              customerName,
+              customerEmail,
+              planName: plan.name,
+              amount: amountPaid,
+              currency,
+              periodStart: new Date(),
+              periodEnd: expiresAt,
+              stripeInvoiceId: typeof session.invoice === "string" ? session.invoice : null,
+            });
+
+            const storage = getStorage();
+            const key = generateStorageKey(userId, `${invoiceNumber}.pdf`, "invoices");
+            const uploaded = await storage.upload(pdf, key, "application/pdf", `${invoiceNumber}.pdf`);
+            await pool.query("UPDATE invoices SET pdf_url = $1 WHERE id = $2", [uploaded.url, invoiceRow.id]);
+
+            await sendInvoiceEmail(
+              customerEmail,
+              customerName ?? customerEmail,
+              plan.name,
+              `${amountPaid.toFixed(2)} ${currency.toUpperCase()}`,
+              invoiceNumber,
+              pdf,
+            );
+          } catch (invoiceErr) {
+            logger.error({ err: invoiceErr }, "Failed to generate/send invoice for checkout session");
+          }
         }
       } else if (event.type === "customer.subscription.deleted") {
         const sub = event.data.object as import("stripe").Stripe.Subscription;

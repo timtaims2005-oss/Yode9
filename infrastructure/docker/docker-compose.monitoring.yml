@@ -1,0 +1,192 @@
+version: "3.9"
+
+# ══════════════════════════════════════════════════════════
+#  MR7.AI — Monitoring Stack
+#  Prometheus + Grafana + Loki + Alertmanager + Jaeger
+# ══════════════════════════════════════════════════════════
+
+x-logging: &default-logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "50m"
+      max-file: "5"
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  loki-data:
+  alertmanager-data:
+  jaeger-data:
+
+services:
+  # ── Prometheus ─────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: mr7-prometheus
+    user: "65534"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --storage.tsdb.retention.size=50GB
+      - --web.enable-lifecycle
+      - --web.enable-admin-api
+      - --query.lookback-delta=5m
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts/:/etc/prometheus/alerts/:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    <<: *default-logging
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # ── Grafana ─────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: mr7-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-mr7-admin-2026}
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SERVER_DOMAIN=localhost
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_FEATURE_TOGGLES_ENABLE=publicDashboards
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    <<: *default-logging
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Loki (Log Aggregation) ─────────────────────────────
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: mr7-loki
+    command: -config.file=/etc/loki/config.yml
+    volumes:
+      - ./monitoring/loki/config.yml:/etc/loki/config.yml:ro
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+    <<: *default-logging
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # ── Promtail (Log Shipper) ─────────────────────────────
+  promtail:
+    image: grafana/promtail:2.9.2
+    container_name: mr7-promtail
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./monitoring/promtail/config.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    <<: *default-logging
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # ── Alertmanager ───────────────────────────────────────
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: mr7-alertmanager
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+      - --web.external-url=http://localhost:9093
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    ports:
+      - "9093:9093"
+    <<: *default-logging
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # ── Jaeger (Distributed Tracing) ───────────────────────
+  jaeger:
+    image: jaegertracing/all-in-one:1.52
+    container_name: mr7-jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/badger/data
+      - BADGER_DIRECTORY_KEY=/badger/key
+    volumes:
+      - jaeger-data:/badger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    <<: *default-logging
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # ── Node Exporter ─────────────────────────────────────
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: mr7-node-exporter
+    command:
+      - --path.procfs=/host/proc
+      - --path.rootfs=/rootfs
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    ports:
+      - "9100:9100"
+    <<: *default-logging
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # ── cAdvisor (Container Metrics) ──────────────────────
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: mr7-cadvisor
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /cgroup:/cgroup:ro
+    ports:
+      - "8070:8080"
+    <<: *default-logging
+    networks:
+      - monitoring
+    restart: unless-stopped

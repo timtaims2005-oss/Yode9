@@ -1,0 +1,80 @@
+{
+  "_comment": "MR7.AI — TensorRT-LLM Optimized Configuration",
+  "model": {
+    "architecture": "llama",
+    "dtype": "float16",
+    "use_gpt_attention_plugin": "float16",
+    "use_gemm_plugin": "float16",
+    "use_rmsnorm_plugin": "float16",
+    "use_lookup_plugin": false,
+    "enable_context_fmha": true,
+    "enable_paged_kv_cache": true,
+    "paged_kv_cache_free_gpu_memory_fraction": 0.9,
+    "use_inflight_batching": true,
+    "remove_input_padding": true,
+    "multi_query_mode": false,
+    "enable_fp8_context_fmha": false,
+    "tokens_per_block": 64
+  },
+  "build": {
+    "max_batch_size": 64,
+    "max_input_len": 4096,
+    "max_output_len": 4096,
+    "max_beam_width": 1,
+    "max_num_tokens": 8192,
+    "builder_opt": null,
+    "strongly_typed": true,
+    "gather_all_token_logits": false,
+    "log_level": "info",
+    "parallel_build": true,
+    "num_build_workers": 4
+  },
+  "serving": {
+    "batching_type": "inflight",
+    "max_batch_size": 64,
+    "max_num_tokens": 8192,
+    "enable_chunked_context": true,
+    "normalize_log_probs": true,
+    "enable_kv_cache_reuse": true,
+    "kv_cache_free_gpu_mem_fraction": 0.9,
+    "cross_kv_cache_fraction": null,
+    "scheduling_policy": "guaranteed_no_evict",
+    "streaming": true,
+    "request_stats_max_iterations": 10
+  },
+  "decoding": {
+    "decoding_mode": "top_k_top_p",
+    "top_k": 40,
+    "top_p": 0.9,
+    "top_p_min": 1e-6,
+    "top_p_decay": 1.0,
+    "top_p_reset_ids": null,
+    "temperature": 0.7,
+    "repetition_penalty": 1.1,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "length_penalty": 1.0,
+    "early_stopping": true
+  },
+  "quantization": {
+    "mode": "fp16",
+    "group_size": 128,
+    "has_zero_point": false,
+    "pre_quant_scale": false,
+    "exclude_modules": ["lm_head"]
+  },
+  "speculative_decoding": {
+    "enabled": true,
+    "num_draft_tokens": 5,
+    "draft_model": null,
+    "use_draft_logits": false
+  },
+  "gpu": {
+    "devices": "all",
+    "tensor_parallel": 1,
+    "pipeline_parallel": 1,
+    "memory_fraction": 0.9,
+    "enable_custom_all_reduce": true,
+    "use_user_buffer": true
+  }
+}

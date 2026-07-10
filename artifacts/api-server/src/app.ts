@@ -1,11 +1,15 @@
 import express, { type Express } from "express";
+import compression from "compression";
 import cors from "cors";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import pinoHttp from "pino-http";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
+import { RedisStore } from "connect-redis";
 import passport from "passport";
+import { getRedis, getRawIoRedis } from "./lib/redis.js";
+import { osintLimiter, cveSearchLimiter } from "./middlewares/redis-rate-limit.js";
 import router from "./routes";
 import healthRouter from "./routes/health";
 import providersRouter from "./routes/providers";
@@ -19,11 +23,18 @@ import { internalAuth } from "./middlewares/internalAuth";
 import { sanitizeInputs } from "./middlewares/sanitize";
 import { attackDetector } from "./middlewares/attack-detector";
 import { ensureCsrfToken, getCsrfToken } from "./middlewares/csrf";
-import { pool, ensureAuthTables } from "./db";
+import { pool, ensureAuthTables, ensureReferralTables } from "./db";
 import { setupReplitAuth } from "./routes/auth";
 import { startBackupScheduler } from "./lib/backup";
 import { seedDefaultFlags } from "./lib/feature-flags";
 import threatIntelRouter from "./routes/threat-intel";
+import osintAdvancedRouter from "./routes/osint-advanced";
+import osintRouter from "./routes/osint";
+import aiToolsRouter from "./routes/ai-tools";
+import darkwebIntelligenceRouter from "./routes/darkweb-intelligence";
+import { osintIntelRouter } from "./routes/osint-intel";
+import blogRouter from "./routes/blog.js";
+import abTestsRouter from "./routes/ab-tests.js";
 
 // Validate environment at startup — exits if critical vars missing
 validateEnv();
@@ -138,6 +149,25 @@ const uploadLimiter = rateLimit({
 
 app.use(globalLimiter);
 
+// ── Compression — gzip for text responses (SSE excluded to preserve streaming) ─
+app.use(compression({
+  level: 6,
+  threshold: 1024,
+  filter: (req, res) => {
+    // CRITICAL: never compress SSE streams — compression buffers output and
+    // destroys real-time token delivery. Check both incoming Accept and the
+    // Content-Type the route is about to send.
+    const accept = req.headers['accept'] ?? '';
+    const ct = res.getHeader('content-type') as string ?? '';
+    if (
+      accept.includes('text/event-stream') ||
+      ct.includes('text/event-stream') ||
+      req.headers['x-no-compression']
+    ) return false;
+    return compression.filter(req, res);
+  },
+}));
+
 app.use(
   pinoHttp({
     logger,
@@ -164,20 +194,39 @@ app.use(sanitizeInputs);
 app.use(attackDetector);
 
 // ── Session + Passport ────────────────────────────────────────────────────────
+// Use Redis as session store when REDIS_URL is set; fall back to PostgreSQL.
 const PgStore = connectPg(session);
+// RedisStore imported directly from connect-redis v9 (named export)
 
 const sessionSecret = process.env.SESSION_SECRET || "mr7-ai-dev-secret-change-in-prod";
+
+async function buildSessionStore() {
+  if (process.env.REDIS_URL) {
+    try {
+      // Warm up Redis so getRawIoRedis() is populated
+      await getRedis();
+      const raw = getRawIoRedis();
+      if (raw) {
+        logger.info("[session] Using Redis session store");
+        // connect-redis v9 accepts an ioredis-compatible client directly
+        return new RedisStore({ client: raw as ConstructorParameters<typeof RedisStore>[0]["client"] });
+      }
+    } catch {
+      // fall through to PgStore
+    }
+  }
+  logger.info("[session] Using PostgreSQL session store");
+  return new PgStore({ pool, createTableIfMissing: true, tableName: "sessions" });
+}
+
+const sessionStore = await buildSessionStore();
 
 app.use(
   session({
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
-    store: new PgStore({
-      pool,
-      createTableIfMissing: true,
-      tableName: "sessions",
-    }),
+    store: sessionStore,
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -198,6 +247,12 @@ app.use(
     "/api/godmode",
     "/api/osint/url",
     "/api/osint/analyze",
+    "/api/osint/email",
+    "/api/osint/ip",
+    "/api/osint/domain",
+    "/api/osint/hash",
+    "/api/osint/username",
+    "/api/osint/phone",
     "/api/image",
     "/api/vision",
     "/api/agent",
@@ -228,6 +283,7 @@ app.use("/api", subscriptionsRouter);
 (async () => {
   try {
     await ensureAuthTables();
+    await ensureReferralTables();
     if (process.env.REPL_ID) {
       await setupReplitAuth(app);
     }
@@ -248,6 +304,24 @@ app.use("/api", subscriptionsRouter);
 
 // ── Threat Intelligence — public read, write protected ───────────────────────
 app.use("/api", threatIntelRouter);
+
+// ── OSINT Advanced — public scanner endpoints (Redis rate-limited) ────────────
+app.use("/api/osint-advanced", osintLimiter, osintAdvancedRouter);
+
+// ── OSINT Intelligence endpoints — Redis rate-limited ─────────────────────────
+app.use("/api/osint", osintLimiter);
+app.use("/api", osintRouter);
+
+// ── AI Tools — security, cache, providers, validation ─────────────────────────
+app.use("/api/ai-tools", aiToolsRouter);
+app.use("/api/darkweb-intelligence", darkwebIntelligenceRouter);
+app.use("/api/osint-intel", osintIntelRouter);
+
+// ── Blog CMS — public GET, admin POST/PATCH/DELETE protected internally ───────
+app.use("/api", blogRouter);
+
+// ── A/B Testing — public GET variant + track, admin results protected ─────────
+app.use("/api", abTestsRouter);
 
 // ── All remaining API routes — protected by internalAuth ─────────────────────
 app.use("/api", internalAuth, cloudChatsRouter);

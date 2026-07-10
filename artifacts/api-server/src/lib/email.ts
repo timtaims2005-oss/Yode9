@@ -14,12 +14,19 @@
 
 import { logger } from "./logger.js";
 
+interface EmailAttachment {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+}
+
 interface EmailOptions {
   to: string | string[];
   subject: string;
   html: string;
   text?: string;
   replyTo?: string;
+  attachments?: EmailAttachment[];
 }
 
 interface TransportConfig {
@@ -84,6 +91,11 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       html: options.html,
       text: options.text ?? options.html.replace(/<[^>]+>/g, ""),
       replyTo: options.replyTo,
+      attachments: options.attachments?.map((a) => ({
+        filename: a.filename,
+        content: a.content,
+        contentType: a.contentType,
+      })),
     });
     logger.info({ to, subject: options.subject }, "[email] Sent");
     return true;
@@ -239,6 +251,34 @@ export async function sendSecurityAlertEmail(
     to,
     subject: `[Security Alert] ${eventType} detected — mr7.ai`,
     html: securityAlertTemplate(name, eventType, ip, new Date().toUTCString()),
+  });
+}
+
+export function invoiceEmailTemplate(name: string, planName: string, amount: string, invoiceNumber: string): EmailOptions["html"] {
+  return wrapTemplate("Payment Receipt", `
+    <p>Hi ${escHtml(name)},</p>
+    <p>Thanks for your payment! Your <strong>${escHtml(planName)}</strong> subscription is now active.</p>
+    <table style="background:#0d0d1a;border-radius:8px;padding:16px;width:100%;border-collapse:collapse">
+      <tr><td style="color:#888;padding:6px 12px">Invoice #</td><td style="color:#e0e0ff;padding:6px 12px">${escHtml(invoiceNumber)}</td></tr>
+      <tr><td style="color:#888;padding:6px 12px">Amount</td><td style="color:#34d399;padding:6px 12px"><strong>${escHtml(amount)}</strong></td></tr>
+    </table>
+    <p style="color:#888;font-size:13px">Your PDF invoice is attached to this email.</p>
+  `);
+}
+
+export async function sendInvoiceEmail(
+  to: string,
+  name: string,
+  planName: string,
+  amount: string,
+  invoiceNumber: string,
+  pdf: Buffer,
+): Promise<boolean> {
+  return sendEmail({
+    to,
+    subject: `Your mr7.ai receipt — ${invoiceNumber}`,
+    html: invoiceEmailTemplate(name, planName, amount, invoiceNumber),
+    attachments: [{ filename: `${invoiceNumber}.pdf`, content: pdf, contentType: "application/pdf" }],
   });
 }
 

@@ -1,11 +1,55 @@
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
+import { spawn } from "child_process";
+import path from "path";
+import fs from "fs";
 import app from "./app";
 import { logger } from "./lib/logger";
 import { handleTerminalSocket } from "./routes/shell";
 import { registerCisaWsClient } from "./routes/cisa";
 import { handleCollabSocket } from "./routes/collab";
 import { handleMuxSocket } from "./routes/mux";
+
+// ── Auto-launch Ollama on startup ─────────────────────────────────────────────
+async function autoLaunchOllama(): Promise<void> {
+  if (process.env["AUTO_LAUNCH_OLLAMA"] === "false") return;
+
+  // Try multiple possible locations — api-server cwd vs workspace root
+  const WORKSPACE = process.cwd();
+  const candidates = [
+    path.join(WORKSPACE, ".ollama-bin", "ollama"),
+    path.join(WORKSPACE, "..", "..", ".ollama-bin", "ollama"),
+    "/home/runner/workspace/.ollama-bin/ollama",
+    "/home/runner/.ollama-bin/ollama",
+  ];
+  const binWS  = candidates[0];
+  const binH   = "/home/runner/workspace/.ollama-bin/ollama";
+  const bin    = candidates.find(p => fs.existsSync(p)) ?? null;
+
+  if (!bin) {
+    logger.info("Ollama binary not found — skipping auto-launch");
+    return;
+  }
+
+  // Check if already running
+  try {
+    const chk = await fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(2000) });
+    if (chk.ok) { logger.info("Ollama already running — skip auto-launch"); return; }
+  } catch { /* not running */ }
+
+  const libDir = path.join(WORKSPACE, ".ollama-bin", "lib", "ollama");
+  const env: Record<string, string> = {
+    ...(process.env as Record<string, string>),
+    HOME: "/home/runner",
+    OLLAMA_MODELS: "/home/runner/.ollama/models",
+    OLLAMA_ORIGINS: "*",
+  };
+  if (fs.existsSync(libDir)) env["OLLAMA_LIBRARY_PATH"] = libDir;
+
+  spawn(bin, ["serve"], { detached: true, stdio: "ignore", env }).unref();
+  logger.info({ bin }, "Ollama auto-launched on startup");
+  console.log("Ollama auto-started");
+}
 
 const rawPort = process.env["PORT"] ?? "8080";
 
@@ -56,7 +100,120 @@ server.on("upgrade", (req, socket, head) => {
   }
 });
 
+// ── Auto-launch Llamafile on startup ──────────────────────────────────────────
+async function autoLaunchLlamafile(): Promise<void> {
+  const WORKSPACE = process.cwd();
+  // Check HOME_BIN_DIR first (new install path), fall back to workspace-relative
+  const candidates = [
+    path.join(HOME_BIN_DIR, "llamafile"),
+    path.join(WORKSPACE, ".local-engines", "llamafile"),
+  ];
+  const bin = candidates.find(p => fs.existsSync(p)) ?? null;
+  if (!bin) { logger.info("Llamafile binary not found — skip"); return; }
+  try {
+    const chk = await fetch("http://localhost:8081/v1/models", { signal: AbortSignal.timeout(2000) });
+    if (chk.ok) { logger.info("Llamafile already running — skip"); return; }
+  } catch { /* not running */ }
+  try { fs.chmodSync(bin, 0o755); } catch { /* ignore */ }
+  const modelPath = path.join(HOME_BIN_DIR, "phi3.llamafile");
+  const args = fs.existsSync(modelPath)
+    ? ["--model", modelPath, "--port", "8081", "--host", "0.0.0.0", "--nobrowser"]
+    : ["--server", "--port", "8081", "--host", "0.0.0.0"];
+  const llamaProc = spawn(bin, args, {
+    detached: true, stdio: "ignore",
+    env: { ...(process.env as Record<string, string>) },
+  });
+  llamaProc.on("error", (err) => logger.warn({ err }, "Llamafile spawn error"));
+  llamaProc.unref();
+  logger.info({ bin }, "Llamafile auto-launched on startup (port 8081)");
+}
+
+// ── Auto-launch KoboldCPP on startup ─────────────────────────────────────────
+async function autoLaunchKobold(): Promise<void> {
+  const WORKSPACE = process.cwd();
+  const pyScript = path.join(WORKSPACE, ".local-engines", "koboldcpp", "koboldcpp.py");
+  if (!fs.existsSync(pyScript)) { logger.info("KoboldCPP not found — skip"); return; }
+  try {
+    const chk = await fetch("http://localhost:5001/api/v1/model", { signal: AbortSignal.timeout(2000) });
+    if (chk.ok) { logger.info("KoboldCPP already running — skip"); return; }
+  } catch { /* not running */ }
+  const koboldProc = spawn("python3", [pyScript, "--port", "5001", "--host", "0.0.0.0", "--skiplauncher"], {
+    detached: true, stdio: "ignore",
+    cwd: path.dirname(pyScript),
+    env: { ...(process.env as Record<string, string>) },
+  });
+  koboldProc.on("error", (err) => logger.warn({ err }, "KoboldCPP spawn error — python3 may be unavailable"));
+  koboldProc.unref();
+  logger.info({ pyScript }, "KoboldCPP auto-launched on startup");
+}
+
+const HOME_BIN_DIR = "/home/runner/.local-engines";
+
+// ── Auto-launch llama.cpp server on startup ───────────────────────────────────
+async function autoLaunchLlamaCpp(): Promise<void> {
+  const bin = path.join(HOME_BIN_DIR, "llama-server");
+  if (!fs.existsSync(bin)) { logger.info("llama-server not found — skip"); return; }
+  try {
+    const chk = await fetch("http://localhost:8082/v1/models", { signal: AbortSignal.timeout(2000) });
+    if (chk.ok) { logger.info("llama.cpp already running — skip"); return; }
+  } catch { /* not running */ }
+  try { fs.chmodSync(bin, 0o755); } catch { /* ignore */ }
+  const proc = spawn(bin, ["--port", "8082", "--host", "0.0.0.0"], {
+    detached: true, stdio: "ignore",
+    env: { ...(process.env as Record<string, string>) },
+  });
+  proc.on("error", (err) => logger.warn({ err }, "llama.cpp spawn error"));
+  proc.unref();
+  logger.info({ bin }, "llama.cpp auto-launched on startup (port 8082)");
+}
+
+// ── Auto-launch Nitro on startup ──────────────────────────────────────────────
+async function autoLaunchNitro(): Promise<void> {
+  const bin = path.join(HOME_BIN_DIR, "nitro");
+  if (!fs.existsSync(bin)) { logger.info("Nitro not found — skip"); return; }
+  try {
+    const chk = await fetch("http://localhost:3928/v1/models", { signal: AbortSignal.timeout(2000) });
+    if (chk.ok) { logger.info("Nitro already running — skip"); return; }
+  } catch { /* not running */ }
+  try { fs.chmodSync(bin, 0o755); } catch { /* ignore */ }
+  const proc = spawn(bin, [], {
+    detached: true, stdio: "ignore",
+    env: { ...(process.env as Record<string, string>), PORT: "3928", HOST: "0.0.0.0" },
+  });
+  proc.on("error", (err) => logger.warn({ err }, "Nitro spawn error"));
+  proc.unref();
+  logger.info({ bin }, "Nitro auto-launched on startup (port 3928)");
+}
+
+// ── Auto-launch LocalAI on startup ────────────────────────────────────────────
+async function autoLaunchLocalAI(): Promise<void> {
+  const bin = path.join(HOME_BIN_DIR, "local-ai");
+  if (!fs.existsSync(bin)) { logger.info("LocalAI not found — skip"); return; }
+  try {
+    const chk = await fetch("http://localhost:8083/v1/models", { signal: AbortSignal.timeout(2000) });
+    if (chk.ok) { logger.info("LocalAI already running — skip"); return; }
+  } catch { /* not running */ }
+  try { fs.chmodSync(bin, 0o755); } catch { /* ignore */ }
+  const proc = spawn(bin, ["--address", "0.0.0.0:8083"], {
+    detached: true, stdio: "ignore",
+    env: { ...(process.env as Record<string, string>) },
+  });
+  proc.on("error", (err) => logger.warn({ err }, "LocalAI spawn error"));
+  proc.unref();
+  logger.info({ bin }, "LocalAI auto-launched on startup (port 8083)");
+}
+
 server.listen(port, (err?: Error) => {
   if (err) { logger.error({ err }, "Error listening on port"); process.exit(1); }
   logger.info({ port }, "Server listening");
+  // Auto-launch Ollama immediately
+  autoLaunchOllama().catch(e => logger.warn({ err: e }, "autoLaunchOllama error"));
+  // Auto-launch all other engines after 5s (give Ollama priority)
+  setTimeout(() => {
+    autoLaunchLlamafile().catch(e => logger.warn({ err: e }, "autoLaunchLlamafile error"));
+    autoLaunchKobold().catch(e => logger.warn({ err: e }, "autoLaunchKobold error"));
+    autoLaunchLlamaCpp().catch(e => logger.warn({ err: e }, "autoLaunchLlamaCpp error"));
+    autoLaunchNitro().catch(e => logger.warn({ err: e }, "autoLaunchNitro error"));
+    autoLaunchLocalAI().catch(e => logger.warn({ err: e }, "autoLaunchLocalAI error"));
+  }, 5000);
 });

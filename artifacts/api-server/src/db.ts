@@ -4,7 +4,11 @@ import { logger } from "./lib/logger";
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-  max: 10,
+  max: 20,                      // up from 10 — handles concurrent requests
+  min: 2,                       // keep 2 warm connections ready
+  idleTimeoutMillis: 30_000,    // release idle connections after 30s
+  connectionTimeoutMillis: 5_000, // fail fast if can't get a connection
+  maxUses: 7500,                // recycle connections to avoid memory buildup
 });
 
 /**
@@ -143,6 +147,8 @@ export async function ensureAuthTables() {
     `).catch((err) => logger.warn({ err }, "security_events table may already exist"));
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_sec_events_user_id ON security_events (user_id)`).catch(() => {});
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_sec_events_type ON security_events (event_type)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_sec_events_created ON security_events (created_at DESC)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_users_referral_code ON users (referral_code)`).catch(() => {});
 
     // User sessions
     await pool.query(`
@@ -374,6 +380,27 @@ export async function ensureAuthTables() {
     `).catch((err) => logger.warn({ err }, "webhooks table may already exist"));
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_webhooks_user_id ON webhooks (user_id)`).catch(() => {});
 
+    // Invoices (generated on successful Stripe payments)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS invoices (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        stripe_invoice_id VARCHAR,
+        stripe_session_id VARCHAR,
+        plan_id VARCHAR,
+        amount NUMERIC(10,2) NOT NULL DEFAULT 0,
+        currency VARCHAR NOT NULL DEFAULT 'usd',
+        status VARCHAR NOT NULL DEFAULT 'paid',
+        description TEXT,
+        period_start TIMESTAMP WITH TIME ZONE,
+        period_end TIMESTAMP WITH TIME ZONE,
+        pdf_url TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `).catch((err) => logger.warn({ err }, "invoices table may already exist"));
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_invoices_user_id ON invoices (user_id)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_invoices_created_at ON invoices (created_at)`).catch(() => {});
+
     logger.info("Database tables ensured.");
   } catch (err) {
     // Don't crash the server if the database isn't ready yet —
@@ -521,4 +548,22 @@ export async function getUserSessions(userId: string) {
     [userId],
   );
   return rows;
+}
+
+export async function ensureReferralTables() {
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code VARCHAR UNIQUE`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by VARCHAR REFERENCES users(id) ON DELETE SET NULL`).catch(() => {});
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS referrals (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      referrer_user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      referred_user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      status VARCHAR NOT NULL DEFAULT 'rewarded',
+      reward_tokens INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      rewarded_at TIMESTAMP WITH TIME ZONE
+    )
+  `).catch((err) => logger.warn({ err }, "referrals table may already exist"));
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals (referrer_user_id)`).catch(() => {});
+  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_referrals_referred ON referrals (referred_user_id)`).catch(() => {});
 }

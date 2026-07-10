@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 
-export type ProviderName = "openai" | "anthropic" | "groq" | "gemini" | "openrouter" | "custom" | "personal" | "zhipu" | "glm";
+export type ProviderName = "openai" | "anthropic" | "groq" | "gemini" | "openrouter" | "custom" | "personal" | "zhipu" | "glm" | "cloudflare";
 
 export type ProviderInfo = {
   id: ProviderName;
@@ -122,7 +122,24 @@ const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
     models: ["glm-5.2", "glm-5.1", "glm-5", "glm-4-plus", "glm-4", "glm-4-flash", "glm-zero-preview"],
     requiresKey: true,
   },
+  cloudflare: {
+    name: "Cloudflare Workers AI",
+    envKey: "CLOUDFLARE_API_TOKEN",
+    baseURL: "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1",
+    models: [
+      "@cf/meta/llama-3.1-8b-instruct",
+      "@cf/meta/llama-3.2-3b-instruct",
+      "@cf/mistral/mistral-7b-instruct-v0.1",
+      "@cf/google/gemma-7b-it",
+    ],
+    requiresKey: true,
+  },
 };
+
+function getCloudflareBaseURL(): string {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim() || "";
+  return `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1`;
+}
 
 function getPersonalBase(): string {
   return process.env.PERSONAL_API_BASE_URL?.trim() || "";
@@ -142,7 +159,8 @@ export function hasAnyApiKey(): boolean {
     process.env.CUSTOM_API_KEY?.trim() ||
     process.env.OPENAI_API_KEY?.trim() ||
     process.env.ZHIPU_API_KEY?.trim() ||
-    process.env.ZAI_API_KEY?.trim()
+    process.env.ZAI_API_KEY?.trim() ||
+    process.env.CLOUDFLARE_API_TOKEN?.trim()
   );
 }
 
@@ -158,10 +176,12 @@ export function listProviders(): ProviderInfo[] {
         available = !!(process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY);
       } else if (id === "anthropic") {
         available = !!(process.env.ANTHROPIC_API_KEY || process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY);
+      } else if (id === "cloudflare") {
+        available = !!(process.env.CLOUDFLARE_API_TOKEN?.trim() && process.env.CLOUDFLARE_ACCOUNT_ID?.trim());
       } else {
         available = !!process.env[cfg.envKey];
       }
-      const baseURL = id === "personal" ? getPersonalBase() : cfg.baseURL;
+      const baseURL = id === "personal" ? getPersonalBase() : id === "cloudflare" ? getCloudflareBaseURL() : cfg.baseURL;
       return { id, name: cfg.name, available, models: cfg.models, baseURL };
     }
   );
@@ -345,6 +365,67 @@ export async function* streamCompletion(
       }
     }
 
+    // ── Path 2.5: Cloudflare Workers AI (server-side key, raw fetch — different endpoint shape) ──
+    if (provider === "cloudflare") {
+      const apiToken = process.env.CLOUDFLARE_API_TOKEN?.trim();
+      const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim();
+      if (!apiToken || !accountId) {
+        yield {
+          error: "لم يتم ضبط CLOUDFLARE_API_TOKEN أو CLOUDFLARE_ACCOUNT_ID. أضفهما في Secrets.",
+        };
+        return;
+      }
+      const resolvedModel = model || "@cf/meta/llama-3.1-8b-instruct";
+      const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${resolvedModel}`;
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ messages, temperature, stream: true }),
+          signal: controller.signal,
+        });
+
+        if (!res.ok || !res.body) {
+          const text = await res.text().catch(() => "");
+          yield { error: `Cloudflare Workers AI error (${res.status}): ${text || res.statusText}` };
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const payload = trimmed.slice(5).trim();
+            if (payload === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(payload);
+              const content = parsed?.response ?? parsed?.result?.response ?? "";
+              if (content) yield { content };
+            } catch {
+              // ignore malformed SSE chunk
+            }
+          }
+        }
+        yield { done: true };
+        return;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Cloudflare Workers AI error";
+        yield { error: msg };
+        return;
+      }
+    }
+
     // ── Path 3: OpenAI-compatible provider (server-side key) ──
     const resolvedProvider: ProviderName =
       (provider === "personal" || !PROVIDER_CONFIGS[provider])
@@ -381,14 +462,88 @@ export async function* streamCompletion(
     yield { done: true };
   } catch (e) {
     const isAbort = e instanceof Error && (e.name === "AbortError" || e.message.includes("abort"));
-    const msg = isAbort
-      ? "انتهت مهلة الطلب — تحقق من مفتاح API وإعدادات المزود"
-      : e instanceof Error ? e.message : "AI provider error";
-    yield { error: msg };
+    if (isAbort) {
+      yield { error: "انتهت مهلة الطلب — تحقق من مفتاح API وإعدادات المزود" };
+    } else if (e instanceof Error) {
+      const msg = e.message;
+      if (msg.includes("400") && (msg.includes("no body") || msg.includes("empty"))) {
+        yield {
+          error:
+            "خطأ 400: رفض المزود الطلب — تحقق من صحة اسم النموذج وعنوان API Base URL. قد يكون النموذج غير متاح لدى هذا المزود.",
+        };
+      } else if (msg.includes("401") || msg.toLowerCase().includes("unauthorized") || msg.toLowerCase().includes("api key")) {
+        yield { error: "مفتاح API غير صالح أو منتهي الصلاحية — أدخل مفتاحاً جديداً في إعدادات المزود." };
+      } else if (msg.includes("429")) {
+        yield { error: "تجاوزت حد الطلبات — انتظر قليلاً ثم أعد المحاولة." };
+      } else {
+        yield { error: msg };
+      }
+    } else {
+      yield { error: "AI provider error" };
+    }
   } finally {
     clearTimeout(timeout);
   }
 }
+const FALLBACK_ORDER: ProviderName[] = [
+  "personal", "cloudflare", "openrouter", "groq", "openai", "anthropic", "gemini", "zhipu", "glm",
+];
+
+export async function* streamWithFallback(
+  primaryProvider: ProviderName,
+  model: string,
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+  temperature = 0.7,
+  opts?: { apiKey?: string; apiBaseURL?: string },
+): AsyncGenerator<StreamChunk> {
+  // If the client supplied its own key, that is an explicit choice — never override it.
+  if (opts?.apiKey && opts.apiKey.trim().length > 10) {
+    yield* streamCompletion(primaryProvider, model, messages, temperature, opts);
+    return;
+  }
+
+  const available = new Set(listProviders().filter((p) => p.available).map((p) => p.id));
+  const chain: ProviderName[] = [primaryProvider, ...FALLBACK_ORDER].filter(
+    (p, i, arr) => arr.indexOf(p) === i && (p === primaryProvider || available.has(p)),
+  );
+
+  let lastError = "";
+  for (const candidate of chain) {
+    const candidateModel = candidate === primaryProvider ? model : (PROVIDER_CONFIGS[candidate]?.models[0] || PERSONAL_DEFAULT_MODEL);
+    let gotContent = false;
+    let sawError = false;
+    try {
+      for await (const chunk of streamCompletion(candidate, candidateModel, messages, temperature)) {
+        if (chunk.error) {
+          sawError = true;
+          lastError = chunk.error;
+          break;
+        }
+        if (chunk.content) {
+          gotContent = true;
+          yield chunk;
+        }
+        if (chunk.done) {
+          yield chunk;
+          return;
+        }
+      }
+    } catch (e) {
+      sawError = true;
+      lastError = e instanceof Error ? e.message : "provider error";
+    }
+    if (gotContent) return;
+    if (!sawError) return;
+    // Nothing was streamed and this candidate errored — try the next provider automatically.
+  }
+
+  yield {
+    error: lastError
+      ? `فشلت جميع محاولات محرك الذكاء الاصطناعي (آخر خطأ: ${lastError}). أضف مفتاح API واحد على الأقل في الإعدادات.`
+      : "لا يوجد مزود ذكاء اصطناعي مُفعّل. أضف مفتاح API واحد على الأقل من الإعدادات (Cloudflare Workers AI مجاني).",
+  };
+}
+
 export const aiProviders = {
   async streamOpenAI(
     opts: {

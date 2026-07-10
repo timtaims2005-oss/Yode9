@@ -119,12 +119,12 @@ export function startBackupScheduler(): void {
     logger.info({ schedule: BACKUP_SCHEDULE, intervalMs: interval }, "[backup] Backup scheduler started");
 
     // Run immediately on startup, then on schedule
-    setTimeout(async () => {
-      await runBackup();
+    setTimeout(() => {
+      runBackup().catch((err) => logger.error({ err }, "[backup] Startup backup failed"));
     }, 30_000); // 30s delay after startup
 
-    setInterval(async () => {
-      await runBackup();
+    setInterval(() => {
+      runBackup().catch((err) => logger.error({ err }, "[backup] Scheduled backup failed"));
     }, interval);
   });
 }

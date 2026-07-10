@@ -176,6 +176,240 @@ TIERS.diamond = STYLES.flatMap((s) =>
   { styleId: "first-principles", personaId: "claude-opus" },
 ]); // 50 + 5 = 55
 
+// ── Mode → Champion combos map ────────────────────────────────────────────────
+// Each new mode defines a curated set of (style, persona) pairings.
+const MODE_COMBOS: Record<string, Array<{ styleId: string; personaId: string }>> = {
+  // 8 champions — supreme multi-strategy synthesis
+  omega: [
+    { styleId: "direct-expert",            personaId: "gpt-5" },
+    { styleId: "socratic-stepwise",        personaId: "claude-opus" },
+    { styleId: "adversarial-critic",       personaId: "deepseek-r1" },
+    { styleId: "examples-first",           personaId: "o3" },
+    { styleId: "long-form-deep",           personaId: "gemini-ultra" },
+    { styleId: "contrarian",               personaId: "grok" },
+    { styleId: "first-principles",         personaId: "mistral-large" },
+    { styleId: "research-rigorous",        personaId: "command-r-plus" },
+  ],
+  // 6 champions — layered neural-cascade depth
+  neural: [
+    { styleId: "first-principles",         personaId: "o3" },
+    { styleId: "socratic-stepwise",        personaId: "claude-opus" },
+    { styleId: "research-rigorous",        personaId: "deepseek-r1" },
+    { styleId: "long-form-deep",           personaId: "gemini-ultra" },
+    { styleId: "implementation-pragmatist",personaId: "gpt-5" },
+    { styleId: "adversarial-critic",       personaId: "qwen-2" },
+  ],
+  // 7 champions — quantum superposition of answers
+  quantum: [
+    { styleId: "contrarian",               personaId: "grok" },
+    { styleId: "direct-expert",            personaId: "gpt-5" },
+    { styleId: "first-principles",         personaId: "o3" },
+    { styleId: "adversarial-critic",       personaId: "claude-opus" },
+    { styleId: "research-rigorous",        personaId: "deepseek-r1" },
+    { styleId: "minimalist",               personaId: "mistral-large" },
+    { styleId: "examples-first",           personaId: "gemini-ultra" },
+  ],
+  // 10 champions — swarm intelligence (reuse bronze tier)
+  swarm: [
+    { styleId: "direct-expert",            personaId: "gpt-5" },
+    { styleId: "socratic-stepwise",        personaId: "claude-opus" },
+    { styleId: "adversarial-critic",       personaId: "o3" },
+    { styleId: "examples-first",           personaId: "llama-3-70b" },
+    { styleId: "long-form-deep",           personaId: "gemini-ultra" },
+    { styleId: "minimalist",               personaId: "grok" },
+    { styleId: "contrarian",               personaId: "deepseek-r1" },
+    { styleId: "first-principles",         personaId: "mistral-large" },
+    { styleId: "implementation-pragmatist",personaId: "qwen-2" },
+    { styleId: "research-rigorous",        personaId: "command-r-plus" },
+  ],
+  // 7 champions — structural matrix analysis
+  matrix: [
+    { styleId: "research-rigorous",        personaId: "claude-opus" },
+    { styleId: "adversarial-critic",       personaId: "deepseek-r1" },
+    { styleId: "long-form-deep",           personaId: "gemini-ultra" },
+    { styleId: "first-principles",         personaId: "o3" },
+    { styleId: "implementation-pragmatist",personaId: "gpt-5" },
+    { styleId: "socratic-stepwise",        personaId: "qwen-2" },
+    { styleId: "examples-first",           personaId: "command-r-plus" },
+  ],
+  // 4 champions — first-principles creative generation
+  genesis: [
+    { styleId: "first-principles",         personaId: "claude-opus" },
+    { styleId: "contrarian",               personaId: "grok" },
+    { styleId: "examples-first",           personaId: "gpt-5" },
+    { styleId: "long-form-deep",           personaId: "deepseek-r1" },
+  ],
+  // 6 champions — adversarial dark pattern analysis
+  shadow: [
+    { styleId: "adversarial-critic",       personaId: "grok" },
+    { styleId: "contrarian",               personaId: "deepseek-r1" },
+    { styleId: "adversarial-critic",       personaId: "claude-opus" },
+    { styleId: "contrarian",               personaId: "o3" },
+    { styleId: "adversarial-critic",       personaId: "mistral-large" },
+    { styleId: "contrarian",               personaId: "gpt-5" },
+  ],
+  // 3 ultra-deep champions
+  titan: [
+    { styleId: "long-form-deep",           personaId: "claude-opus" },
+    { styleId: "research-rigorous",        personaId: "gemini-ultra" },
+    { styleId: "socratic-stepwise",        personaId: "deepseek-r1" },
+  ],
+  // 5 champions — predictive causal reasoning
+  oracle: [
+    { styleId: "research-rigorous",        personaId: "gemini-ultra" },
+    { styleId: "first-principles",         personaId: "o3" },
+    { styleId: "long-form-deep",           personaId: "claude-opus" },
+    { styleId: "adversarial-critic",       personaId: "deepseek-r1" },
+    { styleId: "examples-first",           personaId: "gpt-5" },
+  ],
+  // 5 champions — zero-bias unconstrained
+  phantom: [
+    { styleId: "contrarian",               personaId: "grok" },
+    { styleId: "first-principles",         personaId: "deepseek-r1" },
+    { styleId: "adversarial-critic",       personaId: "o3" },
+    { styleId: "minimalist",               personaId: "gpt-5" },
+    { styleId: "direct-expert",            personaId: "mistral-large" },
+  ],
+  // 12 champions — maximum everything
+  maxoverdrive: [
+    { styleId: "direct-expert",            personaId: "gpt-5" },
+    { styleId: "direct-expert",            personaId: "claude-opus" },
+    { styleId: "socratic-stepwise",        personaId: "o3" },
+    { styleId: "socratic-stepwise",        personaId: "deepseek-r1" },
+    { styleId: "adversarial-critic",       personaId: "claude-opus" },
+    { styleId: "adversarial-critic",       personaId: "grok" },
+    { styleId: "examples-first",           personaId: "gemini-ultra" },
+    { styleId: "long-form-deep",           personaId: "mistral-large" },
+    { styleId: "contrarian",               personaId: "llama-3-70b" },
+    { styleId: "first-principles",         personaId: "qwen-2" },
+    { styleId: "research-rigorous",        personaId: "command-r-plus" },
+    { styleId: "implementation-pragmatist",personaId: "gpt-5" },
+  ],
+  // 6 champions — cross-domain connection discovery
+  nexus: [
+    { styleId: "examples-first",           personaId: "gpt-5" },
+    { styleId: "long-form-deep",           personaId: "gemini-ultra" },
+    { styleId: "research-rigorous",        personaId: "command-r-plus" },
+    { styleId: "socratic-stepwise",        personaId: "qwen-2" },
+    { styleId: "first-principles",         personaId: "claude-opus" },
+    { styleId: "implementation-pragmatist",personaId: "mistral-large" },
+  ],
+  // 7 champions — spiral convergence
+  vortex: [
+    { styleId: "direct-expert",            personaId: "gpt-5" },
+    { styleId: "socratic-stepwise",        personaId: "o3" },
+    { styleId: "adversarial-critic",       personaId: "claude-opus" },
+    { styleId: "examples-first",           personaId: "deepseek-r1" },
+    { styleId: "long-form-deep",           personaId: "gemini-ultra" },
+    { styleId: "contrarian",               personaId: "grok" },
+    { styleId: "minimalist",               personaId: "gpt-5" },
+  ],
+  // 4 elite peak-performance champions
+  apex: [
+    { styleId: "direct-expert",            personaId: "gpt-5" },
+    { styleId: "research-rigorous",        personaId: "claude-opus" },
+    { styleId: "first-principles",         personaId: "o3" },
+    { styleId: "adversarial-critic",       personaId: "deepseek-r1" },
+  ],
+  // 5 champions — light/shadow duality
+  eclipse: [
+    { styleId: "contrarian",               personaId: "claude-opus" },
+    { styleId: "direct-expert",            personaId: "grok" },
+    { styleId: "adversarial-critic",       personaId: "gpt-5" },
+    { styleId: "long-form-deep",           personaId: "deepseek-r1" },
+    { styleId: "minimalist",               personaId: "o3" },
+  ],
+  // 6 champions — pattern decoding
+  cipher: [
+    { styleId: "research-rigorous",        personaId: "deepseek-r1" },
+    { styleId: "first-principles",         personaId: "o3" },
+    { styleId: "socratic-stepwise",        personaId: "claude-opus" },
+    { styleId: "implementation-pragmatist",personaId: "gpt-5" },
+    { styleId: "examples-first",           personaId: "qwen-2" },
+    { styleId: "adversarial-critic",       personaId: "mistral-large" },
+  ],
+  // 8 champions — high-velocity parallel burst
+  surge: [
+    { styleId: "direct-expert",            personaId: "gpt-5" },
+    { styleId: "minimalist",               personaId: "grok" },
+    { styleId: "direct-expert",            personaId: "claude-opus" },
+    { styleId: "minimalist",               personaId: "deepseek-r1" },
+    { styleId: "direct-expert",            personaId: "o3" },
+    { styleId: "minimalist",               personaId: "mistral-large" },
+    { styleId: "direct-expert",            personaId: "llama-3-70b" },
+    { styleId: "minimalist",               personaId: "qwen-2" },
+  ],
+  // 6 champions — creative explosion
+  nova: [
+    { styleId: "contrarian",               personaId: "grok" },
+    { styleId: "first-principles",         personaId: "claude-opus" },
+    { styleId: "examples-first",           personaId: "gpt-5" },
+    { styleId: "long-form-deep",           personaId: "gemini-ultra" },
+    { styleId: "contrarian",               personaId: "deepseek-r1" },
+    { styleId: "first-principles",         personaId: "mistral-large" },
+  ],
+  // 7 champions — multi-angle refraction
+  prism: [
+    { styleId: "direct-expert",            personaId: "gpt-5" },
+    { styleId: "adversarial-critic",       personaId: "claude-opus" },
+    { styleId: "minimalist",               personaId: "grok" },
+    { styleId: "long-form-deep",           personaId: "gemini-ultra" },
+    { styleId: "examples-first",           personaId: "llama-3-70b" },
+    { styleId: "research-rigorous",        personaId: "deepseek-r1" },
+    { styleId: "contrarian",               personaId: "o3" },
+  ],
+  // 5 champions — intelligence gathering
+  recon: [
+    { styleId: "research-rigorous",        personaId: "command-r-plus" },
+    { styleId: "adversarial-critic",       personaId: "deepseek-r1" },
+    { styleId: "long-form-deep",           personaId: "gemini-ultra" },
+    { styleId: "implementation-pragmatist",personaId: "gpt-5" },
+    { styleId: "examples-first",           personaId: "claude-opus" },
+  ],
+  // 6 champions — grand synthesis
+  synthesis: [
+    { styleId: "long-form-deep",           personaId: "claude-opus" },
+    { styleId: "research-rigorous",        personaId: "gemini-ultra" },
+    { styleId: "implementation-pragmatist",personaId: "gpt-5" },
+    { styleId: "examples-first",           personaId: "deepseek-r1" },
+    { styleId: "socratic-stepwise",        personaId: "o3" },
+    { styleId: "direct-expert",            personaId: "qwen-2" },
+  ],
+  // 5 champions — peak reasoning
+  zenith: [
+    { styleId: "direct-expert",            personaId: "gpt-5" },
+    { styleId: "adversarial-critic",       personaId: "o3" },
+    { styleId: "research-rigorous",        personaId: "claude-opus" },
+    { styleId: "first-principles",         personaId: "deepseek-r1" },
+    { styleId: "long-form-deep",           personaId: "gemini-ultra" },
+  ],
+  // 4 champions — engineering construction
+  forge: [
+    { styleId: "implementation-pragmatist",personaId: "gpt-5" },
+    { styleId: "examples-first",           personaId: "claude-opus" },
+    { styleId: "socratic-stepwise",        personaId: "deepseek-r1" },
+    { styleId: "direct-expert",            personaId: "o3" },
+  ],
+  // 8 champions — rapid-pulse micro-analyses
+  pulse: [
+    { styleId: "minimalist",               personaId: "gpt-5" },
+    { styleId: "direct-expert",            personaId: "claude-opus" },
+    { styleId: "minimalist",               personaId: "o3" },
+    { styleId: "direct-expert",            personaId: "deepseek-r1" },
+    { styleId: "minimalist",               personaId: "grok" },
+    { styleId: "direct-expert",            personaId: "gemini-ultra" },
+    { styleId: "minimalist",               personaId: "llama-3-70b" },
+    { styleId: "direct-expert",            personaId: "mistral-large" },
+  ],
+  // 4 champions — zero-assumption reasoning
+  void: [
+    { styleId: "first-principles",         personaId: "deepseek-r1" },
+    { styleId: "adversarial-critic",       personaId: "grok" },
+    { styleId: "contrarian",               personaId: "claude-opus" },
+    { styleId: "minimalist",               personaId: "o3" },
+  ],
+};
+
 function styleById(id: string): Style | undefined {
   return STYLES.find((s) => s.id === id);
 }
@@ -224,7 +458,7 @@ router.post("/godmode", async (req, res) => {
     const body = req.body as {
       messages?: ChatMessage[];
       language?: string;
-      mode?: "classic" | "ultraplinian";
+      mode?: string;
       tier?: "bronze" | "silver" | "gold" | "platinum" | "diamond";
       apiKey?: string;
       apiBaseURL?: string;
@@ -244,6 +478,8 @@ router.post("/godmode", async (req, res) => {
     let combos: Array<{ styleId: string; personaId: string }>;
     if (mode === "ultraplinian") {
       combos = TIERS[body.tier ?? "bronze"] ?? TIERS.bronze;
+    } else if (MODE_COMBOS[mode]) {
+      combos = MODE_COMBOS[mode];
     } else {
       combos = CLASSIC_CHAMPIONS;
     }

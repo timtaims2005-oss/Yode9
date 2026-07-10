@@ -1,0 +1,117 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: mr7-ai
+    environment: production
+    region: global
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+rule_files:
+  - "/etc/prometheus/alerts/*.yml"
+
+scrape_configs:
+  # ── Prometheus Self ────────────────────────────────────
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # ── MR7 API Server ────────────────────────────────────
+  - job_name: mr7-api
+    metrics_path: /metrics
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["api-server:8080"]
+        labels:
+          service: api-server
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # ── MR7 Frontend ──────────────────────────────────────
+  - job_name: mr7-frontend
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["frontend:3000"]
+        labels:
+          service: frontend
+
+  # ── vLLM Inference ────────────────────────────────────
+  - job_name: vllm
+    metrics_path: /metrics
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["vllm-server:8001"]
+        labels:
+          service: vllm
+          type: inference-engine
+
+  # ── TGI Inference ─────────────────────────────────────
+  - job_name: tgi
+    metrics_path: /metrics
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["tgi-server:8002"]
+        labels:
+          service: tgi
+          type: inference-engine
+
+  # ── Ollama ────────────────────────────────────────────
+  - job_name: ollama
+    metrics_path: /api/metrics
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["ollama:11434"]
+        labels:
+          service: ollama
+          type: local-llm
+
+  # ── PostgreSQL ────────────────────────────────────────
+  - job_name: postgresql
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+        labels:
+          service: postgresql
+
+  # ── Redis Cache ────────────────────────────────────────
+  - job_name: redis
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+        labels:
+          service: redis
+
+  # ── Node Exporter ─────────────────────────────────────
+  - job_name: node
+    static_configs:
+      - targets: ["node-exporter:9100"]
+        labels:
+          service: host-metrics
+
+  # ── Container Advisor ─────────────────────────────────
+  - job_name: cadvisor
+    static_configs:
+      - targets: ["cadvisor:8080"]
+        labels:
+          service: docker-metrics
+
+  # ── Nginx ─────────────────────────────────────────────
+  - job_name: nginx
+    static_configs:
+      - targets: ["nginx-exporter:9113"]
+        labels:
+          service: nginx
+
+  # ── PentestLab Backend ────────────────────────────────
+  - job_name: pentest-lab
+    metrics_path: /api/metrics
+    static_configs:
+      - targets: ["pentest-lab:8000"]
+        labels:
+          service: pentest-lab

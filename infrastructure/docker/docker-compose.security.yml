@@ -1,0 +1,114 @@
+version: "3.9"
+
+# ══════════════════════════════════════════════════════════
+#  MR7.AI — Security Stack
+#  Suricata IDS + Fail2ban + Vault + Wazuh
+# ══════════════════════════════════════════════════════════
+
+x-logging: &default-logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "50m"
+      max-file: "5"
+
+networks:
+  security:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.0.0/16
+
+volumes:
+  suricata-logs:
+  vault-data:
+  wazuh-data:
+  fail2ban-data:
+
+services:
+  # ── Suricata IDS/IPS ───────────────────────────────────
+  suricata:
+    image: jasonish/suricata:latest
+    container_name: mr7-suricata
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    network_mode: host
+    volumes:
+      - ./security/suricata-ai.yaml:/etc/suricata/suricata.yaml:ro
+      - ./security/ai-prompt-injection.rules:/var/lib/suricata/rules/ai-prompt-injection.rules:ro
+      - suricata-logs:/var/log/suricata
+    command: -c /etc/suricata/suricata.yaml --pidfile /run/suricata.pid -i eth0 --init-errors-fatal
+    <<: *default-logging
+    restart: unless-stopped
+
+  # ── HashiCorp Vault ────────────────────────────────────
+  vault:
+    image: vault:1.15
+    container_name: mr7-vault
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_ROOT_TOKEN:-mr7-dev-token}
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+      - VAULT_ADDR=http://0.0.0.0:8200
+    volumes:
+      - vault-data:/vault/data
+    ports:
+      - "8200:8200"
+    <<: *default-logging
+    networks:
+      - security
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # ── NGINX WAF (ModSecurity) ────────────────────────────
+  nginx-waf:
+    image: owasp/modsecurity-crs:nginx
+    container_name: mr7-waf
+    environment:
+      - PARANOIA=2
+      - ANOMALY_INBOUND=10
+      - ANOMALY_OUTBOUND=5
+      - BACKEND=http://mr7-api:8080
+    ports:
+      - "8443:443"
+      - "8080:80"
+    volumes:
+      - ./security/modsecurity.conf:/etc/modsecurity.d/modsecurity.conf:ro
+    <<: *default-logging
+    networks:
+      - security
+    restart: unless-stopped
+
+  # ── Rate Limiter / DDoS Protection ────────────────────
+  nginx-ratelimit:
+    image: nginx:alpine
+    container_name: mr7-ratelimit
+    volumes:
+      - ./security/nginx-ratelimit.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "7080:80"
+    <<: *default-logging
+    networks:
+      - security
+    restart: unless-stopped
+
+  # ── Security Event Aggregator ──────────────────────────
+  logstash-security:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: mr7-logstash
+    environment:
+      - LS_JAVA_OPTS=-Xmx512m -Xms512m
+    volumes:
+      - suricata-logs:/input/suricata:ro
+      - ./security/logstash-security.conf:/usr/share/logstash/pipeline/main.conf:ro
+    <<: *default-logging
+    networks:
+      - security
+    restart: unless-stopped

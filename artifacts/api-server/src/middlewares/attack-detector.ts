@@ -204,14 +204,14 @@ export function attackDetector(req: Request, res: Response, next: NextFunction):
     hits.push(...scanObject(req.body));
   }
 
-  // Scan headers (only select dangerous ones)
-  const dangerousHeaders = ["x-forwarded-host", "x-original-url", "x-rewrite-url", "referer"];
-  for (const h of dangerousHeaders) {
-    const val = req.headers[h];
-    if (typeof val === "string") {
-      scanValue(val).forEach((hit) => hits.push({ ...hit, field: `header.${h}` }));
-    }
-  }
+  // NOTE: We deliberately do NOT scan Referer/X-Forwarded-Host/X-Original-Url/
+  // X-Rewrite-Url headers for attack patterns. These headers are set by the
+  // browser/reverse proxy (not attacker-supplied request content), and in a
+  // proxied dev/hosting environment (e.g. Replit) they routinely contain
+  // values like "http://localhost:5000/app" which false-positive against the
+  // SSRF regex below, blocking 100% of legitimate traffic. Real SSRF
+  // protection belongs on outbound requests the server itself makes, not on
+  // inbound header content that the client controls anyway.
 
   if (hits.length === 0) {
     next();

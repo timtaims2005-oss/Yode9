@@ -51,7 +51,7 @@ export class EventBus {
       const buf = this.replayBuffers.get(topic);
       if (buf) {
         for (const ev of buf.events) {
-          if (!sub.filter || sub.filter(ev)) {
+          if (!sub.filter || sub.filter(ev as T)) {
             Promise.resolve(handler(ev as T)).catch(err => this.errorHandler?.(err, topic));
           }
         }
