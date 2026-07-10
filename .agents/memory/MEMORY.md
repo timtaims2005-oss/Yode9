@@ -1,1 +1,1 @@
-- [OpenAPI expansion](openapi-expansion.md) — Yode9 repo openapi.yaml grown from 34→297 paths; push blocked by NO_CREDENTIALS; commits live in /tmp/yode9.
+- [Yode9 repo state](yode9-repo-state.md) — 4 divergent unrelated-history branches; merged file-level into main; GitHub push needs account connection (NO_CREDENTIALS persists across sessions).
