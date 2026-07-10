@@ -6,4 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./genericErrorResponse";
+export * from "./genericObject";
+export * from "./genericSuccessResponse";
 export * from "./healthStatus";

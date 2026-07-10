@@ -14,3 +14,7038 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary GET /api/ab/variant
+ */
+export const GetAbTestsAbVariantResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ab/event
+ */
+export const PostAbTestsAbEventBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAbTestsAbEventResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ab/results
+ */
+export const GetAbTestsAbResultsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ab/tests
+ */
+export const PostAbTestsAbTestsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAbTestsAbTestsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/admin/verify
+ */
+export const PostAdminAdminVerifyBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAdminAdminVerifyResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/admin/gen-code
+ */
+export const PostAdminAdminGenCodeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAdminAdminGenCodeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/admin/stats
+ */
+export const GetAdminAdminStatsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/admin/users
+ */
+export const GetAdminAdminUsersResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/admin/activate-user
+ */
+export const PostAdminAdminActivateUserBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAdminAdminActivateUserResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/admin/generate-code
+ */
+export const PostAdminAdminGenerateCodeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAdminAdminGenerateCodeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/admin/verify-code
+ */
+export const PostAdminAdminVerifyCodeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAdminAdminVerifyCodeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/admin/users/{id}/action
+ */
+export const PostAdminAdminUsersByIdActionParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostAdminAdminUsersByIdActionBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAdminAdminUsersByIdActionResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/admin/errors
+ */
+export const GetAdminAdminErrorsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/admin/log-error
+ */
+export const PostAdminAdminLogErrorBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAdminAdminLogErrorResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/agent-memory
+ */
+export const GetAgentMemoryAgentMemoryResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent-memory
+ */
+export const PostAgentMemoryAgentMemoryBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgentMemoryAgentMemoryResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/agent-memory/{id}
+ */
+export const GetAgentMemoryAgentMemoryByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetAgentMemoryAgentMemoryByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/agent-memory/{id}
+ */
+export const DeleteAgentMemoryAgentMemoryByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteAgentMemoryAgentMemoryByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent-memory/search
+ */
+export const PostAgentMemoryAgentMemorySearchBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgentMemoryAgentMemorySearchResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/agent-memory/evolution/insights
+ */
+export const GetAgentMemoryAgentMemoryEvolutionInsightsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent-memory/evolution/insights
+ */
+export const PostAgentMemoryAgentMemoryEvolutionInsightsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgentMemoryAgentMemoryEvolutionInsightsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/agent-memory/errors
+ */
+export const GetAgentMemoryAgentMemoryErrorsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent-memory/errors
+ */
+export const PostAgentMemoryAgentMemoryErrorsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgentMemoryAgentMemoryErrorsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent-memory/auto-summarize
+ */
+export const PostAgentMemoryAgentMemoryAutoSummarizeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgentMemoryAgentMemoryAutoSummarizeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/agent-memory/stats
+ */
+export const GetAgentMemoryAgentMemoryStatsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/agent-memory/retrieve-context
+ */
+export const GetAgentMemoryAgentMemoryRetrieveContextResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent-memory/auto-project
+ */
+export const PostAgentMemoryAgentMemoryAutoProjectBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgentMemoryAgentMemoryAutoProjectResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent-memory/self-improve-loop
+ */
+export const PostAgentMemoryAgentMemorySelfImproveLoopBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgentMemoryAgentMemorySelfImproveLoopResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent-memory/auto-save
+ */
+export const PostAgentMemoryAgentMemoryAutoSaveBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgentMemoryAgentMemoryAutoSaveResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent-v2/run
+ */
+export const PostAgentV2AgentV2RunBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgentV2AgentV2RunResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent-v2/{taskId}/gate
+ */
+export const PostAgentV2AgentV2ByTaskIdGateParams = zod.object({
+  taskId: zod.coerce.string(),
+});
+
+export const PostAgentV2AgentV2ByTaskIdGateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgentV2AgentV2ByTaskIdGateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/agent-v2/history
+ */
+export const GetAgentV2AgentV2HistoryResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/agent-v2/{taskId}
+ */
+export const GetAgentV2AgentV2ByTaskIdParams = zod.object({
+  taskId: zod.coerce.string(),
+});
+
+export const GetAgentV2AgentV2ByTaskIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent
+ */
+export const PostAgentAgentBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgentAgentResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent4/build
+ */
+export const PostAgent4Agent4BuildBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgent4Agent4BuildResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent4/plan
+ */
+export const PostAgent4Agent4PlanBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgent4Agent4PlanResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent4/parallel
+ */
+export const PostAgent4Agent4ParallelBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgent4Agent4ParallelResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent4/search
+ */
+export const PostAgent4Agent4SearchBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgent4Agent4SearchResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent4/debug
+ */
+export const PostAgent4Agent4DebugBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgent4Agent4DebugResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent4/deploy
+ */
+export const PostAgent4Agent4DeployBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgent4Agent4DeployResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent4/autofix
+ */
+export const PostAgent4Agent4AutofixBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgent4Agent4AutofixResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent4/collaborate
+ */
+export const PostAgent4Agent4CollaborateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgent4Agent4CollaborateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/agent4/websearch
+ */
+export const GetAgent4Agent4WebsearchResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent4/slides
+ */
+export const PostAgent4Agent4SlidesBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgent4Agent4SlidesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/agent4/integrate
+ */
+export const PostAgent4Agent4IntegrateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAgent4Agent4IntegrateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ai-engine/health
+ */
+export const GetAiEngineAiEngineHealthResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ai-engine/probe
+ */
+export const PostAiEngineAiEngineProbeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAiEngineAiEngineProbeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ai-engine/pricing
+ */
+export const GetAiEngineAiEnginePricingResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ai-engine/estimate
+ */
+export const PostAiEngineAiEngineEstimateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAiEngineAiEngineEstimateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ai-engine/cheapest
+ */
+export const GetAiEngineAiEngineCheapestResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ai-engine/cache
+ */
+export const GetAiEngineAiEngineCacheResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ai-engine/quality/{provider}
+ */
+export const GetAiEngineAiEngineQualityByProviderParams = zod.object({
+  provider: zod.coerce.string(),
+});
+
+export const GetAiEngineAiEngineQualityByProviderResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ai-engine/brains
+ */
+export const GetAiEngineAiEngineBrainsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ai-engine/council/dynamic
+ */
+export const PostAiEngineAiEngineCouncilDynamicBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAiEngineAiEngineCouncilDynamicResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ai-engine/dashboard
+ */
+export const GetAiEngineAiEngineDashboardResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/providers
+ */
+export const GetAiToolsProvidersResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/scan
+ */
+export const PostAiToolsScanBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAiToolsScanResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/sanitize
+ */
+export const PostAiToolsSanitizeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAiToolsSanitizeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/cache/lookup
+ */
+export const PostAiToolsCacheLookupBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAiToolsCacheLookupResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/cache/store
+ */
+export const PostAiToolsCacheStoreBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAiToolsCacheStoreResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/cache/stats
+ */
+export const GetAiToolsCacheStatsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/cache
+ */
+export const DeleteAiToolsCacheResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/validate
+ */
+export const PostAiToolsValidateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAiToolsValidateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/health
+ */
+export const GetAiToolsHealthResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/models
+ */
+export const GetAiToolsModelsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/analytics/me
+ */
+export const GetAnalyticsAnalyticsMeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/analytics/admin
+ */
+export const GetAnalyticsAnalyticsAdminResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/analytics/rate-status
+ */
+export const GetAnalyticsAnalyticsRateStatusResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/analytics/realtime
+ */
+export const GetAnalyticsAnalyticsRealtimeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/developer/keys
+ */
+export const GetApiKeysDeveloperKeysResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/developer/keys
+ */
+export const PostApiKeysDeveloperKeysBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostApiKeysDeveloperKeysResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/developer/keys/{id}
+ */
+export const DeleteApiKeysDeveloperKeysByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteApiKeysDeveloperKeysByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/developer/webhooks
+ */
+export const PostApiKeysDeveloperWebhooksBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostApiKeysDeveloperWebhooksResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/developer/webhooks
+ */
+export const GetApiKeysDeveloperWebhooksResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/plan/stream
+ */
+export const PostAutonomousAgentPlanStreamBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAutonomousAgentPlanStreamResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/think
+ */
+export const PostAutonomousAgentThinkBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAutonomousAgentThinkResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/execute
+ */
+export const PostAutonomousAgentExecuteBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAutonomousAgentExecuteResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/reflect
+ */
+export const PostAutonomousAgentReflectBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAutonomousAgentReflectResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/synthesize
+ */
+export const PostAutonomousAgentSynthesizeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAutonomousAgentSynthesizeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/stream
+ */
+export const PostAutonomousAgentStreamBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAutonomousAgentStreamResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/tools
+ */
+export const GetAutonomousAgentToolsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/autotune
+ */
+export const PostAutotuneAutotuneBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostAutotuneAutotuneResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/admin/backup/run
+ */
+export const PostBackupAdminBackupRunBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostBackupAdminBackupRunResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/admin/backup/list
+ */
+export const GetBackupAdminBackupListResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/billing/invoices
+ */
+export const GetBillingBillingInvoicesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/billing/invoices/{id}
+ */
+export const GetBillingBillingInvoicesByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetBillingBillingInvoicesByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/billing/subscription
+ */
+export const GetBillingBillingSubscriptionResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/billing/usage
+ */
+export const GetBillingBillingUsageResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/billing/cancel
+ */
+export const PostBillingBillingCancelBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostBillingBillingCancelResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/billing/portal
+ */
+export const GetBillingBillingPortalResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/blog/posts
+ */
+export const GetBlogBlogPostsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/blog/posts
+ */
+export const PostBlogBlogPostsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostBlogBlogPostsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/blog/posts/{slug}
+ */
+export const GetBlogBlogPostsBySlugParams = zod.object({
+  slug: zod.coerce.string(),
+});
+
+export const GetBlogBlogPostsBySlugResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/blog/sitemap
+ */
+export const GetBlogBlogSitemapResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary PATCH /api/blog/posts/{id}
+ */
+export const PatchBlogBlogPostsByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PatchBlogBlogPostsByIdBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PatchBlogBlogPostsByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/blog/posts/{id}
+ */
+export const DeleteBlogBlogPostsByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteBlogBlogPostsByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/browser/fetch
+ */
+export const PostBrowserBrowserFetchBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostBrowserBrowserFetchResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/browser/search
+ */
+export const PostBrowserBrowserSearchBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostBrowserBrowserSearchResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/browser/extract
+ */
+export const PostBrowserBrowserExtractBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostBrowserBrowserExtractResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/chain-of-thought
+ */
+export const PostChainOfThoughtChainOfThoughtBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostChainOfThoughtChainOfThoughtResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/chat
+ */
+export const PostChatChatBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostChatChatResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/title
+ */
+export const PostChatTitleBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostChatTitleResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/translate
+ */
+export const PostChatTranslateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostChatTranslateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/enhance
+ */
+export const PostChatEnhanceBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostChatEnhanceResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/cisa-kev
+ */
+export const GetCisaCisaKevResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/claude-code/stream
+ */
+export const PostClaudeCodeClaudeCodeStreamBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostClaudeCodeClaudeCodeStreamResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/claude-code/verify-key
+ */
+export const PostClaudeCodeClaudeCodeVerifyKeyBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostClaudeCodeClaudeCodeVerifyKeyResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/cloud-chats
+ */
+export const GetCloudChatsCloudChatsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/cloud-chats
+ */
+export const PostCloudChatsCloudChatsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostCloudChatsCloudChatsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/scan/code
+ */
+export const PostCodeScanScanCodeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostCodeScanScanCodeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/scan/history
+ */
+export const GetCodeScanScanHistoryResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/scan/{id}
+ */
+export const GetCodeScanScanByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetCodeScanScanByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/collab/rooms
+ */
+export const GetCollabCollabRoomsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/collab/rooms
+ */
+export const PostCollabCollabRoomsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostCollabCollabRoomsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/collab/rooms/{id}/messages
+ */
+export const GetCollabCollabRoomsByIdMessagesParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetCollabCollabRoomsByIdMessagesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/collab/rooms/{id}/join
+ */
+export const PostCollabCollabRoomsByIdJoinParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostCollabCollabRoomsByIdJoinBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostCollabCollabRoomsByIdJoinResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/context
+ */
+export const GetContextContextResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/context
+ */
+export const PostContextContextBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostContextContextResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary PUT /api/context/{id}
+ */
+export const PutContextContextByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PutContextContextByIdBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PutContextContextByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/context/{id}
+ */
+export const DeleteContextContextByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteContextContextByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/context/summarize
+ */
+export const PostContextContextSummarizeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostContextContextSummarizeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/council/brains
+ */
+export const PostCouncilCouncilBrainsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostCouncilCouncilBrainsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/council
+ */
+export const PostCouncilCouncilBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostCouncilCouncilResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/custom-gpts
+ */
+export const PostCustomGptsCustomGptsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostCustomGptsCustomGptsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/custom-gpts
+ */
+export const GetCustomGptsCustomGptsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/custom-gpts/{id}
+ */
+export const GetCustomGptsCustomGptsByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetCustomGptsCustomGptsByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary PUT /api/custom-gpts/{id}
+ */
+export const PutCustomGptsCustomGptsByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PutCustomGptsCustomGptsByIdBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PutCustomGptsCustomGptsByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/custom-gpts/{id}
+ */
+export const DeleteCustomGptsCustomGptsByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteCustomGptsCustomGptsByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/custom-gpts/{id}/chat
+ */
+export const PostCustomGptsCustomGptsByIdChatParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostCustomGptsCustomGptsByIdChatBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostCustomGptsCustomGptsByIdChatResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/custom-gpts/{id}/clone
+ */
+export const PostCustomGptsCustomGptsByIdCloneParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostCustomGptsCustomGptsByIdCloneBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostCustomGptsCustomGptsByIdCloneResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/email/{email}
+ */
+export const GetDarkwebIntelligenceEmailByEmailParams = zod.object({
+  email: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceEmailByEmailResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ip/{ip}
+ */
+export const GetDarkwebIntelligenceIpByIpParams = zod.object({
+  ip: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceIpByIpResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/domain/{domain}
+ */
+export const GetDarkwebIntelligenceDomainByDomainParams = zod.object({
+  domain: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceDomainByDomainResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/darkweb/search
+ */
+export const PostDarkwebIntelligenceDarkwebSearchBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceDarkwebSearchResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/darkweb/scrape
+ */
+export const PostDarkwebIntelligenceDarkwebScrapeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceDarkwebScrapeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/darkweb/monitor/telegram
+ */
+export const PostDarkwebIntelligenceDarkwebMonitorTelegramBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceDarkwebMonitorTelegramResponse = zod.object(
+  {
+    success: zod.boolean(),
+    data: zod
+      .record(zod.string(), zod.unknown())
+      .optional()
+      .describe(
+        "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+      ),
+  },
+);
+
+/**
+ * @summary POST /api/darkweb/monitor/paste
+ */
+export const PostDarkwebIntelligenceDarkwebMonitorPasteBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceDarkwebMonitorPasteResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/blockchain/{address}
+ */
+export const GetDarkwebIntelligenceBlockchainByAddressParams = zod.object({
+  address: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceBlockchainByAddressResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/blockchain/trace
+ */
+export const PostDarkwebIntelligenceBlockchainTraceBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceBlockchainTraceResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/blockchain/tx/{hash}
+ */
+export const GetDarkwebIntelligenceBlockchainTxByHashParams = zod.object({
+  hash: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceBlockchainTxByHashResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/blockchain/monitor
+ */
+export const PostDarkwebIntelligenceBlockchainMonitorBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceBlockchainMonitorResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/threat/ioc/{ioc}
+ */
+export const GetDarkwebIntelligenceThreatIocByIocParams = zod.object({
+  ioc: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceThreatIocByIocResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/threat/actor/{actor}
+ */
+export const GetDarkwebIntelligenceThreatActorByActorParams = zod.object({
+  actor: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceThreatActorByActorResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/threat/classify
+ */
+export const PostDarkwebIntelligenceThreatClassifyBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceThreatClassifyResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/threat/alert
+ */
+export const PostDarkwebIntelligenceThreatAlertBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceThreatAlertResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/network/scada
+ */
+export const GetDarkwebIntelligenceNetworkScadaResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/network/webcams
+ */
+export const GetDarkwebIntelligenceNetworkWebcamsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/network/databases
+ */
+export const GetDarkwebIntelligenceNetworkDatabasesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/network/rdp
+ */
+export const GetDarkwebIntelligenceNetworkRdpResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/network/iot
+ */
+export const GetDarkwebIntelligenceNetworkIotResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/network/monitor
+ */
+export const PostDarkwebIntelligenceNetworkMonitorBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceNetworkMonitorResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/graph/correlate/{type}/{value}
+ */
+export const GetDarkwebIntelligenceGraphCorrelateByTypeByValueParams =
+  zod.object({
+    type: zod.coerce.string(),
+    value: zod.coerce.string(),
+  });
+
+export const GetDarkwebIntelligenceGraphCorrelateByTypeByValueResponse =
+  zod.object({
+    success: zod.boolean(),
+    data: zod
+      .record(zod.string(), zod.unknown())
+      .optional()
+      .describe(
+        "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+      ),
+  });
+
+/**
+ * @summary POST /api/graph/paths
+ */
+export const PostDarkwebIntelligenceGraphPathsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceGraphPathsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/graph/query
+ */
+export const PostDarkwebIntelligenceGraphQueryBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceGraphQueryResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ai/analyze
+ */
+export const PostDarkwebIntelligenceAiAnalyzeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceAiAnalyzeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ai/report
+ */
+export const PostDarkwebIntelligenceAiReportBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceAiReportResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ai/query
+ */
+export const PostDarkwebIntelligenceAiQueryBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceAiQueryResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ai/predict
+ */
+export const PostDarkwebIntelligenceAiPredictBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceAiPredictResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/search
+ */
+export const PostDarkwebIntelligenceSearchBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceSearchResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/status
+ */
+export const GetDarkwebIntelligenceStatusResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/username/{username}
+ */
+export const GetDarkwebIntelligenceUsernameByUsernameParams = zod.object({
+  username: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceUsernameByUsernameResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/hash/analyze
+ */
+export const PostDarkwebIntelligenceHashAnalyzeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceHashAnalyzeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/domain/{domain}/whois
+ */
+export const GetDarkwebIntelligenceDomainByDomainWhoisParams = zod.object({
+  domain: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceDomainByDomainWhoisResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/domain/{domain}/dns
+ */
+export const GetDarkwebIntelligenceDomainByDomainDnsParams = zod.object({
+  domain: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceDomainByDomainDnsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/domain/{domain}/subdomains
+ */
+export const GetDarkwebIntelligenceDomainByDomainSubdomainsParams = zod.object({
+  domain: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceDomainByDomainSubdomainsResponse =
+  zod.object({
+    success: zod.boolean(),
+    data: zod
+      .record(zod.string(), zod.unknown())
+      .optional()
+      .describe(
+        "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+      ),
+  });
+
+/**
+ * @summary GET /api/domain/{domain}/ssl
+ */
+export const GetDarkwebIntelligenceDomainByDomainSslParams = zod.object({
+  domain: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceDomainByDomainSslResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/sigint/search
+ */
+export const PostDarkwebIntelligenceSigintSearchBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceSigintSearchResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ioc/bulk
+ */
+export const PostDarkwebIntelligenceIocBulkBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceIocBulkResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/person/search
+ */
+export const PostDarkwebIntelligencePersonSearchBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligencePersonSearchResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/export
+ */
+export const PostDarkwebIntelligenceExportBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceExportResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/evidence/save
+ */
+export const PostDarkwebIntelligenceEvidenceSaveBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceEvidenceSaveResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/evidence/{sessionId}
+ */
+export const GetDarkwebIntelligenceEvidenceBySessionIdParams = zod.object({
+  sessionId: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceEvidenceBySessionIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/evidence
+ */
+export const GetDarkwebIntelligenceEvidenceResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ransomware/tracker
+ */
+export const GetDarkwebIntelligenceRansomwareTrackerResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/cve/{cveId}
+ */
+export const GetDarkwebIntelligenceCveByCveIdParams = zod.object({
+  cveId: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceCveByCveIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/timeline/add
+ */
+export const PostDarkwebIntelligenceTimelineAddBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDarkwebIntelligenceTimelineAddResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/timeline/{sessionId}
+ */
+export const GetDarkwebIntelligenceTimelineBySessionIdParams = zod.object({
+  sessionId: zod.coerce.string(),
+});
+
+export const GetDarkwebIntelligenceTimelineBySessionIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/debate
+ */
+export const PostDebateDebateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostDebateDebateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/debate/positions
+ */
+export const GetDebateDebatePositionsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/email/verify
+ */
+export const PostEmailEmailVerifyBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostEmailEmailVerifyResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/email/resend-verify
+ */
+export const PostEmailEmailResendVerifyBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostEmailEmailResendVerifyResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/email/forgot-password
+ */
+export const PostEmailEmailForgotPasswordBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostEmailEmailForgotPasswordResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/email/reset-password
+ */
+export const PostEmailEmailResetPasswordBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostEmailEmailResetPasswordResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/email/test
+ */
+export const PostEmailEmailTestBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostEmailEmailTestResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/features
+ */
+export const GetFeaturesFeaturesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/features/all
+ */
+export const GetFeaturesFeaturesAllResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/features/{name}
+ */
+export const GetFeaturesFeaturesByNameParams = zod.object({
+  name: zod.coerce.string(),
+});
+
+export const GetFeaturesFeaturesByNameResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary PUT /api/features/{name}
+ */
+export const PutFeaturesFeaturesByNameParams = zod.object({
+  name: zod.coerce.string(),
+});
+
+export const PutFeaturesFeaturesByNameBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PutFeaturesFeaturesByNameResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/features/seed
+ */
+export const PostFeaturesFeaturesSeedBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostFeaturesFeaturesSeedResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/files/tree
+ */
+export const GetFilesFilesTreeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/files/read
+ */
+export const GetFilesFilesReadResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/files/write
+ */
+export const PostFilesFilesWriteBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostFilesFilesWriteResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/finetune/approve
+ */
+export const PostFinetuneFinetuneApproveBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostFinetuneFinetuneApproveResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/finetune/stats
+ */
+export const GetFinetuneFinetuneStatsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/finetune/export
+ */
+export const GetFinetuneFinetuneExportResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/finetune/samples
+ */
+export const GetFinetuneFinetuneSamplesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/finetune/samples/{id}
+ */
+export const DeleteFinetuneFinetuneSamplesByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteFinetuneFinetuneSamplesByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/git/status
+ */
+export const GetGitGitStatusResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/git/diff
+ */
+export const GetGitGitDiffResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/git/add
+ */
+export const PostGitGitAddBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostGitGitAddResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/git/commit
+ */
+export const PostGitGitCommitBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostGitGitCommitResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/git/push
+ */
+export const PostGitGitPushBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostGitGitPushResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/git/log
+ */
+export const GetGitGitLogResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/git/blame
+ */
+export const GetGitGitBlameResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/godmode/list
+ */
+export const PostGodmodeGodmodeListBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostGodmodeGodmodeListResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/godmode
+ */
+export const PostGodmodeGodmodeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostGodmodeGodmodeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/healthz
+ */
+export const GetHealthHealthzResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/health/deep
+ */
+export const GetHealthHealthDeepResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/health/ready
+ */
+export const GetHealthHealthReadyResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/health/live
+ */
+export const GetHealthHealthLiveResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/image
+ */
+export const PostImageImageBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostImageImageResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/invoices
+ */
+export const GetInvoicesInvoicesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/invoices/{id}
+ */
+export const GetInvoicesInvoicesByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetInvoicesInvoicesByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/invoices/{id}/download
+ */
+export const GetInvoicesInvoicesByIdDownloadParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetInvoicesInvoicesByIdDownloadResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/lb/health
+ */
+export const GetLoadBalancerLbHealthResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/lb/chat
+ */
+export const PostLoadBalancerLbChatBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostLoadBalancerLbChatResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/lb/race
+ */
+export const PostLoadBalancerLbRaceBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostLoadBalancerLbRaceResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/lb/benchmark
+ */
+export const PostLoadBalancerLbBenchmarkBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostLoadBalancerLbBenchmarkResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/local-engines/status
+ */
+export const GetLocalEnginesLocalEnginesStatusResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/local-engines/status/{id}
+ */
+export const GetLocalEnginesLocalEnginesStatusByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetLocalEnginesLocalEnginesStatusByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/local-engines/launch/{id}
+ */
+export const PostLocalEnginesLocalEnginesLaunchByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostLocalEnginesLocalEnginesLaunchByIdBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostLocalEnginesLocalEnginesLaunchByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/local-engines/install/{id}
+ */
+export const PostLocalEnginesLocalEnginesInstallByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostLocalEnginesLocalEnginesInstallByIdBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostLocalEnginesLocalEnginesInstallByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/local-engines/pull-model
+ */
+export const PostLocalEnginesLocalEnginesPullModelBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostLocalEnginesLocalEnginesPullModelResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/local-engines/guide/{id}
+ */
+export const GetLocalEnginesLocalEnginesGuideByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetLocalEnginesLocalEnginesGuideByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/local-proxy/ping
+ */
+export const GetLocalProxyLocalProxyPingResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/local-proxy/chat
+ */
+export const PostLocalProxyLocalProxyChatBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostLocalProxyLocalProxyChatResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/memory
+ */
+export const GetMemoryMemoryResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/memory
+ */
+export const PostMemoryMemoryBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostMemoryMemoryResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/memory/{id}
+ */
+export const GetMemoryMemoryByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetMemoryMemoryByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary PUT /api/memory/{id}
+ */
+export const PutMemoryMemoryByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PutMemoryMemoryByIdBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PutMemoryMemoryByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/memory/{id}
+ */
+export const DeleteMemoryMemoryByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteMemoryMemoryByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/memory/stats
+ */
+export const GetMemoryMemoryStatsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/memory/clear
+ */
+export const DeleteMemoryMemoryClearResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/monitoring/error
+ */
+export const PostMonitoringMonitoringErrorBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostMonitoringMonitoringErrorResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/monitoring/errors
+ */
+export const GetMonitoringMonitoringErrorsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/monitoring/health
+ */
+export const GetMonitoringMonitoringHealthResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/monitoring/metrics
+ */
+export const GetMonitoringMonitoringMetricsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/monitoring/alert
+ */
+export const PostMonitoringMonitoringAlertBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostMonitoringMonitoringAlertResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/notifications
+ */
+export const GetNotificationsNotificationsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/notifications
+ */
+export const PostNotificationsNotificationsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostNotificationsNotificationsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/notifications/{id}/read
+ */
+export const PostNotificationsNotificationsByIdReadParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostNotificationsNotificationsByIdReadBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostNotificationsNotificationsByIdReadResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/notifications/read-all
+ */
+export const PostNotificationsNotificationsReadAllBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostNotificationsNotificationsReadAllResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/notifications/{id}
+ */
+export const DeleteNotificationsNotificationsByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteNotificationsNotificationsByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/notifications/preferences
+ */
+export const GetNotificationsNotificationsPreferencesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/notifications/preferences
+ */
+export const PostNotificationsNotificationsPreferencesBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostNotificationsNotificationsPreferencesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/notifications/push-subscribe
+ */
+export const PostNotificationsNotificationsPushSubscribeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostNotificationsNotificationsPushSubscribeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/auth/google
+ */
+export const GetOauthAuthGoogleResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/auth/google/callback
+ */
+export const GetOauthAuthGoogleCallbackResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/auth/github
+ */
+export const GetOauthAuthGithubResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/auth/github/callback
+ */
+export const GetOauthAuthGithubCallbackResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/auth/oauth/providers
+ */
+export const GetOauthAuthOauthProvidersResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ollama/status
+ */
+export const GetOllamaOllamaStatusResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ollama/models
+ */
+export const GetOllamaOllamaModelsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ollama/ps
+ */
+export const GetOllamaOllamaPsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ollama/show/{model}
+ */
+export const GetOllamaOllamaShowByModelParams = zod.object({
+  model: zod.coerce.string(),
+});
+
+export const GetOllamaOllamaShowByModelResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ollama/pull
+ */
+export const PostOllamaOllamaPullBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOllamaOllamaPullResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ollama/delete
+ */
+export const PostOllamaOllamaDeleteBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOllamaOllamaDeleteResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ollama/chat/stream
+ */
+export const PostOllamaOllamaChatStreamBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOllamaOllamaChatStreamResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ollama/chat
+ */
+export const PostOllamaOllamaChatBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOllamaOllamaChatResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ollama/generate
+ */
+export const PostOllamaOllamaGenerateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOllamaOllamaGenerateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ollama/start
+ */
+export const PostOllamaOllamaStartBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOllamaOllamaStartResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ollama/install
+ */
+export const PostOllamaOllamaInstallBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOllamaOllamaInstallResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ollama/sysinfo
+ */
+export const GetOllamaOllamaSysinfoResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ollama/test-connection
+ */
+export const GetOllamaOllamaTestConnectionResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ollama/cleanup-blobs
+ */
+export const GetOllamaOllamaCleanupBlobsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/ollama/cleanup-blobs
+ */
+export const DeleteOllamaOllamaCleanupBlobsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/ollama/compare/stream
+ */
+export const PostOllamaOllamaCompareStreamBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOllamaOllamaCompareStreamResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/ollama/dl-status
+ */
+export const GetOllamaOllamaDlStatusResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/orchestrator
+ */
+export const PostOrchestratorOrchestratorBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOrchestratorOrchestratorResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/orchestrator/agents
+ */
+export const GetOrchestratorOrchestratorAgentsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/orgs
+ */
+export const PostOrganizationsOrgsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOrganizationsOrgsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/orgs/me
+ */
+export const GetOrganizationsOrgsMeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary PUT /api/orgs/me
+ */
+export const PutOrganizationsOrgsMeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PutOrganizationsOrgsMeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/orgs/invite
+ */
+export const PostOrganizationsOrgsInviteBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOrganizationsOrgsInviteResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/orgs/join
+ */
+export const PostOrganizationsOrgsJoinBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOrganizationsOrgsJoinResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary PUT /api/orgs/members/{userId}
+ */
+export const PutOrganizationsOrgsMembersByUserIdParams = zod.object({
+  userId: zod.coerce.string(),
+});
+
+export const PutOrganizationsOrgsMembersByUserIdBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PutOrganizationsOrgsMembersByUserIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/orgs/members/{userId}
+ */
+export const DeleteOrganizationsOrgsMembersByUserIdParams = zod.object({
+  userId: zod.coerce.string(),
+});
+
+export const DeleteOrganizationsOrgsMembersByUserIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/orgs/usage
+ */
+export const GetOrganizationsOrgsUsageResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/scan/stream
+ */
+export const PostOsintAdvancedScanStreamBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOsintAdvancedScanStreamResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/scan/dns
+ */
+export const PostOsintAdvancedScanDnsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOsintAdvancedScanDnsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/scan/crt
+ */
+export const PostOsintAdvancedScanCrtBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOsintAdvancedScanCrtResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/report/generate
+ */
+export const PostOsintAdvancedReportGenerateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOsintAdvancedReportGenerateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/detect
+ */
+export const GetOsintIntelDetectResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/hash/{hash}
+ */
+export const GetOsintIntelHashByHashParams = zod.object({
+  hash: zod.coerce.string(),
+});
+
+export const GetOsintIntelHashByHashResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/url
+ */
+export const GetOsintIntelUrlResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/credentials
+ */
+export const PostOsintIntelCredentialsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOsintIntelCredentialsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/darkweb/mentions
+ */
+export const PostOsintIntelDarkwebMentionsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOsintIntelDarkwebMentionsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/telegram/monitor
+ */
+export const PostOsintIntelTelegramMonitorBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOsintIntelTelegramMonitorResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/telegram/channel/{username}
+ */
+export const GetOsintIntelTelegramChannelByUsernameParams = zod.object({
+  username: zod.coerce.string(),
+});
+
+export const GetOsintIntelTelegramChannelByUsernameResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/paste/monitor
+ */
+export const PostOsintIntelPasteMonitorBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOsintIntelPasteMonitorResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/threat/ioc
+ */
+export const GetOsintIntelThreatIocResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/threat/ransomware
+ */
+export const GetOsintIntelThreatRansomwareResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/threat/actors
+ */
+export const GetOsintIntelThreatActorsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/censys/search
+ */
+export const PostOsintIntelCensysSearchBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOsintIntelCensysSearchResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/search/elastic
+ */
+export const PostOsintIntelSearchElasticBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOsintIntelSearchElasticResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/osint/url
+ */
+export const PostOsintOsintUrlBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOsintOsintUrlResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/osint/analyze
+ */
+export const PostOsintOsintAnalyzeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostOsintOsintAnalyzeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/personal-keys
+ */
+export const GetPersonalKeysPersonalKeysResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/personal-keys
+ */
+export const PostPersonalKeysPersonalKeysBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostPersonalKeysPersonalKeysResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/personal-keys/{id}/reveal
+ */
+export const GetPersonalKeysPersonalKeysByIdRevealParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetPersonalKeysPersonalKeysByIdRevealResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary PUT /api/personal-keys/{id}
+ */
+export const PutPersonalKeysPersonalKeysByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PutPersonalKeysPersonalKeysByIdBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PutPersonalKeysPersonalKeysByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/personal-keys/{id}
+ */
+export const DeletePersonalKeysPersonalKeysByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeletePersonalKeysPersonalKeysByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/plugins
+ */
+export const GetPluginsPluginsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/plugins/installed
+ */
+export const GetPluginsPluginsInstalledResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/plugins/{id}/install
+ */
+export const PostPluginsPluginsByIdInstallParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostPluginsPluginsByIdInstallBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostPluginsPluginsByIdInstallResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/plugins/{id}
+ */
+export const DeletePluginsPluginsByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeletePluginsPluginsByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/plugins/{id}/uninstall
+ */
+export const PostPluginsPluginsByIdUninstallParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostPluginsPluginsByIdUninstallBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostPluginsPluginsByIdUninstallResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/providers/reload
+ */
+export const PostProvidersProvidersReloadBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostProvidersProvidersReloadResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/providers/set-personal-url
+ */
+export const PostProvidersProvidersSetPersonalUrlBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostProvidersProvidersSetPersonalUrlResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/providers/test
+ */
+export const PostProvidersProvidersTestBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostProvidersProvidersTestResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/rag/embed
+ */
+export const PostRagRagEmbedBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostRagRagEmbedResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/rag/query
+ */
+export const PostRagRagQueryBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostRagRagQueryResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/rag/session/{id}
+ */
+export const DeleteRagRagSessionByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteRagRagSessionByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/rag/knowledge
+ */
+export const GetRagRagKnowledgeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/rag/knowledge/{name}
+ */
+export const DeleteRagRagKnowledgeByNameParams = zod.object({
+  name: zod.coerce.string(),
+});
+
+export const DeleteRagRagKnowledgeByNameResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/referrals/me
+ */
+export const GetReferralsReferralsMeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/referrals/redeem
+ */
+export const PostReferralsReferralsRedeemBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostReferralsReferralsRedeemResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/reports/generate
+ */
+export const PostReportsReportsGenerateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostReportsReportsGenerateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/reports/scan/{id}
+ */
+export const PostReportsReportsScanByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostReportsReportsScanByIdBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostReportsReportsScanByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/reports/history
+ */
+export const GetReportsReportsHistoryResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/scheduled
+ */
+export const PostScheduledScheduledBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostScheduledScheduledResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/scheduled
+ */
+export const GetScheduledScheduledResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/scheduled/{id}
+ */
+export const GetScheduledScheduledByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetScheduledScheduledByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary PUT /api/scheduled/{id}
+ */
+export const PutScheduledScheduledByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PutScheduledScheduledByIdBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PutScheduledScheduledByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/scheduled/{id}
+ */
+export const DeleteScheduledScheduledByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteScheduledScheduledByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/scheduled/{id}/run
+ */
+export const PostScheduledScheduledByIdRunParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostScheduledScheduledByIdRunBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostScheduledScheduledByIdRunResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/scheduled/{id}/toggle
+ */
+export const PostScheduledScheduledByIdToggleParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostScheduledScheduledByIdToggleBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostScheduledScheduledByIdToggleResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/security/audit-log
+ */
+export const GetSecurityComplianceSecurityAuditLogResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/security/events
+ */
+export const GetSecurityComplianceSecurityEventsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/security/threat-score
+ */
+export const GetSecurityComplianceSecurityThreatScoreResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/security/data-export
+ */
+export const GetSecurityComplianceSecurityDataExportResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/security/delete-account
+ */
+export const DeleteSecurityComplianceSecurityDeleteAccountResponse = zod.object(
+  {
+    success: zod.boolean(),
+    data: zod
+      .record(zod.string(), zod.unknown())
+      .optional()
+      .describe(
+        "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+      ),
+  },
+);
+
+/**
+ * @summary GET /api/security/compliance
+ */
+export const GetSecurityComplianceSecurityComplianceResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/admin/security/metrics
+ */
+export const GetSecurityDashboardAdminSecurityMetricsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/admin/security/events
+ */
+export const GetSecurityDashboardAdminSecurityEventsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/admin/security/report/now
+ */
+export const GetSecurityDashboardAdminSecurityReportNowResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/admin/security/block-ip
+ */
+export const PostSecurityDashboardAdminSecurityBlockIpBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostSecurityDashboardAdminSecurityBlockIpResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/admin/security/blocked-ips
+ */
+export const GetSecurityDashboardAdminSecurityBlockedIpsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/admin/security/block-ip/{ip}
+ */
+export const DeleteSecurityDashboardAdminSecurityBlockIpByIpParams = zod.object(
+  {
+    ip: zod.coerce.string(),
+  },
+);
+
+export const DeleteSecurityDashboardAdminSecurityBlockIpByIpResponse =
+  zod.object({
+    success: zod.boolean(),
+    data: zod
+      .record(zod.string(), zod.unknown())
+      .optional()
+      .describe(
+        "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+      ),
+  });
+
+/**
+ * @summary POST /api/shell/exec
+ */
+export const PostShellShellExecBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostShellShellExecResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/stripe/plans
+ */
+export const GetStripeStripePlansResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/stripe/create-checkout
+ */
+export const PostStripeStripeCreateCheckoutBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostStripeStripeCreateCheckoutResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/stripe/webhook
+ */
+export const PostStripeStripeWebhookBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostStripeStripeWebhookResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/stripe/portal
+ */
+export const GetStripeStripePortalResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/subscriptions/verify
+ */
+export const PostSubscriptionsSubscriptionsVerifyBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostSubscriptionsSubscriptionsVerifyResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/subscriptions/status
+ */
+export const GetSubscriptionsSubscriptionsStatusResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/subscriptions/use-tokens
+ */
+export const PostSubscriptionsSubscriptionsUseTokensBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostSubscriptionsSubscriptionsUseTokensResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/subscriptions/generate
+ */
+export const PostSubscriptionsSubscriptionsGenerateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostSubscriptionsSubscriptionsGenerateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/docs.json
+ */
+export const GetSwaggerDocsJsonResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/swarm/run
+ */
+export const PostSwarmAgentSwarmRunBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostSwarmAgentSwarmRunResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/swarm/tasks
+ */
+export const GetSwarmAgentSwarmTasksResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/swarm/tasks/{id}
+ */
+export const GetSwarmAgentSwarmTasksByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetSwarmAgentSwarmTasksByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/main-agent/state
+ */
+export const GetSwarmAgentMainAgentStateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary PATCH /api/main-agent/state
+ */
+export const PatchSwarmAgentMainAgentStateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PatchSwarmAgentMainAgentStateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/swarm/generate
+ */
+export const PostSwarmAgentSwarmGenerateBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostSwarmAgentSwarmGenerateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/swarm/self-improve
+ */
+export const PostSwarmAgentSwarmSelfImproveBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostSwarmAgentSwarmSelfImproveResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/swarm/models
+ */
+export const GetSwarmAgentSwarmModelsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/swarm/autonomous
+ */
+export const PostSwarmAgentSwarmAutonomousBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostSwarmAgentSwarmAutonomousResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/swarm/task-queue
+ */
+export const GetSwarmAgentSwarmTaskQueueResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/swarm/task-queue
+ */
+export const PostSwarmAgentSwarmTaskQueueBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostSwarmAgentSwarmTaskQueueResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/swarm/task-queue/{id}
+ */
+export const DeleteSwarmAgentSwarmTaskQueueByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteSwarmAgentSwarmTaskQueueByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/swarm/evolution-state
+ */
+export const GetSwarmAgentSwarmEvolutionStateResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/swarm/glm5-status
+ */
+export const GetSwarmAgentSwarmGlm5StatusResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/threat-intel/stats
+ */
+export const GetThreatIntelThreatIntelStatsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/threat-intel/top
+ */
+export const GetThreatIntelThreatIntelTopResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/threat-intel/events
+ */
+export const GetThreatIntelThreatIntelEventsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/threat-intel/check
+ */
+export const PostThreatIntelThreatIntelCheckBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostThreatIntelThreatIntelCheckResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/threat-intel/ioc
+ */
+export const PostThreatIntelThreatIntelIocBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostThreatIntelThreatIntelIocResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/training/jobs
+ */
+export const GetTrainingTrainingJobsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/training/jobs
+ */
+export const PostTrainingTrainingJobsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostTrainingTrainingJobsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/training/jobs/{id}
+ */
+export const GetTrainingTrainingJobsByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetTrainingTrainingJobsByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/training/jobs/{id}
+ */
+export const DeleteTrainingTrainingJobsByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteTrainingTrainingJobsByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/training/datasets
+ */
+export const GetTrainingTrainingDatasetsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/training/samples
+ */
+export const PostTrainingTrainingSamplesBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostTrainingTrainingSamplesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/training/samples
+ */
+export const GetTrainingTrainingSamplesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/tts
+ */
+export const PostTtsTtsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostTtsTtsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/stt
+ */
+export const PostTtsSttBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostTtsSttResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/tts/voices
+ */
+export const GetTtsTtsVoicesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/upload
+ */
+export const PostUploadUploadBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostUploadUploadResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/upload/my-files
+ */
+export const GetUploadUploadMyFilesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/upload/url/{key}
+ */
+export const GetUploadUploadUrlByKeyParams = zod.object({
+  key: zod.coerce.string(),
+});
+
+export const GetUploadUploadUrlByKeyResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/upload/{id}
+ */
+export const DeleteUploadUploadByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteUploadUploadByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/auth/register
+ */
+export const PostUserAuthAuthRegisterBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostUserAuthAuthRegisterResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/auth/verify-email
+ */
+export const PostUserAuthAuthVerifyEmailBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostUserAuthAuthVerifyEmailResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/auth/resend-verify
+ */
+export const PostUserAuthAuthResendVerifyBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostUserAuthAuthResendVerifyResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/auth/login
+ */
+export const PostUserAuthAuthLoginBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostUserAuthAuthLoginResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/auth/refresh
+ */
+export const PostUserAuthAuthRefreshBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostUserAuthAuthRefreshResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/auth/logout
+ */
+export const PostUserAuthAuthLogoutBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostUserAuthAuthLogoutResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/auth/forgot-password
+ */
+export const PostUserAuthAuthForgotPasswordBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostUserAuthAuthForgotPasswordResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/auth/reset-password
+ */
+export const PostUserAuthAuthResetPasswordBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostUserAuthAuthResetPasswordResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/auth/me
+ */
+export const GetUserAuthAuthMeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary PUT /api/auth/me
+ */
+export const PutUserAuthAuthMeBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PutUserAuthAuthMeResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/auth/upload-avatar
+ */
+export const PostUserAuthAuthUploadAvatarBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostUserAuthAuthUploadAvatarResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/auth/sessions
+ */
+export const GetUserAuthAuthSessionsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/auth/sessions
+ */
+export const DeleteUserAuthAuthSessionsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/auth/sessions/{id}
+ */
+export const DeleteUserAuthAuthSessionsByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteUserAuthAuthSessionsByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/auth/security-events
+ */
+export const GetUserAuthAuthSecurityEventsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/auth/totp/setup
+ */
+export const PostUserAuthAuthTotpSetupBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostUserAuthAuthTotpSetupResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/auth/totp/verify
+ */
+export const PostUserAuthAuthTotpVerifyBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostUserAuthAuthTotpVerifyResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/auth/totp
+ */
+export const DeleteUserAuthAuthTotpResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/vector/collections
+ */
+export const PostVectorVectorCollectionsBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostVectorVectorCollectionsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/vector/collections
+ */
+export const GetVectorVectorCollectionsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/vector/collections/{id}/index
+ */
+export const PostVectorVectorCollectionsByIdIndexParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostVectorVectorCollectionsByIdIndexBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostVectorVectorCollectionsByIdIndexResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/vector/collections/{id}/add
+ */
+export const PostVectorVectorCollectionsByIdAddParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostVectorVectorCollectionsByIdAddBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostVectorVectorCollectionsByIdAddResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/vector/collections/{id}/search
+ */
+export const PostVectorVectorCollectionsByIdSearchParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostVectorVectorCollectionsByIdSearchBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostVectorVectorCollectionsByIdSearchResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/vector/search
+ */
+export const PostVectorVectorSearchBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostVectorVectorSearchResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/vector/documents/{id}
+ */
+export const DeleteVectorVectorDocumentsByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteVectorVectorDocumentsByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/vector/status
+ */
+export const GetVectorVectorStatusResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/vision
+ */
+export const PostVisionVisionBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostVisionVisionResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/webhooks
+ */
+export const PostWebhooksMgmtWebhooksBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostWebhooksMgmtWebhooksResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/webhooks
+ */
+export const GetWebhooksMgmtWebhooksResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary DELETE /api/webhooks/{id}
+ */
+export const DeleteWebhooksMgmtWebhooksByIdParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteWebhooksMgmtWebhooksByIdResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary PUT /api/webhooks/{id}/toggle
+ */
+export const PutWebhooksMgmtWebhooksByIdToggleParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PutWebhooksMgmtWebhooksByIdToggleBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PutWebhooksMgmtWebhooksByIdToggleResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/webhooks/{id}/deliveries
+ */
+export const GetWebhooksMgmtWebhooksByIdDeliveriesParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetWebhooksMgmtWebhooksByIdDeliveriesResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary POST /api/webhooks/{id}/test
+ */
+export const PostWebhooksMgmtWebhooksByIdTestParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PostWebhooksMgmtWebhooksByIdTestBody = zod
+  .record(zod.string(), zod.unknown())
+  .describe(
+    "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+  );
+
+export const PostWebhooksMgmtWebhooksByIdTestResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});
+
+/**
+ * @summary GET /api/webhooks/events
+ */
+export const GetWebhooksMgmtWebhooksEventsResponse = zod.object({
+  success: zod.boolean(),
+  data: zod
+    .record(zod.string(), zod.unknown())
+    .optional()
+    .describe(
+      "Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts\/api-server\/src\/routes for field-level detail.",
+    ),
+});

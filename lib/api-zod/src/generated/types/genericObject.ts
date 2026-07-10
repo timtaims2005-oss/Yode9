@@ -5,23 +5,10 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
 
 /**
  * Unstructured JSON object. Exact shape is defined by the route implementation; see artifacts/api-server/src/routes for field-level detail.
  */
 export interface GenericObject {
   [key: string]: unknown;
-}
-
-export interface GenericSuccessResponse {
-  success: boolean;
-  data?: GenericObject;
-}
-
-export interface GenericErrorResponse {
-  success: boolean;
-  error: string;
 }
