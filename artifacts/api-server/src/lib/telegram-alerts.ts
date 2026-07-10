@@ -56,10 +56,10 @@ function formatAlert(alert: AlertmanagerAlert): string {
   ];
   if (summary) lines.push(escapeMd(summary));
   if (alert.status === "firing" && alert.startsAt) {
-    lines.push(`since: ${alert.startsAt}`);
+    lines.push(`since: ${escapeMd(alert.startsAt)}`);
   }
   if (alert.status === "resolved" && alert.endsAt) {
-    lines.push(`resolved: ${alert.endsAt}`);
+    lines.push(`resolved: ${escapeMd(alert.endsAt)}`);
   }
   return lines.join("\n");
 }

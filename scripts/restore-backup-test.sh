@@ -31,6 +31,25 @@ if [ -z "$TEST_DATABASE_URL" ]; then
   exit 1
 fi
 
+# ── Safety guardrails ──────────────────────────────────────────────────────
+# Never let this script write into the same database it read backups from,
+# and by default only allow restoring into an obviously local/disposable host.
+if [ -n "${DATABASE_URL:-}" ] && [ "$TEST_DATABASE_URL" = "$DATABASE_URL" ]; then
+  echo "❌ TEST_DATABASE_URL is identical to DATABASE_URL — refusing to restore over the source database." >&2
+  exit 1
+fi
+
+if [ "${ALLOW_NON_LOCAL_RESTORE_TARGET:-}" != "1" ]; then
+  case "$TEST_DATABASE_URL" in
+    *@localhost:*|*@127.0.0.1:*|*@postgres:*|*@db:*) ;; # disposable/local-looking host, OK
+    *)
+      echo "❌ TEST_DATABASE_URL does not look like a local/disposable host ($(echo "$TEST_DATABASE_URL" | sed -E 's#.*@([^:/]+).*#\1#'))." >&2
+      echo "   If this really is a disposable test instance, re-run with ALLOW_NON_LOCAL_RESTORE_TARGET=1." >&2
+      exit 1
+      ;;
+  esac
+fi
+
 echo "── Step 1/4: Locate latest backup ──────────────────────────"
 DUMP_FILE="$WORKDIR/latest-backup.sql.gz"
 

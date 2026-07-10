@@ -22,11 +22,23 @@ function isValidPayload(body: unknown): body is AlertmanagerWebhookPayload {
   return !!body && typeof body === "object" && Array.isArray((body as any).alerts);
 }
 
-// Optional bearer-token check for the generic /alerts receiver, matching the
-// `http_config.bearer_token` set on the "default" Alertmanager receiver.
+// Bearer-token check shared by all three alert receivers, matching the
+// `http_config.bearer_token` set on every Alertmanager receiver in
+// infrastructure/monitoring/alertmanager/alertmanager.yml.
+//
+// In production this is mandatory: an unauthenticated public endpoint that
+// fans out to Telegram is an abuse/spam vector, so we fail closed instead of
+// silently accepting unsigned requests.
 function checkWebhookToken(req: Request, res: Response): boolean {
   const expected = process.env.WEBHOOK_TOKEN;
-  if (!expected) return true; // not configured, skip check
+  if (!expected) {
+    if (process.env.NODE_ENV === "production") {
+      res.status(503).json({ error: "Service misconfigured — WEBHOOK_TOKEN not set on server." });
+      return false;
+    }
+    logger.warn("[webhooks/alerts] WEBHOOK_TOKEN not set — accepting unauthenticated request (development only)");
+    return true;
+  }
   const header = req.headers.authorization ?? "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : "";
   if (token !== expected) {
