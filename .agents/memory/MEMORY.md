@@ -1,0 +1,1 @@
+- [OpenAPI expansion](openapi-expansion.md) — Yode9 repo openapi.yaml grown from 34→297 paths; push blocked by NO_CREDENTIALS; commits live in /tmp/yode9.
