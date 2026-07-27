@@ -1,35 +1,29 @@
 ---
-name: Yode9 / MR7 AI Project
-description: Full project imported from github.com/timtaims2005-oss/Yode9 — stack, artifact layout, env vars needed.
+name: Yode9 / KaliGPT project setup
+description: Full setup notes for the KaliGPT MR7 AI cybersecurity monorepo imported from GitHub
 ---
 
-# MR7 AI Project — Imported from Yode9
+# Yode9 / KaliGPT Project Setup
 
-## Artifacts
-- `artifacts/api-server` — Express 5 backend, ID `3B4_FFSkEVBkAeYMFRJ2e`, port 8080, path `/api`
-- `artifacts/mr7-ai` — React 19 + Vite frontend, ID `artifacts/mr7-ai`, port 22938, path `/`
-- `artifacts/mobile` — Expo (React Native) app, ID `artifacts/mobile`, port 18115, path `/mobile/`
-- `artifacts/mockup-sandbox` — Design canvas, ID `XegfDyZt7HqfW2Bb8Ghoy`, path `/__mockup`
+**Why:** Imported from GitHub; needed full Replit environment bootstrap.
 
-## Shared libs
-- `lib/db` — Drizzle ORM schema (PostgreSQL + pgvector)
-- `lib/api-spec` — OpenAPI spec + Orval codegen
-- `lib/api-client-react` — generated React Query hooks
-- `lib/api-zod` — generated Zod schemas
-- `lib/integrations-openai-ai-react` — OpenAI React client helpers
-- `lib/integrations-openai-ai-server` — OpenAI server helpers
+## Artifacts & Workflows
+- `artifacts/mr7-ai: web` — React 19 Vite frontend, port 22938 (managed workflow)
+- `artifacts/api-server: API Server` — Express 5 API, port 8080 (managed workflow)
+- `artifacts/mobile: expo` — Expo mobile, not started by default
+- `artifacts/mockup-sandbox: Component Preview Server` — canvas sandbox, not started by default
 
-## Key env vars needed (set in secrets)
-- `DATABASE_URL` — PostgreSQL (already provisioned by Replit)
-- `CLERK_SECRET_KEY` / `CLERK_PUBLISHABLE_KEY` — Clerk auth
-- `OPENAI_API_KEY` — OpenAI
-- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` — Stripe payments
-- `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` — R2 storage (optional)
-- `SENTRY_DSN` — error tracking (optional)
+## Key env vars already set
+- `LOCAL_AUTH_BYPASS=true`, `LOCAL_MOCK_PROVIDER=true`, `NODE_ENV=development`
+- `DATABASE_URL` runtime-managed (Replit PostgreSQL)
+- `AUTO_LAUNCH_OLLAMA=false`; Ollama served externally via ngrok (`OLLAMA_HOST`, `VITE_OLLAMA_BASE_URL`)
 
-**Why:** imported project relies on many third-party services; missing keys produce warnings but app still starts.
+## Port conflict fix
+`artifacts/api-server/package.json` scripts.dev was updated to include `fuser -k 8080/tcp 2>/dev/null;` before build+start to avoid EADDRINUSE on restart.
 
-## Import notes
-- Files copied from /tmp/yode9-import excluding .git, .local, node_modules, attached_assets
-- .replit-artifact/artifact.toml for mr7-ai and mobile are NEW (platform-assigned IDs), not from source repo
-- api-server and mockup-sandbox kept original artifact IDs (same as workspace)
+## How to apply
+If port 8080 EADDRINUSE appears despite the fix, run `fuser -k 8080/tcp` manually then restart the workflow.
+
+## Pending secrets
+- `GROQ_API_KEY` — for live AI (mock provider works without it)
+- `CLERK_SECRET_KEY` + `CLERK_PUBLISHABLE_KEY` — for real auth
