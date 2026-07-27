@@ -7,6 +7,7 @@ import { listProviders } from "../lib/ai-providers.js";
 import { getQueueStats, isQueueReady } from "../lib/queue.js";
 import { getCacheStats } from "../lib/cache.js";
 import os from "os";
+import { getAgenticDiagnostics } from "../gateway/agentic-stream.js";
 
 const router: IRouter = Router();
 const _startTime = Date.now();
@@ -161,6 +162,14 @@ router.get("/health/queues", async (_req, res) => {
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }
+});
+
+router.get("/health/agentic", (_req, res) => {
+  res.json({
+    status: "ok",
+    ...getAgenticDiagnostics(),
+    mode: process.env.NODE_ENV ?? "development",
+  });
 });
 
 export default router;

@@ -49,7 +49,7 @@ export const TOKEN_PRICES: Record<string, { input: number; output: number; provi
 
 // ── Provider Fallback Order (cheapest/fastest first) ─────────────────────────
 const FALLBACK_ORDER: ProviderName[] = [
-  "personal", "groq", "openai", "gemini", "anthropic", "openrouter", "custom",
+  "personal", "groq", "openai", "gemini", "anthropic", "openrouter", "custom", "mock",
 ];
 
 export type ProviderHealth = {
@@ -114,7 +114,7 @@ export function getProviderHealth(): ProviderHealth[] {
 // ── Active health probe: ping each provider with a trivial request ────────────
 export async function probeProviderHealth(): Promise<void> {
   const testMsg = [{ role: "user" as const, content: "hi" }];
-  const providers: ProviderName[] = ["personal", "openai", "groq", "gemini", "anthropic"];
+  const providers: ProviderName[] = ["personal", "openai", "groq", "gemini", "anthropic", "mock"];
 
   await Promise.allSettled(
     providers.map(async (provider) => {

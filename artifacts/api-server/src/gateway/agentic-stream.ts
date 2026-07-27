@@ -4,14 +4,14 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import type { WebSocket } from "ws";
 import { SwarmOrchestrator } from "../core/agentic/swarm-orchestrator";
 import type { AgenticRequest, AuthorizedScope } from "../core/agentic/types";
-import {
-  HeroOrchestratorPlugin,
-  JWTSecurityPlugin,
-  MonstakFuzzingPlugin,
-  NetworkScannerPlugin,
-  OmniAuditPlugin,
-} from "../core/plugins";
 import { ReflectionLoop } from "../core/reasoning/reflection-loop";
+import { JetoolOrchestrator } from "../core/agentic/jetool-orchestrator";
+import { createAgenticPluginRegistry, AGENTIC_PLUGIN_NAMES } from "../core/agentic/registry";
+import {
+  getAgenticPersistenceStatus,
+  persistAgenticEvent,
+  persistAgenticJob,
+} from "../core/agentic/persistence";
 
 export type AgenticEventType =
   | "intent"
@@ -154,13 +154,9 @@ function deriveConfidence(data: unknown): number | undefined {
 
 class AgenticJobStore {
   private readonly jobs = new Map<string, MutableJob>();
-  private readonly orchestrator = new SwarmOrchestrator([
-    new HeroOrchestratorPlugin(),
-    new OmniAuditPlugin(),
-    new JWTSecurityPlugin(),
-    new NetworkScannerPlugin(),
-    new MonstakFuzzingPlugin(),
-  ]);
+  private readonly plugins = createAgenticPluginRegistry();
+  private readonly orchestrator = new SwarmOrchestrator(this.plugins);
+  private readonly jetool = new JetoolOrchestrator(this.plugins);
   private readonly reflection = new ReflectionLoop();
 
   create(request: AgenticRequest): AgenticJob {
@@ -175,6 +171,7 @@ class AgenticJobStore {
       totalTokensEstimate: 0,
     };
     this.jobs.set(id, job);
+    void persistAgenticJob(this.snapshot(job)).catch(() => undefined);
     void this.execute(job);
     return this.snapshot(job);
   }
@@ -262,8 +259,15 @@ class AgenticJobStore {
             });
           },
         });
+        const jetool = await this.jetool.plan(request);
         this.emit(job, "output", {
           ...swarm,
+          jetool: {
+            status: jetool.status,
+            plan: jetool.plan,
+            validationReport: jetool.validationReport,
+            pipelineArtifacts: jetool.pipelineArtifacts,
+          },
           node: "telemetry",
           level: "info",
           source: "orchestrator",
@@ -292,6 +296,7 @@ class AgenticJobStore {
 
       job.status =
         result.reflection.nextAction === "blocked" ? "blocked" : "completed";
+      void persistAgenticJob(this.snapshot(job)).catch(() => undefined);
 
       this.emit(job, "complete", {
         status: job.status,
@@ -344,6 +349,7 @@ class AgenticJobStore {
       data: enriched,
     };
     job.events.push(event);
+    void persistAgenticEvent(event).catch(() => undefined);
     for (const listener of job.listeners) listener(event);
   }
 
@@ -360,6 +366,21 @@ class AgenticJobStore {
 }
 
 export const agenticJobStore = new AgenticJobStore();
+export function getAgenticDiagnostics(): {
+  pluginCount: number;
+  pluginNames: readonly string[];
+  swarmConnected: boolean;
+  jetoolConnected: boolean;
+  persistence: ReturnType<typeof getAgenticPersistenceStatus>;
+} {
+  return {
+    pluginCount: AGENTIC_PLUGIN_NAMES.length,
+    pluginNames: AGENTIC_PLUGIN_NAMES,
+    swarmConnected: true,
+    jetoolConnected: true,
+    persistence: getAgenticPersistenceStatus(),
+  };
+}
 const router: IRouter = Router();
 
 function sendSseEvent(response: Response, event: AgenticStreamEvent): void {

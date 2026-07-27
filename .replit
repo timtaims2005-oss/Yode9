@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "python-3.11", "web"]
+modules = ["nodejs-20", "python-3.11", "web", "postgresql-16"]
 
 [deployment]
 router = "application"
@@ -29,3 +29,10 @@ EVALS_MODE = "1"
 VITE_OLLAMA_API_KEY = "rayan1212"
 OLLAMA_HOST = "https://e58e-2003-cb-5f1b-ad4f-b822-f7be-9ffb-45ce.ngrok-free.app"
 VITE_OLLAMA_BASE_URL = "https://e58e-2003-cb-5f1b-ad4f-b822-f7be-9ffb-45ce.ngrok-free.app"
+
+[userenv.development]
+AUTO_LAUNCH_OLLAMA = "false"
+BASE_PATH = "/"
+LOCAL_AUTH_BYPASS = "true"
+LOCAL_MOCK_PROVIDER = "true"
+NODE_ENV = "development"

@@ -588,8 +588,25 @@ export async function unifiedAuth(
   try {
     let ctx: UnifiedAuthContext | null = null;
 
+    // Explicit local-only bypass for direct Replit development testing.
+    // It is intentionally treated as an internal system actor so legacy
+    // internalAuth guards and authenticated routes can be exercised together.
+    if (process.env.LOCAL_AUTH_BYPASS === "true" && process.env.NODE_ENV !== "production") {
+      ctx = {
+        userId: "local-dev",
+        email: "local-dev@mr7.local",
+        displayName: "Local Development User",
+        role: "system",
+        tier: "system",
+        authStrategy: "internal",
+        permissions: ["*"],
+        tokenQuota: null,
+        metadata: { source: "LOCAL_AUTH_BYPASS", localOnly: true },
+      };
+    }
+
     // Strategy 1: Internal Service Key (synchronous — fastest, checked first)
-    ctx = resolveInternal(req);
+    if (!ctx) ctx = resolveInternal(req);
 
     // Strategy 2: Cloudflare Zero Trust
     if (!ctx) ctx = await resolveCloudflare(req);

@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { createHash } from "crypto";
 
-export type ProviderName = "openai" | "anthropic" | "groq" | "gemini" | "openrouter" | "custom" | "personal" | "zhipu" | "glm" | "cloudflare";
+export type ProviderName = "openai" | "anthropic" | "groq" | "gemini" | "openrouter" | "custom" | "personal" | "zhipu" | "glm" | "cloudflare" | "mock";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Per-provider Circuit Breaker
@@ -262,6 +262,13 @@ const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
     ],
     requiresKey: true,
   },
+  mock: {
+    name: "Local Mock Provider",
+    envKey: "LOCAL_MOCK_PROVIDER",
+    baseURL: "",
+    models: ["mr7-local-simulation"],
+    requiresKey: false,
+  },
 };
 
 function getCloudflareBaseURL(): string {
@@ -381,6 +388,21 @@ export function hasAnyApiKey(): boolean {
   );
 }
 
+export function isMockProviderEnabled(): boolean {
+  return process.env.LOCAL_MOCK_PROVIDER !== "false" &&
+    process.env.NODE_ENV !== "production";
+}
+
+function mockResponse(messages: Array<{ role: string; content: string }>): string {
+  const latest = [...messages].reverse().find((message) => message.role === "user")?.content?.trim();
+  return [
+    "Local Mock Provider active.",
+    "No live AI key was required for this development request.",
+    latest ? `Request received: ${latest.slice(0, 280)}` : "Send a user message to exercise the local provider.",
+    "The response is deterministic and safe for local integration tests.",
+  ].join("\n");
+}
+
 export function listProviders(): ProviderInfo[] {
   return (Object.entries(PROVIDER_CONFIGS) as [ProviderName, ProviderConfig][]).map(
     ([id, cfg]) => {
@@ -398,6 +420,8 @@ export function listProviders(): ProviderInfo[] {
       } else if (id === "gemini") {
         // Accept both GEMINI_API_KEY and GOOGLE_AI_API_KEY (same service)
         available = !!(process.env.GEMINI_API_KEY?.trim() || process.env.GOOGLE_AI_API_KEY?.trim());
+      } else if (id === "mock") {
+        available = isMockProviderEnabled();
       } else {
         available = !!process.env[cfg.envKey];
       }
@@ -524,6 +548,11 @@ export async function callOnce(
       }
     }
 
+    if (!client && isMockProviderEnabled()) {
+      const result = mockResponse(messages);
+      cacheSet(cacheKey, result);
+      return result;
+    }
     if (!client) return "";
 
     const res = await client.chat.completions.create({
@@ -560,6 +589,15 @@ export async function* streamCompletion(
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
+    if (provider === "mock" && isMockProviderEnabled()) {
+      const text = mockResponse(messages);
+      for (const chunk of text.match(/.{1,48}(?:\s|$)/g) ?? [text]) {
+        yield { content: chunk };
+      }
+      yield { done: true };
+      return;
+    }
+
     // ── Path 1: Frontend passed a key directly (from ProviderSettingsModal) ──
     if (opts?.apiKey && opts.apiKey.trim().length > 10) {
       const client = getClientWithCredentials(opts.apiKey.trim(), opts.apiBaseURL?.trim());
@@ -739,7 +777,7 @@ export async function* streamCompletion(
   }
 }
 const FALLBACK_ORDER: ProviderName[] = [
-  "personal", "cloudflare", "openrouter", "groq", "openai", "anthropic", "gemini", "zhipu", "glm",
+  "personal", "cloudflare", "openrouter", "groq", "openai", "anthropic", "gemini", "zhipu", "glm", "mock",
 ];
 
 export async function* streamWithFallback(
