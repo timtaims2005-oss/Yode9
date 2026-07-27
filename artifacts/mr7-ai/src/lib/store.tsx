@@ -318,6 +318,7 @@ type Action =
 
 const STORAGE_KEY = "mr7-ai-state-v2";
 const LEGACY_KEY = "mr7-ai-state-v1";
+const CUSTOM_PROVIDER_MIGRATION_KEY = "mr7-custom-ollama-provider-v1";
 
 const seedChat: Chat = {
   id: "c-seed-1",
@@ -354,7 +355,7 @@ const seedHey: Chat = {
 const initial: AppState = {
   chats: [seedChat, seedHey],
   activeChatId: seedChat.id,
-  activeModel: "CHAT-GPT Fast",
+  activeModel: "llama3.2",
   activePersona: null,
   settings: {
     notifications: true,
@@ -378,8 +379,8 @@ const initial: AppState = {
     powerMode: false,
     customSystemPrompt: "",
     activePersonaPreset: "default",
-    useLocalModel: false,
-    localEndpoint: (import.meta.env.VITE_OLLAMA_BASE_URL as string | undefined ?? "https://e58e-2003-cb-5f1b-ad4f-b822-f7be-9ffb-45ce.ngrok-free.app") + "/v1",
+    useLocalModel: true,
+    localEndpoint: (import.meta.env.VITE_OLLAMA_BASE_URL as string | undefined ?? "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app") + "/v1",
     localModel: "llama3.2",
     parseltongueCombo: false,
     parseltongueComboTechnique: "unicode",
@@ -436,8 +437,8 @@ const initial: AppState = {
   customInstructions: "",
   compareModels: ["CHAT-GPT Fast", "CHAT-GPT Thinking"],
   subscription: INITIAL_SUBSCRIPTION,
-  activeProvider: "personal",
-  activeProviderModel: "gpt-3.5-turbo",
+  activeProvider: "custom",
+  activeProviderModel: "llama3.2",
   tokenHistory: {},
   activeProjectId: null,
   cachedProjects: [],
@@ -446,9 +447,19 @@ const initial: AppState = {
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case "HYDRATE":
-      return {
+      {
+        const shouldMigrateCustomProvider =
+          typeof window !== "undefined" &&
+          localStorage.getItem(CUSTOM_PROVIDER_MIGRATION_KEY) !== "1";
+        if (shouldMigrateCustomProvider) {
+          localStorage.setItem(CUSTOM_PROVIDER_MIGRATION_KEY, "1");
+        }
+        return {
         ...state,
         ...action.state,
+        ...(shouldMigrateCustomProvider
+          ? { activeModel: "llama3.2", activeProvider: "custom", activeProviderModel: "llama3.2" }
+          : {}),
         settings: {
           ...initial.settings,
           ...(action.state.settings ?? {}),
@@ -456,7 +467,8 @@ function reducer(state: AppState, action: Action): AppState {
         },
         subscription: { ...initial.subscription, ...(action.state.subscription ?? {}) },
         tokenHistory: { ...(action.state.tokenHistory ?? {}) },
-      };
+        };
+      }
     case "NEW_CHAT": {
       const id = `c-${Date.now()}`;
       const chat: Chat = { id, title: "New chat", messages: [], createdAt: Date.now() };

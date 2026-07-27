@@ -14,6 +14,7 @@ router.use(localEngineAuth);
 const OLLAMA_HOST = (
   process.env.OLLAMA_HOST ?? process.env.VITE_OLLAMA_BASE_URL ?? ""
 ).replace(/\/$/, "");
+const CUSTOM_API_KEY = (process.env.CUSTOM_API_KEY ?? "").trim();
 
 function isTrustedEndpoint(url: string): boolean {
   try {
@@ -54,7 +55,10 @@ router.get("/local-proxy/ping", async (req, res) => {
     const tid = setTimeout(() => controller.abort(), 4000);
     const resp = await fetch(`${url}/models`, {
       signal: controller.signal,
-      headers: { "ngrok-skip-browser-warning": "true" },
+      headers: {
+        "ngrok-skip-browser-warning": "true",
+        ...(CUSTOM_API_KEY ? { Authorization: `Bearer ${CUSTOM_API_KEY}` } : {}),
+      },
     });
     clearTimeout(tid);
     if (!resp.ok) return res.json({ ok: false, status: resp.status });
@@ -88,16 +92,33 @@ router.post("/local-proxy/chat", async (req, res) => {
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 120_000);
 
-    const upstream = await fetch(`${base}/chat/completions`, {
+    let upstream = await fetch(`${base}/chat/completions`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "Authorization": "Bearer ollama",
+        ...(CUSTOM_API_KEY ? { Authorization: `Bearer ${CUSTOM_API_KEY}` } : {}),
         "ngrok-skip-browser-warning": "true",
       },
       body: JSON.stringify({ model, messages, stream }),
       signal: controller.signal,
     });
+
+    // The configured Ollama/ngrok bridge returns 500 for streaming requests
+    // but supports the same OpenAI-compatible response non-streaming.
+    let usedNonStreamingFallback = false;
+    if (!upstream.ok && stream && upstream.status >= 500) {
+      usedNonStreamingFallback = true;
+      upstream = await fetch(`${base}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...(CUSTOM_API_KEY ? { Authorization: `Bearer ${CUSTOM_API_KEY}` } : {}),
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: JSON.stringify({ model, messages, stream: false }),
+        signal: controller.signal,
+      });
+    }
 
     clearTimeout(tid);
 
@@ -115,6 +136,16 @@ router.post("/local-proxy/chat", async (req, res) => {
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders?.();
+
+    if (usedNonStreamingFallback) {
+      const data = await upstream.json() as {
+        choices?: Array<{ message?: { content?: string } }>;
+      };
+      const content = data.choices?.[0]?.message?.content ?? "";
+      res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      return res.end();
+    }
 
     const reader = upstream.body.getReader();
     const decoder = new TextDecoder();

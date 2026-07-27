@@ -1069,7 +1069,7 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
     let names: { name: string; size: number }[] = [];
     try {
       const r = await fetch(`${base}/models`, {
-        headers: { Authorization: "Bearer ollama" },
+        headers: { "ngrok-skip-browser-warning": "true" },
         signal: AbortSignal.timeout(5000),
       });
       const d = await r.json().catch(() => ({}));
@@ -1315,7 +1315,7 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
     const base = endpoint.trim().replace(/\/$/, "");
     try {
       const res = await fetch(`${base}/models`, {
-        headers: { "Authorization": "Bearer ollama" },
+        headers: { "ngrok-skip-browser-warning": "true" },
         signal: AbortSignal.timeout(5000),
       });
       if (res.ok) {
@@ -1344,7 +1344,7 @@ export function LocalModelModal({ open, onOpenChange, onOpenEngineHub }: LocalMo
     const t0 = Date.now();
     try {
       const res = await fetch(`${base}/models`, {
-        headers: { "Authorization": "Bearer ollama" },
+        headers: { "ngrok-skip-browser-warning": "true" },
         signal: AbortSignal.timeout(6000),
       });
       const latMs = Date.now() - t0;

@@ -188,8 +188,8 @@ const PROVIDERS: ProviderDef[] = [
   },
   {
     id: "custom", name: "Custom Endpoint", color: "#64748b", glow: "rgba(100,116,139,0.15)",
-    icon: Server, envKey: "CUSTOM_API_KEY", baseURL: "",
-    desc: "أي endpoint متوافق مع OpenAI API — Ollama · LM Studio", docsURL: "", requiresKey: false,
+    icon: Server, envKey: "CUSTOM_API_KEY", baseURL: "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app/v1",
+    desc: "Ollama المحلي عبر ngrok — OpenAI-compatible · llama3.2", docsURL: "", requiresKey: true,
   },
   {
     id: "personal", name: "Personal API", color: "#e21227", glow: "rgba(226,18,39,0.15)",
@@ -205,6 +205,7 @@ const PROVIDERS: ProviderDef[] = [
 
 // ── Model Catalog ────────────────────────────────────────────────────────────
 const WORLD_MODELS: WorldModel[] = [
+  { id: "llama3.2", label: "Llama 3.2 (Ollama custom)", provider: "Custom", providerKey: "custom", ctx: "128K", speed: "fast", category: "general", cost: "free", note: "Configured ngrok Ollama endpoint" },
   // OpenAI
   { id: "gpt-4o", label: "GPT-4o", provider: "OpenAI", providerKey: "openai", ctx: "128K", speed: "medium", category: "multimodal", cost: "$$", hot: true, baseURL: "https://api.openai.com/v1" },
   { id: "gpt-4o-mini", label: "GPT-4o Mini", provider: "OpenAI", providerKey: "openai", ctx: "128K", speed: "fast", category: "general", cost: "$", hot: true, baseURL: "https://api.openai.com/v1" },

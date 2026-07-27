@@ -1,2 +1,3 @@
 - [Yode9 import](yode9-project.md) — full MR7 AI project imported from GitHub; 4 artifacts + rich backend stack.
 - [Local Engine API Key Auth](local-engine-auth.md) — optional key guard on /api/ollama,/local-engines,/local-proxy; middleware + frontend localFetch wrapper.
+- [Custom Ollama provider](custom-ollama-provider.md) — server-side ngrok Ollama provider with llama3.2 default and non-streaming fallback.

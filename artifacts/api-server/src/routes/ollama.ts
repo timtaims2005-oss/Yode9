@@ -12,6 +12,7 @@ const router = Router();
 router.use(localEngineAuth);
 
 const OLLAMA_BASE = process.env.OLLAMA_HOST || "https://e58e-2003-cb-5f1b-ad4f-b822-f7be-9ffb-45ce.ngrok-free.app";
+const CUSTOM_API_KEY = (process.env.CUSTOM_API_KEY ?? "").trim();
 
 // Workspace-persistent binary (survives container restarts)
 // api-server cwd is artifacts/api-server — go up 2 levels to workspace root
@@ -28,6 +29,7 @@ async function ollamaFetch(endpoint: string, options?: RequestInit) {
     headers: {
       Connection: "keep-alive",
       "ngrok-skip-browser-warning": "true",
+      ...(CUSTOM_API_KEY ? { Authorization: `Bearer ${CUSTOM_API_KEY}` } : {}),
       ...(options?.headers ?? {}),
     },
     signal: options?.signal ?? AbortSignal.timeout(30_000),
@@ -137,7 +139,11 @@ router.post("/ollama/pull", async (req, res) => {
   try {
     const r = await fetch(`${OLLAMA_BASE}/api/pull`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+      headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+        ...(CUSTOM_API_KEY ? { Authorization: `Bearer ${CUSTOM_API_KEY}` } : {}),
+      },
       body: JSON.stringify({ name: model, stream: true }),
       signal: AbortSignal.timeout(600_000),
     });
@@ -186,7 +192,11 @@ router.post("/ollama/chat/stream", async (req, res) => {
   try {
     const r = await fetch(`${OLLAMA_BASE}/api/chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+      headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+        ...(CUSTOM_API_KEY ? { Authorization: `Bearer ${CUSTOM_API_KEY}` } : {}),
+      },
       body: JSON.stringify({ model, messages, stream: true }),
       signal: AbortSignal.timeout(120_000),
     });

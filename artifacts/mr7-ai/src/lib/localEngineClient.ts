@@ -2,11 +2,8 @@
  * Local Engine Client — authenticated fetch wrapper for all local model
  * engine endpoints (/api/ollama/*, /api/local-engines/*, /api/local-proxy/*).
  *
- * Configuration (frontend):
- *   VITE_OLLAMA_API_KEY=<your-key>   in .env / Replit Secrets
- *
- * If VITE_OLLAMA_API_KEY is not set → passes through unauthenticated
- * (backward-compatible when server auth is also disabled).
+ * Authentication is handled by the API server. The browser only needs the
+ * ngrok bypass header; the Ollama bearer token stays in server-side Secrets.
  *
  * Usage:
  *   import { localFetch, getLocalEngineHeaders } from "@/lib/localEngineClient";
@@ -22,8 +19,6 @@
  *   });
  */
 
-const API_KEY = (import.meta.env.VITE_OLLAMA_API_KEY as string | undefined ?? "").trim();
-
 // Ngrok base URL for the local model engine
 const NGROK_BASE_URL = (import.meta.env.VITE_OLLAMA_BASE_URL as string | undefined ?? "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app").trim().replace(/\/$/, "");
 
@@ -34,7 +29,6 @@ export function getLocalEngineHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     "ngrok-skip-browser-warning": "true",
   };
-  if (API_KEY) headers["Authorization"] = `Bearer ${API_KEY}`;
   return headers;
 }
 
@@ -68,7 +62,7 @@ export async function localFetch(
     url.includes("/api/local-engines/") ||
     url.includes("/api/local-proxy/");
 
-  if (!isLocalEngineUrl || !API_KEY) {
+  if (!isLocalEngineUrl) {
     return fetch(input, init);
   }
 

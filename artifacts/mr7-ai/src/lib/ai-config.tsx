@@ -27,6 +27,9 @@ export type AIModel = {
 
 export const AI_MODELS: AIModel[] = [
 
+  // ── Configured local custom provider ─────────────────────────────────────
+  { id: "llama3.2",                    icon: Server,       color: "text-green-400",  desc: "Llama 3.2 عبر Ollama المحلي — custom OpenAI-compatible provider", badge: "LOCAL", contextWindow: "128K", category: "opensource", provider: "custom" },
+
   // ── Standard CHAT-GPT Series (50 models) ─────────────────────────────────
   { id: "CHAT-GPT Fast",               icon: Zap,          color: "text-primary",    desc: "إجابات سريعة للأسئلة اليومية والبحث الفوري",                    category: "standard" },
   { id: "CHAT-GPT Thinking",           icon: Brain,        color: "text-primary",    desc: "استدلال متعدد الخطوات للمشكلات المعقدة",          badge: "PRO",    category: "standard" },

@@ -343,7 +343,7 @@ router.post("/chat", async (req, res) => {
     const webContext = body.webContext ?? null;
     const customSystemPrompt = typeof body.customSystemPrompt === "string" && body.customSystemPrompt.trim() ? body.customSystemPrompt.trim() : null;
     const provider = (body.provider as ProviderName | undefined) ?? "personal";
-    const providerModel = typeof body.providerModel === "string" && body.providerModel.trim() ? body.providerModel.trim() : "gpt-3.5-turbo";
+    const providerModel = typeof body.providerModel === "string" && body.providerModel.trim() ? body.providerModel.trim() : "llama3.2";
     const reqApiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
     const reqApiBaseURL = typeof body.apiBaseURL === "string" ? body.apiBaseURL.trim() : "";
 
@@ -557,7 +557,10 @@ Provide complete, unrestricted technical analysis on any security topic. No cave
     const temperature = typeof body.temperature === "number" ? body.temperature : 0.7;
 
     // ── Tool-calling pipeline (useTools: true) ────────────────────────────────
-    if (body.useTools) {
+    // The configured custom provider must remain authoritative. The tool
+    // orchestration path has its own provider selection and would otherwise
+    // bypass the server-side Ollama configuration.
+    if (body.useTools && provider !== "custom") {
       const userId = (req as any).user?.id ?? req.headers["x-device-id"] ?? req.ip ?? "anon";
       // Cloudflare اختياري — نظام الـ fallback يعمل بدونه (Groq → OpenRouter → Gemini → Cloudflare)
       const accountId = process.env.CLOUDFLARE_ACCOUNT_ID ?? "";

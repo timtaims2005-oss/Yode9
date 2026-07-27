@@ -212,7 +212,10 @@ export default function ChatScreen() {
             {
               backgroundColor: colors.surface,
               borderTopColor: colors.border,
-              paddingBottom: Math.max(insets.bottom, 12),
+              // The tab bar is positioned absolutely, so reserve its height in
+              // addition to the device safe-area inset. Without this clearance
+              // the composer sits underneath the navigation buttons.
+              paddingBottom: Math.max(insets.bottom + 72, 84),
             },
           ]}
         >

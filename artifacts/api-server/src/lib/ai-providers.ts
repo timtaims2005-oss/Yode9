@@ -112,7 +112,11 @@ export type ProviderInfo = {
   baseURL?: string;
 };
 
-export const PERSONAL_DEFAULT_MODEL = process.env.PERSONAL_DEFAULT_MODEL ?? "gpt-3.5-turbo";
+export const CUSTOM_API_BASE_URL =
+  process.env.CUSTOM_API_BASE_URL ??
+  "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app/v1";
+export const CUSTOM_API_MODEL = process.env.CUSTOM_API_MODEL ?? "llama3.2";
+export const PERSONAL_DEFAULT_MODEL = process.env.PERSONAL_DEFAULT_MODEL ?? CUSTOM_API_MODEL;
 
 const WORLD_MODELS = [
   // OpenAI
@@ -198,9 +202,9 @@ const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
   custom: {
     name: "Custom / Self-hosted",
     envKey: "CUSTOM_API_KEY",
-    baseURL: "",
-    models: [],
-    requiresKey: false,
+    baseURL: CUSTOM_API_BASE_URL,
+    models: [CUSTOM_API_MODEL],
+    requiresKey: true,
   },
   personal: {
     name: "Personal / Custom",
@@ -444,7 +448,7 @@ export function getOpenAICompatibleClient(provider: ProviderName): OpenAI | null
 
   if (provider === "custom") {
     apiKey = process.env.CUSTOM_API_KEY || undefined;
-    baseURL = process.env.CUSTOM_API_BASE_URL || "https://api.openai.com/v1";
+    baseURL = CUSTOM_API_BASE_URL;
   } else if (provider === "zhipu") {
     apiKey = process.env.ZHIPU_API_KEY || undefined;
     baseURL = "https://open.bigmodel.cn/api/paas/v4";
@@ -474,6 +478,12 @@ export function getOpenAICompatibleClient(provider: ProviderName): OpenAI | null
 
   const clientOpts: ConstructorParameters<typeof OpenAI>[0] = { apiKey };
   if (baseURL) clientOpts.baseURL = baseURL;
+
+  if (provider === "custom") {
+    clientOpts.defaultHeaders = {
+      "ngrok-skip-browser-warning": "true",
+    };
+  }
 
   if (provider === "openrouter") {
     clientOpts.defaultHeaders = {
@@ -599,7 +609,7 @@ export async function* streamCompletion(
     }
 
     // ── Path 1: Frontend passed a key directly (from ProviderSettingsModal) ──
-    if (opts?.apiKey && opts.apiKey.trim().length > 10) {
+    if (provider !== "custom" && opts?.apiKey && opts.apiKey.trim().length > 10) {
       const client = getClientWithCredentials(opts.apiKey.trim(), opts.apiBaseURL?.trim());
       const resolvedModel = model || PERSONAL_DEFAULT_MODEL;
       try {
@@ -738,16 +748,38 @@ export async function* streamCompletion(
     const isGlm5 = /^glm-5/.test(resolvedModel);
     const glm5Extra = isGlm5 ? { extra_body: { reasoning_effort: "max" } } : {};
 
-    const streamRes = await client.chat.completions.create({
-      model: resolvedModel,
-      messages,
-      stream: true,
-      temperature,
-      ...glm5Extra,
-    } as Parameters<typeof client.chat.completions.create>[0], { signal: controller.signal }) as AsyncIterable<import("openai/resources").ChatCompletionChunk>;
+    try {
+      const streamRes = await client.chat.completions.create({
+        model: resolvedModel,
+        messages,
+        stream: true,
+        temperature,
+        ...glm5Extra,
+      } as Parameters<typeof client.chat.completions.create>[0], { signal: controller.signal }) as AsyncIterable<import("openai/resources").ChatCompletionChunk>;
 
-    for await (const chunk of streamRes) {
-      const content = chunk.choices?.[0]?.delta?.content;
+      for await (const chunk of streamRes) {
+        const content = chunk.choices?.[0]?.delta?.content;
+        if (content) yield { content };
+      }
+    } catch (streamError) {
+      // Some Ollama/ngrok bridges support the OpenAI response shape but fail
+      // when streaming is enabled. Retry once as a normal completion and
+      // surface it through the same application-level SSE contract.
+      const status = (streamError as { status?: number }).status;
+      const message = streamError instanceof Error ? streamError.message : "";
+      const isServerError = status !== undefined
+        ? status >= 500
+        : /500|internal server error/i.test(message);
+      if (resolvedProvider !== "custom" || !isServerError) throw streamError;
+
+      const completion = await client.chat.completions.create({
+        model: resolvedModel,
+        messages,
+        stream: false,
+        temperature,
+        ...glm5Extra,
+      } as Parameters<typeof client.chat.completions.create>[0], { signal: controller.signal }) as import("openai/resources").ChatCompletion;
+      const content = completion.choices?.[0]?.message?.content;
       if (content) yield { content };
     }
     yield { done: true };

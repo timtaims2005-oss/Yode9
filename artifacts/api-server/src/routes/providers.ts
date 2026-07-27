@@ -5,6 +5,8 @@ import {
   invalidateProviderCache,
   fetchCloudflareModels,
   invalidateCloudflareModelsCache,
+  getOpenAICompatibleClient,
+  CUSTOM_API_MODEL,
 } from "../lib/ai-providers";
 import { internalAuth } from "../middlewares/internalAuth";
 import { logger } from "../lib/logger";
@@ -115,6 +117,30 @@ router.post("/providers/test", internalAuth, async (req, res) => {
       latencyMs: Date.now() - start,
       error: isAuthError ? undefined : msg.slice(0, 200),
     });
+  }
+});
+
+// POST /providers/custom/test — verifies the configured server-side custom provider.
+// The API key is read only from Replit Secrets and is never accepted from the client.
+router.post("/providers/custom/test", internalAuth, async (_req, res) => {
+  const start = Date.now();
+  const client = getOpenAICompatibleClient("custom");
+  if (!client) {
+    return res.status(503).json({ ok: false, model: CUSTOM_API_MODEL, latencyMs: 0, error: "CUSTOM_API_KEY is not configured." });
+  }
+
+  try {
+    const response = await client.chat.completions.create({
+      model: CUSTOM_API_MODEL,
+      messages: [{ role: "user", content: "Reply with exactly: ollama-ok" }],
+      max_tokens: 8,
+      stream: false,
+    });
+    const content = response.choices?.[0]?.message?.content?.trim() ?? "";
+    return res.json({ ok: Boolean(content), model: CUSTOM_API_MODEL, latencyMs: Date.now() - start, response: content.slice(0, 80) });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Custom provider request failed";
+    return res.status(502).json({ ok: false, model: CUSTOM_API_MODEL, latencyMs: Date.now() - start, error: message.slice(0, 200) });
   }
 });
 

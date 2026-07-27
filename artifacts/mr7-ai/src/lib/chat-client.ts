@@ -301,7 +301,6 @@ export async function streamLocalChat(
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "Authorization": "Bearer ollama",
       "ngrok-skip-browser-warning": "true",
     },
     body: JSON.stringify({ model, messages: apiMessages, stream: true }),

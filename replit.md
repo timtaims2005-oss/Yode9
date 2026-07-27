@@ -37,12 +37,16 @@ Full-stack AI-powered cybersecurity and penetration testing platform (KaliGPT v6
 | `DATABASE_URL` | runtime-managed | Replit PostgreSQL |
 | `NODE_ENV` | `development` | dev mode |
 | `LOCAL_AUTH_BYPASS` | `true` | skip Clerk auth for local testing |
-| `LOCAL_MOCK_PROVIDER` | `true` | use mock AI provider (no API key required) |
+| `LOCAL_MOCK_PROVIDER` | `false` | use the configured live AI provider |
 | `AUTO_LAUNCH_OLLAMA` | `false` | don't auto-launch Ollama binary |
 | `OLLAMA_HOST` | ngrok URL | remote Ollama via ngrok |
 | `VITE_OLLAMA_BASE_URL` | ngrok URL | frontend Ollama endpoint |
+| `CUSTOM_API_BASE_URL` | ngrok `/v1` URL | server-side OpenAI-compatible custom provider |
+| `CUSTOM_API_MODEL` | `llama3.2` | default custom-provider model |
 
-### Optional Secrets (add to enable live AI / auth)
+The `CUSTOM_API_KEY` Replit Secret authenticates the custom Ollama provider. It is intentionally kept server-side; the browser only sends the ngrok warning-bypass header. The provider test endpoint is `POST /api/providers/custom/test`.
+
+### Optional Secrets (add to enable other live AI / auth)
 - `GROQ_API_KEY` — Groq AI inference (llama-3.1-8b, llama-3.3-70b, mixtral)
 - `CLERK_SECRET_KEY` + `CLERK_PUBLISHABLE_KEY` — full auth
 - `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENROUTER_API_KEY` — other AI providers
@@ -53,7 +57,7 @@ Full-stack AI-powered cybersecurity and penetration testing platform (KaliGPT v6
 - Drizzle migrations: `lib/db/src/schema/` (new tables go here, not `artifacts/api-server/src/db.ts`)
 - API server build: `pnpm --filter @workspace/api-server run build` (~2–3s, esbuild)
 - TypeScript check: `pnpm run typecheck`
-- The `mock` AI provider (`LOCAL_MOCK_PROVIDER=true`) returns simulated responses — safe for testing all routes without a real key.
+- The custom Ollama/ngrok bridge currently returns HTTP 500 for upstream streaming requests. The server automatically retries custom-provider and local-proxy completions non-streaming and emits the result through the app's SSE contract.
 
 ## User Preferences
 - Prefer Groq for AI inference when a live key is available
