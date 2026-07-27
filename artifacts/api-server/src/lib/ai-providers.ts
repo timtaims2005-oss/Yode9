@@ -114,8 +114,8 @@ export type ProviderInfo = {
 
 export const CUSTOM_API_BASE_URL =
   process.env.CUSTOM_API_BASE_URL ??
-  "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app/v1";
-export const CUSTOM_API_MODEL = process.env.CUSTOM_API_MODEL ?? "llama3.2";
+  "https://107b-2003-cb-5f1b-adc8-58f8-bea5-33e-6875.ngrok-free.app/v1";
+export const CUSTOM_API_MODEL = process.env.CUSTOM_API_MODEL ?? "deepseek-r1:8b";
 export const PERSONAL_DEFAULT_MODEL = process.env.PERSONAL_DEFAULT_MODEL ?? CUSTOM_API_MODEL;
 
 const WORLD_MODELS = [

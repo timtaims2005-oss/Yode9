@@ -355,7 +355,7 @@ const seedHey: Chat = {
 const initial: AppState = {
   chats: [seedChat, seedHey],
   activeChatId: seedChat.id,
-  activeModel: "llama3.2",
+  activeModel: "deepseek-r1:8b",
   activePersona: null,
   settings: {
     notifications: true,
@@ -380,8 +380,8 @@ const initial: AppState = {
     customSystemPrompt: "",
     activePersonaPreset: "default",
     useLocalModel: true,
-    localEndpoint: (import.meta.env.VITE_OLLAMA_BASE_URL as string | undefined ?? "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app") + "/v1",
-    localModel: "llama3.2",
+    localEndpoint: (import.meta.env.VITE_OLLAMA_BASE_URL as string | undefined ?? "https://107b-2003-cb-5f1b-adc8-58f8-bea5-33e-6875.ngrok-free.app") + "/v1",
+    localModel: "deepseek-r1:8b",
     parseltongueCombo: false,
     parseltongueComboTechnique: "unicode",
     parseltongueComboIntensity: "medium",
@@ -438,7 +438,7 @@ const initial: AppState = {
   compareModels: ["CHAT-GPT Fast", "CHAT-GPT Thinking"],
   subscription: INITIAL_SUBSCRIPTION,
   activeProvider: "custom",
-  activeProviderModel: "llama3.2",
+  activeProviderModel: "deepseek-r1:8b",
   tokenHistory: {},
   activeProjectId: null,
   cachedProjects: [],
@@ -458,7 +458,7 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         ...action.state,
         ...(shouldMigrateCustomProvider
-          ? { activeModel: "llama3.2", activeProvider: "custom", activeProviderModel: "llama3.2" }
+          ? { activeModel: "deepseek-r1:8b", activeProvider: "custom", activeProviderModel: "deepseek-r1:8b" }
           : {}),
         settings: {
           ...initial.settings,
