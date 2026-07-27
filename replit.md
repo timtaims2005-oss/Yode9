@@ -132,7 +132,46 @@ lib/
 | POST | `/api/upload` | File upload → R2/S3/local |
 | GET | `/api/health` | Health check |
 
+## Sovereign Agentic OS — Core Architecture
+
+All agentic components live under `artifacts/api-server/src/core/` and the gateway at `artifacts/api-server/src/gateway/agentic-stream.ts`.
+
+### Agentic Control Plane (`src/core/agentic/`)
+| File | Class | Role |
+|---|---|---|
+| `swarm-orchestrator.ts` | `SwarmOrchestrator` | 4-persona swarm (Recon, Exploitation, Validator, Reporter) sharing a global ContextBus; runs plugins in DAG waves |
+| `jetool-orchestrator.ts` | `JetoolOrchestrator` | Strict JSON Schema validation on I/O, dynamic parameter synthesis, pipeline artifact passing |
+| `dag-workflow.ts` | `DagWorkflowEngine` | Dependency-aware DAG runner; topological sort with cycle detection |
+| `context-bus.ts` | `ContextBus` | In-memory typed pub/sub bus shared across all personas and plugins |
+| `safety.ts` | — | Forbidden-action allow/deny gate; blocks all active operations |
+
+### Plugin Ecosystem (`src/core/plugins/`)
+| Plugin | Capability |
+|---|---|
+| `HeroOrchestratorPlugin` | Builds decision graphs, allocates 4 agent personas, scores synthesis confidence |
+| `OmniAuditPlugin` | OWASP Top 10 2021 attack-surface analysis across 5 surfaces with CVSS + CWE mapping |
+| `JWTSecurityPlugin` | Algorithm risk analysis, 5 forge vectors (alg:none, RS→HS confusion, KID injection…), claim gap audit |
+| `NetworkScannerPlugin` | 10 critical service profiles, 4 subnet zone assessments, topology risk vectors |
+| `MonstakFuzzingPlugin` | 6 payload mutation strategies, 4 stress scenarios, stateful fuzzing state machine |
+
+### Reasoning Engine (`src/core/reasoning/`)
+| File | Class | Role |
+|---|---|---|
+| `react-planner.ts` | `ReActPlanner` | Multi-phase intent-aware planning; generates domain-specific step sequences; `mutateForRetry()` for self-healing |
+| `reflection-loop.ts` | `ReflectionLoop` | Self-healing execution: up to 3 retry attempts, auto-mutates parameters on error or low confidence |
+
+### High-Throughput Gateway (`src/gateway/agentic-stream.ts`)
+- **POST `/api/v1/agentic/stream`** — start a job, returns `jobId`
+- **GET `/api/v1/agentic/stream?jobId=...&stream=true`** — SSE telemetry stream
+- **WebSocket** via `handleAgenticSocket()` — same job channel, WS protocol
+- Each SSE/WS event carries: `node` (graph node to highlight), `level`, `source`, `message`, `latency`, `tokens`, `confidence` — consumed directly by the CognitiveControlCenter UI
+
+### Cognitive Control Center UI (`src/components/cognitive_ui/`)
+- `CognitiveControlCenter.tsx` — Interactive Thought Graph, Jetool Control Matrix (plugin toggles + autonomy mode + JSON schema editor), Cyber Telemetry Terminal
+- Connects to `/api/v1/agentic/stream` via SSE with simulation fallback
+
 ## User Preferences
 
 - Arabic-first UI for end-user-facing elements; backend code in English
-- TypeScript must compile with 0 errors at all times
+- TypeScript must compile with 0 errors at all times (`npx tsc --noEmit` from `artifacts/api-server/`)
+- Before running `tsc --noEmit` on api-server, build lib packages: `npx tsc --project tsconfig.json` in `lib/db/`, `lib/api-zod/`, and `lib/integrations-openai-ai-server/`

@@ -1,0 +1,50 @@
+Act as an Elite Principal AI Systems Architect & Sovereign Autonomous Systems Engineer.
+
+Your goal is to build the absolute peak implementation of a Sovereign Agentic OS, Next-Gen Tool Ecosystem, and Autonomous Cyber Operations Matrix in this workspace. 
+
+Incorporate the 5 core specification files into the deepest layer of the core system architecture:
+1. `Hero.md` -> Master System Architect & Swarm Orchestration Engine
+2. `Omni-Hack.md` -> Sovereign Vulnerability Assessment & Surface Engine
+3. `JWT Attack.md` -> Cryptographic & Identity Exploitation Plugin
+4. `Network Scanner.md` -> Distributed Network Topology & Asset Mapping Skill
+5. `Monstak.md` -> Dynamic Fuzzing, Payload Mutation & Stress Pipeline
+
+---
+
+### 🏛️ MASTER SYSTEM ARCHITECTURE & COMPONENTS
+
+#### 1. Core Agentic Runtime & Swarm Intelligence (`src/core/agentic/`)
+- **`SwarmOrchestrator` (`Hero.md`):** Serves as the Master Neural Architect. Operates a Multi-Agent Swarm with specialized personas (Recon Agent, Exploitation Agent, Validator Agent, Reporter Agent) sharing a global Context Bus.
+- **`JetoolOrchestrator` (Function Calling Engine):** Zero-latency Tool Orchestrator with streaming Function Calling, strict JSON Schema validation, dynamic parameter synthesis, and pipeline artifact passing.
+- **`DAG Workflow Engine`:** Dynamically constructs and executes Directed Acyclic Graphs (DAGs) for multi-step security operations based on user intent.
+
+#### 2. Native Enterprise Plugin & Skill Ecosystem (`src/core/plugins/`)
+- Encapsulate the 5 specification files into non-blocking, sandboxed, production-grade executable plugins:
+  * `HeroOrchestratorPlugin`: Task distribution, state orchestration, and decision graph synthesis.
+  * `OmniAuditPlugin`: Comprehensive continuous attack-surface analysis.
+  * `JWTSecurityPlugin`: Cryptographic decoding, algorithm stripping, signature forge testing.
+  * `NetworkScannerPlugin`: Port auditing, service fingerprinting, and sub-net topology mapping.
+  * `MonstakFuzzingPlugin`: Stateful payload mutation, automated stress testing, and traffic fuzzing.
+
+#### 3. Cognitive Reasoning, Reflection & Self-Healing Loops (`src/core/reasoning/`)
+- Implement a **ReAct (Reasoning + Action) + Self-Reflection Loop**:
+  * **Plan Generation:** Generates multi-phase action plans before firing tools.
+  * **Observation & Evaluation:** Monitors raw logs, JSON streams, and exit codes in real-time.
+  * **Self-Healing:** If an execution fails or encounters defensive filters, the agent inspects the error stack, mutates parameters/code autonomously, and retries without human intervention.
+
+#### 4. High-Throughput API Gateway (`artifacts/api-server/src/gateway/`)
+- Expose WebSocket & SSE (Server-Sent Events) telemetry streams under `/api/v1/agentic/stream`.
+- Provide asynchronous execution channels to handle heavy long-running scans and fuzzing loops seamlessly in the background.
+
+#### 5. Next-Gen Cognitive Control Center UI (`src/components/cognitive_ui/`)
+- Build a state-of-the-art interactive Dashboard:
+  * **Interactive Thought Graph (Node-Based):** Real-time visual graph showing LLM Intent -> Sub-Agent Delegation -> Active Plugin Node -> Streaming Output -> Reflection.
+  * **Jetool Control Matrix:** Live toggle switch to manage Plugin permissions, edit dynamic JSON Schemas, and set autonomy levels (Manual / Semi-Auto / Fully Autonomous).
+  * **Cyber Telemetry Terminal:** High-performance dark-mode terminal rendering raw CLI/API outputs, JSON responses, and security reports in real time.
+
+---
+
+### ⚙️ SYSTEM COMPILATION & INTEGRATION VERIFICATION
+- Ensure complete TypeScript safety with zero `any` leaks.
+- Ensure naming conventions are audit-compliant to ensure smooth deployment.
+- Execute `tsc --noEmit` and confirm clean, error-free compilation across the entire project.

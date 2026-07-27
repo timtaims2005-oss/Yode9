@@ -47,6 +47,8 @@ interface MutableJob {
   readonly listeners: Set<(event: AgenticStreamEvent) => void>;
   readonly createdAt: string;
   completedAt?: string;
+  startedAt?: number;
+  totalTokensEstimate: number;
 }
 
 type JsonObject = Readonly<Record<string, unknown>>;
@@ -61,12 +63,21 @@ function parseRequest(value: unknown): AgenticRequest | undefined {
   const mode = value["mode"];
   const input = value["input"];
   const rawScope = value["authorizedScope"];
-  if (typeof intent !== "string" || (mode !== "dry-run" && mode !== "simulation") || !isObject(input) || !isObject(rawScope)) {
+  if (
+    typeof intent !== "string" ||
+    (mode !== "dry-run" && mode !== "simulation") ||
+    !isObject(input) ||
+    !isObject(rawScope)
+  ) {
     return undefined;
   }
   const scopeId = rawScope["id"];
   const actions = rawScope["actions"];
-  if (typeof scopeId !== "string" || !Array.isArray(actions) || !actions.every((item): item is string => typeof item === "string")) {
+  if (
+    typeof scopeId !== "string" ||
+    !Array.isArray(actions) ||
+    !actions.every((item): item is string => typeof item === "string")
+  ) {
     return undefined;
   }
   const expiresAt = rawScope["expiresAt"];
@@ -80,10 +91,65 @@ function parseRequest(value: unknown): AgenticRequest | undefined {
       actions,
       ...(typeof expiresAt === "number" ? { expiresAt } : {}),
     } satisfies AuthorizedScope,
-    ...(Array.isArray(requestedPlugins) && requestedPlugins.every((item): item is string => typeof item === "string")
+    ...(Array.isArray(requestedPlugins) &&
+    requestedPlugins.every((item): item is string => typeof item === "string")
       ? { requestedPlugins }
       : {}),
   };
+}
+
+/** Rough token estimate: ~0.75 tokens per character for English prose */
+function estimateTokens(data: unknown): number {
+  try {
+    return Math.round(JSON.stringify(data).length * 0.75);
+  } catch {
+    return 0;
+  }
+}
+
+/** Latency in milliseconds from job start */
+function elapsedMs(job: MutableJob): number {
+  return job.startedAt !== undefined ? Date.now() - job.startedAt : 0;
+}
+
+/**
+ * Map event type to the CognitiveControlCenter graph node it should highlight.
+ * Nodes: intent | swarm | plugin | telemetry | reflection
+ */
+function eventToNode(type: AgenticEventType, pluginName?: string): string {
+  switch (type) {
+    case "intent":
+      return "intent";
+    case "delegation":
+      return "swarm";
+    case "plugin":
+      return pluginName !== undefined ? "plugin" : "plugin";
+    case "output":
+      return "telemetry";
+    case "reflection":
+      return "reflection";
+    case "complete":
+      return "reflection";
+    case "error":
+      return "intent";
+    default:
+      return "telemetry";
+  }
+}
+
+/** Confidence score derived from plugin results in the data payload */
+function deriveConfidence(data: unknown): number | undefined {
+  if (!isObject(data)) return undefined;
+  // Swarm result
+  const tel = data["telemetry"];
+  if (isObject(tel) && typeof tel["consensusScore"] === "number") {
+    return Math.round(tel["consensusScore"] * 100);
+  }
+  // Reflection result
+  if (typeof data["passed"] === "boolean") {
+    return data["passed"] ? 88 : 55;
+  }
+  return undefined;
 }
 
 class AgenticJobStore {
@@ -106,6 +172,7 @@ class AgenticJobStore {
       events: [],
       listeners: new Set(),
       createdAt: new Date().toISOString(),
+      totalTokensEstimate: 0,
     };
     this.jobs.set(id, job);
     void this.execute(job);
@@ -121,46 +188,160 @@ class AgenticJobStore {
     return [...this.jobs.values()].map((job) => this.snapshot(job));
   }
 
-  subscribe(id: string, listener: (event: AgenticStreamEvent) => void): (() => void) | undefined {
+  subscribe(
+    id: string,
+    listener: (event: AgenticStreamEvent) => void,
+  ): (() => void) | undefined {
     const job = this.jobs.get(id);
     if (job === undefined) return undefined;
     for (const event of job.events) listener(event);
-    if (job.status === "completed" || job.status === "blocked" || job.status === "error") return () => undefined;
+    if (
+      job.status === "completed" ||
+      job.status === "blocked" ||
+      job.status === "error"
+    )
+      return () => undefined;
     job.listeners.add(listener);
-    return (): void => { job.listeners.delete(listener); };
+    return (): void => {
+      job.listeners.delete(listener);
+    };
   }
 
   private async execute(job: MutableJob): Promise<void> {
     job.status = "running";
-    this.emit(job, "intent", { intent: job.request.intent, mode: job.request.mode });
+    job.startedAt = Date.now();
+
+    this.emit(job, "intent", {
+      intent: job.request.intent,
+      mode: job.request.mode,
+      node: "intent",
+      level: "info",
+      source: "gateway",
+      message: `intent received · mode:${job.request.mode}`,
+      latency: 0,
+      tokens: estimateTokens(job.request.intent),
+    });
+
     try {
       const result = await this.reflection.run(job.request, async (request) => {
         const swarm = await this.orchestrator.run(request, {
-          onDelegation: (plugin): void => this.emit(job, "delegation", { plugin }),
-          onPlugin: (pluginResult): void => this.emit(job, "plugin", pluginResult),
+          onPersonaActivated: (persona): void => {
+            this.emit(job, "delegation", {
+              persona: persona.id,
+              name: persona.name,
+              role: persona.role,
+              node: "swarm",
+              level: "info",
+              source: "swarm",
+              message: `${persona.name} activated · ${persona.role}`,
+              latency: elapsedMs(job),
+            });
+          },
+          onDelegation: (plugin, persona): void => {
+            this.emit(job, "delegation", {
+              plugin,
+              persona,
+              node: "swarm",
+              level: "info",
+              source: "swarm",
+              message: `delegating ${plugin} → ${persona}`,
+              latency: elapsedMs(job),
+            });
+          },
+          onPlugin: (pluginResult): void => {
+            const tokens = estimateTokens(pluginResult);
+            job.totalTokensEstimate += tokens;
+            this.emit(job, "plugin", {
+              ...pluginResult,
+              node: "plugin",
+              level: pluginResult.status === "blocked" ? "warn" : "ok",
+              source: pluginResult.plugin,
+              message: `${pluginResult.plugin} · ${pluginResult.findings.length} findings · ${pluginResult.status}`,
+              latency: elapsedMs(job),
+              tokens: job.totalTokensEstimate,
+            });
+          },
         });
-        this.emit(job, "output", swarm);
+        this.emit(job, "output", {
+          ...swarm,
+          node: "telemetry",
+          level: "info",
+          source: "orchestrator",
+          message: `swarm complete · ${swarm.plugins.length} plugins · ${swarm.blockedActions.length} blocked`,
+          latency: elapsedMs(job),
+          tokens: job.totalTokensEstimate,
+          confidence: deriveConfidence(swarm),
+        });
         return swarm.plugins;
       });
-      this.emit(job, "reflection", result.reflection);
-      job.status = result.reflection.nextAction === "blocked" ? "blocked" : "completed";
-      this.emit(job, "complete", { status: job.status });
+
+      const confidence = deriveConfidence(result.reflection) ??
+        (result.reflection.passed ? 88 : 55);
+
+      this.emit(job, "reflection", {
+        ...result.reflection,
+        plan: result.plan,
+        node: "reflection",
+        level: result.reflection.passed ? "ok" : "warn",
+        source: "reflection",
+        message: result.reflection.summary.slice(0, 120),
+        latency: elapsedMs(job),
+        tokens: job.totalTokensEstimate,
+        confidence,
+      });
+
+      job.status =
+        result.reflection.nextAction === "blocked" ? "blocked" : "completed";
+
+      this.emit(job, "complete", {
+        status: job.status,
+        node: "reflection",
+        level: "ok",
+        source: "gateway",
+        message: `job ${job.id.slice(0, 8)} · ${job.status} · ${elapsedMs(job)}ms`,
+        latency: elapsedMs(job),
+        tokens: job.totalTokensEstimate,
+        confidence,
+      });
     } catch (error: unknown) {
       job.status = "error";
-      this.emit(job, "error", { message: error instanceof Error ? error.message : "Agentic execution failed." });
+      const message =
+        error instanceof Error ? error.message : "Agentic execution failed.";
+      this.emit(job, "error", {
+        message,
+        node: "intent",
+        level: "error",
+        source: "gateway",
+        latency: elapsedMs(job),
+      });
     } finally {
       job.completedAt = new Date().toISOString();
       job.listeners.clear();
     }
   }
 
-  private emit(job: MutableJob, type: AgenticEventType, data: unknown): void {
+  private emit(
+    job: MutableJob,
+    type: AgenticEventType,
+    data: unknown,
+  ): void {
+    // Enrich data with node hint if not already present
+    const enriched: Record<string, unknown> =
+      isObject(data) ? { ...data } : { raw: data };
+    if (!("node" in enriched)) {
+      const pluginName =
+        isObject(data) && typeof data["plugin"] === "string"
+          ? data["plugin"]
+          : undefined;
+      enriched["node"] = eventToNode(type, pluginName);
+    }
+
     const event: AgenticStreamEvent = {
       id: randomUUID(),
       jobId: job.id,
       type,
       timestamp: new Date().toISOString(),
-      data,
+      data: enriched,
     };
     job.events.push(event);
     for (const listener of job.listeners) listener(event);
@@ -182,10 +363,15 @@ export const agenticJobStore = new AgenticJobStore();
 const router: IRouter = Router();
 
 function sendSseEvent(response: Response, event: AgenticStreamEvent): void {
-  response.write(`id: ${event.id}\nevent: ${event.type}\ndata: ${JSON.stringify(event.data)}\n\n`);
+  response.write(
+    `id: ${event.id}\nevent: ${event.type}\ndata: ${JSON.stringify(event.data)}\n\n`,
+  );
 }
 
-function sendWebSocketEvent(socket: WebSocket, event: AgenticStreamEvent): void {
+function sendWebSocketEvent(
+  socket: WebSocket,
+  event: AgenticStreamEvent,
+): void {
   if (socket.readyState === socket.OPEN) {
     socket.send(JSON.stringify(event));
   }
@@ -193,16 +379,20 @@ function sendWebSocketEvent(socket: WebSocket, event: AgenticStreamEvent): void 
 
 /**
  * WebSocket adapter for the same in-memory job channel used by SSE.
- * The job id is required so a client cannot subscribe to an unspecified stream.
  */
-export function handleAgenticSocket(socket: WebSocket, request: IncomingMessage): void {
+export function handleAgenticSocket(
+  socket: WebSocket,
+  request: IncomingMessage,
+): void {
   const requestUrl = new URL(request.url ?? "/", "http://agentic.local");
   const jobId = requestUrl.searchParams.get("jobId");
   if (jobId === null || agenticJobStore.get(jobId) === undefined) {
     socket.close(4404, "Agentic job not found");
     return;
   }
-  const unsubscribe = agenticJobStore.subscribe(jobId, (event) => sendWebSocketEvent(socket, event));
+  const unsubscribe = agenticJobStore.subscribe(jobId, (event) =>
+    sendWebSocketEvent(socket, event),
+  );
   if (unsubscribe === undefined) {
     socket.close(4404, "Agentic job not found");
     return;
@@ -214,26 +404,40 @@ export function handleAgenticSocket(socket: WebSocket, request: IncomingMessage)
 router.post("/stream", (req: Request, res: Response): void => {
   const request = parseRequest(req.body as unknown);
   if (request === undefined) {
-    res.status(400).json({ error: "intent, dry-run/simulation mode, input, and authorizedScope are required." });
+    res.status(400).json({
+      error:
+        "intent, dry-run/simulation mode, input, and authorizedScope are required.",
+    });
     return;
   }
   const job = agenticJobStore.create(request);
-  res.status(202).json({ jobId: job.id, status: job.status, streamUrl: `/api/v1/agentic/stream?jobId=${job.id}&stream=true` });
+  res.status(202).json({
+    jobId: job.id,
+    status: job.status,
+    streamUrl: `/api/v1/agentic/stream?jobId=${job.id}&stream=true`,
+  });
 });
 
 router.get("/stream", (req: Request, res: Response): void => {
   const queryJobId = req.query["jobId"];
   const jobId = typeof queryJobId === "string" ? queryJobId : undefined;
-  const streamRequested = req.query["stream"] === "true" || req.headers.accept?.includes("text/event-stream") === true;
+  const streamRequested =
+    req.query["stream"] === "true" ||
+    req.headers.accept?.includes("text/event-stream") === true;
+
   if (!streamRequested) {
-    const job = jobId === undefined ? undefined : agenticJobStore.get(jobId);
+    const job =
+      jobId === undefined ? undefined : agenticJobStore.get(jobId);
     if (jobId !== undefined && job === undefined) {
       res.status(404).json({ error: "Agentic job not found." });
       return;
     }
-    res.json(job === undefined ? { jobs: agenticJobStore.history() } : job);
+    res.json(
+      job === undefined ? { jobs: agenticJobStore.history() } : job,
+    );
     return;
   }
+
   if (jobId === undefined) {
     res.status(400).json({ error: "jobId is required for an SSE stream." });
     return;
@@ -249,7 +453,9 @@ router.get("/stream", (req: Request, res: Response): void => {
     "X-Accel-Buffering": "no",
   });
   res.flushHeaders();
-  const unsubscribe = agenticJobStore.subscribe(jobId, (event) => sendSseEvent(res, event));
+  const unsubscribe = agenticJobStore.subscribe(jobId, (event) =>
+    sendSseEvent(res, event),
+  );
   if (unsubscribe === undefined) return;
   req.on("close", unsubscribe);
 });
