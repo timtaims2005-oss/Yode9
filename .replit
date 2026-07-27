@@ -19,7 +19,7 @@ modules = ["nodejs-20", "python-3.11", "web"]
     timeoutMs = 20000
 
     [nix]
-    channel = "stable-25_05"
+channel = "stable-25_05"
 
     [userenv]
 
