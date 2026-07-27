@@ -24,6 +24,8 @@ interface StudioLayoutProps {
   sidebar?: React.ReactNode;
   /** Top context bar element */
   topBar?: React.ReactNode;
+  /** System status footer — shown on all screen sizes above bottomBar */
+  lowBar?: React.ReactNode;
   /** Bottom navigation (mobile only) */
   bottomBar?: React.ReactNode;
   /** Whether the sidebar is in collapsed icon-only mode */
@@ -41,6 +43,7 @@ interface StudioLayoutProps {
 export function StudioLayout({
   sidebar,
   topBar,
+  lowBar,
   bottomBar,
   sidebarCollapsed = false,
   sidebarOpen = false,
@@ -87,7 +90,14 @@ export function StudioLayout({
           {children}
         </main>
 
-        {/* Bottom bar (mobile) */}
+        {/* Low bar — system status footer (all screen sizes) */}
+        {lowBar && (
+          <div className="flex-shrink-0 studio-lowbar-slot">
+            {lowBar}
+          </div>
+        )}
+
+        {/* Bottom bar (mobile only) */}
         {bottomBar && (
           <div className="md:hidden flex-shrink-0 studio-bottom-nav">
             {bottomBar}

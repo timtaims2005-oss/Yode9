@@ -96,6 +96,7 @@ import { storageQuota } from "./lib/storage-quota";
 import { initializeToolsRegistry } from "./lib/tools";
 import { StudioLayout } from "./components/layout/StudioLayout";
 import { MobileBottomNav } from "./components/navigation/MobileBottomNav";
+import { LowBar } from "./components/LowBar";
 import { GlobalCommandPalette } from "./components/navigation/GlobalCommandPalette";
 
 // ── LAZY-LOADED AMBIENT LAYERS (improves initial bundle) ──────────────────
@@ -1291,6 +1292,7 @@ function AppContent() {
           onOpenNexusPanel={() => toggle('nexusPanel')}
           onOpenOmnixPanel={() => toggle('omnixAbsolute')}
         />}
+      lowBar={<LowBar />}
     >
       <div className="flex flex-col h-full overflow-hidden">
         {/* Project indicator bar */}
