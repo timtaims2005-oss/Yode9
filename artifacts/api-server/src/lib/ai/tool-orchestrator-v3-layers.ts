@@ -34,7 +34,9 @@ setInterval(() => {
 // --- 2) Rate Limiting ---
 interface RateBucket { count: number; windowStart: number; }
 const rateBuckets = new Map<string, RateBucket>();
-const RATE_LIMIT_PER_MINUTE = 20;
+// In development all traffic is unauthenticated; use a very high cap so local
+// testing never triggers the limiter.  In production keep a reasonable quota.
+const RATE_LIMIT_PER_MINUTE = process.env.NODE_ENV === "production" ? 20 : 10_000;
 const RATE_WINDOW_MS = 60 * 1000;
 
 export class RateLimitError extends Error {

@@ -12,6 +12,10 @@ export const sensitiveToolLimiter = rateLimit({
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: { error: "Sensitive-tool rate limit — max 20 requests/min." },
+  // In development all Replit traffic arrives from the same reverse-proxy IP,
+  // so concurrent requests instantly exhaust any per-IP bucket. Skip this
+  // limiter outside of production to avoid spurious 429s during local use.
+  skip: () => process.env.NODE_ENV !== "production",
 });
 
 /**

@@ -39,6 +39,11 @@ export function redisRateLimit(opts: RedisRateLimitOptions) {
     res: Response,
     next: NextFunction,
   ): Promise<void> {
+    // In development all traffic arrives from the same reverse-proxy IP, so
+    // every request shares one bucket and innocuous bursts fire 429 immediately.
+    // Skip all Redis-backed rate limiting outside of production.
+    if (process.env.NODE_ENV !== "production") { next(); return; }
+
     try {
       const identity = keyExtractor
         ? keyExtractor(req)

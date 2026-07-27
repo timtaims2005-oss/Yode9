@@ -319,12 +319,23 @@ app.use(unifiedAuth);
 // Different quotas per strategy: internal=unlimited, cloudflare=1000, api_key=300,
 // jwt=200, clerk/oidc=150, anonymous=20 (all per 60-second window).
 //
+// Skipped entirely in development — all Replit dev traffic arrives from the same
+// reverse-proxy IP, so every unauthenticated request shares one anonymous bucket
+// and the 20 req/min limit fires almost immediately during normal use.
+//
 // Local-engine proxy paths (/api/ollama/*, /api/local-engines/*, /api/local-proxy/*)
-// are skipped entirely — they proxy to a self-hosted / ngrok Ollama instance that
-// the operator controls, so throttling them only hurts streaming inference.
+// and chat requests targeting the local/ngrok provider are also skipped — throttling
+// them only hurts streaming inference against a self-hosted model.
 const LOCAL_ENGINE_PATH_RE = /^\/(?:ollama|local-engines|local-proxy)(?:\/|$)/;
 app.use("/api", authAwareRateLimit({
-  skip: (req) => LOCAL_ENGINE_PATH_RE.test(req.path),
+  skip: (req) => {
+    if (isDev) return true;
+    if (LOCAL_ENGINE_PATH_RE.test(req.path)) return true;
+    // Skip chat/council/agent routes when the client signals local-engine routing
+    const localHeader = req.headers["x-local-engine"];
+    if (localHeader === "1" || localHeader === "true") return true;
+    return false;
+  },
 }));
 
 // ── Apply specific rate limits ────────────────────────────────────────────────

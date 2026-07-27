@@ -32,13 +32,22 @@ const TIER_LIMITS: Record<string, number> = {
   anonymous:    10,
 };
 
+const IS_DEV = process.env.NODE_ENV !== "production";
+
 const WINDOW_SECONDS = 60;
 
 export function tierRateLimit(req: Request, res: Response, next: NextFunction): void {
-  // EVALS_MODE=1 or loopback requests bypass all limiting
+  // Development mode, EVALS_MODE=1, or loopback requests bypass all limiting.
+  // In production on Replit all traffic is proxied so the IP is never loopback;
+  // skip the whole limiter in dev to avoid spurious 429s during local development.
   const ip = req.ip ?? "";
   const isLocalhost = ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1";
-  if (process.env.EVALS_MODE === "1" || isLocalhost) { next(); return; }
+  if (IS_DEV || process.env.EVALS_MODE === "1" || isLocalhost) { next(); return; }
+
+  // Also bypass for requests targeting the custom/local provider so that
+  // streaming inference via ngrok is never throttled by this limiter.
+  const localEngineHeader = req.headers["x-local-engine"];
+  if (localEngineHeader === "1" || localEngineHeader === "true") { next(); return; }
 
   const authUser = req.authUser;
   const tier     = (authUser?.subscription as string | undefined) ?? "anonymous";
