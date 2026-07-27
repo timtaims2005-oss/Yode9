@@ -1,0 +1,50 @@
+```
+لقيت السبب الجذري لمشكلة "الذكاء الاصطناعي مش بيرسم صور" بعد فحص الكود مباشرة، ومش محتاج تشخيص إضافي — المطلوب فقط تنفيذ الإصلاح ده بالظبط:
+
+## السبب الجذري (مؤكد من الكود)
+
+1. الباك إند في artifacts/api-server/src/routes/chat.ts (سطر 330) عنده حقل:
+   useTools?: boolean; // ← new: route through tool-calling pipeline
+   وفي سطر 557 فيه شرط:
+   if (body.useTools) { ... handleChatStream(...) ... } ← ده المسار الوحيد اللي بيمرر الأدوات (generate_image, analyze_image, إلخ) للموديل عن طريق chatWithToolsRobust.
+   لو الشرط ده مش متحقق، الكود بيروح مباشرة لـ streamWithFallback(...) في نفس الملف — ده بيكلم الموديل مباشرة من غير أي tools إطلاقاً.
+
+2. الفرونت إند في artifacts/mr7-ai/src/lib/chat-client.ts:
+   الـ ChatRequest type (export type ChatRequest = {...}) مفيهوش حقل useTools أصلاً، وبالتالي JSON.stringify(req) في streamChat() (اللي بيتبعت لـ /api/chat) مبيحمل الحقل ده أبداً.
+
+النتيجة: كل رسالة بتتبعت من الواجهة بتاخد مسار streamWithFallback بدون أدوات، فالموديل عمره ما شاف تعريف generate_image أصلاً — مش مشكلة موديل أو Secrets، المشكلة إن شرط تفعيل مسار الأدوات مستحيل يتحقق حالياً.
+
+تأكدت كمان إن:
+- أداة generate_image مسجّلة صح في tool-orchestrator-v2.ts (سطر ~486) بتنفيذ حقيقي عبر Cloudflare Flux.
+- الموديل الافتراضي llama-3.3-70b-versatile موجود ضمن TOOL_CAPABLE_MODELS.
+فمفيش مشكلة تسجيل أو دعم — المشكلة بس في الربط.
+
+## المطلوب تنفيذه بالظبط
+
+### 1) في artifacts/mr7-ai/src/lib/chat-client.ts
+أضف الحقل ده لنوع ChatRequest:
+useTools?: boolean;
+
+### 2) في نفس الملف، عند بناء الـ request قبل الإرسال لـ /api/chat
+اجعل useTools: true تتبعت افتراضيًا مع كل رسالة (أو على الأقل عند أي طلب فيه نية رسم/توليد صورة — لكن الأبسط والأضمن هو تفعيلها بشكل دائم بما إن نظام الـ fallback بيتعامل مع أي موديل زي ما هو موضح في modelSupportsTools).
+
+### 3) تأكد إن أي مكان تاني بيستخدم streamChat() أو بيبني ChatRequest يدويًا (زي أي هوك أو كومبوننت تاني بيعمل fetch لـ /api/chat بشكل منفصل) بيبعت useTools: true كمان. دور بـ:
+grep -rn "useTools\|ChatRequest\|/api/chat" artifacts/mr7-ai/src --include="*.ts" --include="*.tsx"
+واعرض لي كل الأماكن اللي بتبني الـ request قبل ما تعدل، عشان محدش يفوتك.
+
+### 4) بعد التعديل، اختبر مباشرة:
+- ابعت رسالة "ارسم لي قطة" من الواجهة الفعلية.
+- افتح Network tab وتأكد إن الـ payload المرسل لـ /api/chat فيه "useTools":true.
+- تأكد إن السيرفر دخل فرع if (body.useTools) في chat.ts (ممكن تضيف console.log مؤقت للتأكيد وتشيله بعدين).
+- تأكد إن الرد فيه استدعاء فعلي لـ generate_image (نجح أو فشل، المهم إنه اتنادى).
+
+### 5) لو فشلت الأداة فعليًا (مش بس مش متنادية)، افحص:
+- هل CLOUDFLARE_ACCOUNT_ID و CLOUDFLARE_API_TOKEN (أو أي secrets تانية بيحتاجها callCloudflareModel) موجودة وسليمة في بيئة التشغيل الحالية بعد نقل الحساب؟
+
+اعرض لي:
+1. الملفات اللي عدلتها بالضبط ولينكات الـ diff.
+2. نتيجة اختبار "ارسم لي قطة" كاملة (الـ payload، هل اتنادت الأداة، والرد النهائي).
+3. أي أخطاء ظهرت في اللوج أثناء التنفيذ.
+
+ماتعملش أي تعديل تاني غير المذكور هنا من غير ما ترجعلي الأول.
+```

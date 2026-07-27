@@ -1,0 +1,93 @@
+# برومبت لـ Replit AI — تحسينات ArtifactPanel + تحسينات عامة على mr7-ai
+
+⚠️ **قاعدة أساسية طول الوقت: ما تحذفش ولا تعدّل أي كود شغّال حاليًا. أضف أنظمة/فيتشرز جديدة فوق الموجود بس. حافظ على كل الألوان والأنيميشنز والمنطق الحالي زي ما هو.**
+
+نفّذ المراحل دي بالترتيب. بعد كل بند: شغّل `npm run typecheck` و`npm run build`، وبعدين افتح التطبيق فعليًا (dev server) واختبر السلوك بنفسك (مش بس إن الـ build عدّى)، وقولّي ملخص بالتغييرات والملفات اللي اتلمست.
+
+---
+
+## المرحلة 1: تحسينات على `src/components/ArtifactPanel-v3.tsx`
+
+### 1. وضع "تحرير مباشر" (Live Edit) في تبويب الكود
+الملف فيه بالفعل `textarea` (`taRef`) و`editCode`/`previewCode` وآلية debounce، لكن التحديث التلقائي شغّال في وضع `view === "split"` بس (مضبوط على 900ms، السطور حوالي 400-413)، ومش شغال في `view === "code"` المنفرد.
+
+المطلوب:
+- خلي التحديث التلقائي للـ `previewCode` يشتغل في وضعي `"code"` و`"split"` مع بعض، مش `"split"` بس.
+- غيّر الـ debounce من 900ms إلى 500ms.
+- تأكد إن التحديث بيحصل محليًا 100% (client-side فقط) بدون أي `fetch`/طلب للسيرفر — ده بالفعل الحال، بس أكّد عليه.
+- حافظ على منطق `pushVer(artifactId, editCode)` الموجود عشان يفضل بيسجل نسخ.
+
+### 2. حفظ تلقائي حقيقي في localStorage
+دلوقتي `store` (سطر 23) هو:
+```ts
+const store = new Map<string, ArtifactVersion[]>();
+```
+ده **في الذاكرة فقط** — يتمسح لما المستخدم يقفل التاب أو يعمل refresh. المطلوب تحويله لـ persistence حقيقي:
+- خلي `pushVer` و`getVers` يقروا/يكتبوا من `localStorage` بمفتاح مبني على `artifactId` (مثلاً `artifact-versions:${id}`)، مع الاحتفاظ بنفس الـ Map كـ in-memory cache فوق localStorage عشان الأداء (ما تقراش من localStorage في كل render).
+- استخدم `JSON.stringify`/`parse` مع `try/catch` (localStorage ممكن يرمي خطأ لو الكوتا خلصت أو private mode).
+- حط حد أقصى معقول لعدد النسخ المحفوظة لكل artifact (مثلاً آخر 20 نسخة) عشان ما نملاش localStorage.
+- لما الـ `ArtifactPage` يفتح، لازم يقرأ آخر نسخة محفوظة فعليًا من localStorage مش من الـ prop `code` بس (لو فيه نسخة أحدث محفوظة).
+
+### 3. زرار "نسخ رابط المشاركة"
+فيه نمط جاهز في `src/components/ArtifactPanel.tsx` (دالة `openInNewTab`, حوالي سطر 691-695):
+```ts
+const b64 = btoa(unescape(encodeURIComponent(code)));
+const params = new URLSearchParams({ code: b64, lang });
+window.open(`/artifact-preview?${params.toString()}`, "_blank", "noopener,noreferrer");
+```
+المطلوب في `ArtifactPanel-v3.tsx`:
+- زرار جديد في الـ top bar (جنب زراير الـ copy/download/newTab الموجودة، استخدم نفس مكوّن `IBtn` الموجود في الملف عشان يبقى متسق بصريًا).
+- يبني نفس الرابط بنفس الطريقة (base64 للكود + lang) لكن بدل `window.open` يعمل `navigator.clipboard.writeText(url)`.
+- بعد النسخ، اظهر toast تأكيد — استخدم نظام الـ toast الموجود بالفعل في المشروع (`src/hooks/use-toast.ts` + `src/components/ui/toast.tsx`/`toaster.tsx`)، ما تبنيش toast جديد من الصفر.
+- تأكد إن صفحة `src/pages/ArtifactPreviewPage.tsx` فعلاً بتقرأ نفس بارامترات `code`/`lang` دي وبتشتغل صح مع الرابط الجديد.
+
+### 4. زرار "تصغير" (Minimize) → فقاعة عائمة (Floating Pill)
+تحدي مهم: حالة `open` دلوقتي محلية جوه `ArtifactCard` (سطر ~222: `const [open, setOpen] = useState(false)`)، فلو الـ overlay اتقفل، الـ component بيرجع لحالته الأصلية وموش هيفضل فيه أثر للـ pill لو رجع المستخدم يسكرول لمكان تاني.
+
+المطلوب:
+- اعمل **context/store عالمي جديد** (ملف جديد مثلاً `src/state/minimizedArtifacts.ts` باستخدام React Context أو أي نمط state موجود بالفعل في المشروع للحالة العالمية — دوّر الأول هل فيه Zustand أو نمط مشابه مستخدم في مكان تاني في المشروع واستخدم نفسه للاتساق).
+- الـ store ده يحتفظ بمصفوفة من الـ artifacts المصغّرة: `{ artifactId, title, language, code, tab }`.
+- زرار "تصغير" جنب زرار الإغلاق في الـ top bar (استخدم نفس ستايل `IBtn`): بيدّي الحالة الحالية (الكود المعدّل `editCode`، والـ view الحالي) للـ store العالمي، وبيقفل الـ `ArtifactPage` (`onClose`) بس من غير ما يعتبرها "إغلاق نهائي".
+- اعمل مكوّن جديد `MinimizedArtifactsBubbles` يترندر مرة واحدة في مستوى الـ App (فوق كل حاجة، مش جوه كل رسالة شات)، وبيقرا من الـ store العالمي، وبيعرض فقاعة صغيرة عائمة لكل artifact مصغّر في ركن الشاشة (مثلاً `bottom: 16px; left: 16px` مع `z-index` أعلى من الشات بس أقل من الـ overlay نفسه).
+- لما تدوس على الفقاعة: تفتح `ArtifactPage` تاني بنفس الحالة بالظبط (نفس الكود المعدّل، نفس الـ tab/view المفتوح) — يعني لازم تبعت `editCode` المحفوظ كـ initial state مش الكود الأصلي بس.
+- لازم يبقى فيه زرار X صغير على الفقاعة نفسها لإغلاقها نهائيًا (يشيلها من الـ store).
+
+---
+
+## المرحلة 2: تحسينات عامة على المشروع
+
+### 5. مراجعة أداء الـ streaming
+دوّر في الملفات دي (موجودة بالفعل في المشروع، ما تبنيش من الصفر):
+`src/lib/stream-optimizer.ts`, `src/lib/adaptive-streaming.ts`, `src/lib/stream-pipeline.ts`, `src/lib/token-stream-counter.ts`, `src/hooks/useStreamMetrics.ts`.
+
+المطلوب:
+- لاقي المكوّن اللي بيستقبل الـ streaming response من الـ AI provider فعليًا (ابحث عن `getReader()` / `ReadableStreamDefaultReader` في المكونات، أو ابحث عن المكان اللي بيستدعي الـ provider ويعمل `setMessages`).
+- افحص هل كل token/chunk بيعمل `setState` منفصل (يعني re-render لكل حرف تقريبًا) ولا فيه batching/throttling.
+- لو فيه re-render زيادة عن اللازم، أضف batching (مثلاً تجميع الـ chunks كل ~16-50ms قبل الـ setState، أو استخدام `useRef` + `requestAnimationFrame` للتحديث البصري) **كطبقة إضافية فوق الكود الموجود** بدون ما تغيّر منطق استقبال البيانات نفسه.
+- قولّي بالظبط فين لقيت المشكلة (لو لقيتها) وإيه القياس قبل/بعد.
+
+### 6. نظام تسجيل الدخول — تحقق الأول قبل أي تنفيذ
+⚠️ المشروع فيه بالفعل نظام مصادقة: `src/hooks/useAuth.ts`, `src/lib/auth.ts`, `src/components/modals/AuthModal.tsx`.
+**متبنيش نظام جديد من الصفر.** بدل كده:
+- افحص الملفات دي وقولّي إيه الموجود فعليًا (تسجيل دخول بس؟ فيه session persistence؟ فيه protected routes؟ فيه ربط بقاعدة بيانات حقيقية ولا mock؟).
+- لو لقيت ثغرة حقيقية أو جزء ناقص (مثلاً مفيش حماية للـ routes، أو الـ session مش بتتحفظ)، اقترح عليّ خطة مكتوبة (من غير تنفيذ) واستنى موافقتي قبل ما تلمس أي حاجة في نظام المصادقة، لأنه بيأثر على بيانات محفوظة.
+
+### 7. مراجعة الـ Sidebar والقوائم التانية لمشكلة الموبايل
+الملفات المعنية: `src/components/Sidebar.tsx` (1679 سطر)، `src/components/sidebar/NeuralSidebar.tsx`، `src/components/ui/sidebar.tsx` (727 سطر)، بالإضافة لأي مودال من الموجودين في `src/components/modals/` (فيه أكتر من 250 ملف، ركّز بس على اللي المستخدم بيفتحها بشكل متكرر في الموبايل).
+
+المطلوب:
+- استخدم نفس الـ hook الموجود بالفعل `useIsMobile` (من `src/hooks/use-mobile.tsx`) — نفس اللي استخدمناه في `ArtifactPanel`.
+- لكل sidebar/قايمة فيها نفس مشكلة الانحصار في شاشة صغيرة (عرض ثابت بكسلات، أو overflow مقطوع)، طبّق نفس منطق fullscreen-on-mobile اللي طبقناه قبل كده على الـ Artifact panel.
+- ابدأ بـ `Sidebar.tsx` بس لأنه الأكبر والأكتر استخدامًا، وقولّي لو فيه ملفات تانية محتاجة نفس المعالجة قبل ما تروح لكلهم.
+
+### 8. نظام إشعارات للمهام الطويلة في الخلفية
+المشروع فيه بالفعل toast system (`src/hooks/use-toast.ts`, `src/components/ui/toast.tsx`, `toaster.tsx`) وصفحة `src/pages/NotificationsPage.tsx` جاهزة. **استخدمهم، ما تبنيش نظام جديد.**
+
+المطلوب:
+- لاقي أماكن المهام الطويلة في الخلفية (توليد كود كبير، توليد صورة، إلخ) وأضف استدعاء لـ `useToast` لما المهمة تخلص وقت ما المستخدم يكون بعيد عن الشات (تبويب تاني/scroll بعيد).
+- لو فيه badge counter في مكان تاني في الواجهة (زي عداد إشعارات على أيقونة)، اربطه بنفس الحدث.
+- خليه إضافة بسيطة فوق البنية التحتية الموجودة، مش نظام موازي.
+
+---
+
+بعد كل بند من التمانية، اختبره في المتصفح فعليًا (مش بس build ناجح)، وابعتلي ملخص قصير: إيه اللي اتغيّر، في أنهي ملفات، وإيه اللي جربته بالظبط.

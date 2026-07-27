@@ -1,4 +1,4 @@
-modules = ["nodejs-24"]
+modules = ["nodejs-20", "web", "python-3.12"]
 
 [deployment]
 router = "application"
@@ -18,3 +18,14 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[nix]
+channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+EVALS_MODE = "1"
+VITE_OLLAMA_API_KEY = "rayan1212"
+OLLAMA_HOST = "https://e58e-2003-cb-5f1b-ad4f-b822-f7be-9ffb-45ce.ngrok-free.app"
+VITE_OLLAMA_BASE_URL = "https://e58e-2003-cb-5f1b-ad4f-b822-f7be-9ffb-45ce.ngrok-free.app"

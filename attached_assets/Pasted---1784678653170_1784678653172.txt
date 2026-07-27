@@ -1,0 +1,74 @@
+اقرأ الكود الموجود في المشروع كاملاً أولاً. هذا شرط أساسي: ممنوع نهائياً حذف أو تعديل أي كود أو ملف أو منطق موجود حالياً (بما فيه ClaudeSkillsModal.tsx الحالي وcustomSystemPrompt وأي مودال آخر) — فقط أضف كود جديد فوق البنية الحالية. حافظ على كل الألوان والأنيميشن (framer-motion) والمنطق القائم كما هو.
+
+الهدف الكامل: بناء نظام Skills حقيقي يشبه نظام Skills في Claude تماماً (شكلاً ووظيفة)، مربوط بنظام إدارة ملفات (Workspace Files) يشبه أداة الملفات في Claude Code.
+
+═══════════════════════════════════
+الجزء 1: محرك الـ Skills (Core Engine)
+═══════════════════════════════════
+ملف جديد src/lib/skillsEngine.ts:
+- type Skill { id, name, description, triggers: string[], instructions: string, source: "browse"|"created-with-ai"|"manual"|"uploaded", isCustom: boolean, linkedFileIds?: string[], createdAt, updatedAt, lastUsedAt }
+- getAllSkills() — يدمج السكيلز الجاهزة (من ClaudeSkillsModal الحالي) + السكيلز المخصصة المخزّنة في localStorage تحت مفتاح جديد "mr7-ai-custom-skills"
+- saveSkill(skill), updateSkill(id, patch), deleteSkill(id), getSkill(id)
+- matchSkills(userMessage: string): Skill[] — مقارنة كلمات الرسالة (lowercase) مع triggers[] و description، ترجع أفضل 1-3 تطابقات، وتحدّث lastUsedAt لكل تطابق
+- buildSkillsAddendum(activeSkills: Skill[]): string — نص يُضاف لآخر الـ system prompt بصيغة "SKILL ACTIVATED: [name] — [instructions]" لكل سكيل مفعّل
+
+═══════════════════════════════════
+الجزء 2: التفعيل التلقائي (بدون كسر الموجود)
+═══════════════════════════════════
+- أضف حقل جديد اختياري في src/lib/store.tsx: settings.autoSkillsEnabled: boolean (default true) — بدون حذف أي حقل موجود، وبدون لمس customSystemPrompt
+- في src/components/ChatView.tsx: أضف سطور جديدة فقط (لا تحذف شيء) قبل كل مكان يُستخدم فيه state.settings.customSystemPrompt لبناء الطلب: نادِ matchSkills(userInput)، ولو فيه تطابقات و autoSkillsEnabled=true، ادمج buildSkillsAddendum(matched) مع customSystemPrompt الحالي بالـ concatenation (إضافة، مش استبدال)
+- أضف state محلي activeSkillBadges لعرض شارة صغيرة "🧩 Skill: [الاسم]" فوق حقل الإدخال أو جنب الرد لكل سكيل اتفعّل في هذا الدور
+- لا تغيّر آلية الحقن اليدوي injectSkill() الموجودة في ClaudeSkillsModal.tsx — سيبها زي ما هي كخيار يدوي إضافي يشتغل بجانب النظام التلقائي الجديد
+
+═══════════════════════════════════
+الجزء 3: واجهة Skills بشكل Claude الرسمي (UI)
+═══════════════════════════════════
+عدّل/وسّع تبويب Skills الحالي في ClaudeSkillsModal.tsx (إضافة فقط) ليطابق شكل Claude بالتفصيل:
+
+هيدر: عنوان "Skills" + أيقونة بحث + زرين:
+  • زر "Browse" → يفتح المكتبة الجاهزة الحالية (السكيلز المبنية مسبقاً)
+  • زر "Add ▾" → dropdown فيه 3 خيارات بالضبط:
+
+  1) "Create with Claude" (أيقونة chat bubble):
+     نافذة محادثة مصغّرة، المستخدم يشرح بلغة عادية إيه اللي عايز الـ Skill يعمله، ويُستخدم streamChat الموجود بالفعل لتوليد SKILL.md كامل (name + description بصيغة YAML frontmatter + التعليمات) تلقائياً، مع معاينة قبل الحفظ عبر saveSkill()
+
+  2) "Write skill instructions" (أيقونة clipboard):
+     فورم يدوي: حقل اسم، حقل وصف (يُستخدم كـ trigger)، صندوق نص كبير للتعليمات الكاملة → يُحفظ عبر saveSkill()
+
+  3) "Upload a skill" (أيقونة رفع) → مكوّن جديد UploadSkillModal.tsx:
+     - صندوق drag-and-drop بأيقونة مجلد+ ونص "Drag and drop or click to upload"
+     - شروط الملف موضّحة تحت الصندوق: ".md file must contain skill name and description formatted in YAML" و ".zip or .skill file must include a SKILL.md file"
+     - رفع .md: اقرأ YAML frontmatter (بين ---) واستخرج name و description، والباقي instructions
+     - رفع .zip/.skill: فك الضغط في المتصفح بمكتبة jszip، دوّر على SKILL.md بالداخل واستخرج نفس البيانات، واحفظ أي ملفات إضافية بالأرشيف في نظام الملفات (الجزء 4) وسجّل ربطها في linkedFileIds
+     - أخطاء الرفع تظهر كرسالة واضحة تحت الصندوق
+
+قائمة الـ Skills: جدول بعمودين "Skill" و"Last used" بدل البطاقات الحالية، كل صف قابل للضغط لفتح تفاصيل السكيل (تعديل/حذف)، بخلفية بيضاء وحدود رمادية فاتحة بسيطة (زي واجهة Claude الأصلية)، بينما باقي مودالز التطبيق تفضل بستايلها الحالي.
+
+═══════════════════════════════════
+الجزء 4: نظام إدارة الملفات (Workspace Files)
+═══════════════════════════════════
+ملف جديد src/lib/filesEngine.ts:
+- type WorkspaceFile { id, path, name, content, mimeType, linkedSkillId?: string, createdAt, updatedAt }
+- listFiles(), createFile(path, content), updateFile(id, content), deleteFile(id), getFile(id)
+- تخزين في localStorage تحت "mr7-ai-workspace-files"، مع مزامنة اختيارية عبر /api/files لو السيرفر متاح (fallback على localStorage لو فشل)
+
+ملف backend جديد artifacts/api-server/src/routes/files.ts (اتّبع نفس نمط routes/projects.ts الموجود بالضبط):
+- ensureFilesTable(): جدول workspace_files (id, device_id, path, name, content, mime_type, linked_skill_id, created_at, updated_at)
+- GET/POST /api/files، PATCH/DELETE /api/files/:id، كلها مربوطة بـ device_id header زي projects.ts
+- سجّل الراوتر الجديد في مكان تسجيل projects router الحالي بدون حذف أي راوتر موجود
+
+مكوّن جديد src/components/modals/FileManagerModal.tsx:
+- قائمة/شجرة ملفات يسار (اسم + مسار + تاريخ تعديل)
+- زر "+ ملف جديد" (اسم/مسار + محتوى) وزر حفظ تعديلات وزر حذف (بتأكيد)
+- إمكانية ربط أي ملف بـ Skill من قائمة skillsEngine.ts عبر dropdown
+
+دمج تلقائي مع الذكاء الاصطناعي في ChatView.tsx (إضافة فقط):
+- بعد انتهاء الـ streaming، افحص رد الـ AI عن نمط ```file:المسار ... ``` وإذا وُجد نادِ createFile/updateFile تلقائياً واعرض toast "📄 تم إنشاء/تعديل الملف: path"
+- لو فيه skill مفعّل مرتبط بملفات، أضف تعليمة صغيرة في نهاية الـ system prompt توضّح للـ AI استخدام هذه الصيغة بالضبط عند كتابة ملف
+
+أضف زر جديد في مكان مناسب بالواجهة الحالية (toolbar/sidebar) لفتح FileManagerModal، بدون تعديل أي زر موجود.
+
+═══════════════════════════════════
+ملاحظة أخيرة
+═══════════════════════════════════
+كل الأجزاء الأربعة أعلاه تعمل مع بعضها كنظام واحد متكامل: Skill ممكن يتولّد بالـ AI أو يُكتب يدوياً أو يُرفع كملف، وممكن يترافق بملفات مرتبطة، ويتفعّل تلقائياً حسب رسالة المستخدم، مع بقاء كل ما هو موجود بالمشروع كما هو تماماً.

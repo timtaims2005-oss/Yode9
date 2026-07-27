@@ -1,0 +1,12 @@
+{
+  "name": "@workspace/evals",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "run": "tsx run.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.0"
+  }
+}

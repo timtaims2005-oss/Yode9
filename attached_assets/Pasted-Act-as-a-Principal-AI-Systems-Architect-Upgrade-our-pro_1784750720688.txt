@@ -1,0 +1,48 @@
+Act as a Principal AI Systems Architect. Upgrade our project's AI infrastructure (`src/ai-infrastructure/`) into a complete "Autonomous Agentic System Architecture" (Master Brain Architecture) by mapping and implementing the 6 core functional brain systems on top of our existing 10 layers.
+
+---
+
+### 🎯 IMPLEMENTATION DIRECTIVE
+
+Create a unified brain layer under `src/ai-infrastructure/brain/` that acts as the primary orchestrator (`MasterBrainOrchestrator.ts`). Preserve 100% backward compatibility with all existing exports and tests.
+
+---
+
+### 🏛️ THE 6 CORE BRAIN MODULES TO IMPLEMENT
+
+1. **Perception & Sensory Engine (`src/ai-infrastructure/brain/perception/`)**
+   - Implement `RealTimeSensoryStream`: async ingestion interface for audio, video, telemetric, and event streams.
+   - Implement `EnvironmentStateTree`: reactive real-time state tracking map for system/DB/environment state deltas.
+
+2. **Cognitive & Metacognitive Core (`src/ai-infrastructure/brain/cognitive/`)**
+   - Implement `WorldModelSimulator`: digital twin dry-run sandbox predicting action outcomes.
+   - Implement `DynamicTreeOfThought`: parallel path evaluation with automatic backtracking logic.
+   - Implement `GoalDecompositor`: converts high-level objectives into Directed Acyclic Graphs (DAGs) of micro-tasks.
+
+3. **Execution & Tool Fusion (`src/ai-infrastructure/brain/execution/`)**
+   - Implement `UniversalProtocolAdapter`: dynamic MCP (Model Context Protocol) and OpenAPI documentation parser.
+   - Implement `ExecutionSandbox`: isolated execution environment with auto-retry and code correction loops.
+   - Implement `HumanAgentInterface`: escalation/negotiation protocol for sensitive human-in-the-loop actions.
+
+4. **Universal Memory Architecture (`src/ai-infrastructure/brain/memory/`)**
+   - Implement `EpisodicMemory`: chronological action/failure/retrospective log store.
+   - Implement `SemanticKnowledgeGraph`: graph-based relational knowledge index.
+   - Implement `ProceduralMemory`: verified skills, scripts, and executable code snippet repository.
+
+5. **Continuous Self-Improvement Loop (`src/ai-infrastructure/brain/evolution/`)**
+   - Implement `SyntheticDataGenerator`: multi-agent self-play/debate generator for synthetic training data.
+   - Implement `FineTuningAdapterOrchestrator`: automated pipeline for LoRA/DPO adapter generation based on error logs.
+
+6. **Air-Gapped Sovereign Security (`src/ai-infrastructure/brain/security/`)**
+   - Implement `BiDirectionalGuardrails`: strict pre- and post-execution policy checkers.
+   - Implement `TEEHardwareEnclave`: confidential computing abstraction layer.
+   - Implement `SelfHealingEngine`: automatic fault isolation, code patching, and micro-service restart orchestrator.
+
+---
+
+### 🔄 MASTER PIPELINE & EXPORTS
+
+- Wire all 6 components into `MasterBrainOrchestrator.ts` running the unified pipeline:
+  `Sensory Stream -> Guardrails Check -> World-Model Simulation -> Tree-of-Thought Planning -> Memory Query & Tool Execution -> Consensus & Security Verification -> Action & Evolution Logging`.
+- Export all new modules through `src/ai-infrastructure/index.ts`.
+- Run full typechecks (`tsc --noEmit`), build verification, and output a detailed pass report.

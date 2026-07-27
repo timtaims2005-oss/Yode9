@@ -1,0 +1,36 @@
+Please review the codebase and execute the following fixes systematically to resolve all pending issues, ensuring no existing features are broken:
+
+### 1. Global fix for "useTools" inside all Modals and API Calls
+- **The Issue:** We found over 50 manual locations and sub-modals (such as `FridayAIModal.tsx`, `JarvisHologramModal.tsx`, `OdysseusCompareModal.tsx`, `OdysseusDocEditorModal.tsx`, `OdysseusEmailAIModal.tsx`, etc., and inside `lib/smart-prefetch.ts`) that call the `/api/chat` endpoint directly using `fetch()` without passing through the main `streamChat()` client. Consequently, `useTools: true` is missing, and tools do not trigger.
+- **The Solution:** 1. Inspect the main API routing or standard request interceptors. 
+  2. If possible, modify the backend endpoint handler directly (e.g., in `/api/chat` route parser) to default `useTools` to `true` if it is not explicitly provided in the request body:
+     ```ts
+     // In backend api-server chat route:
+     const finalReq = { ...req, useTools: req.useTools ?? true };
+     ```
+  3. Ensure that `streamChat()`, `streamChatWithTimeout()`, `retryStreamChat()`, and `streamBest()` in `chat-client.ts` correctly serialize the request using:
+     ```ts
+     const finalReq = { ...req, useTools: req.useTools ?? true };
+     const body = JSON.stringify(finalReq);
+     ```
+  4. Perform a workspace search for all `.tsx` and `.ts` files inside `components/modals/` and check for custom `fetch("/api/chat", ...)` triggers. Ensure their request bodies either append `useTools: true` or automatically route their streaming through our safe client wrappers to guarantee tools trigger correctly.
+
+### 2. Guardrails for Cloudflare API HTTP 401 & Image Generation Failures
+- **The Issue:** Occasional Cloudflare HTTP 401 "Authentication error (Code: 10000)" crashes the UI or shows raw JSON errors.
+- **The Solution:**
+  1. In `orchestrate.ts` and image generation endpoints (`toolGenerateImage` via Flux, `toolAnalyzeImage` via llama-vision), intercept the upstream Cloudflare API response.
+  2. If `res.status === 401` or `!res.ok` occurs with a Cloudflare authentication code, catch it and return a user-friendly error string:
+     "⚠️ خطأ في المصادقة (401) مع Cloudflare: يرجى التحقق من صحة مفاتيح البيئة CLOUDFLARE_API_TOKEN و CLOUDFLARE_ACCOUNT_ID في الـ Secrets."
+  3. Prevent silent crashes on the frontend when image generation fails due to network/auth issues.
+
+### 3. Ensure ArtifactPanel-v3.tsx is Intact and Connected
+- Verify that `artifacts/mr7-ai/src/components/ArtifactPanel-v3.tsx` is successfully created and has full sandbox preview capabilities for HTML, React, and JS.
+- In `ChatMessage.tsx` (or your main markdown rendering component):
+  - Ensure `<ArtifactCardV3>` is imported.
+  - Confirm the helper function `toArtifactLang()` correctly maps `html -> html`, `react/jsx -> react`, and `javascript/js -> javascript`.
+  - Confirm the helper function `extractTitle()` extracts the first `<h1>` or `<title>` correctly.
+  - Verify that matching code blocks render as `<ArtifactCardV3>` with a stable, persistent ID based on the message ID to preserve code versions:
+    `<ArtifactCardV3 artifactId={`${msg.id}-code-${i}`} ... />`
+  - Ensure all other programming languages (python, css, bash, etc.) continue to render inside the standard `<CodeBlock>` component.
+
+Perform a clean build after making these changes to verify there are no TypeScript compiler or runtime errors.

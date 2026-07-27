@@ -1,0 +1,68 @@
+# SYSTEM ARCHITECT DIRECTION: PRODUCTION-READY AI AGENT SYSTEM INTEGRATION
+
+Act as a Principal AI Systems Architect. Upgrade and wrap our current AI/Agent codebase into a enterprise-grade, Production-Ready system. You must implement the **6 Core Structural Layers of Modern AI Infrastructure** without breaking existing code or functionality. All additions must be fully modular, additive, type-safe (TypeScript/Python where applicable), and fault-tolerant.
+
+---
+
+## 🎯 OBJECTIVE
+Transform our AI Agent setup into an enterprise-ready system by building the 6 infrastructure layers below. Preserve all core logic and existing functional components (`toolsRegistry`, `chat-client`, `ChatView`, etc.) while wrapping them in these structural layers.
+
+---
+
+## 📐 THE 6 CORE LAYERS TO IMPLEMENT
+
+### Layer 1: Guardrails & AI Safety (`/src/ai/safety/`)
+- **Input Guardrails:** Intercept user inputs to block Prompt Injections, Jailbreaks, PII leakage, and out-of-bound tasks before reaching the LLM.
+- **Output Guardrails:** Validate generated outputs against hallucination, toxicity, policy compliance, and unintended schema breaks.
+- **Red Teaming Hook:** Expose an API endpoint/interface for automated red-teaming security scans and simulated threat injection testing.
+
+### Layer 2: Observability & Tracing (`/src/ai/observability/`)
+- **Execution Traces:** Implement deep step-by-step tracing for every Agent decision, tool call, sub-graph execution, and retry loop (ready for Langsmith/Langfuse/Arize integration).
+- **Metrics Tracking:** Record Token Consumption, Latency per step, Execution Costs, and Success/Failure rates.
+- **Alerting & Budgeting:** Add configurable rate-limiters, cost caps, and automated timeout triggers.
+
+### Layer 3: Automated Evals & Benchmarking (`/src/ai/evals/`)
+- **LLM-as-a-Judge Pipeline:** Build a module (compatible with DeepEval/Ragas concepts) to evaluate response coherence, relevance, and groundedness.
+- **CI/CD Regression Check:** Create a automated benchmark runner script to test prompt/code changes against a golden dataset. Reject execution if accuracy score falls below 95%.
+
+### Layer 4: Prompt & Schema Management (`/src/ai/prompts/`)
+- **Prompt Versioning Engine:** Separate system prompts into version-controlled templates with dynamic variable injection.
+- **Structured Output Validator:** Enforce strict JSON Schema / Pydantic / Zod validation on model outputs with auto-repair and retry fallback on parsing failure.
+
+### Layer 5: AI Gateway & Dynamic Router (`/src/ai/gateway/`)
+- **Multi-Provider Unified Gateway:** Abstract connection logic behind a unified interface supporting multiple providers (OpenAI, Anthropic, Google, Local Models).
+- **Smart Model Routing:** Route simple/routine queries to low-cost, fast models, and complex reasoning queries to frontier models to optimize cost by up to 80%.
+- **Failover & Redundancy:** Automatically failover to a backup LLM provider in case of 5xx errors, rate-limits, or API outages.
+
+### Layer 6: Stateful Runtime & Vector Memory (`/src/ai/runtime/`)
+- **Stateful Agent Engine:** Maintain full state persistence across long-running tasks, network disconnects, or server restarts (durable execution pattern).
+- **RAG & Vector Storage:** Integrate semantic vector storage (Pinecone/Qdrant/pgvector compatible interface) for Short-Term (STM) and Long-Term Memory (LTM).
+
+---
+
+## 🏗 ARCHITECTURAL PIPELINE FLOW
+
+Ensure all incoming and outgoing requests pass through this exact sequence:
+
+1. [ User / App Request ]
+2. ➔ `Layer 1: Input Guardrail Check` (Halt on security risk)
+3. ➔ `Layer 5: LLM Router` (Select optimal model based on query complexity)
+4. ➔ `Layer 6: Stateful Runtime & Memory` (Retrieve context, execution state, tools)
+5. ➔ `Layer 4: Prompt Assembly & Schema Enforcement`
+6. ➔ [ Model Execution / Tool Call Loop ]
+7. ➔ `Layer 1: Output Guardrail Check`
+8. ➔ `Layer 2: Tracing, Cost & Latency Logger` + `Layer 3: Eval Logger`
+9. ➔ [ Response Returned ]
+
+---
+
+## ⚙️ IMPLEMENTATION REQUIREMENTS
+1. **Preserve Compatibility:** DO NOT rewrite or delete working business logic or current tools. Add these as wrapper layers, middlewares, or additive integrations.
+2. **Modular File Structure:** Organize files clearly within an `/ai-infrastructure` or `/ai/` dedicated folder.
+3. **Type Safety & Validation:** Provide clean interfaces, exported types, and defensive error handling (try-catch, fallbacks, auto-heals).
+4. **Verification & Tests:** Provide a verification script to validate that all 6 layers pass typechecks and execute successfully.
+
+---
+
+### INSTRUCTION TO AI:
+Analyze our current codebase, propose the exact file structure additions, and then generate the implementation code step-by-step for each of the 6 layers. Start with the implementation immediately!

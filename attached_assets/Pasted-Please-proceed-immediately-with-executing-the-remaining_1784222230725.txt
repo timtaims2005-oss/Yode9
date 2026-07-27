@@ -1,0 +1,502 @@
+Please proceed immediately with executing the remaining tasks. Do not wait for further confirmation. Implement the following files and connections exactly as described:
+
+### 1. Create the File: `artifacts/mr7-ai/src/components/ArtifactPanel-v3.tsx`
+Create this exact code in the file to handle HTML, React, and JS previews:
+
+```tsx
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+
+export type ArtifactLanguage = "html" | "react" | "javascript";
+
+export interface ArtifactCardProps {
+  title: string;
+  language: ArtifactLanguage;
+  code: string;
+  artifactId?: string;
+}
+
+interface ArtifactVersion {
+  code: string;
+  timestamp: number;
+}
+
+const versionStore = new Map<string, ArtifactVersion[]>();
+
+function pushVersion(artifactId: string, code: string) {
+  const existing = versionStore.get(artifactId) || [];
+  if (existing.length > 0 && existing[existing.length - 1].code === code) return;
+  versionStore.set(artifactId, [...existing, { code, timestamp: Date.now() }]);
+}
+
+function getVersions(artifactId: string): ArtifactVersion[] {
+  return versionStore.get(artifactId) || [];
+}
+
+const THEME = {
+  bg: "#14121f",
+  panelBg: "#1c1930",
+  border: "#332c52",
+  accent: "#8b5cf6",
+  accent2: "#2dd4bf",
+  text: "#f1eefc",
+  textMuted: "#9d94c4",
+  tabActiveBg: "#332c52",
+  danger: "#f87171",
+  dangerBg: "#3a1f24",
+};
+
+const ERROR_CATCH_SCRIPT = `
+<script>
+  window.addEventListener('error', function (e) {
+    document.body.innerHTML = '<div style="padding:20px;font-family:monospace;color:#f87171;background:#2a1518;border:1px solid #7f1d1d;border-radius:8px;margin:16px;direction:ltr;text-align:left;">' +
+      '<strong>خطأ أثناء تشغيل الكود:</strong><br/>' + (e.message || e) + '</div>';
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    document.body.innerHTML = '<div style="padding:20px;font-family:monospace;color:#f87171;background:#2a1518;border:1px solid #7f1d1d;border-radius:8px;margin:16px;direction:ltr;text-align:left;">' +
+      '<strong>خطأ غير معالج:</strong><br/>' + (e.reason && e.reason.message ? e.reason.message : e.reason) + '</div>';
+  });
+</script>`;
+
+function buildIframeSrcDoc(language: ArtifactLanguage, code: string): string {
+  if (language === "html") {
+    if (/<html[\s>]/i.test(code)) {
+      if (/<\/head>/i.test(code)) return code.replace(/<\/head>/i, \`\${ERROR_CATCH_SCRIPT}</head>\`);
+      return ERROR_CATCH_SCRIPT + code;
+    }
+    return \`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">\${ERROR_CATCH_SCRIPT}</head><body>\${code}</body></html>\`;
+  }
+
+  if (language === "react" || language === "javascript") {
+    return \`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  \${ERROR_CATCH_SCRIPT}
+  <style>body{margin:0;font-family:system-ui,-apple-system,sans-serif;}#root{min-height:100vh;}</style>
+  <script src="[https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js](https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js)"></script>
+  <script src="[https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js](https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js)"></script>
+  <script src="[https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js](https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js)"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel" data-presets="react">
+    try {
+      \${code}
+      const rootEl = document.getElementById('root');
+      const root = ReactDOM.createRoot(rootEl);
+      const Component = typeof App !== 'undefined' ? App : (typeof default_export !== 'undefined' ? default_export : null);
+      if (Component) { root.render(React.createElement(Component)); }
+      else { rootEl.innerText = 'لم يتم العثور على مكوّن React باسم App للعرض.'; }
+    } catch (e) {
+      document.getElementById('root').innerHTML =
+        '<div style="padding:20px;font-family:monospace;color:#f87171;background:#2a1518;border-radius:8px;margin:16px;direction:ltr;text-align:left;"><strong>خطأ:</strong><br/>' + e.message + '</div>';
+    }
+  </script>
+</body>
+</html>\`;
+  }
+
+  return \`<pre>\${escapeHtml(code)}</pre>\`;
+}
+
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function fileExtensionFor(language: ArtifactLanguage): string {
+  if (language === "react") return "jsx";
+  if (language === "javascript") return "js";
+  return "html";
+}
+
+function prismLanguageFor(language: ArtifactLanguage): string {
+  if (language === "react") return "jsx";
+  if (language === "javascript") return "javascript";
+  return "markup";
+}
+
+let prismLoadPromise: Promise<void> | null = null;
+
+function loadPrism(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if ((window as any).Prism) return Promise.resolve();
+  if (prismLoadPromise) return prismLoadPromise;
+
+  prismLoadPromise = new Promise((resolve) => {
+    const cssId = "prism-theme-css";
+    if (!document.getElementById(cssId)) {
+      const link = document.createElement("link");
+      link.id = cssId;
+      link.rel = "stylesheet";
+      link.href = "[https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css](https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css)";
+      document.head.appendChild(link);
+    }
+
+    const coreScript = document.createElement("script");
+    coreScript.src = "[https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js](https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js)";
+    coreScript.onload = () => {
+      const autoloader = document.createElement("script");
+      autoloader.src =
+        "[https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js](https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js)";
+      autoloader.onload = () => resolve();
+      autoloader.onerror = () => resolve();
+      document.body.appendChild(autoloader);
+    };
+    coreScript.onerror = () => resolve();
+    document.body.appendChild(coreScript);
+  });
+
+  return prismLoadPromise;
+}
+
+const Icon = {
+  Bolt: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill={THEME.accent2}>
+      <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
+    </svg>
+  ),
+  Play: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill={THEME.accent2}>
+      <circle cx="12" cy="12" r="11" fill={THEME.accent2} opacity="0.15" />
+      <path d="M9.5 7.5v9l7-4.5z" fill={THEME.accent2} />
+    </svg>
+  ),
+  Expand: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={THEME.textMuted} strokeWidth="2">
+      <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+    </svg>
+  ),
+  Close: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={THEME.textMuted} strokeWidth="2">
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  ),
+  Copy: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={THEME.textMuted} strokeWidth="2">
+      <rect x="9" y="9" width="13" height="13" rx="3" />
+      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+    </svg>
+  ),
+  Download: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={THEME.textMuted} strokeWidth="2">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+    </svg>
+  ),
+  Check: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={THEME.accent2} strokeWidth="2.5">
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  ),
+  ChevronL: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={THEME.textMuted} strokeWidth="2">
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  ),
+  ChevronR: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={THEME.textMuted} strokeWidth="2">
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  ),
+};
+
+const DEFAULT_SAMPLE_CODE = \`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="UTF-8"></head>
+<body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#14121f;color:#f1eefc;">
+  <h2>مثال Artifact — استبدله ببياناتك الحقيقية</h2>
+</body>
+</html>\`;
+
+export function ArtifactCard({
+  title = "مثال Artifact",
+  language = "html",
+  code = DEFAULT_SAMPLE_CODE,
+  artifactId,
+}: Partial<ArtifactCardProps>) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (artifactId) pushVersion(artifactId, code);
+  }, [artifactId, code]);
+
+  return (
+    <>
+      <button
+        onClick={() => setIsOpen(true)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "100%",
+          maxWidth: 420,
+          padding: "14px 16px",
+          background: THEME.panelBg,
+          border: \`1px solid \${THEME.border}\`,
+          borderRadius: 14,
+          cursor: "pointer",
+          textAlign: "right",
+          fontFamily: "inherit",
+          boxShadow: "0 2px 10px rgba(139,92,246,0.08)",
+        }}
+      >
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 15, color: THEME.text }}>{title}</div>
+          <div style={{ fontSize: 13, color: THEME.textMuted, marginTop: 2 }}>
+            Code · {language.toUpperCase()}
+            {artifactId && getVersions(artifactId).length > 1 && (
+              <span> · {getVersions(artifactId).length} نسخ</span>
+            )}
+          </div>
+        </div>
+        <Icon.Bolt />
+      </button>
+
+      {isOpen && (
+        <ArtifactViewer
+          title={title}
+          language={language}
+          code={code}
+          artifactId={artifactId}
+          onClose={() => setIsOpen(false)}
+        />
+      )}
+    </>
+  );
+}
+
+interface ArtifactViewerProps extends ArtifactCardProps {
+  onClose: () => void;
+}
+
+function ArtifactViewer({ title, language, code, artifactId, onClose }: ArtifactViewerProps) {
+  const [view, setView] = useState<"preview" | "code">("preview");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const [prismReady, setPrismReady] = useState(false);
+  const codeRef = useRef<HTMLElement>(null);
+
+  const versions = useMemo(
+    () => (artifactId ? getVersions(artifactId) : [{ code, timestamp: Date.now() }]),
+    [artifactId, code]
+  );
+  const [versionIndex, setVersionIndex] = useState(versions.length - 1);
+  const activeCode = versions[versionIndex]?.code ?? code;
+  const srcDoc = useMemo(() => buildIframeSrcDoc(language, activeCode), [language, activeCode]);
+
+  useEffect(() => {
+    if (view === "code") {
+      loadPrism().then(() => setPrismReady(true));
+    }
+  }, [view]);
+
+  useEffect(() => {
+    if (prismReady && codeRef.current && (window as any).Prism) {
+      (window as any).Prism.highlightElement(codeRef.current);
+    }
+  }, [prismReady, activeCode, view]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  const handleReload = useCallback(() => {
+    setIsLoading(true);
+    setReloadKey((k) => k + 1);
+  }, []);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(activeCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* ignore */
+    }
+  }, [activeCode]);
+
+  const handleDownload = useCallback(() => {
+    const ext = fileExtensionFor(language);
+    const blob = new Blob([activeCode], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = \`\${(title || "artifact").replace(/\\s+/g, "-").toLowerCase()}.\${ext}\`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [activeCode, language, title]);
+
+  const containerStyle: React.CSSProperties = isFullscreen
+    ? { position: "fixed", inset: 0, zIndex: 1000, background: THEME.bg, display: "flex", flexDirection: "column" }
+    : {
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        background: "rgba(10,8,20,0.65)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      };
+
+  const panelStyle: React.CSSProperties = isFullscreen
+    ? { width: "100%", height: "100%", display: "flex", flexDirection: "column", background: THEME.bg }
+    : {
+        width: "92%",
+        maxWidth: 920,
+        height: "82%",
+        background: THEME.bg,
+        borderRadius: 16,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        boxShadow: "0 25px 70px rgba(0,0,0,0.5)",
+        border: \`1px solid \${THEME.border}\`,
+      };
+
+  return (
+    <div style={containerStyle} onClick={!isFullscreen ? onClose : undefined}>
+      <div style={panelStyle} onClick={(e) => e.stopPropagation()}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "12px 18px",
+            borderBottom: \`1px solid \${THEME.border}\`,
+            flexWrap: "wrap",
+            gap: 8,
+            background: THEME.panelBg,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Icon.Bolt />
+            <span style={{ fontWeight: 700, fontSize: 14, color: THEME.text }}>{title}</span>
+          </div>
+
+          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+            {versions.length > 1 && (
+              <div style={{ display: "flex", alignItems: "center", gap: 2, marginInlineEnd: 8 }}>
+                <button
+                  disabled={versionIndex === 0}
+                  onClick={() => setVersionIndex((i) => Math.max(0, i - 1))}
+                  style={iconBtn(versionIndex === 0)}
+                  title="النسخة السابقة"
+                >
+                  <Icon.ChevronR />
+                </button>
+                <span style={{ fontSize: 12, color: THEME.textMuted }}>
+                  {versionIndex + 1}/{versions.length}
+                </span>
+                <button
+                  disabled={versionIndex === versions.length - 1}
+                  onClick={() => setVersionIndex((i) => Math.min(versions.length - 1, i + 1))}
+                  style={iconBtn(versionIndex === versions.length - 1)}
+                  title="النسخة التالية"
+                >
+                  <Icon.ChevronL />
+                </button>
+              </div>
+            )}
+
+            <div style={{ display: "flex", background: THEME.bg, borderRadius: 10, padding: 3 }}>
+              <button onClick={() => setView("preview")} style={tabBtn(view === "preview")}>
+                معاينة
+              </button>
+              <button onClick={() => setView("code")} style={tabBtn(view === "code")}>
+                الكود
+              </button>
+            </div>
+
+            <button onClick={handleReload} title="إعادة تشغيل المعاينة" style={iconBtn(false)}>
+              <Icon.Play />
+            </button>
+            <button onClick={handleCopy} title="نسخ الكود" style={iconBtn(false)}>
+              {copied ? <Icon.Check /> : <Icon.Copy />}
+            </button>
+            <button onClick={handleDownload} title="تحميل الملف" style={iconBtn(false)}>
+              <Icon.Download />
+            </button>
+            <button onClick={() => setIsFullscreen((f) => !f)} title="ملء الشاشة" style={iconBtn(false)}>
+              <Icon.Expand />
+            </button>
+            <button onClick={onClose} title="إغلاق (Esc)" style={iconBtn(false)}>
+              <Icon.Close />
+            </button>
+          </div>
+        </div>
+
+        <div style={{ flex: 1, overflow: "hidden", position: "relative", background: THEME.bg }}>
+          {view === "preview" ? (
+            <>
+              {isLoading && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: THEME.bg,
+                  }}
+                >
+                  <span style={{ color: THEME.textMuted, fontSize: 14 }}>جارٍ تحميل المعاينة...</span>
+                </div>
+              )}
+              <iframe
+                key={reloadKey}
+                srcDoc={srcDoc}
+                sandbox="allow-scripts"
+                onLoad={() => setIsLoading(false)}
+                style={{ width: "100%", height: "100%", border: "none", background: "#fff" }}
+                title={title}
+              />
+            </>
+          ) : (
+            <div style={{ height: "100%", overflow: "auto", padding: 16 }}>
+              <pre style={{ margin: 0, direction: "ltr", textAlign: "left", fontSize: 13 }}>
+                <code ref={codeRef} className={\`language-\${prismLanguageFor(language)}\`}>
+                  {activeCode}
+                </code>
+              </pre>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function iconBtn(disabled: boolean): React.CSSProperties {
+  return {
+    border: "none",
+    background: "none",
+    cursor: disabled ? "default" : "pointer",
+    opacity: disabled ? 0.3 : 1,
+    padding: 7,
+    display: "flex",
+    alignItems: "center",
+    borderRadius: 8,
+  };
+}
+
+function tabBtn(active: boolean): React.CSSProperties {
+  return {
+    padding: "5px 12px",
+    borderRadius: 8,
+    border: "none",
+    background: active ? THEME.tabActiveBg : "transparent",
+    color: active ? THEME.text : THEME.textMuted,
+    fontSize: 13,
+    fontWeight: active ? 600 : 400,
+    cursor: "pointer",
+  };
+}
+
+export default ArtifactCard;

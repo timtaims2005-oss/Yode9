@@ -1,0 +1,32 @@
+Act as a Principal UI/UX Architect, Interactive Spatial Designer, and Creative Technologist. Elevate the `Command Studio` component (for Arsenal Hub & Open Design Pro) into a Next-Gen Spatial Matrix Studio (Command Studio 3.0), delivering unmatched artistic depth, high-tech features, and real-time interactive tools.
+
+---
+
+### 🚀 1. NEXT-GEN TECHNICAL FEATURES & ADVANCED TOOLS
+
+1. **Interactive Workspace Layout (Dual Engine View):**
+   - **Canvas/Node Visualizer Mode:** Convert static tool descriptions into an interactive 2D/3D Node Graph (using React Flow/SVG Canvas) showing live dependencies, data pipelines, and active sub-agents. Users can drag, connect, and inspect nodes visually.
+   - **Live Sandbox / Playground:** A split-screen environment allowing side-by-side prompt tuning, JSON schema tweaking, and real-time response rendering with latency heatmaps.
+
+2. **Advanced Terminal & Audio Command Integration:**
+   - **Intelligent Command Console:** Support full CLI functionality with autocompletion (`Tab`), history navigation, syntax highlighting, and custom commands (`/inspect`, `/stress-test`, `/benchmark`, `/export-config`).
+   - **Interactive Control Bar:** Add quick-action sliders for parameters like `Temperature`, `Top-P`, `Concurrency Limits`, and `Timeout Thresholds` with immediate visual status updates.
+
+3. **Real-Time Telemetry & Resource HUD:**
+   - Futuristic gauges and animated sparklines showing GPU Memory Allocation, Token Streaming Throughput (tokens/sec), Error Rates, and Active API Socket Connections.
+
+---
+
+### 🎨 2. HIGHEST-LEVEL ARTISTIC & VISUAL ELEVATION
+
+- **Dynamic Ambient Chroma Aura:** Implement adaptive background glassmorphism (`backdrop-blur-3xl`, `bg-zinc-950/90`) with dynamic particle effects or soft neon aura glows that dynamically change color based on tool state (Emerald for `Active`, Rose for `Error/Warning`, Cyan for `Processing`).
+- **Tactile Cyberpunk Micro-UI:** Ultra-crisp typography (monospaced telemetry headers + clean sans-serif controls), glowing 1px border lines, subtle haptic-style button animations, and custom glowing glass scrollbars.
+- **Mobile-Responsive Floating Dock:** A sticky bottom floating dock (`Studio Dock`) containing core execution triggers (`RUN`, `STOP`, `CLEAR`, `SETTINGS`) with crisp backdrop blur that never overlaps with external app banners.
+
+---
+
+### ⚙️ DELIVERABLES
+
+- Comprehensive refactor of `ToolDetailView.tsx` / `CommandStudio.tsx` under `src/components/arsenal/`.
+- Ensure modular code architecture so all interactive modes (Console, Canvas Node, Playground, Telemetry) run seamlessly.
+- Complete full typecheck (`tsc --noEmit`) to confirm zero compilation or routing errors.

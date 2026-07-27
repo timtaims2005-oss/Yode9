@@ -1,0 +1,31 @@
+As a Principal Software Architect and Defensive Cybersecurity Engineer, we need to completely overhaul our sidebar, top bar, and all analytics modules from mock/placeholder states into a fully operational, high-performance defensive intelligence platform. 
+
+Target Files to Refactor:
+- NetworkIntelPanel.tsx
+- DarkWebSearchModal.tsx
+- PentestLabProModal.tsx
+- DeepSearchModal.tsx
+- ChainInvestigationModal.tsx
+(and all associated routes and complementary sidebar/topbar actions)
+
+Please execute the following system upgrades, keeping TypeScript compilation errors strictly at 0:
+
+1. Unified Backend Routing & Input Sanitization (Express/Node.js):
+   - Wipe out all hardcoded JSON arrays and simulated return data from the controllers handling these views.
+   - Implement strict request validation using Zod for every input (IPs, Domains, Emails, Configurations) to sanitize against injection vulnerabilities.
+   - Create true endpoints for each utility: `/api/intel/network`, `/api/intel/darkweb`, `/api/intel/vuln-audit`, and `/api/intel/deep-search`.
+
+2. Production API Pipelines (Defensive Integrations):
+   - Connect `NetworkIntelPanel` to actual public DNS resolver functions, public WHOIS parsers, and live IP geolocation services (ipinfo.io).
+   - Connect `DarkWebSearchModal` to certified breach check APIs (e.g., HaveIBeenPwned API) to verify exposed company domain credentials.
+   - Connect `PentestLabProModal` to the official NIST CVE API to cross-reference system versions against known threat databases.
+
+3. AI Function Calling & Chain Correlation:
+   - Configure the LLM service to use Structured Outputs / Tool Calling for `DeepSearchModal`. The AI must not guess; it must output a structured JSON schema mapping real tool executions.
+   - For `ChainInvestigationModal`, aggregate backend outputs into an adjacency list (Nodes and Edges JSON format) so the frontend can dynamically build visual relational trees.
+
+4. Enterprise Optimization (Redis & Background Workers):
+   - Wrap all external third-party API calls in our BullMQ background task worker to process heavy scans asynchronously, communicating progress via polling or Server-Sent Events (SSE).
+   - Cache successful query outcomes in Redis for 12 hours to maintain immediate sub-second response times and prevent rate-limiting on external resources.
+
+Review the entire layout, stitch the frontend controls to these newly built data streams, and confirm clean compilation.

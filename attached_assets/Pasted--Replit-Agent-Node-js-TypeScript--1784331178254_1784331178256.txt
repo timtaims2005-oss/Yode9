@@ -1,0 +1,31 @@
+أنت بصفتك Replit Agent ومطور سينيور خبير في Node.js/TypeScript وهندسة البرمجيات الأمنية.
+
+المهمة المطلوبة:
+إعادة هيكلة وتوحيد أنظمة المصادقة الخمسة (5 Authentication Systems) المتفرقة حالياً في المشروع، ودمجها في طبقة مصادقة موحدة (Unified Authentication Framework / Middleware) لتبسيط إدارة الجلسات والصلاحيات عبر ملف متحكم مركزي أو Middleware ذكي.
+
+الأنظمة الخمسة المستهدفة للتوحيد بناءً على البنية الحالية للمشروع هي:
+1. Clerk Authentication (عبر clerkProxyMiddleware.ts)
+2. Cloudflare Zero Trust/Auth (عبر تتبع سلوك وتكامل Cloudflare وبدائلها المخزنة في ملفات الذاكرة)
+3. JWT-Based Authentication (عبر jwtAuth.ts)
+4. Internal System Authentication (المصادقة الداخلية للميكرو-خدمات والأنظمة الفرعية عبر internalAuth.ts)
+5. API Keys & User Auth Routes (المصادقة التقليدية ومفاتيح الواجهات البرمجية عبر routes/user-auth.ts و routes/api-keys.ts)
+
+خطوات التنفيذ المطلوبة منك بدقة:
+
+1. تحليل البنية الحالية:
+   - قم بقراءة ملفات الميدلير المقابلة لكل نظام مصادقة داخل مجلد `src/middlewares/` و `src/routes/`.
+   - استخلص الاستراتيجيات الأمنية والتحقق من التوكينات (Tokens) والجلسات (Sessions) الخاصة بكل نظام.
+
+2. تصميم وبناء الـ Unified Authed Control Layer:
+   - قم بإنشاء ملف ميدلير مركزي جديد باسم `src/middlewares/unifiedAuthMiddleware.ts`.
+   - قم بتعريف واجهة (Interface) موحدة للـ User Payload تدمج كافة البيانات القادمة من الطرق الخمسة (مثل الإيدز، الصلاحيات، نوع المصادقة المستخدم).
+   - قم بإنشاء خط دفاع تسلسلي أو شرطي (Strategy Pattern) داخل الميدلير للتعرف التلقائي على نوع المصادقة الواردة في الـ Header (سواء كانت Bearer JWT, Clerk Session, Cloudflare Header, API-Key, أو Internal Secret).
+
+3. التكامل والربط مع `UnifiedSystemController.ts`:
+   - تأكد من ربط الميدلير الجديد وتحديث مسارات التحكم الأساسية في `src/interfaces/http/UnifiedSystemController.ts` ليعتمد بالكامل على هذا النظام الموحد للتحقق من هوية الطلبات الواردة.
+
+4. تنظيف الكود والـ Backward Compatibility:
+   - تأكد من عدم كسر أي ميزات معتمدة على المصادقة القديمة، واجعل الأنظمة الخمسة تعمل كـ Strategies فرعية تصب في الـ Re-usable Context الموحد للطلب (`req.user`).
+   - قم بتضمين معالجة أخطاء (Error Handling) قوية وواضحة لكل حالة فشل مصادقة بناءً على الاستراتيجية المستخدمة.
+
+يرجى البدء فوراً وتعديل الملفات البرمجية ذات الصلة، مع الحفاظ على معايير TypeScript الصارمة ومراعاة أداء التخزين المؤقت (Redis Rate Limiting) المرتبط بها إن وجد.

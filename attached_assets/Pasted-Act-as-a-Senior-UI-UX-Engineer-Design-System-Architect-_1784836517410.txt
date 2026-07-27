@@ -1,0 +1,37 @@
+Act as a Senior UI/UX Engineer & Design System Architect. Modernize and completely overhaul our application's frontend interfaces, moving away from cramped modal cards and small window popups into expansive, full-page Studio/Workspace layouts similar to Claude, ChatGPT Canvas, and Gemini Studio.
+
+---
+
+### 🎯 DESIGN VISION & GOALS
+
+- **Layout Style:** Full-screen responsive Studio view (Clean, minimalist, spacious, and highly legible).
+- **Theme & Aesthetics:** Modern Glassmorphism/Neumorphism elements, fluid typography, subtle borders, high-contrast dark/light mode support, and smooth transitions.
+- **User Experience:** Eliminate restrictive modal windows for main features. Convert tools, system displays, and interactive modules into dedicated full-page views, slide-over panels, or expandable workspaces.
+
+---
+
+### 🏛️ UI/UX ARCHITECTURAL REQUIREMENTS
+
+1. **Modern Layout Architecture (`src/components/layout/`):**
+   - Create a global `StudioLayout` featuring a collapsible navigation sidebar, persistent top context bar, and an expansive main content canvas (`WorkspaceArea`).
+   - Implement dynamic workspace views for tools, agent runs, design tokens, and automation flows.
+
+2. **Full-Page Tool & System Dashboard (`src/components/views/`):**
+   - Redesign the Arsenal / Tool Hub from compact modal cards into a full-page grid/canvas layout with detailed feature breakdown, live preview areas, and status badges.
+   - Implement tabbed or split-pane workspace views (e.g., Code / Preview / Logs side-by-side).
+
+3. **Modern Navigation & Action Hub (`src/components/navigation/`):**
+   - Implement an intuitive bottom navigation bar / persistent command palette for mobile and responsive screens (Home, Inbox, Explore, Copilot/Agent).
+   - Add a fast search & filter bar with shortcut support (e.g., `Cmd+K` / `Ctrl+K`).
+
+4. **Component Design Tokens Update (`src/styles/tokens/`):**
+   - Refresh typography, padding, rounded corner radii (`rounded-2xl`, `rounded-xl`), and shadow depths to match modern AGI studio aesthetics.
+   - Upgrade buttons, input bars, badges, and card containers with sleek micro-interactions.
+
+---
+
+### ⚙️ EXPECTED DELIVERABLES
+
+- Updated/Created UI layout components in `src/components/`.
+- Full-page responsive views replacing old modal popups.
+- Run typecheck (`tsc --noEmit`) and verify that the application builds and renders smoothly without styling or routing errors.

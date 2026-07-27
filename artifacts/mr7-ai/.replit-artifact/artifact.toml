@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "MR7 AI - Defensive Intelligence Platform"
+version = "1.0.0"
+id = "artifacts/mr7-ai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22938
+
+[services.development]
+run = "pnpm --filter @workspace/mr7-ai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/mr7-ai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/mr7-ai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22938"
+BASE_PATH = "/"

@@ -1,0 +1,21 @@
+As a Senior Software Architect and Performance Engineer, we want to upgrade our current OSINT and Deep Search tools to an enterprise-grade, highly optimized, and advanced defensive intelligence platform. 
+
+Please implement the following advanced architectural upgrades, ensuring strict input sanitization and maintaining 0 TypeScript errors across the project:
+
+1. Asynchronous Job Pipeline (BullMQ & SSE):
+   - Refactor the `POST /api/search/deep-search` and other analytics routes to run asynchronously. When a user triggers a scan, push the task to the `ai-generation` or a dedicated queue via BullMQ.
+   - Implement Server-Sent Events (SSE) or a polling endpoint so the frontend UI can receive real-time status updates (e.g., "Step 1/4: Analyzing Breaches...", "Step 2/4: Querying Public DNS...").
+
+2. Smart Aggregation & Vulnerability Correlation:
+   - Enhance the backend logic to synthesize data. If an IP/Domain search returns open ports via Shodan, programmatically cross-reference those services with the public NIST CVE API data to fetch known vulnerabilities.
+   - Combine all these findings into a unified, rich JSON payload before sending it to the frontend or the LLM.
+
+3. Redis Caching & Tiered Rate Limiting:
+   - Implement strict Redis caching for all external API queries (like HIBP, Shodan, IPinfo) with a 24-hour expiration (TTL) to save API credits and provide instant sub-second responses for repeated queries.
+   - Add a strict Rate Limiter middleware using Redis, applying different thresholds based on the user's subscription tier (Free vs Pro/Enterprise fetched from `user_subscriptions`).
+
+4. Enhanced UI/UX & Visualizations:
+   - Update the frontend tabs (Overview, Identity, Breaches) to render this structured data beautifully using interactive charts, progress indicators, or visual node elements where applicable.
+   - Ensure smooth error handling: if one external API fails, the system should gracefully degrade and show the rest of the data instead of crashing the entire view.
+
+Execute these enhancements systematically, run compilation checks, and ensure the entire platform remains robust, secure, and fully operational.

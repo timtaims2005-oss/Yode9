@@ -1,0 +1,608 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   MR7 AI — Studio Design Token System
+   Modern AGI Studio aesthetics: glassmorphism, fluid type, micro-interactions
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Layout ─────────────────────────────────────────────────────────────── */
+  --studio-sidebar-width: 264px;
+  --studio-sidebar-collapsed: 64px;
+  --studio-topbar-height: 52px;
+  --studio-workspace-gap: 0px;
+  --studio-content-max: 1440px;
+
+  /* ── Color Primitives ────────────────────────────────────────────────────── */
+  --mr7-red:    #e21227;
+  --mr7-red-90: rgba(226, 18, 39, 0.9);
+  --mr7-red-60: rgba(226, 18, 39, 0.6);
+  --mr7-red-25: rgba(226, 18, 39, 0.25);
+  --mr7-red-10: rgba(226, 18, 39, 0.10);
+  --mr7-red-05: rgba(226, 18, 39, 0.05);
+
+  /* ── Studio Surface Colors ───────────────────────────────────────────────── */
+  --surface-base:    #060606;
+  --surface-raised:  #0c0c0c;
+  --surface-overlay: #111111;
+  --surface-card:    #131313;
+  --surface-card-h:  #181818;
+  --surface-border:  rgba(255, 255, 255, 0.06);
+  --surface-border-h:rgba(255, 255, 255, 0.12);
+  --surface-input:   rgba(255, 255, 255, 0.04);
+
+  /* ── Glassmorphism ───────────────────────────────────────────────────────── */
+  --glass-bg:      rgba(10, 10, 10, 0.72);
+  --glass-bg-light:rgba(15, 15, 15, 0.88);
+  --glass-border:  rgba(255, 255, 255, 0.07);
+  --glass-blur:    blur(20px) saturate(180%);
+  --glass-blur-sm: blur(12px) saturate(160%);
+  --glass-blur-lg: blur(32px) saturate(200%);
+
+  /* ── Text Colors ─────────────────────────────────────────────────────────── */
+  --text-primary:   rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-muted:     rgba(255, 255, 255, 0.38);
+  --text-faint:     rgba(255, 255, 255, 0.20);
+  --text-accent:    #e21227;
+
+  /* ── Border Radius System ────────────────────────────────────────────────── */
+  --radius-xs:  4px;
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+  --radius-full: 9999px;
+
+  /* ── Spacing Scale ───────────────────────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Shadow System ───────────────────────────────────────────────────────── */
+  --shadow-xs:  0 1px 3px rgba(0,0,0,0.4);
+  --shadow-sm:  0 2px 8px rgba(0,0,0,0.5);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.6);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.7);
+  --shadow-xl:  0 16px 48px rgba(0,0,0,0.8);
+  --shadow-glow-red: 0 0 20px rgba(226, 18, 39, 0.35), 0 0 60px rgba(226, 18, 39, 0.12);
+  --shadow-glow-sm:  0 0 12px rgba(226, 18, 39, 0.25);
+
+  /* ── Typography ──────────────────────────────────────────────────────────── */
+  --font-sans:  "Inter", "SF Pro Display", system-ui, -apple-system, sans-serif;
+  --font-mono:  "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+
+  /* ── Type Scale ─────────────────────────────────────────────────────────── */
+  --text-2xs: 0.65rem;   /* 10.4px */
+  --text-xs:  0.75rem;   /* 12px */
+  --text-sm:  0.8125rem; /* 13px */
+  --text-base:0.9375rem; /* 15px */
+  --text-md:  1rem;      /* 16px */
+  --text-lg:  1.125rem;  /* 18px */
+  --text-xl:  1.25rem;   /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+  --text-4xl: 2.25rem;   /* 36px */
+
+  /* ── Line Heights ────────────────────────────────────────────────────────── */
+  --leading-tight:  1.2;
+  --leading-snug:   1.35;
+  --leading-normal: 1.55;
+  --leading-relaxed:1.7;
+
+  /* ── Letter Spacing ──────────────────────────────────────────────────────── */
+  --tracking-tight:  -0.025em;
+  --tracking-normal:  0em;
+  --tracking-wide:    0.04em;
+  --tracking-widest:  0.12em;
+
+  /* ── Animation Curves ────────────────────────────────────────────────────── */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:   cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-bounce:   cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* ── Transition Speeds ───────────────────────────────────────────────────── */
+  --dur-fast:   120ms;
+  --dur-normal: 200ms;
+  --dur-slow:   320ms;
+  --dur-xslow:  480ms;
+
+  /* ── Z-Index Scale ───────────────────────────────────────────────────────── */
+  --z-below:    -1;
+  --z-base:      0;
+  --z-raised:   10;
+  --z-dropdown: 40;
+  --z-sticky:   50;
+  --z-overlay:  80;
+  --z-modal:   100;
+  --z-toast:   200;
+  --z-top:     300;
+}
+
+/* ── Studio Utility Classes ─────────────────────────────────────────────── */
+
+/* Glassmorphism card */
+.studio-glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+}
+
+.studio-glass-sm {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--glass-border);
+}
+
+.studio-glass-lg {
+  background: rgba(8, 8, 8, 0.85);
+  backdrop-filter: var(--glass-blur-lg);
+  -webkit-backdrop-filter: var(--glass-blur-lg);
+  border: 1px solid var(--glass-border);
+}
+
+/* Studio card */
+.studio-card {
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-xl);
+  transition: background var(--dur-normal) var(--ease-in-out),
+              border-color var(--dur-normal) var(--ease-in-out),
+              transform var(--dur-normal) var(--ease-out-expo);
+}
+
+.studio-card:hover {
+  background: var(--surface-card-h);
+  border-color: var(--surface-border-h);
+  transform: translateY(-1px);
+}
+
+/* Studio button */
+.studio-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: var(--tracking-wide);
+  transition: all var(--dur-fast) var(--ease-in-out);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.studio-btn-primary {
+  background: var(--mr7-red);
+  color: #fff;
+  border-color: var(--mr7-red);
+  box-shadow: var(--shadow-glow-sm);
+}
+.studio-btn-primary:hover {
+  background: #ff1a30;
+  box-shadow: var(--shadow-glow-red);
+  transform: translateY(-1px);
+}
+
+.studio-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--surface-border);
+}
+.studio-btn-ghost:hover {
+  background: var(--surface-input);
+  color: var(--text-primary);
+  border-color: var(--surface-border-h);
+}
+
+/* Studio input */
+.studio-input {
+  background: var(--surface-input);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  transition: border-color var(--dur-fast) var(--ease-in-out),
+              box-shadow var(--dur-fast) var(--ease-in-out);
+  outline: none;
+  width: 100%;
+}
+.studio-input:focus {
+  border-color: var(--mr7-red-60);
+  box-shadow: 0 0 0 3px var(--mr7-red-10);
+}
+.studio-input::placeholder { color: var(--text-faint); }
+
+/* Studio badge */
+.studio-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+}
+
+/* Sidebar navigation item */
+.studio-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-in-out);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.studio-nav-item:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-primary);
+  border-color: var(--surface-border);
+}
+.studio-nav-item.active {
+  background: var(--mr7-red-10);
+  color: var(--mr7-red);
+  border-color: var(--mr7-red-25);
+}
+
+/* ── Scrollbar Styling ───────────────────────────────────────────────────── */
+.studio-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
+}
+.studio-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.studio-scroll::-webkit-scrollbar-track { background: transparent; }
+.studio-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+}
+.studio-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+/* ── Focus ring ─────────────────────────────────────────────────────────── */
+.studio-focus:focus-visible {
+  outline: 2px solid var(--mr7-red);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Shimmer loading animation ───────────────────────────────────────────── */
+@keyframes studio-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.studio-shimmer {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.03) 0%,
+    rgba(255,255,255,0.07) 50%,
+    rgba(255,255,255,0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: studio-shimmer 1.8s ease-in-out infinite;
+}
+
+/* ── Slide-in animations ─────────────────────────────────────────────────── */
+@keyframes studio-slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes studio-slide-right {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes studio-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes studio-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.studio-animate-up    { animation: studio-slide-up 0.3s var(--ease-out-expo) both; }
+.studio-animate-right { animation: studio-slide-right 0.3s var(--ease-out-expo) both; }
+.studio-animate-fade  { animation: studio-fade-in 0.25s ease both; }
+.studio-animate-scale { animation: studio-scale-in 0.25s var(--ease-out-expo) both; }
+
+/* ── Futuristic Glow Effects ─────────────────────────────────────────────── */
+.studio-glow-red   { box-shadow: var(--shadow-glow-red); }
+.studio-glow-sm    { box-shadow: var(--shadow-glow-sm); }
+
+/* Neon glow variants for arsenal tool accent colors */
+.glow-cyan    { box-shadow: 0 0 14px rgba(34,211,238,0.4), 0 0 40px rgba(34,211,238,0.15); }
+.glow-violet  { box-shadow: 0 0 14px rgba(167,139,250,0.4), 0 0 40px rgba(167,139,250,0.15); }
+.glow-emerald { box-shadow: 0 0 14px rgba(74,222,128,0.4), 0 0 40px rgba(74,222,128,0.15); }
+.glow-amber   { box-shadow: 0 0 14px rgba(251,191,36,0.4),  0 0 40px rgba(251,191,36,0.15); }
+
+/* Multi-layer depth glass — used in ToolDetailView */
+.glass-depth {
+  background: rgba(7, 7, 12, 0.96);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+}
+.glass-panel {
+  background: rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Futuristic glowing pill tab */
+.glow-tab-active {
+  background: rgba(226, 18, 39, 0.12);
+  border: 1px solid rgba(226, 18, 39, 0.4);
+  color: #e21227;
+  box-shadow: 0 0 18px rgba(226,18,39,0.25), inset 0 0 12px rgba(226,18,39,0.08);
+}
+
+/* Telemetry sparkline container */
+.telemetry-card {
+  background: radial-gradient(ellipse at 20% 10%, rgba(34,211,238,0.08) 0%, rgba(6,6,10,0.92) 65%);
+  border: 1px solid rgba(34,211,238,0.18);
+  box-shadow: 0 0 20px rgba(34,211,238,0.1), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+/* Animated top-edge neon accent bar */
+.neon-top-edge {
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  pointer-events: none;
+}
+
+/* Cyberpunk scan line animation */
+@keyframes detail-scan {
+  0%   { top: 0%;   opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+.cyber-scan-line {
+  position: absolute; inset-x: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(226,18,39,0.0) 15%, rgba(226,18,39,0.55) 50%, rgba(226,18,39,0.0) 85%, transparent 100%);
+  box-shadow: 0 0 10px rgba(226,18,39,0.4);
+  animation: detail-scan 7s linear infinite;
+  pointer-events: none;
+}
+
+/* Orbital icon ring */
+@keyframes orbital-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.orbital-ring {
+  animation: orbital-spin 12s linear infinite;
+}
+
+/* Futuristic progress bar pulse */
+@keyframes progress-glow {
+  0%, 100% { box-shadow: 0 0 6px currentColor; }
+  50%       { box-shadow: 0 0 16px currentColor; }
+}
+.progress-glow { animation: progress-glow 2s ease-in-out infinite; }
+
+/* Custom scrollbar — futuristic thin red */
+.scrollbar-red::-webkit-scrollbar { width: 3px; height: 3px; }
+.scrollbar-red::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-red::-webkit-scrollbar-thumb {
+  background: rgba(226,18,39,0.25);
+  border-radius: 2px;
+}
+.scrollbar-red::-webkit-scrollbar-thumb:hover { background: rgba(226,18,39,0.5); }
+
+/* Hex grid overlay — used on detail panels */
+.hex-grid-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='46'%3E%3Cpolygon points='20,2 38,12 38,34 20,44 2,34 2,12' fill='none' stroke='rgba(226,18,39,0.06)' stroke-width='0.5'/%3E%3C/svg%3E");
+  background-size: 40px 46px;
+}
+
+/* Micro-badge status indicators */
+.badge-online  { background: rgba(74,222,128,0.1);  border: 1px solid rgba(74,222,128,0.3);  color: #4ade80; }
+.badge-offline { background: rgba(107,114,128,0.08); border: 1px solid rgba(107,114,128,0.2); color: #6b7280; }
+.badge-warning { background: rgba(251,191,36,0.1);  border: 1px solid rgba(251,191,36,0.3);  color: #fbbf24; }
+.badge-critical{ background: rgba(226,18,39,0.12);  border: 1px solid rgba(226,18,39,0.35);  color: #f87171; }
+
+/* Code block futuristic styling */
+.code-block {
+  background: rgba(4, 4, 8, 0.96);
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-relaxed);
+}
+
+/* Corner bracket accent decorations */
+.corner-tl::before {
+  content: '';
+  position: absolute; top: 8px; left: 8px;
+  width: 16px; height: 16px;
+  border-top: 1px solid rgba(226,18,39,0.5);
+  border-left: 1px solid rgba(226,18,39,0.5);
+  border-radius: 6px 0 0 0;
+  pointer-events: none;
+}
+.corner-br::after {
+  content: '';
+  position: absolute; bottom: 8px; right: 8px;
+  width: 16px; height: 16px;
+  border-bottom: 1px solid rgba(226,18,39,0.3);
+  border-right: 1px solid rgba(226,18,39,0.3);
+  border-radius: 0 0 6px 0;
+  pointer-events: none;
+}
+
+/* ── Gradient borders ────────────────────────────────────────────────────── */
+.studio-border-gradient {
+  position: relative;
+  background-clip: padding-box;
+}
+.studio-border-gradient::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--mr7-red-25) 0%, transparent 50%, transparent 100%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ── Workspace dividers ──────────────────────────────────────────────────── */
+.studio-divider {
+  height: 1px;
+  background: var(--surface-border);
+  margin: 0;
+}
+.studio-divider-v {
+  width: 1px;
+  background: var(--surface-border);
+  align-self: stretch;
+}
+
+/* ── Type utilities ──────────────────────────────────────────────────────── */
+.studio-label {
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.studio-heading {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  line-height: var(--leading-tight);
+}
+.studio-subtext {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+
+/* ── Bottom nav safe area ────────────────────────────────────────────────── */
+.studio-bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Light mode overrides ────────────────────────────────────────────────── */
+.light,
+[data-theme="light"] {
+  --surface-base:    #f5f5f7;
+  --surface-raised:  #ffffff;
+  --surface-overlay: #f0f0f5;
+  --surface-card:    #ffffff;
+  --surface-card-h:  #f8f8fc;
+  --surface-border:  rgba(0, 0, 0, 0.08);
+  --surface-border-h:rgba(0, 0, 0, 0.16);
+  --surface-input:   rgba(0, 0, 0, 0.04);
+
+  --glass-bg:      rgba(255, 255, 255, 0.72);
+  --glass-bg-light:rgba(255, 255, 255, 0.92);
+  --glass-border:  rgba(0, 0, 0, 0.07);
+
+  --text-primary:   rgba(0, 0, 0, 0.92);
+  --text-secondary: rgba(0, 0, 0, 0.60);
+  --text-muted:     rgba(0, 0, 0, 0.38);
+  --text-faint:     rgba(0, 0, 0, 0.20);
+
+  --shadow-xs:  0 1px 3px rgba(0,0,0,0.08);
+  --shadow-sm:  0 2px 8px rgba(0,0,0,0.10);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.12);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.16);
+  --shadow-xl:  0 16px 48px rgba(0,0,0,0.20);
+}
+
+/* ── Studio workspace overflow control ───────────────────────────────────── */
+.studio-workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  min-width: 0;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Sidebar transition ──────────────────────────────────────────────────── */
+.studio-layout[data-sidebar-collapsed="true"] .studio-sidebar {
+  --studio-sidebar-width: var(--studio-sidebar-collapsed);
+}
+
+/* ── Card hover lift ─────────────────────────────────────────────────────── */
+.studio-card-lift {
+  transition: transform var(--dur-normal) var(--ease-out-expo),
+              box-shadow var(--dur-normal) var(--ease-out-expo);
+}
+.studio-card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── Micro-interaction: press ────────────────────────────────────────────── */
+.studio-press:active {
+  transform: scale(0.97);
+  transition: transform 80ms var(--ease-in-out);
+}
+
+/* ── Full-page workspace panel ───────────────────────────────────────────── */
+.studio-page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface-base);
+}
+
+/* ── Status badge variants ───────────────────────────────────────────────── */
+.studio-badge-success { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
+.studio-badge-warning { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+.studio-badge-danger  { background: rgba(226,18,39,0.15);  color: #e21227; border: 1px solid rgba(226,18,39,0.25); }
+.studio-badge-info    { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.25); }
+.studio-badge-neutral { background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid var(--surface-border); }
+
+/* ── Live data pulse ─────────────────────────────────────────────────────── */
+@keyframes studio-live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
+.studio-live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+  animation: studio-live-pulse 2s ease-in-out infinite;
+  display: inline-block;
+}
+
+/* ── Tool card grid ──────────────────────────────────────────────────────── */
+.studio-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-6);
+}
+
+/* ── Split pane handle ───────────────────────────────────────────────────── */
+.studio-split-handle {
+  width: 4px;
+  cursor: col-resize;
+  background: var(--surface-border);
+  transition: background var(--dur-fast) var(--ease-in-out);
+  flex-shrink: 0;
+  align-self: stretch;
+}
+.studio-split-handle:hover { background: var(--mr7-red-25); }

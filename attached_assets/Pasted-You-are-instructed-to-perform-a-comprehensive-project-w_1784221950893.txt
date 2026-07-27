@@ -1,0 +1,30 @@
+You are instructed to perform a comprehensive, project-wide fix for the "useTools" injection across all manual fetch requests and modals, while ensuring that our Cloudflare error handling and Artifact rendering remain completely functional. 
+
+Please follow these exact instructions step-by-step:
+
+### 1. Project-Wide "useTools: true" Injection (The 50+ Modals Fix)
+- **The Core Issue:** We have around 54 locations (such as `FridayAIModal.tsx`, `JarvisHologramModal.tsx`, `OdysseusCompareModal.tsx`, `OdysseusDocEditorModal.tsx`, `OdysseusEmailAIModal.tsx`, and `lib/smart-prefetch.ts`) that trigger direct `fetch("/api/chat", ...)` calls without routing through `streamChat()`. These payloads lack `useTools`, which prevents tool integration from activating in sub-modals.
+- **The Execution:**
+  1. Carefully scan and modify all `.tsx` and `.ts` files inside the `components/modals/` directory (and `lib/smart-prefetch.ts`).
+  2. Locate where `fetch("/api/chat", { method: "POST", body: ... })` is called.
+  3. Update the JSON payload serialization. Instead of hardcoding static configurations or stripping parameters, construct the body object safely to ensure `useTools: true` is included:
+     ```typescript
+     // Ensure the request body includes useTools: true safely
+     const requestPayload = { ...req, useTools: req.useTools ?? true };
+     // If sending direct variables:
+     const body = JSON.stringify({ ...yourPayloadObject, useTools: true });
+     ```
+  4. Ensure that the main `chat-client.ts` client helper functions (`streamChat`, `streamChatWithTimeout`, `retryStreamChat`, and `streamBest`) are also updated to robustly serialize their requests with `useTools: req.useTools ?? true` as their default backup.
+
+### 2. Retain & Double-Check Cloudflare HTTP 401 Error Boundary
+- Verify that backend routers (`orchestrate.ts` and downstream chat route handlers) successfully intercept `res.status === 401` from the Cloudflare API (during Flux image generation `toolGenerateImage` or Llama-vision analysis `toolAnalyzeImage`).
+- If a 401 status occurs, return the clean, localized error object containing:
+  "⚠️ يرجى التحقق: خطأ في المصادقة (401) مع Cloudflare. تأكد من صحة مفاتيح البيئة CLOUDFLARE_API_TOKEN و CLOUDFLARE_ACCOUNT_ID في الـ Secrets."
+- Ensure the frontend catches this error boundary gracefully to prevent silent failures or total page crashes.
+
+### 3. Verify ArtifactPanel-v3.tsx & ChatMessage.tsx Integration
+- Make sure `artifacts/mr7-ai/src/components/ArtifactPanel-v3.tsx` is successfully imported as `<ArtifactCardV3>` inside `ChatMessage.tsx`.
+- Double-check that code blocks (HTML, React/JSX, JavaScript) correctly render as interactive artifacts using a unique, persistent ID matching: `<ArtifactCardV3 artifactId={`${msg.id}-code-${i}`} ... />`.
+- All non-executable language blocks (like python, css, bash) must fall back gracefully to the default `<CodeBlock>` component.
+
+Review the build logs, compile the TypeScript, and confirm that there are no remaining compilation errors or unhandled promises before concluding.
