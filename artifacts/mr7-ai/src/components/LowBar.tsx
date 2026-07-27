@@ -452,9 +452,11 @@ export function LowBar() {
           <DesktopRow />
         </div>
 
-        {/* Mobile layout */}
-        <div className="md:hidden flex flex-col">
-          <div className="flex items-center px-3" style={{ height: 28, minHeight: 28 }}>
+        {/* Mobile layout — summary row is always 28px in the flow;
+            the expanded panel floats ABOVE the bar so it never pushes
+            layout content down toward (or behind) the fixed MobileBottomNav. */}
+        <div className="md:hidden" style={{ height: 28, position: "relative" }}>
+          <div className="flex items-center px-3 h-full">
             <MobileSummary />
           </div>
 
@@ -462,17 +464,26 @@ export function LowBar() {
             {mobileExpanded && (
               <motion.div
                 key="mobile-expanded"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-                style={{ overflow: "hidden" }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                style={{
+                  position: "absolute",
+                  bottom: "100%",
+                  left: 0,
+                  right: 0,
+                  zIndex: 50,
+                  background: "rgba(4,4,8,0.97)",
+                  backdropFilter: "blur(24px) saturate(180%)",
+                  WebkitBackdropFilter: "blur(24px) saturate(180%)",
+                  borderTop: "1px solid rgba(255,255,255,0.08)",
+                  borderBottom: "none",
+                  boxShadow: "0 -4px 20px rgba(0,0,0,0.5)",
+                }}
               >
-                <div
-                  className="px-3 pb-2 flex flex-wrap gap-2"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
-                >
-                  <div className="flex items-center gap-1.5 pt-2">
+                <div className="px-3 py-2 flex flex-wrap gap-2">
+                  <div className="flex items-center gap-1.5">
                     <PulseDot color={dbColor} animate={false} />
                     <span style={{ color: dbColor, fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 700 }}>PG</span>
                     <span style={{ color: "rgba(255,255,255,0.38)", fontSize: 9 }}>{statusLabel(sys.dbStatus)}</span>

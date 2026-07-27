@@ -90,16 +90,26 @@ export function StudioLayout({
           {children}
         </main>
 
-        {/* Low bar — system status footer (all screen sizes) */}
+        {/* Low bar — system status footer (desktop only; mobile version lives
+            inside LowBar itself anchored above the mobile nav) */}
         {lowBar && (
           <div className="flex-shrink-0 studio-lowbar-slot">
             {lowBar}
           </div>
         )}
 
-        {/* Bottom bar (mobile only) */}
+        {/* Mobile spacer — reserves the exact height of the fixed MobileBottomNav
+            (60 px + device safe-area-inset-bottom) so no content is ever obscured
+            by the nav bar. Invisible on md+ where the nav is hidden. */}
+        <div
+          className="md:hidden flex-shrink-0 pointer-events-none"
+          style={{ height: "calc(60px + env(safe-area-inset-bottom, 0px))" }}
+        />
+
+        {/* Bottom bar slot (mobile only) — MobileBottomNav is self-fixed so this
+            div contributes no additional layout height; it just mounts the nav. */}
         {bottomBar && (
-          <div className="md:hidden flex-shrink-0 studio-bottom-nav">
+          <div className="md:hidden studio-bottom-nav">
             {bottomBar}
           </div>
         )}

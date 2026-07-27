@@ -152,15 +152,11 @@ export function ChatInput({
   const activeStm = activeStmCount(stmCfg);
 
   return (
-    /* On mobile (md:hidden nav bar ≈ 60 px + safe-area), push the input up so it
-       is never hidden behind the fixed MobileBottomNav.  On md+ screens the nav
-       is gone, so we revert to a minimal pb-2. */
+    /* Layout spacer in StudioLayout already reserves space for the fixed
+       MobileBottomNav (60 px + safe-area), so ChatInput just needs a small
+       consistent bottom padding on all screen sizes. */
     <div
-      className="px-3 pt-1 bg-gradient-to-t from-background via-background to-transparent md:pb-2"
-      style={{
-        /* mobile: clear the 60 px bar + device safe-area */
-        paddingBottom: "var(--chat-input-pb, 0.5rem)",
-      }}
+      className="px-3 pt-1 pb-2 bg-gradient-to-t from-background via-background to-transparent"
     >
       <div className="max-w-3xl mx-auto">
         {isEmpty && (
