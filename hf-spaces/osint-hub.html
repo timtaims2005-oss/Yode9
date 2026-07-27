@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSINT Hub - مركز أدوات الاستخبارات المفتوحة والأمن السيبراني</title>
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --secondary: #8b5cf6;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --dark: #0f172a;
+            --darker: #020617;
+            --card: #1e293b;
+            --card-hover: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --gradient-1: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
+            --gradient-2: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            --gradient-3: linear-gradient(135deg, #10b981 0%, #0ea5e9 100%);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--darker); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+        .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(ellipse at 20% 80%, rgba(14, 165, 233, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(15, 23, 42, 1) 0%, var(--darker) 100%); }
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        .particle { position: absolute; width: 2px; height: 2px; background: var(--primary); border-radius: 50%; animation: float 15s infinite; opacity: 0.3; }
+        @keyframes float { 0%, 100% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 0.3; } 90% { opacity: 0.3; } 100% { transform: translateY(-100vh) translateX(50px); } }
+        header { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 1rem 0; position: sticky; top: 0; z-index: 1000; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo { display: flex; align-items: center; gap: 0.75rem; font-size: 1.5rem; font-weight: 700; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .logo-icon { width: 40px; height: 40px; background: var(--gradient-1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; -webkit-text-fill-color: white; }
+        .search-box { position: relative; width: 100%; max-width: 400px; }
+        .search-box input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 0.95rem; transition: all 0.3s; }
+        .search-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2); }
+        .search-box::before { content: "🔍"; position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); opacity: 0.5; }
+        main { padding: 2rem 0; }
+        .hero { text-align: center; padding: 3rem 0; margin-bottom: 2rem; }
+        .hero h1 { font-size: 2.5rem; margin-bottom: 1rem; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero p { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+        .legal-warning { background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(245, 158, 11, 0.2) 100%); border: 1px solid var(--danger); border-radius: 15px; padding: 1.5rem; margin-bottom: 2rem; display: flex; align-items: start; gap: 1rem; }
+        .legal-warning-icon { font-size: 2rem; flex-shrink: 0; }
+        .legal-warning h3 { color: var(--danger); margin-bottom: 0.5rem; }
+        .legal-warning ul { list-style: none; padding: 0; }
+        .legal-warning li { padding: 0.25rem 0; padding-right: 1.5rem; position: relative; }
+        .legal-warning li::before { content: "⚠️"; position: absolute; right: 0; }
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; justify-content: center; }
+        .tab-btn { padding: 0.75rem 1.5rem; background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: var(--text-muted); cursor: pointer; transition: all 0.3s; font-size: 0.95rem; font-weight: 600; }
+        .tab-btn:hover { background: var(--card-hover); color: var(--text); }
+        .tab-btn.active { background: var(--gradient-1); color: white; border-color: transparent; }
+        .tools-section { display: none; }
+        .tools-section.active { display: block; }
+        .section-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.5rem; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--border); }
+        .section-title .icon { font-size: 1.75rem; }
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .tool-card { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 1.5rem; transition: all 0.3s; position: relative; overflow: hidden; cursor: pointer; }
+        .tool-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient-1); opacity: 0; transition: opacity 0.3s; }
+        .tool-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px rgba(14, 165, 233, 0.2); }
+        .tool-card:hover::before { opacity: 1; }
+        .tool-card.danger::before { background: var(--gradient-2); }
+        .tool-card.danger:hover { border-color: var(--danger); box-shadow: 0 10px 30px rgba(239, 68, 68, 0.2); }
+        .tool-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem; }
+        .tool-name { font-size: 1.2rem; font-weight: 700; color: var(--text); }
+        .tool-badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .badge-free { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .badge-paid { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .badge-legal { background: rgba(14, 165, 233, 0.2); color: var(--primary); }
+        .tool-description { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.6; }
+        .tool-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+        .tag { padding: 0.25rem 0.5rem; background: rgba(148, 163, 184, 0.1); border-radius: 5px; font-size: 0.75rem; color: var(--text-muted); }
+        .tool-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--border); }
+        .tool-link { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--gradient-1); color: white; text-decoration: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; transition: all 0.3s; }
+        .tool-link:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(14, 165, 233, 0.4); }
+        .tool-category { font-size: 0.8rem; color: var(--text-muted); }
+        .table-container { overflow-x: auto; margin-bottom: 2rem; }
+        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 15px; overflow: hidden; }
+        th, td { padding: 1rem; text-align: right; border-bottom: 1px solid var(--border); }
+        th { background: var(--gradient-1); color: white; font-weight: 600; }
+        tr:hover { background: rgba(255, 255, 255, 0.02); }
+        td a { color: var(--primary); text-decoration: none; }
+        td a:hover { text-decoration: underline; }
+        .info-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; text-align: center; }
+        .info-card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+        .info-card-number { font-size: 2rem; font-weight: 700; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .info-card-label { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
+        footer { background: var(--dark); border-top: 1px solid var(--border); padding: 2rem 0; text-align: center; color: var(--text-muted); margin-top: 3rem; }
+        .footer-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); z-index: 2000; align-items: center; justify-content: center; padding: 2rem; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--card); border: 1px solid var(--border); border-radius: 20px; max-width: 600px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 2rem; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-title { font-size: 1.5rem; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; transition: color 0.3s; }
+        .modal-close:hover { color: var(--danger); }
+        @media (max-width: 768px) { .hero h1 { font-size: 1.75rem; } .tools-grid { grid-template-columns: 1fr; } .header-content { flex-direction: column; } .search-box { max-width: 100%; } .tabs { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; } .legal-warning { flex-direction: column; text-align: center; } }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--darker); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.5s ease-out forwards; }
+        .no-results { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 1.2rem; }
+        .copy-btn { background: var(--card); border: 1px solid var(--border); color: var(--text-muted); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s; font-size: 0.85rem; }
+        .copy-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .copy-btn.copied { background: var(--success); border-color: var(--success); color: white; }
+        .status { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .status-online { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s infinite; }
+        .status-online .status-dot { background: var(--success); }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="particles" id="particles"></div>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">🔍</div>
+                    <span>OSINT Hub</span>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="ابحث عن أداة، نظام، أو ميزة..." autocomplete="off">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero animate-in">
+            <h1>مركز أدوات OSINT والأمن السيبراني</h1>
+            <p>دليل شامل بأقوى الأدوات والأنظمة في مجال الاستخبارات المفتوحة المصادر والأمن السيبراني للبحث والتحليل</p>
+        </section>
+
+        <div class="legal-warning animate-in">
+            <div class="legal-warning-icon">⚖️</div>
+            <div>
+                <h3>تحذيرات قانونية وأخلاقية مهمة</h3>
+                <ul>
+                    <li>الوصول غير المصرح به إلى بيانات شخصية أو أنظمة خاصة <strong>جريمة إلكترونية</strong> في معظم الدول</li>
+                    <li>استخدام أدوات البحث مقبول فقط في اختبار الاختراق المصرح به (Bug Bounty) أو البحث عن معلوماتك الشخصية</li>
+                    <li>أدوات "اختراق" الهواتف أو استخراج البيانات بدون إذن <strong>غير قانونية</strong></li>
+                    <li>يجب استخدام هذه الأدوات فقط للأغراض الأخلاقية والقانونية</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="info-cards animate-in">
+            <div class="info-card">
+                <div class="info-card-icon">🔍</div>
+                <div class="info-card-number" id="totalTools">0</div>
+                <div class="info-card-label">أداة ونظام</div>
+            </div>
+            <div class="info-card">
+                <div class="info-card-icon">📁</div>
+                <div class="info-card-number" id="totalCategories">0</div>
+                <div class="info-card-label">فئة متخصصة</div>
+            </div>
+            <div class="info-card">
+                <div class="info-card-icon">🌐</div>
+                <div class="info-card-number" id="totalPlatforms">0</div>
+                <div class="info-card-label">منصة مدعومة</div>
+            </div>
+            <div class="info-card">
+                <div class="info-card-icon">🛡️</div>
+                <div class="info-card-number">100%</div>
+                <div class="info-card-label">أخلاقي وقانوني</div>
+            </div>
+        </div>
+
+        <div class="tabs animate-in">
+            <button class="tab-btn active" data-tab="all">الكل</button>
+            <button class="tab-btn" data-tab="search">أنظمة البحث</button>
+            <button class="tab-btn" data-tab="databases">قواعد البيانات</button>
+            <button class="tab-btn" data-tab="phone">أدوات الهاتف</button>
+            <button class="tab-btn" data-tab="email">أدوات البريد</button>
+            <button class="tab-btn" data-tab="username">البحث بالاسم</button>
+            <button class="tab-btn" data-tab="frameworks">أطر العمل</button>
+            <button class="tab-btn" data-tab="recon">جمع المعلومات</button>
+            <button class="tab-btn" data-tab="legal">التحذيرات</button>
+        </div>
+
+        <div id="contentContainer">
+            <div class="tools-section active" id="section-all">
+                <div class="tools-grid" id="allToolsGrid"></div>
+            </div>
+            <div class="tools-section" id="section-search">
+                <h2 class="section-title"><span class="icon">🔎</span> أنظمة البحث المتقدمة</h2>
+                <div class="tools-grid" id="searchToolsGrid"></div>
+            </div>
+            <div class="tools-section" id="section-databases">
+                <h2 class="section-title"><span class="icon">🗄️</span> قواعد البيانات العامة</h2>
+                <div class="tools-grid" id="databaseToolsGrid"></div>
+            </div>
+            <div class="tools-section" id="section-phone">
+                <h2 class="section-title"><span class="icon">📱</span> أدوات تحليل الهاتف</h2>
+                <div class="tools-grid" id="phoneToolsGrid"></div>
+            </div>
+            <div class="tools-section" id="section-email">
+                <h2 class="section-title"><span class="icon">📧</span> البحث عبر البريد الإلكتروني</h2>
+                <div class="tools-grid" id="emailToolsGrid"></div>
+            </div>
+            <div class="tools-section" id="section-username">
+                <h2 class="section-title"><span class="icon">👤</span> البحث عبر الاسم/المستخدم</h2>
+                <div class="tools-grid" id="usernameToolsGrid"></div>
+            </div>
+            <div class="tools-section" id="section-frameworks">
+                <h2 class="section-title"><span class="icon">🛡️</span> أطر العمل الكاملة</h2>
+                <div class="table-container">
+                    <table id="frameworksTable">
+                        <thead><tr><th>الأداة</th><th>الاستخدام</th><th>النوع</th><th>الرابط</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="tools-section" id="section-recon">
+                <h2 class="section-title"><span class="icon">🕵️</span> أدوات جمع المعلومات (Reconnaissance)</h2>
+                <div class="tools-grid" id="reconToolsGrid"></div>
+            </div>
+            <div class="tools-section" id="section-legal">
+                <h2 class="section-title"><span class="icon">⚠️</span> التحذيرات القانونية والأخلاقية</h2>
+                <div class="tools-grid" id="legalToolsGrid"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>© 2024 OSINT Hub - للاستخدام القانوني والأخلاقي فقط</div>
+                <div class="status status-online">
+                    <span class="status-dot"></span>
+                    <span>النظام نشط</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">تفاصيل الأداة</h2>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const toolsData = {
+            search: [
+                { name: "Maltego", description: "أداة رسومية قوية لتحليل العلاقات بين البيانات وربط المعلومات بشكل مرئي", tags: ["تحليل", "رسومي", "علاقات"], link: "https://www.maltego.com", badge: "paid", category: "نظام بحث متقدم", status: "online", details: "Maltego هو أداة قوية لتحليل الروابط والعلاقات بين البيانات المفتوحة." },
+                { name: "SpiderFoot", description: "أتمتة جمع المعلومات من مصادر متعددة بشكل تلقائي وشامل", tags: ["أتمتة", "مصادر متعددة"], link: "https://www.spiderfoot.net", badge: "free", category: "نظام بحث متقدم", status: "online", details: "SpiderFoot يجمع المعلومات من 100+ مصدر بيانات." },
+                { name: "theHarvester", description: "جمع رسائل البريد الإلكتروني والنطاقات الفرعية والموظفين", tags: ["بريد إلكتروني", "نطاقات فرعية"], link: "https://github.com/laramies/theHarvester", badge: "free", category: "نظام بحث متقدم", status: "online", details: "أداة لجمع البريد الإلكتروني والنطاقات الفرعية." },
+                { name: "Sherlock", description: "البحث عن أسماء المستخدمين عبر منصات متعددة (400+ منصة)", tags: ["اسم مستخدم", "شبكات اجتماعية"], link: "https://github.com/sherlock-project/sherlock", badge: "free", category: "نظام بحث متقدم", status: "online", details: "يبحث عن اسم المستخدم عبر 400+ منصة." },
+                { name: "Recon-ng", description: "إطار عمل شامل لجمع المعلومات مع وحدات متعددة", tags: ["إطار عمل", "وحدات"], link: "https://github.com/lanmaster53/recon-ng", badge: "free", category: "نظام بحث متقدم", status: "online", details: "إطار شامل لجمع المعلومات بوحدات قابلة للتوسع." },
+                { name: "OSINT Framework", description: "دليل شامل لأدوات OSINT مع تصنيف هرمي", tags: ["دليل", "تصنيف"], link: "https://osintframework.com", badge: "free", category: "نظام بحث متقدم", status: "online", details: "خريطة تفاعلية لأدوات OSINT." }
+            ],
+            databases: [
+                { name: "Have I Been Pwned", description: "التحقق من تسريبات البيانات والبريد الإلكتروني", tags: ["تسريبات", "بريد إلكتروني"], link: "https://haveibeenpwned.com", badge: "free", category: "قاعدة بيانات", status: "online", details: "يتحقق من تسريبات بريدك الإلكتروني." },
+                { name: "IntelX", description: "محرك بحث في البيانات المسربة والويب المظلم", tags: ["بيانات مسربة", "ويب مظلم"], link: "https://intelx.io", badge: "paid", category: "قاعدة بيانات", status: "online", details: "يوفر بحثاً في البيانات المسربة." },
+                { name: "Shodan", description: "محرك بحث للأجهزة المتصلة بالإنترنت وإنترنت الأشياء", tags: ["أجهزة", "إنترنت الأشياء"], link: "https://www.shodan.io", badge: "free", category: "قاعدة بيانات", status: "online", details: "يبحث عن الأجهزة المتصلة والخوادم." },
+                { name: "Censys", description: "فحص البنية التحتية للإنترنت وتحليل الشهادات الأمنية", tags: ["بنية تحتية", "شهادات"], link: "https://censys.io", badge: "free", category: "قاعدة بيانات", status: "online", details: "يحلل الشهادات والبنية التحتية." },
+                { name: "VirusTotal", description: "فحص الملفات والروابط بمئات من برامج مكافحة الفيروسات", tags: ["فيروسات", "فحص"], link: "https://www.virustotal.com", badge: "free", category: "قاعدة بيانات", status: "online", details: "يفحص الملفات بـ 70+ محرك أمني." },
+                { name: "Dehashed", description: "بحث في قواعد البيانات المخترقة بمعلومات مفصلة", tags: ["اختراق", "بيانات"], link: "https://www.dehashed.com", badge: "paid", category: "قاعدة بيانات", status: "online", details: "قاعدة بيانات ضخمة للبيانات المسربة." }
+            ],
+            phone: [
+                { name: "Truecaller", description: "تحديد هوية المتصل باستخدام قاعدة بيانات مجتمعية ضخمة", tags: ["هوية المتصل", "قاعدة بيانات"], link: "https://www.truecaller.com", badge: "free", category: "أدوات الهاتف", status: "online", details: "يستخدم قاعدة بيانات مجتمعية لتحديد هوية المتصلين." },
+                { name: "PhoneInfoga", description: "أداة متقدمة لجمع معلومات أرقام الهاتف", tags: ["أرقام هاتف", "جمع معلومات"], link: "https://github.com/sundowndev/PhoneInfoga", badge: "free", category: "أدوات الهاتف", status: "online", details: "جمع معلومات مفصلة عن أرقام الهاتف من مصادر متعددة." },
+                { name: "NumLookup", description: "كشف معلومات رقم الهاتف بما في ذلك مشغل الشبكة", tags: ["شبكة", "موقع"], link: "https://www.numlookup.com", badge: "free", category: "أدوات الهاتف", status: "online", details: "يكشف معلومات الرقم والمشغل." },
+                { name: "Carrier Lookup", description: "التحقق من شبكة الجوال لأي رقم هاتفي", tags: ["شبكة", "تحقق"], link: "https://www.carrierlookup.com", badge: "free", category: "أدوات الهاتف", status: "online", details: "يتحقق من شبكة الجوال للأرقام." }
+            ],
+            email: [
+                { name: "Hunter.io", description: "البحث عن عناوين البريد الإلكتروني للمهنيين والشركات", tags: ["مهنيون", "شركات"], link: "https://hunter.io", badge: "free", category: "أدوات البريد", status: "online", details: "يبحث عن البريد الإلكتروني للشركات والمهنيين." },
+                { name: "Email Header Analyzer", description: "تحليل رؤوس البريد الإلكتروني لتتبع المصدر الحقيقي", tags: ["تحليل", "رؤوس", "تتبع"], link: "https://mxtoolbox.com/EmailHeaders.aspx", badge: "free", category: "أدوات البريد", status: "online", details: "يحلل رؤوس الرسائل لتتبع مصدرها." },
+                { name: "Holehe", description: "التحقق من المواقع المرتبطة بعنوان بريد إلكتروني معين", tags: ["تحقق", "مواقع مرتبطة"], link: "https://github.com/megadose/holehe", badge: "free", category: "أدوات البريد", status: "online", details: "يتحقق من المواقع المرتبطة بالبريد." },
+                { name: "Emailrep.io", description: "تحليل سمعة عناوين البريد الإلكتروني والكشف عن الاحتيال", tags: ["سمعة", "احتيال"], link: "https://emailrep.io", badge: "free", category: "أدوات البريد", status: "online", details: "يحلل سمعة عناوين البريد." }
+            ],
+            username: [
+                { name: "Sherlock", description: "البحث عن أسماء المستخدمين عبر 400+ منصة", tags: ["400+ منصة", "أتمتة"], link: "https://github.com/sherlock-project/sherlock", badge: "free", category: "أدوات اسم المستخدم", status: "online", details: "يبحث عن اسم المستخدم عبر مئات المنصات." },
+                { name: "WhatsMyName", description: "كشف وجود اسم مستخدم عبر عشرات المواقع المختلفة", tags: ["مواقع متعددة", "كشف"], link: "https://whatsmyname.app", badge: "free", category: "أدوات اسم المستخدم", status: "online", details: "يكشف وجود الاسم عبر مواقع متعددة." },
+                { name: "Namechk", description: "التحقق من توفر اسم المستخدم عبر شبكات اجتماعية متعددة", tags: ["توفر", "شبكات اجتماعية"], link: "https://namechk.com", badge: "free", category: "أدوات اسم المستخدم", status: "online", details: "يتحقق من توفر الاسم في منصات التواصل." },
+                { name: "Maigret", description: "جمع ملفات تعريف المستخدمين بأرقام هواتف وبريد", tags: ["ملفات تعريف", "شامل"], link: "https://github.com/soxoj/maigret", badge: "free", category: "أدوات اسم المستخدم", status: "online", details: "يجمع معلومات مفصلة عن الهوية الرقمية." }
+            ],
+            recon: [
+                { name: "Nmap", description: "أداة فحص الشبكات واكتشاف الأجهزة والمنافذ المفتوحة", tags: ["شبكات", "منافذ", "فحص"], link: "https://nmap.org", badge: "free", category: "جمع المعلومات", status: "online", details: "أداة الفحص الشبكي الأكثر شهرة في العالم." },
+                { name: "Amass", description: "اكتشاف النطاقات الفرعية وتعداد الأهداف بشكل شامل", tags: ["نطاقات فرعية", "DNS"], link: "https://github.com/owasp-amass/amass", badge: "free", category: "جمع المعلومات", status: "online", details: "يكتشف النطاقات الفرعية من مصادر متعددة." },
+                { name: "Subfinder", description: "أداة سريعة لاكتشاف النطاقات الفرعية من خلال مصادر سلبية", tags: ["سريع", "سلبي", "DNS"], link: "https://github.com/projectdiscovery/subfinder", badge: "free", category: "جمع المعلومات", status: "online", details: "اكتشاف سريع للنطاقات الفرعية." },
+                { name: "Masscan", description: "أسرع ماسح للمنافذ في العالم - يمكنه مسح الإنترنت كله", tags: ["سريع", "منافذ"], link: "https://github.com/robertdavidgraham/masscan", badge: "free", category: "جمع المعلومات", status: "online", details: "يمسح المنافذ بسرعة خارقة." },
+                { name: "DNSdumpster", description: "اكتشاف سجلات DNS وإنشاء خرائط شبكات للنطاقات", tags: ["DNS", "خرائط"], link: "https://dnsdumpster.com", badge: "free", category: "جمع المعلومات", status: "online", details: "يكشف سجلات DNS ورسم خرائط الشبكة." },
+                { name: "Censys", description: "فحص شامل للبنية التحتية للأهداف من خلال قاعدة بيانات ضخمة", tags: ["شامل", "بنية تحتية"], link: "https://censys.io", badge: "free", category: "جمع المعلومات", status: "online", details: "فحص شامل للبنية التحتية." }
+            ],
+            legal: [
+                { name: "قانوني 100%", description: "هذه الأدوات مخصصة للبحث الأخلاقي والأكاديمي والاختراق المصرح به فقط", tags: ["أخلاقي", "قانوني"], link: "#", badge: "legal", category: "تحذير", status: "online", details: "يجب الحصول على إذن صريح قبل أي عملية فحص أو اختبار.", danger: true },
+                { name: "Bug Bounty", description: "نطاق الاستخدام المقبول: برامج المكافآت الرسمية، الاختبار المصرح به", tags: ["مكافآت", "مصرح به"], link: "https://www.bugcrowd.com", badge: "legal", category: "تحذير", status: "online", details: "استخدم هذه الأدوات في برامج Bug Bounty الرسمية.", danger: true }
+            ],
+            frameworks: [
+                { name: "Metasploit", description: "إطار اختبار الاختراق الأكثر شهرة عالمياً", usage: "اختبار الاختراق الشامل", type: "offensive", link: "https://www.metasploit.com" },
+                { name: "Burp Suite", description: "اختبار أمان تطبيقات الويب", usage: "Web Application Testing", type: "web", link: "https://portswigger.net/burp" },
+                { name: "Wireshark", description: "تحليل حزم الشبكة والبروتوكولات", usage: "Network Analysis", type: "network", link: "https://www.wireshark.org" },
+                { name: "John the Ripper", description: "اختبار قوة كلمات المرور", usage: "Password Auditing", type: "password", link: "https://www.openwall.com/john/" },
+                { name: "Hashcat", description: "كسر كلمات المرور بالقوة الغاشمة عبر GPU", usage: "Password Cracking", type: "password", link: "https://hashcat.net/hashcat/" },
+                { name: "Aircrack-ng", description: "اختبار أمان شبكات Wi-Fi", usage: "Wireless Security", type: "wireless", link: "https://www.aircrack-ng.org" },
+                { name: "Hydra", description: "اختبار كلمات المرور على بروتوكولات متعددة", usage: "Brute Force Testing", type: "password", link: "https://github.com/vanhauser-thc/thc-hydra" },
+                { name: "SQLMap", description: "اكتشاف واستغلال ثغرات حقن SQL تلقائياً", usage: "SQL Injection Testing", type: "web", link: "https://sqlmap.org" },
+                { name: "Nikto", description: "فحص خوادم الويب للثغرات المعروفة", usage: "Web Server Scanning", type: "web", link: "https://github.com/sullo/nikto" },
+                { name: "OWASP ZAP", description: "اختبار أمان تطبيقات الويب مفتوح المصدر", usage: "Web App Security", type: "web", link: "https://www.zaproxy.org" }
+            ]
+        };
+
+        function createToolCard(tool) {
+            const card = document.createElement('div');
+            card.className = `tool-card animate-in${tool.danger ? ' danger' : ''}`;
+            card.innerHTML = `
+                <div class="tool-header">
+                    <div class="tool-name">${tool.name}</div>
+                    <span class="tool-badge badge-${tool.badge}">${tool.badge === 'free' ? 'مجاني' : tool.badge === 'paid' ? 'مدفوع' : 'قانوني'}</span>
+                </div>
+                <div class="tool-description">${tool.description}</div>
+                <div class="tool-tags">${(tool.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+                <div class="tool-footer">
+                    <span class="tool-category">${tool.category}</span>
+                    ${tool.link && tool.link !== '#' ? `<a href="${tool.link}" class="tool-link" target="_blank" rel="noopener noreferrer">فتح الأداة ↗</a>` : '<span></span>'}
+                </div>`;
+            card.addEventListener('click', () => showModal(tool));
+            return card;
+        }
+
+        function showModal(tool) {
+            document.getElementById('modalTitle').textContent = tool.name;
+            document.getElementById('modalContent').innerHTML = `
+                <p style="color:var(--text-muted);margin-bottom:1rem;">${tool.details || tool.description}</p>
+                <div class="tool-tags">${(tool.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+                ${tool.link && tool.link !== '#' ? `<br><a href="${tool.link}" class="tool-link" target="_blank" rel="noopener noreferrer" style="display:inline-flex;">فتح الأداة ↗</a>` : ''}`;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function populateGrid(gridId, tools) {
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+            grid.innerHTML = '';
+            tools.forEach(t => grid.appendChild(createToolCard(t)));
+        }
+
+        function populateFrameworks() {
+            const tbody = document.querySelector('#frameworksTable tbody');
+            if (!tbody) return;
+            tbody.innerHTML = toolsData.frameworks.map(f => `
+                <tr>
+                    <td><strong>${f.name}</strong></td>
+                    <td>${f.usage}</td>
+                    <td><span class="tool-badge badge-free">${f.type}</span></td>
+                    <td><a href="${f.link}" target="_blank" rel="noopener noreferrer">فتح ↗</a></td>
+                </tr>`).join('');
+        }
+
+        function init() {
+            const allTools = [...toolsData.search, ...toolsData.databases, ...toolsData.phone, ...toolsData.email, ...toolsData.username, ...toolsData.recon, ...toolsData.legal];
+            populateGrid('allToolsGrid', allTools);
+            populateGrid('searchToolsGrid', toolsData.search);
+            populateGrid('databaseToolsGrid', toolsData.databases);
+            populateGrid('phoneToolsGrid', toolsData.phone);
+            populateGrid('emailToolsGrid', toolsData.email);
+            populateGrid('usernameToolsGrid', toolsData.username);
+            populateGrid('reconToolsGrid', toolsData.recon);
+            populateGrid('legalToolsGrid', toolsData.legal);
+            populateFrameworks();
+            document.getElementById('totalTools').textContent = allTools.length + toolsData.frameworks.length;
+            document.getElementById('totalCategories').textContent = Object.keys(toolsData).length;
+            document.getElementById('totalPlatforms').textContent = '400+';
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tools-section').forEach(s => s.classList.remove('active'));
+                btn.classList.add('active');
+                const section = document.getElementById('section-' + btn.dataset.tab);
+                if (section) section.classList.add('active');
+            });
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase();
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-tab="all"]').classList.add('active');
+            document.querySelectorAll('.tools-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('section-all').classList.add('active');
+            const all = [...toolsData.search, ...toolsData.databases, ...toolsData.phone, ...toolsData.email, ...toolsData.username, ...toolsData.recon, ...toolsData.legal];
+            const filtered = q ? all.filter(t => t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || (t.tags || []).some(tag => tag.toLowerCase().includes(q))) : all;
+            const grid = document.getElementById('allToolsGrid');
+            grid.innerHTML = '';
+            if (filtered.length === 0) { grid.innerHTML = '<div class="no-results">لا توجد نتائج مطابقة</div>'; return; }
+            filtered.forEach(t => grid.appendChild(createToolCard(t)));
+        });
+
+        document.getElementById('modalClose').addEventListener('click', () => document.getElementById('modal').classList.remove('active'));
+        document.getElementById('modal').addEventListener('click', (e) => { if (e.target === document.getElementById('modal')) document.getElementById('modal').classList.remove('active'); });
+
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*15}s;animation-duration:${10+Math.random()*10}s;`;
+            particlesContainer.appendChild(p);
+        }
+
+        init();
+    </script>
+</body>
+</html>
