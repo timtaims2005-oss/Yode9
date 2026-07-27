@@ -36,6 +36,7 @@ type CmdItem = {
 /* ─── Props ──────────────────────────────────────────────────────────────── */
 interface GlobalCommandPaletteProps {
   onOpenArsenal?: () => void;
+  onOpenCognitiveCenter?: () => void;
   onLaunchModule?: (id: ArsenalModuleId) => void;
   onNewChat?: () => void;
   onOpenSettings?: () => void;
@@ -77,6 +78,7 @@ function fuzzyScore(query: string, text: string): number {
 /* ─── Component ──────────────────────────────────────────────────────────── */
 export function GlobalCommandPalette({
   onOpenArsenal,
+  onOpenCognitiveCenter,
   onLaunchModule,
   onNewChat,
   onOpenSettings,
@@ -119,6 +121,16 @@ export function GlobalCommandPalette({
   /* ── Build command list ──────────────────────────────────────────────── */
   const allItems = useMemo<CmdItem[]>(() => {
     const quickActions: CmdItem[] = [
+      {
+        id: "cognitive-control-center",
+        label: "Cognitive Control Center",
+        sublabel: "Agentic swarm, policy, and telemetry",
+        group: "Quick Actions",
+        icon: <Brain className="w-4 h-4" />,
+        color: "#00d7ec",
+        shortcut: "C",
+        action: () => { onOpenCognitiveCenter?.(); setOpen(false); },
+      },
       {
         id: "new-chat",
         label: "New Chat",
@@ -216,7 +228,7 @@ export function GlobalCommandPalette({
     }));
 
     return [...quickActions, ...navItems, ...arsenalItems];
-  }, [onNewChat, onOpenArsenal, onOpenDeepSearch, onOpenOsintHub, onOpenSettings, onOpenPricing, onOpenMemory, onOpenBookmarks, onOpenAnalytics, onLaunchModule]);
+  }, [onNewChat, onOpenArsenal, onOpenCognitiveCenter, onOpenDeepSearch, onOpenOsintHub, onOpenSettings, onOpenPricing, onOpenMemory, onOpenBookmarks, onOpenAnalytics, onLaunchModule]);
 
   /* ── Filter + score ──────────────────────────────────────────────────── */
   const filtered = useMemo<CmdItem[]>(() => {

@@ -14,6 +14,7 @@ import { setupMetricsWebSocket } from "./interfaces/ws/MetricsWebSocket";
 import { handleVoiceSocket } from "./interfaces/ws/VoiceWebSocket";
 import { verifyVoiceToken } from "./lib/voice-token";
 import { shutdownQueue } from "./lib/queue.js";
+import { handleAgenticSocket } from "./gateway/agentic-stream.js";
 
 // ── Initialize OpenTelemetry (must be before app logic) ───────────────────────
 initializeTelemetry();
@@ -56,7 +57,7 @@ async function autoLaunchOllama(): Promise<void> {
 
   spawn(bin, ["serve"], { detached: true, stdio: "ignore", env }).unref();
   logger.info({ bin }, "Ollama auto-launched on startup");
-  console.log("Ollama auto-started");
+  logger.info("Ollama auto-started");
 }
 
 const rawPort = process.env["PORT"] ?? "8080";
@@ -72,6 +73,7 @@ const collabWss   = new WebSocketServer({ noServer: true });
 const muxWss      = new WebSocketServer({ noServer: true });
 const metricsWss  = new WebSocketServer({ noServer: true });
 const voiceWss = new WebSocketServer({ noServer: true });
+const agenticWss = new WebSocketServer({ noServer: true });
 
 // Per-device/IP rate-limit buckets for the voice WebSocket endpoint
 const voiceRateBuckets = new Map<string, { count: number; windowStart: number }>();
@@ -80,6 +82,7 @@ const voiceRateBuckets = new Map<string, { count: number; windowStart: number }>
 wss.on("connection", handleTerminalSocket);
 setupMetricsWebSocket(metricsWss);
 voiceWss.on("connection", (ws) => { handleVoiceSocket(ws); });
+agenticWss.on("connection", (ws, req) => { handleAgenticSocket(ws, req); });
 
 cisaWss.on("connection", (ws) => {
   registerCisaWsClient(ws);
@@ -136,6 +139,8 @@ server.on("upgrade", (req, socket, head) => {
     }
     bucket.count += 1;
     voiceWss.handleUpgrade(req, socket, head, (ws) => { voiceWss.emit("connection", ws, req); });
+  } else if (url.startsWith("/api/v1/agentic/stream")) {
+    agenticWss.handleUpgrade(req, socket, head, (ws) => { agenticWss.emit("connection", ws, req); });
   } else {
     socket.destroy();
   }

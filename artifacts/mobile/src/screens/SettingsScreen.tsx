@@ -38,7 +38,7 @@ export default function SettingsScreen() {
         </TouchableOpacity>
         <TouchableOpacity style={styles.row} onPress={() => Linking.openURL("https://t.me/mr7ai_support")}>
           <Text style={styles.rowLabel}>الدعم الفني</Text>
-          <Ionicons name="logo-telegram" size={18} color="#666" />
+          <Ionicons name="send" size={18} color="#666" />
         </TouchableOpacity>
 
         <Text style={styles.version}>mr7.ai v1.0.0 — KaliGPT Mobile</Text>

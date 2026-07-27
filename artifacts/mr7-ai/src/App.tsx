@@ -444,10 +444,12 @@ const ZeroBoundaryModal       = lazy(() => import("./components/modals/ZeroBound
 const BlogModal               = lazy(() => import("./components/modals/BlogModal").then(m=>({default:m.BlogModal})));
 const ChatSearchModal         = lazy(() => import("./components/modals/ChatSearchModal").then(m=>({default:m.ChatSearchModal})));
 const AdvancedDashboard       = lazy(() => import("./components/UnifiedSystem/AdvancedDashboard").then(m=>({default:m.AdvancedDashboard})));
+const CognitiveControlCenter  = lazy(() => import("./components/cognitive_ui/CognitiveControlCenter").then(m=>({default:m.CognitiveControlCenter})));
 
 const MODAL_IDS = [
   'personaEditor','personaManager','localModel','providerSettings','pricing','api','settings','account',
   'tool','shortcuts','palette','toolsHub','memory','bookmarks','search','compare',
+  'cognitiveControlCenter',
   'osintDash','admin','activate','agent','nexus','arsenal','jarvis','parseltongue',
   'rag','teamAgent','skills','openGravity','agentOS','geminiCLI','hermes','graphify',
   'getShitDone','ccswitch','uiuxpro','careerOps','abTop','awesomeLLM','osintScanner',
@@ -1144,6 +1146,7 @@ function AppContent() {
     <GlobalCommandPalette
       onNewChat={() => dispatch({ type: "NEW_CHAT" })}
       onOpenArsenal={() => open('arsenal')}
+      onOpenCognitiveCenter={() => open('cognitiveControlCenter')}
       onLaunchModule={(id) => handleArsenalLaunch(id)}
       onOpenSettings={() => open('settings')}
       onOpenPricing={() => open('pricing')}
@@ -1345,6 +1348,9 @@ function AppContent() {
 
       {/* All lazy modals wrapped in Suspense */}
       <Suspense fallback={null}>
+        <WindowChrome open={modals.cognitiveControlCenter} color="#00d7ec" title="COGNITIVE CONTROL CENTER" onClose={() => close('cognitiveControlCenter')}>
+          <CognitiveControlCenter onClose={() => close('cognitiveControlCenter')} />
+        </WindowChrome>
         <WindowChrome open={modals.api} color="#e21227" title="API ACCESS" onClose={() => close('api')}>
           <ApiAccessModal open={modals.api} onOpenChange={(v) => mDispatch({type:'SET',id:'api',value:v})} />
         </WindowChrome>

@@ -52,6 +52,7 @@ import {
   clerkProxyMiddleware,
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware.js";
+import agenticStreamRouter from "./gateway/agentic-stream.js";
 
 // Validate environment at startup — exits if critical vars missing
 validateEnv();
@@ -358,6 +359,8 @@ app.get("/api/csrf-token", ensureCsrfToken, getCsrfToken);
 // ── Fully public routes (health + CISA threat feed) ─────────────────────────
 app.use("/api", healthRouter);
 app.use("/api", cisaRouter);
+// Defensive agentic control plane: simulation-only jobs and typed SSE telemetry.
+app.use("/api/v1/agentic", agenticStreamRouter);
 
 // ── OAuth routes (public — before internalAuth) ───────────────────────────────
 app.use("/api", oauthRouter);
