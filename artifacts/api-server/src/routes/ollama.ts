@@ -11,7 +11,7 @@ const router = Router();
 // ── Auth: all Ollama routes require LOCAL_ENGINE_API_KEY when configured ──────
 router.use(localEngineAuth);
 
-const OLLAMA_BASE = process.env.OLLAMA_HOST || "https://e58e-2003-cb-5f1b-ad4f-b822-f7be-9ffb-45ce.ngrok-free.app";
+const OLLAMA_BASE = process.env.OLLAMA_HOST ?? "";
 const CUSTOM_API_KEY = (process.env.CUSTOM_API_KEY ?? "").trim();
 
 // Workspace-persistent binary (survives container restarts)

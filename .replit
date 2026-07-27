@@ -25,10 +25,10 @@ channel = "stable-25_05"
 
     [userenv.shared]
     EVALS_MODE = "1"
-    OLLAMA_HOST = "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app"
-    VITE_OLLAMA_BASE_URL = "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app"
-    CUSTOM_API_BASE_URL = "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app/v1"
-    CUSTOM_API_MODEL = "llama3.2"
+OLLAMA_HOST = "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app"
+VITE_OLLAMA_BASE_URL = "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app"
+CUSTOM_API_BASE_URL = "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app/v1"
+CUSTOM_API_MODEL = "llama3.2"
 
     [userenv.development]
     AUTO_LAUNCH_OLLAMA = "false"
