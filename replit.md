@@ -28,6 +28,42 @@ Advanced cybersecurity AI assistant platform with pentest tools, OSINT, threat i
 
 ---
 
+## OMNI-HACK — AI Pentest Platform (18 Phases)
+
+All 18 pentest phases live under `artifacts/api-server/src/services/pentest/` and are registered in `index.ts` as `PENTEST_TOOL_REGISTRY`. Each service exports a class with a standard interface.
+
+**API Routes** — all mounted at `/api/pentest-omni`:
+
+| Endpoint | Phase | Tool |
+|----------|-------|------|
+| `GET /api/pentest-omni` | — | List all tools |
+| `POST /api/pentest-omni/discover` | 1 | Network scan (nmap / TCP probe) |
+| `POST /api/pentest-omni/osint` | 2 | DNS, WHOIS, subdomains, Shodan |
+| `POST /api/pentest-omni/sqli` | 3 | SQL injection detection |
+| `POST /api/pentest-omni/xss` | 4 | XSS scanning |
+| `POST /api/pentest-omni/jwt` | 5 | JWT attack (none-alg, weak-secret, KID, alg-confusion) |
+| `POST /api/pentest-omni/bruteforce` | 6 | SSH/FTP/HTTP brute-force |
+| `POST /api/pentest-omni/hash` | 7 | Hash cracking (MD5/SHA/NTLM) |
+| `POST /api/pentest-omni/exploit` | 8 | CVE lookup (NVD, CIRCL, ExploitDB) |
+| `POST /api/pentest-omni/reverse-shell` | 9 | Payload generator (bash/python/php/nc/…) |
+| `POST /api/pentest-omni/post-exploit` | 10 | Linux/Windows/macOS post-exploitation guide |
+| `POST /api/pentest-omni/c2/start` | 11 | C2 server management |
+| `POST /api/pentest-omni/fuzz` | 12 | Web directory/param fuzzer |
+| `POST /api/pentest-omni/wireless` | 13 | Wireless attack command generation |
+| `POST /api/pentest-omni/cloud` | 14 | AWS/Azure/GCP bucket & IAM enumeration |
+| `POST /api/pentest-omni/tls` | 15 | TLS/certificate analysis |
+| `POST /api/pentest-omni/mobile` | 16 | APK/IPA static analysis |
+| `POST /api/pentest-omni/iot` | 17 | MQTT/CoAP/firmware testing |
+| `POST /api/pentest-omni/ai` | 18 | Prompt injection & jailbreak testing |
+
+Generic executor: `POST /api/pentest-omni/execute` `{ "tool": "<name>", "params": {...} }`
+
+**AI Function Calling**: `getPentestFunctionDefinitions()` from `services/pentest/index.ts` returns OpenAI-compatible function definitions for all 18 tools. Inject into chat routes to enable the AI to call pentest tools autonomously.
+
+Risk levels: `info | low | medium | high | critical` — critical tools require `requiresConfirmation: true`.
+
+---
+
 ## Run & Operate
 
 ```bash

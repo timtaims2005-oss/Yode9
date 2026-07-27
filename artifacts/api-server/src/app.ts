@@ -437,6 +437,10 @@ app.use("/api", abTestsRouter);
 import officeExportRouter from "./routes/office-export";
 app.use("/api", officeExportRouter);
 
+// ── OMNI-HACK — AI Pentest Platform (18 Phases) ───────────────────────────────
+import pentestOmniRouter from "./routes/pentest-omni";
+app.use("/api", pentestOmniRouter);
+
 // ── Central AI Orchestration (Function Calling) — public ──────────────────────
 import orchestrateRouter from "./routes/orchestrate";
 app.use("/api", orchestrateRouter);

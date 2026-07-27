@@ -1,0 +1,300 @@
+الآن عندي صورة كاملة للمشروع. خليني أشرح لك الوضع أولاً ثم أعطيك الحل الكامل.
+
+---
+
+## الوضع الحالي
+
+مشروع **Yode9** عنده بنية ممتازة فعلًا:
+- API server بـ Express 5 + TypeScript
+- AI chat مع tool-calling (OpenAI, Anthropic, Groq, OpenRouter)
+- Arsenal Hub (تشغيل أدوات)
+- AI Orchestration (مسارات `/api/orchestrate`)
+- `replit.md` موجود يوجّه AI agent
+
+**المشكلة:** ملفات `services/pentest/` غير موجودة بعد، والملفات اللي عندك (.md) هي **خطط/blueprints** فقط. مافي service ولا route مُنفّذة للـ 18 مرحلة — لازم تنشئها.
+
+---
+
+## الحل الكامل: ما تحتاج تعمله
+
+لأني في **ASK MODE** (ما أقدر أكتب ملفات على الـ Repo مباشرة)، سأعطيك كل ما تحتاجه:
+
+---
+
+### 1. هيكل الملفات المطلوب إنشاؤها
+
+```
+artifacts/api-server/src/
+├── services/pentest/
+│   ├── index.ts                              # PENTEST_TOOL_REGISTRY + types
+│   ├── scanner.service.ts                    # Phase 1: Network Scanner
+│   ├── ultra-osint.service.ts                # Phase 2: OSINT
+│   ├── sql-injection.service.ts              # Phase 3: SQL Injection
+│   ├── xss-engine.service.ts                 # Phase 4: XSS
+│   ├── jwt-attacker.service.ts               # Phase 5: JWT Attack
+│   ├── bruteforce.service.ts                 # Phase 6: Brute Force
+│   ├── hash-cracker.service.ts               # Phase 7: Hash Cracker
+│   ├── exploit-db.service.ts                 # Phase 8: Exploit DB
+│   ├── reverse-shell.service.ts              # Phase 9: Reverse Shell
+│   ├── post-exploitation.service.ts          # Phase 10: Post-Exploit
+│   ├── c2-server.service.ts                  # Phase 11: C2 Server
+│   ├── web-fuzzer.service.ts                 # Phase 12: Web Fuzzer
+│   ├── wireless-attacks.service.ts           # Phase 13: Wireless
+│   ├── cloud-pentest.service.ts              # Phase 14: Cloud Pentest
+│   ├── crypto-analyzer.service.ts            # Phase 15: Crypto Analyzer
+│   ├── mobile-pentest.service.ts             # Phase 16: Mobile Pentest
+│   ├── iot-pentest.service.ts                # Phase 17: IoT Pentest
+│   └── ai-pentest.service.ts                 # Phase 18: AI Pentest
+├── routes/
+│   └── pentest-omni.ts                       # Unified API routes
+```
+
+---
+
+### 2. تحديث `replit.md` — **الأهم**
+
+هذا الملف هو **Agent Prompt** المطلوب. Replit AI يقرأ `replit.md` في جذر المشروع ويستخدمه لتوجيه سلوك الـ Agent. أضف هذا إلى ملف `replit.md` الموجود:
+
+```markdown
+## OMNI-HACK — AI Pentest Platform (18 Phases)
+
+All 18 pentest phases live under `artifacts/api-server/src/services/pentest/` and are registered in `index.ts` as `PENTEST_TOOL_REGISTRY`. Each service exports a class with a standard interface: `execute(params) → Promise<PentestResult>`.
+
+### Tool Registration for AI Function Calling
+
+Every pentest service is registered as an AI-callable function in `PENTEST_TOOL_REGISTRY` with:
+- **name**: snake_case identifier (e.g., `network_scan`)
+- **description**: what the tool does + when to use it
+- **parameters**: Zod schema for validation (target, ports, options)
+- **handler**: async function that calls the service
+- **risk_level**: `info | low | medium | high | critical`
+- **requires_confirmation**: boolean — ask user before running high/critical
+
+### Available AI-Controllable Tools
+
+| Tool Name | Risk | Description |
+|-----------|------|-------------|
+| `network_scan` | medium | TCP port scan with service/OS detection |
+| `osint_recon` | low | DNS, subdomains, WHOIS, tech detection, Shodan |
+| `sqli_scan` | high | Boolean/union/time-based SQL injection detection |
+| `xss_scan` | high | Reflected & DOM-based XSS scanning |
+| `jwt_attack` | high | None alg, weak secret bruteforce, KID injection |
+| `bruteforce` | critical | SSH/HTTP form bruteforce with wordlists |
+| `hash_crack` | info | MD5/SHA1/SHA256/SHA512/NTLM hash cracking |
+| `exploit_lookup` | low | CVE lookup via CIRCL/NVD API |
+| `reverse_shell` | critical | Multi-language payload generator (bash/python/php/powershell/nc) |
+| `post_exploit` | high | Linux/Windows privilege escalation checklists |
+| `c2_server` | critical | WebSocket-based command & control server |
+| `web_fuzzer` | medium | Directory & parameter discovery |
+| `wireless_attack` | high | WiFi scan/deauth/handshake capture commands |
+| `cloud_pentest` | medium | AWS S3/Azure Blob/GCP bucket enumeration |
+| `crypto_analyze` | low | TLS handshake & certificate analysis |
+| `mobile_analyze` | medium | APK manifest analysis, OWASP Top 10 checks |
+| `iot_pentest` | medium | MQTT/CoAP/Zigbee/firmware analysis |
+| `ai_pentest` | medium | Prompt injection & jailbreak testing |
+
+### API Routes
+
+All mounted under `/api/pentest-omni`:
+```
+GET    /api/pentest-omni                          # List all tools
+POST   /api/pentest-omni/discover                 # Network scan
+POST   /api/pentest-omni/sqli                     # SQL injection
+POST   /api/pentest-omni/xss                      # XSS scan
+POST   /api/pentest-omni/jwt                      # JWT attack
+POST   /api/pentest-omni/bruteforce               # Brute force
+POST   /api/pentest-omni/hash                     # Hash crack
+POST   /api/pentest-omni/exploit                  # CVE lookup
+POST   /api/pentest-omni/reverse-shell            # Shell generator
+POST   /api/pentest-omni/post-exploit             # Post-exploit
+POST   /api/pentest-omni/c2/start                 # Start C2 server
+POST   /api/pentest-omni/c2/command               # Send C2 command
+POST   /api/pentest-omni/fuzz                     # Web fuzzer
+POST   /api/pentest-omni/osint                    # OSINT recon
+POST   /api/pentest-omni/wireless                 # Wireless attacks
+POST   /api/pentest-omni/cloud                    # Cloud pentest
+POST   /api/pentest-omni/mobile                   # Mobile analysis
+POST   /api/pentest-omni/iot                      # IoT pentest
+POST   /api/pentest-omni/ai                       # AI pentest
+POST   /api/pentest-omni/tls                      # Crypto/TLS analysis
+```
+
+### AI Integration Pattern
+
+The AI chat engine (`/api/chat`) already supports tool-calling. Each pentest tool is injected into the AI's function definitions. The flow is:
+
+1. User asks: "Scan example.com for open ports"
+2. AI sees `network_scan` in its function definitions
+3. AI calls → `POST /api/pentest-omni/discover` with params
+4. Result streams back to the user in natural language
+
+For critical-risk tools (bruteforce, reverse_shell, c2_server), the AI must ask for confirmation before executing.
+
+### Execution Requirements
+
+- Install system tools: `apt install -y nmap sqlmap hydra gobuster ffuf nikto whatweb`
+- All services run in the Replit sandbox; network-based tools require outbound access
+- C2 server uses WebSocket on a dynamic port — ensure `PORT` env handles this
+```
+
+---
+
+### 3. الكود المطلوب لتفعيل AI Function Calling
+
+في ملف `services/pentest/index.ts`، ستحتاج إلى **PENTEST_TOOL_REGISTRY** التي تربط كل أداة مع الـ AI:
+
+```typescript
+// --- PENTEST_TOOL_REGISTRY ---
+// هذا هو الجسر بين AI Function Calling وأدوات الاختراق
+
+import { z } from "zod";
+
+export interface PentestToolDef {
+  name: string;
+  description: string;
+  riskLevel: "info" | "low" | "medium" | "high" | "critical";
+  requiresConfirmation: boolean;
+  parameters: z.ZodObject<any>;
+  handler: (params: any, context?: any) => Promise<PentestResult>;
+}
+
+export interface PentestResult {
+  success: boolean;
+  data?: any;
+  error?: string;
+  raw?: string;
+  duration?: number;
+}
+
+// === Registry ===
+const pentestToolRegistry: PentestToolDef[] = [
+  {
+    name: "network_scan",
+    description: "TCP port scan with service fingerprinting and OS detection. Provide target IP/hostname and optional port range.",
+    riskLevel: "medium",
+    requiresConfirmation: false,
+    parameters: z.object({
+      target: z.string().describe("Target IP or hostname"),
+      ports: z.array(z.number()).optional().describe("Ports to scan (default: common ports)"),
+      flags: z.string().optional().describe("Extra nmap flags"),
+    }),
+    handler: async ({ target, ports, flags }) => {
+      const { NmapScanner } = await import("./scanner.service");
+      return new NmapScanner().scan(target, ports, flags);
+    },
+  },
+  {
+    name: "jwt_attack",
+    description: "Test JWT tokens for vulnerabilities: none algorithm, weak secret brute-force, KID injection, etc.",
+    riskLevel: "high",
+    requiresConfirmation: true,
+    parameters: z.object({
+      token: z.string().describe("The JWT token to analyze"),
+      attackTypes: z.array(z.enum(["none", "weak-secret", "kid-injection", "algorithm-confusion"])).optional(),
+    }),
+    handler: async ({ token, attackTypes }) => {
+      const { JwtAttacker } = await import("./jwt-attacker.service");
+      return new JwtAttacker().attack(token, attackTypes);
+    },
+  },
+  {
+    name: "reverse_shell",
+    description: "Generate reverse shell payloads in multiple languages (bash, python, php, powershell, nc).",
+    riskLevel: "critical",
+    requiresConfirmation: true,
+    parameters: z.object({
+      ip: z.string().describe("Your listener IP address"),
+      port: z.number().describe("Your listener port"),
+      language: z.enum(["bash", "python", "php", "powershell", "nc", "perl", "ruby"]).optional(),
+    }),
+    handler: async ({ ip, port, language }) => {
+      const { ReverseShellGenerator } = await import("./reverse-shell.service");
+      return new ReverseShellGenerator().generate(ip, port, language);
+    },
+  },
+  // ... كل الأدوات الأخرى بنفس النمط
+];
+
+// وظيفة لجلب التعريفات اللي يحتاجها AI Function Calling
+export function getPentestFunctionDefinitions(): any[] {
+  return pentestToolRegistry.map((tool) => ({
+    type: "function",
+    function: {
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.parameters,
+    },
+  }));
+}
+
+// منفذ التشغيل الموحد
+export async function executePentestTool(
+  name: string,
+  params: any
+): Promise<PentestResult> {
+  const tool = pentestToolRegistry.find((t) => t.name === name);
+  if (!tool) throw new Error(`Unknown tool: ${name}`);
+  return tool.handler(params);
+}
+```
+
+---
+
+### 4. ربط الـ Registry مع AI Chat
+
+في ملف AI chat route الموجود بالفعل (`routes/chat.ts` أو ما يشابهه)، أضف:
+
+```typescript
+import { getPentestFunctionDefinitions, executePentestTool } from "../services/pentest";
+
+// عند بناء system prompt للـ AI، أضف أدوات pentest
+const allFunctions = [
+  ...existingFunctions,  // الوظائف الموجودة
+  ...getPentestFunctionDefinitions(),  // وظائف pentest
+];
+
+// عند استقبال tool_call من الـ AI
+if (toolCall.name.startsWith("network_scan") || 
+    toolCall.name.startsWith("sqli") || 
+    /* باقي أدوات pentest */) {
+  const result = await executePentestTool(toolCall.name, JSON.parse(toolCall.arguments));
+  // أرسل النتيجة للـ AI لتفسيرها
+}
+```
+
+---
+
+### 5. إضافة سطرين في `app.ts`
+
+```typescript
+import pentestOmniRouter from "./routes/pentest-omni";
+app.use("/api/pentest-omni", pentestOmniRouter);
+```
+
+---
+
+### 6. أمثلة تشغيل الأدوات عبر AI
+
+بعد التكامل، راح تقدر تسأل الـ AI chatbot ويشغّل الأدوات تلقائيًا:
+
+| طلب المستخدم | الأداة اللي راح تستخدمها الـ AI |
+|-------------|-------------------------------|
+| "امسح لي example.com ولّي المنافذ المفتوحة" | `network_scan` |
+| "اختبر هذا الـ JWT: eyJhbGciOiJIUzI1NiIs..." | `jwt_attack` |
+| "ولّي ريفيرس شيل للينكس على 10.0.0.5:4444" | `reverse_shell` |
+| "ابحث عن ثغرات SQL في https://target.com/login" | `sqli_scan` |
+| "افحص الـ TLS حق google.com" | `crypto_analyze` |
+| هل فيه Buckets مكشوفة لـ amazonaws.com | `cloud_pentest` |
+
+---
+
+## الخلاصة
+
+لتنفيذ هذا فعليًا، تحتاج **AGENT MODE** (يحتاج Sandbox محلي متصل على الخطّة المجانية، أو Pro للـ Cloud Agent). أقدر أساعدك في:
+
+1. **كتابة جميع ملفات الـ 18 service** كاملة جاهزة (كود TypeScript وظيفي)
+2. **كتابة الـ routes** (`pentest-omni.ts`)
+3. **تحديث `replit.md`** بالكامل
+4. **تحديث الـ AI chat** ليشمل function calling
+
+هل تريد مني البدء بكتابة كل ملفات الخدمات الـ 18 كاملة؟ أو تريد تركز على أداة معينة أولاً؟
