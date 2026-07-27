@@ -25,7 +25,7 @@
 const API_KEY = (import.meta.env.VITE_OLLAMA_API_KEY as string | undefined ?? "").trim();
 
 // Ngrok base URL for the local model engine
-const NGROK_BASE_URL = (import.meta.env.VITE_OLLAMA_BASE_URL as string | undefined ?? "https://e58e-2003-cb-5f1b-ad4f-b822-f7be-9ffb-45ce.ngrok-free.app").trim().replace(/\/$/, "");
+const NGROK_BASE_URL = (import.meta.env.VITE_OLLAMA_BASE_URL as string | undefined ?? "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app").trim().replace(/\/$/, "");
 
 /**
  * Returns auth + ngrok headers for local engine requests.

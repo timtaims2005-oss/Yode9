@@ -1,37 +1,38 @@
 modules = ["nodejs-20", "python-3.11", "web"]
 
-[deployment]
-router = "application"
-deploymentTarget = "autoscale"
+    [deployment]
+    router = "application"
+    deploymentTarget = "autoscale"
 
-[deployment.postBuild]
-args = ["pnpm", "store", "prune"]
-env = { "CI" = "true" }
+    [deployment.postBuild]
+    args = ["pnpm", "store", "prune"]
+    env = { "CI" = "true" }
 
-[workflows]
+    [workflows]
 
-[agent]
-stack = "PNPM_WORKSPACE"
-expertMode = true
+    [agent]
+    stack = "PNPM_WORKSPACE"
+    expertMode = true
 
-[postMerge]
-path = "scripts/post-merge.sh"
-timeoutMs = 20000
+    [postMerge]
+    path = "scripts/post-merge.sh"
+    timeoutMs = 20000
 
-[nix]
-channel = "stable-25_05"
+    [nix]
+    channel = "stable-25_05"
 
-[userenv]
+    [userenv]
 
-[userenv.shared]
-EVALS_MODE = "1"
-VITE_OLLAMA_API_KEY = "rayan1212"
-OLLAMA_HOST = "https://e58e-2003-cb-5f1b-ad4f-b822-f7be-9ffb-45ce.ngrok-free.app"
-VITE_OLLAMA_BASE_URL = "https://e58e-2003-cb-5f1b-ad4f-b822-f7be-9ffb-45ce.ngrok-free.app"
+    [userenv.shared]
+    EVALS_MODE = "1"
+    VITE_OLLAMA_API_KEY = "rayan1212"
+    OLLAMA_HOST = "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app"
+    VITE_OLLAMA_BASE_URL = "https://230b-2003-cb-5f1b-adc8-9145-de1e-fa46-3351.ngrok-free.app"
 
-[userenv.development]
-AUTO_LAUNCH_OLLAMA = "false"
-BASE_PATH = "/"
-LOCAL_AUTH_BYPASS = "true"
-LOCAL_MOCK_PROVIDER = "true"
-NODE_ENV = "development"
+    [userenv.development]
+    AUTO_LAUNCH_OLLAMA = "false"
+    BASE_PATH = "/"
+    LOCAL_AUTH_BYPASS = "true"
+    LOCAL_MOCK_PROVIDER = "false"
+    NODE_ENV = "development"
+    
